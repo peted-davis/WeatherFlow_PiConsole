@@ -23,6 +23,48 @@ tar -xvf PiConsole.tar.gz --strip 1
 rm PiConsole.tar.gz
 ```
 
+If you are have the console setup to auto run using the .service file, copy the
+new .service file into /etc/systemd/system and renable:
+
+```
+sudo cp WeatherFlowPiConsole.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable WeatherFlowPiConsole.service
+```
+
+## Auto-Run Instructions
+
+If you want to enable the console to auto-run when the Raspberry Pi powers up, copy the
+WeatherFlowPiConsole.service file into /etc/systemd/system/
+
+```
+sudo cp WeatherFlowPiConsole.service /etc/systemd/system/
+```
+
+Start the service using
+
+```
+sudo systemctl start WeatherFlowPiConsole.service
+```
+
+If the console boots and everything is working, stop the console and set the service to 
+start automatically at reboot
+
+```
+sudo systemctl stop WeatherFlowPiConsole.service
+sudo systemctl enable WeatherFlowPyConsole.service
+```
+
+Reboot your Raspberry Pi and the console should come up automatically
+
+```
+sudo reboot now
+```
+
+If you are going to use the auto-start method, it is highly recommended that you can SSH
+into your Raspberry Pi, as the console can only be stopped using the stop command above
+and not ctrl-c on the keyboard.
+
 ## Installation Instructions
 
 Follow these instructions to setup a new installation of the WeatherFlow PiConsole on your
