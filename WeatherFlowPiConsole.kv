@@ -892,8 +892,8 @@ WeatherFlowPiConsoleScreen:
 			allow_stretch: 1
 			size: (168,91)
 			pos: (582,96)
-			
-			
+		
+		## MAXIMUM AND MINIMUM PRESSURE ON PRESSURE DIAL
 		Label:
 			text: app.System['Barometer'][0]
 			font_name: "Fonts/SystemSanFranciscoDisplayBold.ttf"
@@ -907,7 +907,6 @@ WeatherFlowPiConsoleScreen:
 			size: (40,20)
 			pos: (565,78)	
 			color: [0.84,0.84,0.84,1]		
-
 		Label:
 			text: app.System['Barometer'][1]
 			font_name: "Fonts/SystemSanFranciscoDisplayBold.ttf"
@@ -921,8 +920,7 @@ WeatherFlowPiConsoleScreen:
 			size: (40,20)
 			pos: (727,78)	
 			color: [0.84,0.84,0.84,1]	
-		
-			
+	
 		## CURRENT PRESSURE
 		Label:
 			text: app.Air['Pres'][1]
