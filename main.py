@@ -170,6 +170,7 @@ class WeatherFlowPiConsole(App):
 		
 		# Assign configuration variables to Kivy properties
 		self.System['WFlowKey'] = config['System']['WFlowKey']
+		self.System['Version'] = config['System']['Version']
 		self.System['GeoNamesKey'] = config['User']['GeoNamesKey']
 		self.System['MetOfficeKey'] = config['User']['MetOfficeKey']
 		self.System['DarkSkyKey'] = config['User']['DarkSkyKey']
@@ -216,7 +217,9 @@ class WeatherFlowPiConsole(App):
 		self.System['Units']['Other'] = Data['station_units']['units_other']
 		
 		# Define maximum and minimum pressure for barometer
-		if self.System['Units']['Pressure'] == 'mb' or 'hpa':
+		if self.System['Units']['Pressure'] == 'mb':
+			self.System['Barometer'] = ['950','1050']
+		elif self.System['Units']['Pressure'] == 'hpa':
 			self.System['Barometer'] = ['950','1050']
 		elif self.System['Units']['Pressure'] == 'inhg':
 			self.System['Barometer'] = ['28.0','31.0']
@@ -536,10 +539,12 @@ class WeatherFlowPiConsole(App):
 			B = 243.04
 			N = B*(math.log(Humidity/100.0) + (A*Temp)/(B+Temp))
 			D = A-math.log(Humidity/100.0) - A*Temp/(B+Temp)
-			DewPoint = [N/D,'c']
+			DewPoint = N/D
 		else:
-			DewPoint = [NaN,'c']
-		return DewPoint
+			DewPoint = NaN
+		
+		# Return Dew Point
+		return [DewPoint,'c']
 		
 	# CALCULATE "FEELS LIKE" TEMPERATURE FROM HUMIDITY, TEMPERATURE, AND WIND 
 	# SPEED
@@ -577,7 +582,7 @@ class WeatherFlowPiConsole(App):
 		else: 
 			FeelsLike = TempC
 			
-		# Return "Feels Like" temperature
+		# Return 'Feels Like' temperature
 		return [FeelsLike,'c']
 						
 	# CALCULATE SEA LEVEL PRESSURE FROM AMBIENT PRESSURE AND STATION ELEVATION
@@ -598,7 +603,7 @@ class WeatherFlowPiConsole(App):
 		# Calculate sea level pressure
 		SLP = Psta * (1 + ((P0/Psta)**((Rd*GammaS)/g)) * ((GammaS*Elev)/T0))**(g/(Rd*GammaS))
 
-		# Return sea level pressure
+		# Return Sea Level Pressure
 		return [SLP,'mb']		
 							
 	# CALCULATE THE PRESSURE TREND AND SET THE PRESSURE TREND TEXT
@@ -618,17 +623,18 @@ class WeatherFlowPiConsole(App):
 		
 		# Calculate pressure trend
 		Trend = []
-		Trend.append(Pres[-1]-Pres[0])
-		Trend.append('mb')
-			
-		# Define Kivy label binds
-		if Trend[0] >= 1:
-			Trend.append("[color=ff8837ff]Rising[/color]")
-		elif Trend[0] <= -1:
-			Trend.append("[color=00a4b4ff]Falling[/color]")
+		Trend = Pres[-1] - Pres[0]
+		
+		# Calculate pressure trend text
+		if Trend >= 1:
+			TrendText = "[color=ff8837ff]Rising[/color]"
+		elif Trend <= -1:
+			TrendText = "[color=00a4b4ff]Falling[/color]"
 		else:
-			Trend.append("[color=9aba2fff]Steady[/color]")
-		return Trend	
+			TrendText = "[color=9aba2fff]Steady[/color]"
+		
+		# Return pressure trend
+		return [Trend,'mb',TrendText]
 
 	# CALCULATE DAILY RAIN ACCUMULATION LEVELS
     # --------------------------------------------------------------------------
@@ -1611,8 +1617,7 @@ class WeatherFlowPiConsole(App):
 		self.Sager['Forecast'] = Sager.Forecast(self.Sager['Dial'])
 		self.Sager['Issued'] = datetime.now(self.System['tz']).strftime('%H:%M')
 		
-		# Determine time until generation of next Sager 
-		# Weathercaster forecast
+		# Determine time until generation of next Sager Weathercaster forecast
 		Tz = self.System['tz']
 		Now = datetime.now(pytz.utc).astimezone(Tz)	
 		if Now.hour < 6:
@@ -1823,17 +1828,14 @@ class CurrentConditions(Screen):
 		self.ButtonPress(instance.text)
 		
 		# Open Credits popup
-		Credits().open()	
+		Credits().open()
 		
 # ==============================================================================
-# DEFINE SCREENS
-# ==============================================================================
-class Forecast(Screen):
-	pass
-	
+# DEFINE POPUPS
+# ==============================================================================	
 class Credits(Popup):
 	pass	
-
+	
 # ==============================================================================
 # RUN WeatherFlowPiConsole
 # ==============================================================================
