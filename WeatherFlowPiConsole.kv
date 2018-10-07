@@ -1149,14 +1149,38 @@ WeatherFlowPiConsoleScreen:
 				size: self.parent.size
 				pos: self.parent.pos			
 
-## ----------------------------------------------------------
+## =============================================================================
 ## CREDITS POPUP
-## ----------------------------------------------------------
+## =============================================================================
 <Credits>:
-	title: ""
+	title: ''
 	separator_height: 0
 	background: "Background/Credits.png"
 	separator_color: [0,0,0,1]
     size_hint: (None,None)
     size: (500,400)
+	
+## =============================================================================
+## NEW VERSION AVAILABLE POPUP
+## =============================================================================
+<Version>:
+	pos_hint: {'x':0,'y':0}
+	size_hint: (None,None)
+    size: (170,70)
+	BoxLayout:
+		spacing: 0
+		orientation: 'vertical'
+		
+		Label:
+			text: 'Update Available'
+			size_hint: (1,1/3)
+		Label:
+			text: 'Current Version: ' + app.System['Version'] + '\nLatest Version: ' + app.System['LatestVer'] 
+			halign: 'left'
+			size_hint: (1,2/3)
+		
+	
+
+
+
 
