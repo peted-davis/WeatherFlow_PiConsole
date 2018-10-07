@@ -1,5 +1,16 @@
 # WeatherFlow PiConsole
-Raspberry Pi Python console for the Weather Flow Smart Home Weather Station   
+Raspberry Pi Python console for the Weather Flow Smart Home Weather Station. The 
+console uses the WeatherFlow REST API and websocket to stream data from your 
+Weather Flow Smart Home Weather Station in real time via the internet. As soon as 
+the data from your station reaches the WeatherFlow servers, it is pushed immediately 
+to the console, including the 3-second rapid fire wind updates.   
+
+Many of the graphical elements in the console are based on the Weather34 Home
+Weather Station Template (https://www.weather34.com/homeweatherstation/) copyright
+2015-2018 Brian Underdown. The Weather34 Home Weather Station Template is licensed
+under a licensed under a Creative Commons Attribution-NonCommercial-NoDerivatives 
+4.0 International License.
+
 http://weatherflow.com/smart-home-weather-stations/  
 https://community.weatherflow.com/
 
