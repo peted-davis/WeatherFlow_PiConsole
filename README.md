@@ -8,8 +8,8 @@ to the console, including the 3-second rapid fire wind updates.
 Many of the graphical elements in the console are based on the Weather34 Home
 Weather Station Template (https://www.weather34.com/homeweatherstation/) copyright
 2015-2018 Brian Underdown. The Weather34 Home Weather Station Template is licensed
-under a licensed under a Creative Commons Attribution-NonCommercial-NoDerivatives 
-4.0 International License.
+under a Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International 
+License.
 
 http://weatherflow.com/smart-home-weather-stations/  
 https://community.weatherflow.com/
