@@ -15,6 +15,16 @@
 # this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # ==============================================================================
+# INITIALISE KIVY BACKEND
+# ==============================================================================
+import platform
+import os
+if platform.system() == 'Linux':
+	os.environ['KIVY_GL_BACKEND'] = 'gl'
+elif platform.system() == 'Windows':
+	os.environ['KIVY_GL_BACKEND'] = 'glew'
+
+# ==============================================================================
 # INITIALISE KIVY TWISTED WEBSOCKET CLIENT
 # ==============================================================================
 from kivy.support import install_twisted_reactor
@@ -79,6 +89,7 @@ from kivy.factory import Factory
 from kivy.uix.screenmanager import ScreenManager,Screen
 from kivy.core.window import Window
 from kivy.uix.popup import Popup
+from kivy.uix.modalview import ModalView
 from kivy.properties import StringProperty,DictProperty,NumericProperty
 from kivy.clock import Clock
 from kivy.animation import Animation
@@ -96,7 +107,6 @@ import requests
 import ephem
 import configparser
 import sys
-import platform
 
 # ==============================================================================
 # DEFINE GLOBAL FUNCTIONS AND VARIABLES
@@ -439,14 +449,14 @@ class WeatherFlowPiConsole(App):
 			TempMaxMin,PresMaxMin = self.AirObsMaxMin()
 
 			# Convert observation units as required
-			Temp = self.ConvertObservationUnits(Temp,'Temp')
-			DewPoint = self.ConvertObservationUnits(DewPoint,'Temp')
-			FeelsLike = self.ConvertObservationUnits(FeelsLike,'Temp')
-			TempMaxMin = self.ConvertObservationUnits(TempMaxMin,'Temp')
-			SLP = self.ConvertObservationUnits(SLP,'Pressure')
-			PresTrend = self.ConvertObservationUnits(PresTrend,'Pressure')
-			PresMaxMin = self.ConvertObservationUnits(PresMaxMin,'Pressure')
-			
+			cTemp = self.ConvertObservationUnits(Temp,'Temp')
+			cDewPoint = self.ConvertObservationUnits(DewPoint,'Temp')
+			cFeelsLike = self.ConvertObservationUnits(FeelsLike,'Temp')
+			cTempMaxMin = self.ConvertObservationUnits(TempMaxMin,'Temp')
+			cSLP = self.ConvertObservationUnits(SLP,'Pressure')
+			cPresTrend = self.ConvertObservationUnits(PresTrend,'Pressure')
+			cPresMaxMin = self.ConvertObservationUnits(PresMaxMin,'Pressure')
+						
 			# Define Pressure format string based on observation unit
 			if self.System['Units']['Pressure'] == 'inhg':
 				PresFormat = "{:2.3f}"
@@ -457,15 +467,15 @@ class WeatherFlowPiConsole(App):
 			
 			# Define and format Kivy labels
 			self.Air['Time'] = datetime.fromtimestamp(Time[0],self.System['tz']).strftime('%H:%M:%S')
-			self.Air['Temp'] = ["{:2.1f}".format(Temp[0]),Temp[1]]
-			self.Air['MaxTemp'] = ["{:2.1f}".format(float(TempMaxMin[0])),TempMaxMin[1],TempMaxMin[2]]
-			self.Air['MinTemp'] = ["{:2.1f}".format(float(TempMaxMin[3])),TempMaxMin[4],TempMaxMin[5]]
-			self.Air['DewPoint'] = ["{:2.1f}".format(DewPoint[0]),DewPoint[1]]		
-			self.Air['FeelsLike'] = ['-' if math.isnan(FeelsLike[0]) else "{:2.1f}".format(FeelsLike[0]),FeelsLike[1]]
-			self.Air['Pres'] = ["{:4.1f}".format(Pres[0]),PresFormat.format(SLP[0]),SLP[1]]
-			self.Air['MaxPres'] = [PresFormat.format(PresMaxMin[0]),PresMaxMin[1]]
-			self.Air['MinPres'] = [PresFormat.format(PresMaxMin[2]),PresMaxMin[3]]
-			self.Air['PresTrend'] = [PresFormat.format(PresTrend[0]/3),PresTrend[1] + '/hr',PresTrend[2]]		
+			self.Air['Temp'] = ["{:2.1f}".format(cTemp[0]),cTemp[1]]
+			self.Air['MaxTemp'] = ["{:2.1f}".format(float(cTempMaxMin[0])),cTempMaxMin[1],cTempMaxMin[2]]
+			self.Air['MinTemp'] = ["{:2.1f}".format(float(cTempMaxMin[3])),cTempMaxMin[4],cTempMaxMin[5]]
+			self.Air['DewPoint'] = ["{:2.1f}".format(cDewPoint[0]),cDewPoint[1]]		
+			self.Air['FeelsLike'] = ['-' if math.isnan(cFeelsLike[0]) else "{:2.1f}".format(cFeelsLike[0]),cFeelsLike[1]]
+			self.Air['Pres'] = ["{:4.1f}".format(SLP[0]),PresFormat.format(cSLP[0]),cSLP[1]]
+			self.Air['MaxPres'] = [PresFormat.format(cPresMaxMin[0]),cPresMaxMin[1]]
+			self.Air['MinPres'] = [PresFormat.format(cPresMaxMin[2]),cPresMaxMin[3]]
+			self.Air['PresTrend'] = [PresFormat.format(cPresTrend[0]/3),cPresTrend[1] + '/hr',cPresTrend[2]]		
 			self.Air['Humidity'] = ["{:2.0f}".format(Humidity[0]),' ' + Humidity[1]]
 			self.Air['Comfort'] = ComfortLevel
 			self.Air['Battery'] = "{:1.2f}".format(Battery[0])
@@ -1834,7 +1844,10 @@ class CurrentConditions(Screen):
 # DEFINE POPUPS
 # ==============================================================================	
 class Credits(Popup):
-	pass	
+	pass
+
+class Version(ModalView):
+	pass
 	
 # ==============================================================================
 # RUN WeatherFlowPiConsole
