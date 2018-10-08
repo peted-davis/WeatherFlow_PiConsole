@@ -64,7 +64,7 @@ start automatically at reboot
 
 ```
 sudo systemctl stop WeatherFlowPiConsole.service
-sudo systemctl enable WeatherFlowPyConsole.service
+sudo systemctl enable WeatherFlowPiConsole.service
 ```
 
 Reboot your Raspberry Pi and the console should come up automatically
