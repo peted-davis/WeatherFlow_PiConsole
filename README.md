@@ -46,7 +46,11 @@ sudo systemctl enable WeatherFlowPiConsole.service
 ## Auto-Run Instructions
 
 If you want to enable the console to auto-run when the Raspberry Pi powers up, copy the
-WeatherFlowPiConsole.service file into /etc/systemd/system/
+WeatherFlowPiConsole.service file into /etc/systemd/system/. These .service files assumes 
+you have installed the PiConsole in the default directory (~/wfpiconsole/) and are using
+the default 'Pi' username. If you have installed the PiConsole in a different location, or
+are using a different username, I assume you know what you are doing and can edit the
+.service file appropriately. 
 
 ```
 cd ~/wfpiconsole/
