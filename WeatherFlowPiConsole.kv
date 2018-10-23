@@ -26,12 +26,12 @@ WeatherFlowPiConsoleScreen:
 ## CURRENT CONDITIONS SCREEN
 ## ==============================================================
 <CurrentConditions>: 
-	name: "CurrentConditions"
-	orientation: "vertical" 
+	name: 'CurrentConditions'
+	orientation: 'vertical' 
 	canvas.before:
 		Rectangle:
 			size: self.size
-			source: "Background/CurrentConditions.png"
+			source: 'Background/CurrentConditions.png'
 			
 	## ----------------------------------------------------------
 	## CLOCK
@@ -39,12 +39,12 @@ WeatherFlowPiConsoleScreen:
 	FloatLayout:
 		Label:		
 			text: root.Screen['Clock']
-			font_name: "Fonts/SystemSanFranciscoDisplayRegular.ttf"
-			halign: "center"
-			valign: "center"
-			font_size: "20sp"
-			halign: "center"
-			valign: "center"
+			font_name: 'Fonts/SystemSanFranciscoDisplayRegular.ttf'
+			halign: 'center'
+			valign: 'center'
+			font_size: '20sp'
+			halign: 'center'
+			valign: 'center'
 			size_hint: (None,None)
 			size: (264,48)
 			pos: (268,37)
@@ -57,7 +57,7 @@ WeatherFlowPiConsoleScreen:
 		id: MetOffice
 		opacity: 1
 		Image:		
-			source: "Background/MetOffice.png"
+			source: 'Background/MetOffice.png'
 			size_hint: (None,None)
 			keep_ratio: 0
 			allow_stretch: 1
@@ -66,7 +66,7 @@ WeatherFlowPiConsoleScreen:
 			
 		## CURRENT WEATHER ICON
 		Image:
-			source: "Icons/Weather/" + app.MetData['Weather'] + ".png"
+			source: 'Icons/Weather/' + app.MetData['Weather'] + '.png'
 			size_hint: (None,None)
 			keep_ratio: 0
 			allow_stretch: 1
@@ -76,12 +76,12 @@ WeatherFlowPiConsoleScreen:
 		## FORECAST TEMPERATURE
 		Label:
 			text:  app.MetData['Temp'][0] + app.MetData['Temp'][1]
-			font_name: "Fonts/SystemSanFranciscoDisplayThin.ttf"
-			font_size: "30sp"
+			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
+			font_size: '30sp'
 			text_size: self.size
 			markup: 1
-			halign: "left"
-			valign: "center"
+			halign: 'left'
+			valign: 'center'
 			size_hint: (None,None)
 			size: (170,31)
 			pos: (8,405)
@@ -89,12 +89,12 @@ WeatherFlowPiConsoleScreen:
 			
 		## FORECAST PRECIPITATION	
 		Label:
-			text: app.MetData['Precip'] + " %"
-			font_name: "Fonts/SystemSanFranciscoDisplayThin.ttf"
-			font_size: "30sp"
+			text: app.MetData['Precip'] + ' %'
+			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
+			font_size: '30sp'
 			text_size: self.size
-			halign: "left"
-			valign: "center"
+			halign: 'left'
+			valign: 'center'
 			size_hint: (None,None)
 			size: (170,31)
 			pos: (8,344)
@@ -102,12 +102,12 @@ WeatherFlowPiConsoleScreen:
 			
 		## FORECAST WINDSPEED	
 		Label:
-			text: app.MetData['WindSpd'] + " mph " + app.MetData['WindDir']
-			font_name: "Fonts/SystemSanFranciscoDisplayThin.ttf"
-			font_size: "30sp"
+			text: app.MetData['WindSpd'] + ' mph ' + app.MetData['WindDir']
+			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
+			font_size: '30sp'
 			text_size: self.size
-			halign: "left"
-			valign: "center"
+			halign: 'left'
+			valign: 'center'
 			size_hint: (None,None)
 			size: (170,31)
 			pos: (8,282)
@@ -115,23 +115,23 @@ WeatherFlowPiConsoleScreen:
 			
 		## FORECAST LOCATION, VALID, AND ISSUED TIME	
 		Label:
-			text: "Forecast issued: " + app.MetData['Issued'] + "; Valid until " + app.MetData['Valid']
-			font_name: "Fonts/Helvetica.ttf"
-			font_size: "13sp"
+			text: 'Forecast issued: ' + app.MetData['Issued'] + '; Valid until ' + app.MetData['Valid']
+			font_name: 'Fonts/Helvetica.ttf'
+			font_size: '13sp'
 			text_size: self.size
-			halign: "right"
-			valign: "center"
+			halign: 'right'
+			valign: 'center'
 			size_hint: (None,None)
 			size: (252,16)
 			pos: (8,264)
 			color: [0.84,0.84,0.84,1]	
 		Label:
 			text: app.System['ForecastLocn']
-			font_name: "Fonts/Helvetica.ttf"
-			font_size: "13sp"
+			font_name: 'Fonts/Helvetica.ttf'
+			font_size: '13sp'
 			text_size: self.size
-			halign: "right"
-			valign: "center"
+			halign: 'right'
+			valign: 'center'
 			size_hint: (None,None)
 			size: (252,16)
 			pos: (8,280)
@@ -147,23 +147,23 @@ WeatherFlowPiConsoleScreen:
 		## SAGER WEATHERCASTER FORECAST
 		Label:
 			text:  app.Sager['Forecast']
-			font_name: "Fonts/SystemSanFranciscoDisplayThin.ttf"
-			font_size: "20sp"
+			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
+			font_size: '20sp'
 			text_size: self.size
 			markup: 1
-			halign: "center"
-			valign: "top"
+			halign: 'center'
+			valign: 'top'
 			size_hint: (None,None)
 			size: (252,170)
 			pos: (7,276)
 			color: [0.84,0.84,0.84,1]	
 		Label:
-			text: "Forecast issued: " + app.Sager['Issued'] 
-			font_name: "Fonts/Helvetica.ttf"
-			font_size: "13sp"
+			text: 'Forecast issued: ' + app.Sager['Issued'] 
+			font_name: 'Fonts/Helvetica.ttf'
+			font_size: '13sp'
 			text_size: self.size
-			halign: "right"
-			valign: "center"
+			halign: 'right'
+			valign: 'center'
 			size_hint: (None,None)
 			size: (252,16)
 			pos: (8,264)
@@ -177,13 +177,13 @@ WeatherFlowPiConsoleScreen:
 	
 		## INDOOR TEMPERATURE
 		Label:
-			text: app.Breathe['Temp'] + " [sup]o[/sup]C"
-			font_name: "Fonts/SystemSanFranciscoDisplayThin.ttf"
-			font_size: "30sp"
+			text: app.Breathe['Temp'][0] + app.Breathe['Temp'][1]
+			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
+			font_size: '30sp'
 			text_size: self.size
 			markup: 1
-			halign: "center"
-			valign: "center"
+			halign: 'center'
+			valign: 'center'
 			size_hint: (None,None)
 			size: (131,41)
 			pos: (269,395)	
@@ -192,12 +192,12 @@ WeatherFlowPiConsoleScreen:
 		## OUTDOOR TEMPERATURE
 		Label:
 			text: app.Air['Temp'][0] + app.Air['Temp'][1]
-			font_name: "Fonts/SystemSanFranciscoDisplayThin.ttf"
-			font_size: "30sp"
+			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
+			font_size: '30sp'
 			text_size: self.size
 			markup: 1
-			halign: "center"
-			valign: "center"
+			halign: 'center'
+			valign: 'center'
 			size_hint: (None,None)
 			size: (131,41)
 			pos: (400,395)	
@@ -205,13 +205,13 @@ WeatherFlowPiConsoleScreen:
 
 		## INDOOR TEMPERATURE MINIMUM
 		Label:
-			text: "[color=00a4b4ff]" + app.Breathe['Min'] + " [size=15sp][sup]o[/sup]C[/color][/size]" 
-			font_name: "Fonts/SystemSanFranciscoDisplayThin.ttf"
-			font_size: "20sp"
+			text: '[color=00a4b4ff]' + app.Breathe['MinTemp'][0] + '[size=15sp]' + app.Breathe['MinTemp'][1] + '[/color][/size]' 
+			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
+			font_size: '20sp'
 			text_size: self.size
 			markup: 1
-			halign: "center"
-			valign: "center"
+			halign: 'center'
+			valign: 'center'
 			size_hint: (None,None)
 			size: (65.5,25)
 			pos: (269,369)	
@@ -219,13 +219,13 @@ WeatherFlowPiConsoleScreen:
 
 		## INDOOR TEMPERATURE MAXIMUM	
 		Label:
-			text: "[color=f05e40ff]" + app.Breathe['Max'] + " [size=15sp][sup]o[/sup]C[/color][/size]" 
-			font_name: "Fonts/SystemSanFranciscoDisplayThin.ttf"
-			font_size: "20sp"
+			text: '[color=f05e40ff]' + app.Breathe['MaxTemp'][0] + '[size=15sp]' + app.Breathe['MaxTemp'][1] + '[/color][/size]' 
+			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
+			font_size: '20sp'
 			text_size: self.size
 			markup: 1
-			halign: "center"
-			valign: "center"
+			halign: 'center'
+			valign: 'center'
 			size_hint: (None,None)
 			size: (65.5,25)
 			pos: (334.5,369)	
@@ -233,25 +233,25 @@ WeatherFlowPiConsoleScreen:
 			
 		## OUTDOOR TEMPERATURE MINIMUM	
 		Label:
-			text: "[color=00a4b4ff]" + app.Air['MinTemp'][0] + "[size=15sp]" + app.Air['MinTemp'][1] + "[/color][/size]" 
-			font_name: "Fonts/SystemSanFranciscoDisplayThin.ttf"
-			font_size: "20sp"
+			text: '[color=00a4b4ff]' + app.Air['MinTemp'][0] + '[size=15sp]' + app.Air['MinTemp'][1] + '[/color][/size]' 
+			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
+			font_size: '20sp'
 			text_size: self.size
 			markup: 1
-			halign: "center"
-			valign: "center"
+			halign: 'center'
+			valign: 'center'
 			size_hint: (None,None)
 			size: (65.5,25)
 			pos: (400,372)	
 			color: [0.84,0.84,0.84,1]	
 		Label:
 			text: app.Air['MinTemp'][2]
-			font_name: "Fonts/Helvetica.ttf"
-			font_size: "15sp"
+			font_name: 'Fonts/Helvetica.ttf'
+			font_size: '15sp'
 			text_size: self.size
 			markup: 1
-			halign: "center"
-			valign: "center"
+			halign: 'center'
+			valign: 'center'
 			size_hint: (None,None)
 			size: (65.5,25)
 			pos: (400,348)	
@@ -259,25 +259,25 @@ WeatherFlowPiConsoleScreen:
 		
 		## OUTDOOR TEMPERATURE MAXIMUM	
 		Label:
-			text: "[color=f05e40ff]" + app.Air['MaxTemp'][0] + "[size=15sp]" + app.Air['MaxTemp'][1] + "[/color][/size]" 
-			font_name: "Fonts/SystemSanFranciscoDisplayThin.ttf"
-			font_size: "20sp"
+			text: '[color=f05e40ff]' + app.Air['MaxTemp'][0] + '[size=15sp]' + app.Air['MaxTemp'][1] + '[/color][/size]' 
+			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
+			font_size: '20sp'
 			text_size: self.size
 			markup: 1
-			halign: "center"
-			valign: "center"
+			halign: 'center'
+			valign: 'center'
 			size_hint: (None,None)
 			size: (65.5,25)
 			pos: (465.5,372)	
 			color: [0.84,0.84,0.84,1]
 		Label:
 			text: app.Air['MaxTemp'][2]
-			font_name: "Fonts/Helvetica.ttf"
-			font_size: "15sp"
+			font_name: 'Fonts/Helvetica.ttf'
+			font_size: '15sp'
 			text_size: self.size
 			markup: 1
-			halign: "center"
-			valign: "center"
+			halign: 'center'
+			valign: 'center'
 			size_hint: (None,None)
 			size: (65.5,25)
 			pos: (465.5,348)	
@@ -286,12 +286,12 @@ WeatherFlowPiConsoleScreen:
 		## 'FEELS LIKE' TEMPERATURE
 		Label:
 			text: app.Air['FeelsLike'][0] + app.Air['FeelsLike'][1]
-			font_name: "Fonts/SystemSanFranciscoDisplayThin.ttf"
-			font_size: "20sp"
+			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
+			font_size: '20sp'
 			text_size: self.size
 			markup: 1
-			halign: "center"
-			valign: "center"
+			halign: 'center'
+			valign: 'center'
 			size_hint: (None,None)
 			size: (87.33,30)
 			pos: (269,297)	
@@ -300,12 +300,12 @@ WeatherFlowPiConsoleScreen:
 		## HUMIDITY
 		Label:
 			text: app.Air['Humidity'][0] + app.Air['Humidity'][1]
-			font_name: "Fonts/SystemSanFranciscoDisplayThin.ttf"
-			font_size: "20sp"
+			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
+			font_size: '20sp'
 			text_size: self.size
 			markup: 1
-			halign: "center"
-			valign: "center"
+			halign: 'center'
+			valign: 'center'
 			size_hint: (None,None)
 			size: (87.33,30)
 			pos: (356.33,297)	
@@ -314,12 +314,12 @@ WeatherFlowPiConsoleScreen:
 		## DEW POINT
 		Label:
 			text: app.Air['DewPoint'][0] + app.Air['DewPoint'][1]
-			font_name: "Fonts/SystemSanFranciscoDisplayThin.ttf"
-			font_size: "20sp"
+			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
+			font_size: '20sp'
 			text_size: self.size
 			markup: 1
-			halign: "center"
-			valign: "center"
+			halign: 'center'
+			valign: 'center'
 			size_hint: (None,None)
 			size: (87.33,30)
 			pos: (443.66,297)	
@@ -327,7 +327,7 @@ WeatherFlowPiConsoleScreen:
 			
 		## COMFORT LEVEL
 		Image:
-			source: "Icons/FeelsLike/" + app.Air['Comfort'][1] + ".png"
+			source: 'Icons/FeelsLike/' + app.Air['Comfort'][1] + '.png'
 			size_hint: (None,None)
 			keep_ratio: 0
 			allow_stretch: 1
@@ -335,12 +335,12 @@ WeatherFlowPiConsoleScreen:
 			pos: (276,266)	
 		Label:
 			text: app.Air['Comfort'][0]
-			font_name: "Fonts/Helvetica.ttf"
-			font_size: "15sp"
+			font_name: 'Fonts/Helvetica.ttf'
+			font_size: '15sp'
 			text_size: self.size
 			markup: 1
-			halign: "left"
-			valign: "center"
+			halign: 'left'
+			valign: 'center'
 			size_hint: (None,None)
 			size: (200,29)
 			pos: (318,263)	
@@ -353,53 +353,51 @@ WeatherFlowPiConsoleScreen:
 	
 		## CURRENT AVERAGE WIND SPEED
 		Label:
-			text: app.Sky['WindAvg']
-			font_name: "Fonts/SystemSanFranciscoDisplayThin.ttf"
-			font_size: "30sp"
+			text: app.Sky['WindSpd'][0]
+			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
+			font_size: '30sp'
 			text_size: self.size
 			markup: 1
-			halign: "center"
-			valign: "center"
+			halign: 'center'
+			valign: 'center'
 			size_hint: (None,None)
-			width: 60
-			height: 34
+			size: (60,34)
 			pos: (539,360)	
 			color: [0.84,0.84,0.84,1]
 		Label:
-			text: "mph"
-			font_name: "Fonts/SystemSanFranciscoDisplayThin.ttf"
-			font_size: "20sp"
+			text: app.Sky['WindSpd'][1]
+			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
+			font_size: '20sp'
 			text_size: self.size
 			markup: 1
-			halign: "center"
-			valign: "center"
+			halign: 'center'
+			valign: 'center'
 			size_hint: (None,None)
-			width: 60
-			height: 25
+			size: (60,25)
 			pos: (539,340)	
 			color: [0.84,0.84,0.84,1]
 			
 		## MAXIMUM WIND SPEED
 		Label:
-			text: "Max [color=ff8837ff]" + app.Sky['MaxWind'] + "[/color] mph"   
-			font_name: "Fonts/Helvetica.ttf"
-			font_size: "15sp"
+			text: 'Max [color=ff8837ff]' + app.Sky['MaxWind'][0] + '[/color] ' + app.Sky['MaxWind'][1]    
+			font_name: 'Fonts/Helvetica.ttf'
+			font_size: '15sp'
 			text_size: self.size
 			markup: 1
-			halign: "center"
-			valign: "center"
+			halign: 'center'
+			valign: 'center'
 			size_hint: (None,None)
 			size: (95,18)
 			pos: (539,434)	
 			color: [0.84,0.84,0.84,1]	
 		Label:
-			text: "Wind"   
-			font_name: "Fonts/Helvetica.ttf"
-			font_size: "15sp"
+			text: 'Wind'   
+			font_name: 'Fonts/Helvetica.ttf'
+			font_size: '15sp'
 			text_size: self.size
 			markup: 1
-			halign: "center"
-			valign: "center"
+			halign: 'center'
+			valign: 'center'
 			size_hint: (None,None)
 			size: (95,18)
 			pos: (539,416)	
@@ -407,26 +405,26 @@ WeatherFlowPiConsoleScreen:
 			
 		## CURRENT WIND GUST
 		Label:
-			text: app.Sky['WindGust']
-			font_name: "Fonts/SystemSanFranciscoDisplayThin.ttf"
-			font_size: "30sp"
+			text: app.Sky['WindGust'][0]
+			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
+			font_size: '30sp'
 			text_size: self.size
 			markup: 1
-			halign: "center"
-			valign: "center"
+			halign: 'center'
+			valign: 'center'
 			size_hint: (None,None)
 			width: 60
 			height: 34
 			pos: (737,360)	
 			color: [0.84,0.84,0.84,1]
 		Label:
-			text: "mph"
-			font_name: "Fonts/SystemSanFranciscoDisplayThin.ttf"
-			font_size: "20sp"
+			text: app.Sky['WindGust'][1]
+			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
+			font_size: '20sp'
 			text_size: self.size
 			markup: 1
-			halign: "center"
-			valign: "center"
+			halign: 'center'
+			valign: 'center'
 			size_hint: (None,None)
 			width: 60
 			height: 25
@@ -435,67 +433,67 @@ WeatherFlowPiConsoleScreen:
 			
 		## MAXIMUM WIND GUST
 		Label:
-			text: "Max [color=ff8837ff]" + app.Sky['MaxGust'] + "[/color] mph"
-			font_name: "Fonts/Helvetica.ttf"
-			font_size: "15sp"
+			text: 'Max [color=ff8837ff]' + app.Sky['MaxGust'][0] + '[/color] ' + app.Sky['MaxGust'][1]  
+			font_name: 'Fonts/Helvetica.ttf'
+			font_size: '15sp'
 			text_size: self.size
 			markup: 1
-			halign: "center"
-			valign: "center"
+			halign: 'center'
+			valign: 'center'
 			size_hint: (None,None)
-			size: (95,18)
-			pos: (701,434)	
+			size: (101,18)
+			pos: (695,434)	
 			color: [0.84,0.84,0.84,1]	
 		Label:
-			text: "Gust"   
-			font_name: "Fonts/Helvetica.ttf"
-			font_size: "15sp"
+			text: 'Gust'   
+			font_name: 'Fonts/Helvetica.ttf'
+			font_size: '15sp'
 			text_size: self.size
 			markup: 1
-			halign: "center"
-			valign: "center"
+			halign: 'center'
+			valign: 'center'
 			size_hint: (None,None)
-			size: (95,18)
-			pos: (701,416)	
+			size: (101,18)
+			pos: (695,416)	
 			color: [0.84,0.84,0.84,1]
 			
 		## CURRENT AVERAGE WIND DIRECTION
 		Image:
-			source: "Icons/Wind/AvgWindDir/" + app.Sky['DirecIcon'] + ".png"
+			source: 'Icons/Wind/AvgWindDir/' + app.Sky['WindDir'][2] + '.png'
 			size_hint: (None,None)
 			keep_ratio: 0
 			allow_stretch: 1
 			size: (30,31)
 			pos: (752,290)	
 		Label:
-			text: "Avg. Direction [color=9aba2fff]" + app.Sky['WindDirec'] + "[sup]o[/sup][/color]"   
-			font_name: "Fonts/Helvetica.ttf"
-			font_size: "15sp"
+			text: 'Direction: [color=9aba2fff]' + app.Sky['WindDir'][0] + app.Sky['WindDir'][1] + '[/color]'   
+			font_name: 'Fonts/Helvetica.ttf'
+			font_size: '15sp'
 			text_size: self.size
 			markup: 1
-			halign: "right"
-			valign: "center"
+			halign: 'right'
+			valign: 'center'
 			size_hint: (None,None)
-			size: (126,18)
-			pos: (664,265)	
+			size: (135,18)
+			pos: (655,265)	
 			color: [0.84,0.84,0.84,1]
 
 		## CURRENT BEAUFORT SCALE TEXT AND ICON
 		Image:
-			source: "Icons/Wind/WindSpeed/" + app.Sky['BeaufortIcon'] + ".png"
+			source: 'Icons/Wind/WindSpeed/' + app.Sky['WindSpd'][2] + '.png'
 			size_hint: (None,None)
 			keep_ratio: 0
 			allow_stretch: 1
 			size: (30,31)
 			pos: (554,290)	
 		Label:
-			text: app.Sky['BeaufortText']
-			font_name: "Fonts/Helvetica.ttf"
-			font_size: "15sp"
+			text: app.Sky['WindSpd'][3]
+			font_name: 'Fonts/Helvetica.ttf'
+			font_size: '15sp'
 			text_size: self.size
 			markup: 1
-			halign: "left"
-			valign: "center"
+			halign: 'left'
+			valign: 'center'
 			size_hint: (None,None)
 			size: (126,18)
 			pos: (542,265)	
@@ -508,7 +506,7 @@ WeatherFlowPiConsoleScreen:
 	
 		## WIND DIRECTION ARROW
 		Image:
-			source: "Icons/Wind/WindRose/" + str(int(app.SkyRapidAngle)) + ".png"
+			source: 'Icons/Wind/WindRose/' + str(int(app.SkyRapidIcon)) + '.png'
 			size_hint: (None,None)
 			keep_ratio: 0
 			allow_stretch: 1
@@ -517,13 +515,13 @@ WeatherFlowPiConsoleScreen:
 
 		## WIND DIRECTION IN DEGREES
 		Label:
-			text: app.SkyRapid['Direc'] + "[sup]o[/sup]"
-			font_name: "Fonts/SystemSanFranciscoDisplayThin.ttf"
-			font_size: "20sp"
+			text: app.SkyRapid['Direc'][0] + app.SkyRapid['Direc'][1]
+			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
+			font_size: '20sp'
 			text_size: self.size
 			markup: 1
-			halign: "center"
-			valign: "center"
+			halign: 'center'
+			valign: 'center'
 			size_hint: (None,None)
 			size: (60,25)
 			pos: (638,380)		
@@ -531,13 +529,13 @@ WeatherFlowPiConsoleScreen:
 			
 		## WIND SPEED	
 		Label:
-			text: app.SkyRapid['Speed'] + " [size=15sp]mph[/size]"
-			font_name: "Fonts/SystemSanFranciscoDisplayThin.ttf"
-			font_size: "20sp"
+			text: app.SkyRapid['Speed'][0] + ' [size=15sp]' + app.SkyRapid['Speed'][1] + '[/size]'
+			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
+			font_size: '20sp'
 			text_size: self.size
 			markup: 1
-			halign: "center"
-			valign: "center"
+			halign: 'center'
+			valign: 'center'
 			size_hint: (None,None)
 			size: (80,25)
 			pos: (628,352)	
@@ -545,26 +543,26 @@ WeatherFlowPiConsoleScreen:
 			
 		## WIND DIRECTION TEXT	
 		Label:
-			text: app.SkyRapid['DirecText']
-			font_name: "Fonts/Helvetica.ttf"
-			font_size: "15sp"
+			text: app.SkyRapid['Direc'][2]
+			font_name: 'Fonts/Helvetica.ttf'
+			font_size: '15sp'
 			text_size: self.size
 			markup: 1
-			halign: "center"
-			valign: "center"
+			halign: 'center'
+			valign: 'center'
 			size_hint: (None,None)
 			size: (80,25)
 			pos: (628,324)	
 			color: [0.84,0.84,0.84,1]	
 		
 	## ----------------------------------------------------------
-	## SUNRISE/SUNSET DATA THE UNITED STATES NAVAL OBSERVATORY 
+	## SUNRISE/SUNSET DATA FROM PyEphem MODULE 
 	## ----------------------------------------------------------
 	FloatLayout:
 		id: Sunrise
 		opacity: 1
 		Image:		
-			source: "Background/SunriseSunset.png"
+			source: 'Background/SunriseSunset.png'
 			size_hint: (None,None)
 			keep_ratio: 0
 			allow_stretch: 1
@@ -573,13 +571,13 @@ WeatherFlowPiConsoleScreen:
 			
 		## SOLAR RADIATION
 		Label:		
-			text: app.Sky['Radiation'] + " W m[sup]-2[/sup]"
-			font_name: "Fonts/SystemSanFranciscoDisplayThin.ttf"
-			font_size: "20sp"
+			text: app.Sky['Radiation'][0] + app.Sky['Radiation'][1]
+			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
+			font_size: '20sp'
 			text_size: self.size
 			markup: 1
-			halign: "center"
-			valign: "center"
+			halign: 'center'
+			valign: 'center'
 			size_hint: (None,None)
 			size: (105,34)
 			pos: (5,176)	
@@ -587,19 +585,19 @@ WeatherFlowPiConsoleScreen:
 
 		## UV INDEX
 		Label:		
-			text: app.Sky['UV']
-			font_name: "Fonts/SystemSanFranciscoDisplayThin.ttf"
-			font_size: "20sp"
+			text: app.Sky['Radiation'][2]
+			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
+			font_size: '20sp'
 			text_size: self.size
 			markup: 1
-			halign: "center"
-			valign: "center"
+			halign: 'center'
+			valign: 'center'
 			size_hint: (None,None)
 			size: (52.5,34)
 			pos: (161,176)	
 			color: [0.84,0.84,0.84,1]			
 		Image:		
-			source: "Icons/UVIndex/" + app.Sky['UVIcon'] + ".png"
+			source: 'Icons/UVIndex/' + app.Sky['Radiation'][3] + '.png'
 			size_hint: (None,None)
 			keep_ratio: 0
 			allow_stretch: 1
@@ -608,13 +606,13 @@ WeatherFlowPiConsoleScreen:
 
 		## SUNRISE TIME
 		Label:
-			text: app.SunData['SunriseTxt'] 
-			font_name: "Fonts/Helvetica.ttf"
-			font_size: "15sp"
+			text: app.SunData['Sunrise'][1] 
+			font_name: 'Fonts/Helvetica.ttf'
+			font_size: '15sp'
 			text_size: self.size
 			markup: 1
-			halign: "center"
-			valign: "center"
+			halign: 'center'
+			valign: 'center'
 			size_hint: (None,None)
 			width: 80
 			height: 19
@@ -623,13 +621,13 @@ WeatherFlowPiConsoleScreen:
 			
 		## SUNSET TIME
 		Label:
-			text: app.SunData['SunsetTxt']   
-			font_name: "Fonts/Helvetica.ttf"
-			font_size: "15sp"
+			text: app.SunData['Sunset'][1]   
+			font_name: 'Fonts/Helvetica.ttf'
+			font_size: '15sp'
 			text_size: self.size
 			markup: 1
-			halign: "center"
-			valign: "center"
+			halign: 'center'
+			valign: 'center'
 			size_hint: (None,None)
 			width: 80
 			height: 19
@@ -638,7 +636,7 @@ WeatherFlowPiConsoleScreen:
 			
 		## SUN TRANSIT ICON
 		Image:
-			source: "Icons/Sun/" + app.SunData['SunAngle'] + ".png"
+			source: 'Icons/Sun/' + app.SunData['SunAngle'] + '.png'
 			size_hint: (None,None)
 			keep_ratio: 0
 			allow_stretch: 1
@@ -647,50 +645,50 @@ WeatherFlowPiConsoleScreen:
 
 		## TIME REMAINING UNTIL SUNRISE OR SUNSET
 		Label:		
-			text: app.SunData['EventHrs']
-			font_name: "Fonts/SystemSanFranciscoDisplayThin.ttf"
-			font_size: "30sp"
+			text: app.SunData['Event'][1]
+			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
+			font_size: '30sp'
 			text_size: self.size
 			markup: 1
-			halign: "center"
-			valign: "center"
+			halign: 'center'
+			valign: 'center'
 			size_hint: (None,None)
 			size: (40,30)
 			pos: (93,92)	
 			color: [0.84,0.84,0.84,1]	
 		Label:		
-			text: app.SunData['EventMins']
-			font_name: "Fonts/SystemSanFranciscoDisplayThin.ttf"
-			font_size: "30sp"
+			text: app.SunData['Event'][2]
+			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
+			font_size: '30sp'
 			text_size: self.size
 			markup: 1
-			halign: "center"
-			valign: "center"
+			halign: 'center'
+			valign: 'center'
 			size_hint: (None,None)
 			size: (40,30)
 			pos: (133,92)	
 			color: [0.84,0.84,0.84,1]		
 		Label:		
-			text: app.SunData['Event']
-			font_name: "Fonts/Helvetica.ttf"
-			font_size: "15sp"
+			text: app.SunData['Event'][0]
+			font_name: 'Fonts/Helvetica.ttf'
+			font_size: '15sp'
 			text_size: self.size
 			markup: 1
-			halign: "center"
-			valign: "center"
+			halign: 'center'
+			valign: 'center'
 			size_hint: (None,None)
 			size: (80,19)
 			pos: (93,73)	
 			color: [0.84,0.84,0.84,1]		
 
 	## ----------------------------------------------------------
-	## MOON DATA FROM THE UNITED STATES NAVAL OBSERVATORY 
+	## MOONRISE/MOONSET DATA FROM PyEphem MODULE 
 	## ----------------------------------------------------------		
 	FloatLayout:
 		id: Moon
 		opacity: 0
 		Image:		
-			source: "Background/Moon.png"
+			source: 'Background/Moon.png'
 			size_hint: (None,None)
 			keep_ratio: 0
 			allow_stretch: 1
@@ -699,13 +697,13 @@ WeatherFlowPiConsoleScreen:
 			
 		## MOONRISE TIME
 		Label:
-			text: app.MoonData['MoonriseTxt'] 
-			font_name: "Fonts/Helvetica.ttf"
-			font_size: "15sp"
+			text: app.MoonData['Moonrise'][1] 
+			font_name: 'Fonts/Helvetica.ttf'
+			font_size: '15sp'
 			text_size: self.size
 			markup: 1
-			halign: "center"
-			valign: "center"
+			halign: 'center'
+			valign: 'center'
 			size_hint: (None,None)
 			size: (80,19)
 			pos: (7,40)	
@@ -713,13 +711,13 @@ WeatherFlowPiConsoleScreen:
 			
 		## MOONSET TIME
 		Label:
-			text: app.MoonData['MoonsetTxt'] 
-			font_name: "Fonts/Helvetica.ttf"
-			font_size: "15sp"
+			text: app.MoonData['Moonset'][1] 
+			font_name: 'Fonts/Helvetica.ttf'
+			font_size: '15sp'
 			text_size: self.size
 			markup: 1
-			halign: "center"
-			valign: "center"
+			halign: 'center'
+			valign: 'center'
 			size_hint: (None,None)
 			size: (80,19)
 			pos: (179,40)	
@@ -728,12 +726,12 @@ WeatherFlowPiConsoleScreen:
 		## NEXT NEW MOON
 		Label:
 			text: app.MoonData['NewMoon']
-			font_name: "Fonts/Helvetica.ttf"
-			font_size: "15sp"
+			font_name: 'Fonts/Helvetica.ttf'
+			font_size: '15sp'
 			text_size: self.size
 			markup: 1
-			halign: "center"
-			valign: "center"
+			halign: 'center'
+			valign: 'center'
 			size_hint: (None,None)
 			size: (70,19)
 			pos: (8,184)	
@@ -742,12 +740,12 @@ WeatherFlowPiConsoleScreen:
 		## NEXT FULL MOON
 		Label:
 			text: app.MoonData['FullMoon']
-			font_name: "Fonts/Helvetica.ttf"
-			font_size: "15sp"
+			font_name: 'Fonts/Helvetica.ttf'
+			font_size: '15sp'
 			text_size: self.size
 			markup: 1
-			halign: "center"
-			valign: "center"
+			halign: 'center'
+			valign: 'center'
 			size_hint: (None,None)
 			size: (70,19)
 			pos: (188,184)	
@@ -755,7 +753,7 @@ WeatherFlowPiConsoleScreen:
 
 		## MOON PHASE ICON
 		Image:
-			source: "Icons/Moon/" + app.MoonData['Icon'] + ".png"
+			source: 'Icons/Moon/' + app.MoonData['Phase'][0] + '.png'
 			size_hint: (None,None)
 			keep_ratio: 0
 			allow_stretch: 1
@@ -765,13 +763,13 @@ WeatherFlowPiConsoleScreen:
 
 		## MOON PHASE TEXT
 		Label:
-			text: app.MoonData['Phase']
-			font_name: "Fonts/Helvetica.ttf"
-			font_size: "15sp"
+			text: app.MoonData['Phase'][1]
+			font_name: 'Fonts/Helvetica.ttf'
+			font_size: '15sp'
 			text_size: self.size
 			markup: 1
-			halign: "center"
-			valign: "center"
+			halign: 'center'
+			valign: 'center'
 			size_hint: (None,None)
 			size: (112,19)
 			pos: (77,111)	
@@ -779,13 +777,13 @@ WeatherFlowPiConsoleScreen:
 			
 		## MOON ILLUMINANCE TEXT
 		Label:
-			text: app.MoonData['Illuminated'] + '% Illumin.'
-			font_name: "Fonts/Helvetica.ttf"
-			font_size: "15sp"
+			text: app.MoonData['Phase'][2] + '% Illumin.'
+			font_name: 'Fonts/Helvetica.ttf'
+			font_size: '15sp'
 			text_size: self.size
 			markup: 1
-			halign: "center"
-			valign: "center"
+			halign: 'center'
+			valign: 'center'
 			size_hint: (None,None)
 			size: (90,19)
 			pos: (88,91)	
@@ -802,7 +800,7 @@ WeatherFlowPiConsoleScreen:
 			size: (33,113)
 			pos: (476,116)
 			Image:
-				source: "Icons/RainIntensity/Water.png"
+				source: 'Icons/RainIntensity/Water.png'
 				size_hint: (None,None)
 				keep_ratio: 0
 				allow_stretch: 1
@@ -811,13 +809,13 @@ WeatherFlowPiConsoleScreen:
 		
 		## TOTAL MONTHLY RAINFALL
 		Label:
-			text: app.Sky['MonthRain'][1] + " [size=15sp]mm[/size]" 
-			font_name: "Fonts/SystemSanFranciscoDisplayThin.ttf"
-			font_size: "20sp"
+			text: app.Sky['MonthRain'][0] + '[size=15sp]' + app.Sky['MonthRain'][1] + '[/size]' 
+			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
+			font_size: '20sp'
 			text_size: self.size
 			markup: 1
-			halign: "center"
-			valign: "center"
+			halign: 'center'
+			valign: 'center'
 			size_hint: (None,None)
 			size: (88,35)
 			pos: (269,175)	
@@ -825,13 +823,13 @@ WeatherFlowPiConsoleScreen:
 		
 		## TOTAL DAILY RAINFALL
 		Label:
-			text: app.Sky['DayRain'][1] + " [size=15sp]mm[/size]" 
-			font_name: "Fonts/SystemSanFranciscoDisplayThin.ttf"
-			font_size: "20sp"
+			text: app.Sky['DayRain'][0] + '[size=15sp]' + app.Sky['DayRain'][1] + '[/size]' 
+			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
+			font_size: '20sp'
 			text_size: self.size
 			markup: 1
-			halign: "center"
-			valign: "center"
+			halign: 'center'
+			valign: 'center'
 			size_hint: (None,None)
 			size: (88,35)
 			pos: (365,175)	
@@ -839,13 +837,13 @@ WeatherFlowPiConsoleScreen:
 			
 		## TOTAL YEARLY RAINFALL
 		Label:
-			text: app.Sky['YearRain'][1] + " [size=15sp]mm[/size]" 
-			font_name: "Fonts/SystemSanFranciscoDisplayThin.ttf"
-			font_size: "20sp"
+			text: app.Sky['YearRain'][0] + '[size=15sp]' + app.Sky['YearRain'][1] + '[/size]' 
+			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
+			font_size: '20sp'
 			text_size: self.size
 			markup: 1
-			halign: "center"
-			valign: "center"
+			halign: 'center'
+			valign: 'center'
 			size_hint: (None,None)
 			size: (88,35)
 			pos: (269,115)	
@@ -853,13 +851,13 @@ WeatherFlowPiConsoleScreen:
 			
 		## CURRENT RAIN RATE
 		Label:
-			text: app.Sky['RainRate'] + " [size=15sp]mm/h[/size]" 
-			font_name: "Fonts/SystemSanFranciscoDisplayThin.ttf"
-			font_size: "20sp"
+			text: app.Sky['RainRate'][0] + '[size=15sp]' + app.Sky['RainRate'][1] + '[/size]' 
+			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
+			font_size: '20sp'
 			text_size: self.size
 			markup: 1
-			halign: "center"
-			valign: "center"
+			halign: 'center'
+			valign: 'center'
 			size_hint: (None,None)
 			size: (88,35)
 			pos: (365,115)	
@@ -867,13 +865,13 @@ WeatherFlowPiConsoleScreen:
 			
 		## CURRENT RAIN RATE TEXT
 		Label:
-			text: app.Sky['RainRateText']
-			font_name: "Fonts/Helvetica.ttf"
-			font_size: "15sp"
+			text: app.Sky['RainRate'][2]
+			font_name: 'Fonts/Helvetica.ttf'
+			font_size: '15sp'
 			text_size: self.size
 			markup: 1
-			halign: "center"
-			valign: "center"
+			halign: 'center'
+			valign: 'center'
 			size_hint: (None,None)
 			size: (185,18)
 			pos: (269,95)	
@@ -886,7 +884,7 @@ WeatherFlowPiConsoleScreen:
 	
 		## CURRENT PRESSURE ARROW
 		Image:
-			source: "Icons/Barometer/" + app.Air['Pres'][0] + ".png"
+			source: 'Icons/Barometer/' + app.Air['Pres'][0] + '.png'
 			size_hint: (None,None)
 			keep_ratio: 0
 			allow_stretch: 1
@@ -896,26 +894,26 @@ WeatherFlowPiConsoleScreen:
 		## MAXIMUM AND MINIMUM PRESSURE ON PRESSURE DIAL
 		Label:
 			text: app.System['Barometer'][0]
-			font_name: "Fonts/SystemSanFranciscoDisplayBold.ttf"
-			font_size: "10pt"
+			font_name: 'Fonts/SystemSanFranciscoDisplayBold.ttf'
+			font_size: '10pt'
 			text_size: self.size
 			font_hinting: None
 			markup: 1
-			halign: "center"
-			valign: "center"
+			halign: 'center'
+			valign: 'center'
 			size_hint: (None,None)
 			size: (40,20)
 			pos: (565,78)	
 			color: [0.84,0.84,0.84,1]		
 		Label:
 			text: app.System['Barometer'][1]
-			font_name: "Fonts/SystemSanFranciscoDisplayBold.ttf"
-			font_size: "10pt"
+			font_name: 'Fonts/SystemSanFranciscoDisplayBold.ttf'
+			font_size: '10pt'
 			text_size: self.size
 			font_hinting: None
 			markup: 1
-			halign: "center"
-			valign: "center"
+			halign: 'center'
+			valign: 'center'
 			size_hint: (None,None)
 			size: (40,20)
 			pos: (727,78)	
@@ -924,12 +922,12 @@ WeatherFlowPiConsoleScreen:
 		## CURRENT PRESSURE
 		Label:
 			text: app.Air['Pres'][1]
-			font_name: "Fonts/SystemSanFranciscoDisplayThin.ttf"
-			font_size: "30sp"
+			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
+			font_size: '30sp'
 			text_size: self.size
 			markup: 1
-			halign: "center"
-			valign: "center"
+			halign: 'center'
+			valign: 'center'
 			size_hint: (None,None)
 			width: 100
 			height: 30
@@ -937,12 +935,12 @@ WeatherFlowPiConsoleScreen:
 			color: [0.84,0.84,0.84,1]
 		Label:
 			text: app.Air['Pres'][2]
-			font_name: "Fonts/SystemSanFranciscoDisplayThin.ttf"
-			font_size: "20sp"
+			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
+			font_size: '20sp'
 			text_size: self.size
 			markup: 1
-			halign: "center"
-			valign: "center"
+			halign: 'center'
+			valign: 'center'
 			size_hint: (None,None)
 			width: 100
 			height: 25
@@ -951,25 +949,25 @@ WeatherFlowPiConsoleScreen:
 			
 		## CURRENT PRESSURE TREND
 		Label:
-			text: "Trend: " + app.Air['PresTrend'][2]
-			font_name: "Fonts/Helvetica.ttf"
-			font_size: "15sp"
+			text: 'Trend: ' + app.Air['PresTrend'][2]
+			font_name: 'Fonts/Helvetica.ttf'
+			font_size: '15sp'
 			text_size: self.size
 			markup: 1
-			halign: "center"
-			valign: "center"
+			halign: 'center'
+			valign: 'center'
 			size_hint: (None,None)
 			size: (96,18)
 			pos: (691,213)	
 			color: [0.84,0.84,0.84,1]
 		Label:
-			text: app.Air['PresTrend'][0] + " " + app.Air['PresTrend'][1] 
-			font_name: "Fonts/Helvetica.ttf"
-			font_size: "15sp"
+			text: app.Air['PresTrend'][0] + app.Air['PresTrend'][1] 
+			font_name: 'Fonts/Helvetica.ttf'
+			font_size: '15sp'
 			text_size: self.size
 			markup: 1
-			halign: "center"
-			valign: "center"
+			halign: 'center'
+			valign: 'center'
 			size_hint: (None,None)
 			size: (96,18)
 			pos: (691,194)	
@@ -978,12 +976,12 @@ WeatherFlowPiConsoleScreen:
 		## 24 HOUR PRESSURE LOW
 		Label:
 			text: app.Air['MinPres'][0]
-			font_name: "Fonts/Helvetica.ttf"
-			font_size: "15sp"
+			font_name: 'Fonts/Helvetica.ttf'
+			font_size: '15sp'
 			text_size: self.size
 			markup: 1
-			halign: "center"
-			valign: "center"
+			halign: 'center'
+			valign: 'center'
 			size_hint: (None,None)
 			size: (70,18)
 			pos: (539,194)	
@@ -992,12 +990,12 @@ WeatherFlowPiConsoleScreen:
 		## 24 HOUR PRESSURE HIGH
 		Label:
 			text: app.Air['MaxPres'][0]
-			font_name: "Fonts/Helvetica.ttf"
-			font_size: "15sp"
+			font_name: 'Fonts/Helvetica.ttf'
+			font_size: '15sp'
 			text_size: self.size
 			markup: 1
-			halign: "center"
-			valign: "center"
+			halign: 'center'
+			valign: 'center'
 			size_hint: (None,None)
 			size: (70,18)
 			pos: (609,194)	
@@ -1010,31 +1008,31 @@ WeatherFlowPiConsoleScreen:
 	
 		## SKY
 		Label:
-			text: "[color=00a4b4ff]Sky: [/color]"         
-			font_name: "Fonts/Helvetica.ttf"
-			font_size: "15sp"
+			text: '[color=00a4b4ff]Sky: [/color]'         
+			font_name: 'Fonts/Helvetica.ttf'
+			font_size: '15sp'
 			text_size: self.size
 			markup: 1
-			halign: "right"
-			valign: "center"
+			halign: 'right'
+			valign: 'center'
 			size_hint: (None,None)
 			size: (30,18)
 			pos: (555,29)	
 			color: [0.84,0.84,0.84,1]
 		Label:
 			text: app.Sky['Time']        
-			font_name: "Fonts/Helvetica.ttf"
-			font_size: "15sp"
+			font_name: 'Fonts/Helvetica.ttf'
+			font_size: '15sp'
 			text_size: self.size
 			markup: 1
-			halign: "center"
-			valign: "center"
+			halign: 'center'
+			valign: 'center'
 			size_hint: (None,None)
 			size: (75,18)
 			pos: (584,29)	
 			color: [0.84,0.84,0.84,1]	
 		Image:
-			source: "Icons/Status/" + app.Sky['StatusIcon'] + ".png"        
+			source: 'Icons/Status/' + app.Sky['StatusIcon'] + '.png'        
 			size_hint: (None,None)
 			keep_ratio: 0
 			allow_stretch: 1
@@ -1042,13 +1040,13 @@ WeatherFlowPiConsoleScreen:
 			pos: (658,29)	
 			color: [0.84,0.84,0.84,1]
 		Label:
-			text: "Voltage: " + app.Sky['Battery']        
-			font_name: "Fonts/Helvetica.ttf"
-			font_size: "15sp"
+			text: 'Voltage: ' + app.Sky['Battery'][0]         
+			font_name: 'Fonts/Helvetica.ttf'
+			font_size: '15sp'
 			text_size: self.size
 			markup: 1
-			halign: "center"
-			valign: "center"
+			halign: 'center'
+			valign: 'center'
 			size_hint: (None,None)
 			size: (103,18)
 			pos: (676,29)	
@@ -1056,44 +1054,44 @@ WeatherFlowPiConsoleScreen:
 
 		## AIR
 		Label:
-			text: "[color=f05e40ff]Air: [/color]"           
-			font_name: "Fonts/Helvetica.ttf"
-			font_size: "15sp"
+			text: '[color=f05e40ff]Air: [/color]'           
+			font_name: 'Fonts/Helvetica.ttf'
+			font_size: '15sp'
 			text_size: self.size
 			markup: 1
-			halign: "right"
-			valign: "center"
+			halign: 'right'
+			valign: 'center'
 			size_hint: (None,None)
 			size: (30,18)
 			pos: (555,6)		
 			color: [0.84,0.84,0.84,1]
 		Label:
 			text: app.Air['Time']     
-			font_name: "Fonts/Helvetica.ttf"
-			font_size: "15sp"
+			font_name: 'Fonts/Helvetica.ttf'
+			font_size: '15sp'
 			text_size: self.size
 			markup: 1
-			halign: "center"
-			valign: "center"
+			halign: 'center'
+			valign: 'center'
 			size_hint: (None,None)
 			size: (75,18)
 			pos: (584,6)	
 			color: [0.84,0.84,0.84,1]		
 		Image:
-			source: "Icons/Status/" + app.Air['StatusIcon'] + ".png"         
+			source: 'Icons/Status/' + app.Air['StatusIcon'] + '.png'         
 			size_hint: (None,None)
 			keep_ratio: 0
 			allow_stretch: 1
 			size: (18,20)
 			pos: (658,6)		
 		Label:
-			text: "Voltage: " + app.Air['Battery']        
-			font_name: "Fonts/Helvetica.ttf"
-			font_size: "15sp"
+			text: 'Voltage: ' + app.Air['Battery'][0]       
+			font_name: 'Fonts/Helvetica.ttf'
+			font_size: '15sp'
 			text_size: self.size
 			markup: 1
-			halign: "center"
-			valign: "center"
+			halign: 'center'
+			valign: 'center'
 			size_hint: (None,None)
 			size: (103,18)
 			pos: (676,6)		
@@ -1104,14 +1102,14 @@ WeatherFlowPiConsoleScreen:
 	## ----------------------------------------------------------
 	FloatLayout:
 		Button:
-			text: "Forecast"
+			text: 'Forecast'
 			size_hint: (None,None)
 			size: (90,30)
 			pos: (2,0)
 			on_press: root.SwitchMetOfficeSager(self)
 			on_release: root.ButtonRelease(self)
 			Image:
-				source: "Buttons/Forecast.png"    
+				source: 'Buttons/Forecast.png'    
 				id: Forecast
 				size_hint: (None,None)
 				keep_ratio: 0
@@ -1119,14 +1117,14 @@ WeatherFlowPiConsoleScreen:
 				size: self.parent.size
 				pos: self.parent.pos
 		Button:
-			text: "SunMoon"
+			text: 'SunMoon'
 			size_hint: (None,None)
 			size: (100,30)
 			pos: (107,0)
 			on_press: root.SwitchSunMoon(self)
 			on_release: root.ButtonRelease(self)
 			Image:
-				source: "Buttons/SunMoon.png"     
+				source: 'Buttons/SunMoon.png'     
 				id: SunMoon
 				size_hint: (None,None)
 				keep_ratio: 0
@@ -1134,14 +1132,14 @@ WeatherFlowPiConsoleScreen:
 				size: self.parent.size
 				pos: self.parent.pos	
 		Button:
-			text: "Credits"
+			text: 'Credits'
 			size_hint: (None,None)
 			size: (81,30)
 			pos: (453,0)	
 			on_press: root.ShowCredits(self)
 			on_release: root.ButtonRelease(self)		
 			Image:
-				source: "Buttons/Credits.png"  
+				source: 'Buttons/Credits.png'  
 				id: Credits
 				size_hint: (None,None)
 				keep_ratio: 0
@@ -1155,7 +1153,7 @@ WeatherFlowPiConsoleScreen:
 <Credits>:
 	title: ''
 	separator_height: 0
-	background: "Background/Credits.png"
+	background: 'Background/Credits.png'
 	separator_color: [0,0,0,1]
     size_hint: (None,None)
     size: (500,400)

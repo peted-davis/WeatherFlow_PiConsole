@@ -67,11 +67,11 @@ class WeatherFlowClientFactory(WebSocketClientFactory,ReconnectingClientFactory)
 	jitter = 0
 	
 	def clientConnectionFailed(self,connector,reason):
-		print("Client connection failed .. retrying ..")
+		print('Client connection failed .. retrying ..')
 		self.retry(connector)
 
 	def clientConnectionLost(self,connector,reason):
-		print("Client connection lost .. retrying ..")
+		print('Client connection lost .. retrying ..')
 		self.retry(connector)
 	
 	def __init__(self, url, app):
@@ -122,11 +122,11 @@ def CircularMean(angles):
 	return np.angle(r, deg=True) % 360
 
 # ==============================================================================
-# DEFINE "WeatherFlowPiConsole" APP CLASS
+# DEFINE 'WeatherFlowPiConsole' APP CLASS
 # ==============================================================================
 class WeatherFlowPiConsole(App):
 	
-	# Define Kivy properties required for display in "WeatherFlowPiConsole.kv" 
+	# Define Kivy properties required for display in 'WeatherFlowPiConsole.kv' 
 	System = DictProperty([('ForecastLocn','--'),('Units',{}),('Barometer','--')])
 	MetData = DictProperty([('Temp','--'),('Precip','--'),('WindSpd','--'),
 							('WindDir','--'),('Weather','Building'),
@@ -136,34 +136,26 @@ class WeatherFlowPiConsole(App):
 						  ('Pres','--'),('Pres6','--'),('LastRain','--'),
 						  ('Temp','--'),('Dial','--'),('Forecast','--'),
 						  ('Issued','--')])									 
-	SkyRapid = DictProperty([('Time','--'),('Speed','--'),('Direc','-'),
-	                         ('DirecText','--'),('Icon','Building')])	
-	SkyRapidAngle = NumericProperty(0)							 
-	Sky = DictProperty([('UV','--'),('UVIcon','Building'),('Radiation','--'),
-						('RainRate','--'),('RainRateText','--'),('WindAvg','--'),
-						('WindGust','--'),('WindDirec','--'),('DirecIcon','--'),
-						('MaxWind','--'),('MaxGust','--'),('BeaufortText','--'),
-						('BeaufortIcon','Building'),('Time','--'),('Battery','--'),
-						('DayRain',['--','--','--']),('MonthRain',['--','--','--']),
-						('YearRain',['--','--','--']),
-						('StatusIcon','Error'),('MetDay','--'),('Obs','--')])
-	Breathe = DictProperty([('Temp','--'),('Min','--'),('Max','--'),('MetDay','--')])		
+	SkyRapid = DictProperty([('Time','-'),('Speed','--'),('Direc','---')])	
+	SkyRapidIcon = NumericProperty(0)							 
+	Sky = DictProperty([('Radiation','----'),('RainRate','---'),('WindSpd','----'),
+						('WindGust','--'),('WindDir','---'),('MaxWind','--'),
+						('MaxGust','--'),('DayRain','--'),('MonthRain','--'),
+						('YearRain','--'),('Time','-'),('Battery','--'),
+						('StatusIcon','Error'),('Obs','--')])
+	Breathe = DictProperty([('Temp','--'),('MinTemp','---'),('MaxTemp','---')])		
 	Air = DictProperty([('Temp','--'),('MinTemp','---'),('MaxTemp','---'),
 						('Humidity','--'),('DewPoint','--'),('Pres','---'),
 						('MaxPres','--'),('MinPres','--'),('PresTrend','---'),
 						('FeelsLike','--'),('Comfort','--'),('Time','-'),
-						('Battery','-'),('StatusIcon','Error')])									 
-	SunData = DictProperty([('Sunrise','--'),('Sunset','--'),
-							('SunriseTxt','--'),('SunsetTxt','--'),('SunAngle','--'),
-							('Event','--'),('EventHrs','--'),('EventMins','--'),
-							('ValidDate','--')])
-	MoonData = DictProperty([('Moonrise','--'),('Moonset','--'),
-							('MoonriseTxt','--'),('MoonsetTxt','--'),('NewMoon','--'),
-							('FullMoon','--'),('Illuminated','--'),('Phase','--'),
-							('Icon','Building')])	
+						('Battery','--'),('StatusIcon','Error')])									 
+	SunData = DictProperty([('Sunrise',['-','-']),('Sunset',['-','-']),('SunAngle','-'),
+							('Event',['-','-','-']),('ValidDate','--')])
+	MoonData = DictProperty([('Moonrise',['-','-']),('Moonset',['-','-']),('NewMoon','--'),
+							 ('FullMoon','--'),('Phase','---')])	
 	MetDict = DictProperty()						
     
-	# INITIALISE "WeatherFlowPiConsole" CLASS
+	# INITIALISE 'WeatherFlowPiConsole' CLASS
 	# --------------------------------------------------------------------------
 	def __init__(self,**kwargs):
 	
@@ -264,8 +256,7 @@ class WeatherFlowPiConsole(App):
 		# Else determine location from Geonames API that most closely matches 
 		# the Station latitude/longitude
 		else:
-			Template = ("http://api.geonames.org/findNearbyPlaceName?lat={}&lng={}" 
-						"&username={}&radius=10&featureClass=P&maxRows=20&type=json")	
+			Template = 'http://api.geonames.org/findNearbyPlaceName?lat={}&lng={}&username={}&radius=10&featureClass=P&maxRows=20&type=json'	
 			URL = Template.format(self.System['Lat'],self.System['Lon'],self.System['GeoNamesKey'])
 			Data = requests.get(URL).json()
 			Locns = [Item['name'] for Item in Data['geonames']]
@@ -274,7 +265,7 @@ class WeatherFlowPiConsole(App):
 			if Ind != NaN:
 				self.System['ForecastLocn'] = Locns[Len.index(Ind)]
 			else:
-				self.System['ForecastLocn'] = ""
+				self.System['ForecastLocn'] = ''
 									
 		# Initialise Sunrise/sunset and Moonrise/moonset times
 		self.SunriseSunset()
@@ -286,8 +277,10 @@ class WeatherFlowPiConsole(App):
 		Clock.schedule_once(self.SagerForecast)
 		Clock.schedule_interval(self.UpdateMethods,1.0)
 		Clock.schedule_interval(self.SkyAirStatus,1.0)
+		Clock.schedule_interval(self.SunTransit,1.0)
+		Clock.schedule_interval(self.MoonPhase,1.0)
 		
-	# POINT "WeatherFlowPiConsole" APP CLASS TO ASSOCIATED .kv FILE
+	# POINT 'WeatherFlowPiConsole' APP CLASS TO ASSOCIATED .kv FILE
 	# --------------------------------------------------------------------------
 	def build(self):
 		return Builder.load_file('WeatherFlowPiConsole.kv')
@@ -295,10 +288,10 @@ class WeatherFlowPiConsole(App):
 	# CONNECT TO THE WEATHER FLOW WEBSOCKET SERVER
 	# --------------------------------------------------------------------------
 	def WebsocketConnect(self):
-		Template = "ws://ws.weatherflow.com/swd/data?api_key={}"
+		Template = 'ws://ws.weatherflow.com/swd/data?api_key={}'
 		Server = Template.format(self.System['WFlowKey'])
 		self._factory = WeatherFlowClientFactory(Server,self)
-		reactor.connectTCP("ws.weatherflow.com",80,self._factory)		
+		reactor.connectTCP('ws.weatherflow.com',80,self._factory)		
 
 	# SEND MESSAGE TO THE WEATHER FLOW WEBSOCKET SERVER
 	# --------------------------------------------------------------------------
@@ -327,192 +320,303 @@ class WeatherFlowPiConsole(App):
 			                           ' "device_id":' + self.System['AirID'] + ',' +
 									   ' "id":"Air"}')
 			
-		# Extract 1-minute observations from Sky Module
+		# Extract observations from obs_Sky websocket message
 		elif Type == 'obs_sky':
-		
-			# Extract observations from Sky websocket message, and replace 
-			# missing observations with NaN
-			Obs = [x if x != None else NaN for x in Msg['obs'][0]]
-			Time = Obs[0]
-			UV = Obs[2]
-			RainRate = Obs[3] 
-			WindAvg = Obs[5]       
-			WindGust = Obs[6]      
-			WindDirec = Obs[7]
-			Battery = Obs[8]
-			Radiation = Obs[10]
-			
-			# Store latest Observation JSON message
-			self.Sky['Obs'] = Msg['obs'][0]
-			
-			# Calculate derived variables from Sky observations
-			FeelsLike = self.FeelsLike()
-			
-			# Convert observation units as required
-			RainRate = RainRate * 60				  # Rain rate in mm/hour
-			WindAvg = WindAvg * 2.23694         	  # Wind speed in miles/hour
-			WindGust = WindGust * 2.23694       	  # Wind speed in miles/hour
-			FeelsLike = self.ConvertObservationUnits(FeelsLike,'Temp')
-						
-			# Define and format Sky Kivy label binds		
-			self.Sky['Time'] = datetime.fromtimestamp(Time,self.System['tz']).strftime('%H:%M:%S')
-			self.Sky['UV'] = "{:2.1f}".format(UV)
-			self.Sky['Radiation'] = "{:4.0f}".format(Radiation)
-			self.Sky['WindAvg'] = "{:2.1f}".format(WindAvg)
-			self.Sky['WindGust'] = "{:2.1f}".format(WindGust)
-			self.Sky['Battery'] = "{:1.2f}".format(Battery)
-			self.Sky['DirecIcon'] = self.WindBearingToCompassDirec(WindDirec,WindAvg)[0]
-			self.Sky['WindDirec'] = str(WindDirec)
-			if RainRate == 0:
-				self.Sky['RainRate'] = "{:1.0f}".format(RainRate)	
-			elif RainRate < 1:
-				self.Sky['RainRate'] = "{:1.2f}".format(RainRate)
-			else:
-				self.Sky['RainRate'] = "{:2.1f}".format(RainRate)
-				
-			# Define and format AIR Kivy label binds
-			self.Air['FeelsLike'] = ['--' if math.isnan(FeelsLike[0]) else "{:2.1f}".format(FeelsLike[0]),FeelsLike[1]]
-						
-			# Calculate "Feels Like" temperature, rain 
-			# accumulation, and  max/min wind speed and gust  
-			self.RainAccumulation()
-			self.SkyObsMaxMin()
-			
-			# Set comfort level text/icon, wind direction text, 
-			# Beaufort Scale text, and UV Index icon.
-			#self.Set_ComfortLevelText()
-			self.BeaufortScale()
-			self.RainRate()
-			self.UVIndex()
-			
-		# Extract Rapid-Wind observations from SKY Module	
-		elif Type == 'rapid_wind':
-			
-			# Replace missing observations from SKY Rapid-Wind Websocket JSON 
-			# with NaN
-			Obs = [x if x != None else NaN for x in Msg['ob']]	
-
-			# Extract observations from latest SKY Rapid-Wind Websocket JSON 
-			Time = Obs[0]
-			Speed = Obs[1] 
-			Direc = Obs[2]
-			
-			# Extract wind direction from previous SKY Rapid-Wind Websocket JSON
-			if 'Obs' in self.SkyRapid:
-				DirecOld = self.SkyRapid['Obs'][2]
-			else:
-				DirecOld = 0
-						
-			# If windspeed is zero, freeze direction at last direction of 
-			# non-zero wind speed, and edit latest SKY Rapid-Wind Websocket JSON 
-			if Speed == 0:
-				Direc = DirecOld
-				Obs[2] = DirecOld
-				
-			# Store latest SKY Observation JSON message
-			self.SkyRapid['Obs'] = Obs
-			
-			# Convert observation units as required
-			Speed = Speed * 2.23694         		  # Wind speed in miles/hour
-			
-			# Animate wind rose arrow 
-			self.WindRoseAnimation(Direc,DirecOld)
-			
-			# Define and format Kivy labels
-			self.SkyRapid['Time'] = datetime.fromtimestamp(Time,self.System['tz']).strftime('%H:%M:%S')
-			self.SkyRapid['Speed'] = "{:2.1f}".format(Speed)
-			self.SkyRapid['DirecText'] = self.WindBearingToCompassDirec(Direc,Speed)[1]
-			self.SkyRapid['Direc'] = str(Direc)	
-					
-		# Extract 1-minute observations from AIR Module
+			self.WebsocketObsSky(Msg)
+									
+		# Extract observations from obs_Air websocket message
 		elif Type == 'obs_air':
-		
-			# Replace missing observations from AIR Websocket JSON with NaN
-			Obs = [x if x != None else NaN for x in Msg['obs'][0]]	
-			
-			# Extract observations from AIR Websocket JSON 	
-			Time = [Obs[0],'s']
-			Pres = [Obs[1],'mb']
-			Temp = [Obs[2],'c']
-			Humidity = [Obs[3],'%']
-			Battery = [Obs[6],'v']
-			
-			# Store latest AIR Websocket JSON
-			self.Air['Obs'] = Obs
-
-			# Calculate derived variables from AIR observations
-			DewPoint = self.DewPoint()
-			FeelsLike = self.FeelsLike()
-			ComfortLevel = self.ComfortLevel(FeelsLike)
-			SLP = self.SeaLevelPressure(Pres)
-			PresTrend = self.PressureTrend()
-			TempMaxMin,PresMaxMin = self.AirObsMaxMin()
-
-			# Convert observation units as required
-			cTemp = self.ConvertObservationUnits(Temp,'Temp')
-			cDewPoint = self.ConvertObservationUnits(DewPoint,'Temp')
-			cFeelsLike = self.ConvertObservationUnits(FeelsLike,'Temp')
-			cTempMaxMin = self.ConvertObservationUnits(TempMaxMin,'Temp')
-			cSLP = self.ConvertObservationUnits(SLP,'Pressure')
-			cPresTrend = self.ConvertObservationUnits(PresTrend,'Pressure')
-			cPresMaxMin = self.ConvertObservationUnits(PresMaxMin,'Pressure')
-						
-			# Define Pressure format string based on observation unit
-			if self.System['Units']['Pressure'] == 'inhg':
-				PresFormat = "{:2.3f}"
-			elif self.System['Units']['Pressure'] == 'mmhg':
-				PresFormat = "{:3.2f}"
-			else:
-				PresFormat = "{:4.1f}"
-			
-			# Define and format Kivy labels
-			self.Air['Time'] = datetime.fromtimestamp(Time[0],self.System['tz']).strftime('%H:%M:%S')
-			self.Air['Temp'] = ["{:2.1f}".format(cTemp[0]),cTemp[1]]
-			self.Air['MaxTemp'] = ["{:2.1f}".format(float(cTempMaxMin[0])),cTempMaxMin[1],cTempMaxMin[2]]
-			self.Air['MinTemp'] = ["{:2.1f}".format(float(cTempMaxMin[3])),cTempMaxMin[4],cTempMaxMin[5]]
-			self.Air['DewPoint'] = ["{:2.1f}".format(cDewPoint[0]),cDewPoint[1]]		
-			self.Air['FeelsLike'] = ['-' if math.isnan(cFeelsLike[0]) else "{:2.1f}".format(cFeelsLike[0]),cFeelsLike[1]]
-			self.Air['Pres'] = ["{:4.1f}".format(SLP[0]),PresFormat.format(cSLP[0]),cSLP[1]]
-			self.Air['MaxPres'] = [PresFormat.format(cPresMaxMin[0]),cPresMaxMin[1]]
-			self.Air['MinPres'] = [PresFormat.format(cPresMaxMin[2]),cPresMaxMin[3]]
-			self.Air['PresTrend'] = [PresFormat.format(cPresTrend[0]/3),cPresTrend[1] + '/hr',cPresTrend[2]]		
-			self.Air['Humidity'] = ["{:2.0f}".format(Humidity[0]),' ' + Humidity[1]]
-			self.Air['Comfort'] = ComfortLevel
-			self.Air['Battery'] = "{:1.2f}".format(Battery[0])
+			self.WebsocketObsAir(Msg)
 				
+		# Extract observations from Rapid_Wind websocket message	
+		elif Type == 'rapid_wind':
+			self.WebsocketRapidWind(Msg)
+
+	# EXTRACT OBSERVATIONS FROM OBS_SKY WEBSOCKET JSON MESSAGE
+	# --------------------------------------------------------------------------
+	def WebsocketObsSky(self,Msg):
+	
+		# Replace missing observations from SKY Websocket JSON with NaN
+		Obs = [x if x != None else NaN for x in Msg['obs'][0]]	
+		
+		# Extract observations from SKY Websocket JSON 
+		Time = [Obs[0],'s']
+		UV = [Obs[2],'index']
+		Rain = [Obs[3],'mm'] 
+		WindSpd = [Obs[5],'mps']       
+		WindGust = [Obs[6],'mps']      
+		WindDir = [Obs[7],'degrees']
+		Battery = [Obs[8],'v']
+		Radiation = [Obs[10],' W m[sup]-2[/sup]']
+
+		# Store latest SKY Websocket JSON
+		self.Sky['Obs'] = Obs
+
+		# Calculate derived variables from SKY observations
+		FeelsLike = self.FeelsLike()
+		RainRate = self.RainRate(Rain)
+		DayRain,MonthRain,YearRain = self.RainAccumulation(Rain) 
+		MaxWind,MaxGust = self.SkyObsMaxMin(WindSpd,WindGust)
+		Beaufort = self.BeaufortScale(WindSpd)
+		Cardinal = self.CardinalWindDirection(WindDir,WindSpd)
+		UV = self.UVIndex(UV)
+		
+		# Convert observation units as required
+		cRainRate = self.ConvertObservationUnits(RainRate,'Precip')
+		cDayRain = self.ConvertObservationUnits(DayRain,'Precip')
+		cMonthRain = self.ConvertObservationUnits(MonthRain,'Precip')
+		cYearRain = self.ConvertObservationUnits(YearRain,'Precip')
+		cWindSpd = self.ConvertObservationUnits(WindSpd,'Wind')
+		cWindDir = self.ConvertObservationUnits(WindDir,'Direction')
+		cWindGust = self.ConvertObservationUnits(WindGust,'Wind')
+		cMaxWind = self.ConvertObservationUnits(MaxWind,'Wind')
+		cMaxGust = self.ConvertObservationUnits(MaxGust,'Wind')
+		cFeelsLike = self.ConvertObservationUnits(FeelsLike,'Temp')
+		
+		# Define Rain Rate format string based on current Rain Rate
+		if cRainRate[0] == 0:
+			RainRateFmt = '{:.0f}'
+		elif cRainRate[0] < 1:
+			RainRateFmt = '{:.2f}'
+		else:
+			RainRateFmt = '{:.1f}'
+		
+		# Define Rain Accumulation format string based on current Rain Accumulation
+		if cDayRain[0] == 0:
+			DayRainFmt = '{:.0f}'
+		elif cDayRain[0] < 10:
+			DayRainFmt = '{:.1f}'
+		else:
+			DayRainFmt = '{:.0f}'
+		if cMonthRain[0] < 10:
+			MonthRainFmt = '{:.1f}'
+		else:
+			MonthRainFmt = '{:.0f}'		
+		if cYearRain[0] < 10:
+			YearRainFmt = '{:.1f}'
+		else:
+			YearRainFmt = '{:.0f}'						
+					
+		# Define and format SKY Kivy label binds		
+		self.Sky['Time'] =  datetime.fromtimestamp(Time[0],self.System['tz']).strftime('%H:%M:%S')
+		self.Sky['RainRate'] = [RainRateFmt.format(cRainRate[0]),cRainRate[1],cRainRate[2]]
+		self.Sky['DayRain'] = [DayRainFmt.format(cDayRain[0]),cDayRain[1],cDayRain[0],cDayRain[2]]
+		self.Sky['MonthRain'] = [MonthRainFmt.format(cMonthRain[0]),cMonthRain[1],cMonthRain[0],cMonthRain[2]]
+		self.Sky['YearRain'] = [YearRainFmt.format(cYearRain[0]),cYearRain[1],cYearRain[0],cYearRain[2]]
+		self.Sky['WindSpd'] = ['{:.1f}'.format(cWindSpd[0]),cWindSpd[1],Beaufort[0],Beaufort[1]]
+		self.Sky['WindGust'] = ['{:.1f}'.format(cWindGust[0]),cWindGust[1]]
+		self.Sky['MaxWind'] = ['{:.1f}'.format(cMaxWind[0]),cMaxWind[1],cMaxWind[2]]
+		self.Sky['MaxGust'] = ['{:.1f}'.format(cMaxGust[0]),cMaxGust[1],cMaxGust[2]]
+		self.Sky['WindDir'] = [cWindDir[0] if isinstance(cWindDir[0],str) else '{:.0f}'.format(cWindDir[0]),cWindDir[1],Cardinal[0]]
+		self.Sky['Battery'] = ['{:.2f}'.format(Battery[0]),Battery[1]]
+		self.Sky['Radiation'] = ['{:.0f}'.format(Radiation[0]),Radiation[1],'{:.1f}'.format(UV[0]),UV[2]]
+
+		# Define and format AIR Kivy label binds
+		self.Air['FeelsLike'] = ['-' if math.isnan(cFeelsLike[0]) else '{:2.1f}'.format(cFeelsLike[0]),cFeelsLike[1]]
+	
+	# EXTRACT OBSERVATIONS FROM OBS_AIR WEBSOCKET JSON MESSAGE
+	# --------------------------------------------------------------------------
+	def WebsocketObsAir(self,Msg):
+	
+		# Replace missing observations from AIR Websocket JSON with NaN
+		Obs = [x if x != None else NaN for x in Msg['obs'][0]]	
+		
+		# Extract observations from AIR Websocket JSON 	
+		Time = [Obs[0],'s']
+		Pres = [Obs[1],'mb']
+		Temp = [Obs[2],'c']
+		Humidity = [Obs[3],'%']
+		Battery = [Obs[6],' v']
+		
+		# Store latest AIR Websocket JSON
+		self.Air['Obs'] = Obs
+
+		# Calculate derived variables from AIR observations
+		DewPoint = self.DewPoint()
+		FeelsLike = self.FeelsLike()
+		ComfortLevel = self.ComfortLevel(FeelsLike)
+		SLP = self.SeaLevelPressure(Pres)
+		PresTrend = self.PressureTrend()
+		TempMaxMin,PresMaxMin = self.AirObsMaxMin()
+
+		# Convert observation units as required
+		cTemp = self.ConvertObservationUnits(Temp,'Temp')
+		cDewPoint = self.ConvertObservationUnits(DewPoint,'Temp')
+		cFeelsLike = self.ConvertObservationUnits(FeelsLike,'Temp')
+		cTempMaxMin = self.ConvertObservationUnits(TempMaxMin,'Temp')
+		cSLP = self.ConvertObservationUnits(SLP,'Pressure')
+		cPresTrend = self.ConvertObservationUnits(PresTrend,'Pressure')
+		cPresMaxMin = self.ConvertObservationUnits(PresMaxMin,'Pressure')
+					
+		# Define Pressure format string based on observation unit
+		if self.System['Units']['Pressure'] == 'inhg':
+			PresFormat = '{:2.3f}'
+		elif self.System['Units']['Pressure'] == 'mmhg':
+			PresFormat = '{:3.2f}'
+		else:
+			PresFormat = '{:4.1f}'
+		
+		# Define and format Kivy labels
+		self.Air['Time'] = datetime.fromtimestamp(Time[0],self.System['tz']).strftime('%H:%M:%S')
+		self.Air['Temp'] = ['{:.1f}'.format(cTemp[0]),cTemp[1]]
+		self.Air['MaxTemp'] = ['{:.1f}'.format(float(cTempMaxMin[0])),cTempMaxMin[1],cTempMaxMin[2]]
+		self.Air['MinTemp'] = ['{:.1f}'.format(float(cTempMaxMin[3])),cTempMaxMin[4],cTempMaxMin[5]]
+		self.Air['DewPoint'] = ['{:.1f}'.format(cDewPoint[0]),cDewPoint[1]]		
+		self.Air['FeelsLike'] = ['-' if math.isnan(cFeelsLike[0]) else '{:2.1f}'.format(cFeelsLike[0]),cFeelsLike[1]]
+		self.Air['Pres'] = ['{:.1f}'.format(SLP[0]),PresFormat.format(cSLP[0]),cSLP[1]]
+		self.Air['MaxPres'] = [PresFormat.format(cPresMaxMin[0]),cPresMaxMin[1]]
+		self.Air['MinPres'] = [PresFormat.format(cPresMaxMin[2]),cPresMaxMin[3]]
+		self.Air['PresTrend'] = [PresFormat.format(cPresTrend[0]),cPresTrend[1],cPresTrend[2]]		
+		self.Air['Humidity'] = ['{:.0f}'.format(Humidity[0]),' ' + Humidity[1]]
+		self.Air['Battery'] = ['{:.2f}'.format(Battery[0]),Battery[1]]
+		self.Air['Comfort'] = ComfortLevel
+
+	# EXTRACT OBSERVATIONS FROM RAPID_WIND WEBSOCKET JSON MESSAGE
+	# --------------------------------------------------------------------------
+	def WebsocketRapidWind(self,Msg):
+	
+		# Replace missing observations from SKY Rapid-Wind Websocket JSON 
+		# with NaN
+		Obs = [x if x != None else NaN for x in Msg['ob']]	
+
+		# Extract observations from latest SKY Rapid-Wind Websocket JSON 
+		Time = [Obs[0],'s']
+		WindSpd = [Obs[1],'mps'] 
+		WindDir = [Obs[2],'degrees']
+		
+		# Extract wind direction from previous SKY Rapid-Wind Websocket JSON
+		if 'Obs' in self.SkyRapid:
+			WindDirOld = [self.SkyRapid['Obs'][2],'degrees']
+		else:
+			WindDirOld = [0,'degrees']
+					
+		# If windspeed is zero, freeze direction at last direction of 
+		# non-zero wind speed, and edit latest SKY Rapid-Wind Websocket JSON 
+		if WindSpd[0] == 0:
+			WindDir = WindDirOld
+			Obs[2] = WindDirOld[0]
+			
+		# Store latest SKY Observation JSON message
+		self.SkyRapid['Obs'] = Obs
+		
+		# Calculate derived variables from Rapid SKY observations
+		Cardinal = self.CardinalWindDirection(WindDir,WindSpd)
+		
+		# Convert observation units as required
+		cWindSpd = self.ConvertObservationUnits(WindSpd,'Wind')
+
+		# Animate wind rose arrow 
+		self.WindRoseAnimation(WindDir[0],WindDirOld[0])
+		
+		# Define and format Kivy labels
+		self.SkyRapid['Time'] = datetime.fromtimestamp(Time[0],self.System['tz']).strftime('%H:%M:%S')
+		self.SkyRapid['Speed'] = ['{:.1f}'.format(cWindSpd[0]),cWindSpd[1]]
+		self.SkyRapid['Direc'] = ['{:.0f}'.format(WindDir[0]),'[sup]o[/sup]',Cardinal[1]]		
+	
 	# CONVERT STATION OBSERVATIONS INTO REQUIRED UNITS
     # --------------------------------------------------------------------------		
 	def ConvertObservationUnits(self,Obs,Type):
 		
-		# Convert temperature observation
+		# Convert temperature observations
 		cObs = Obs[:]
 		if Type == 'Temp': 
 			for ii,T in enumerate(Obs):
 				if T == 'c':
 					if self.System['Units'][Type] == 'f':
-						cObs[ii-1] = Obs[ii-1] * 9/5 + 32
+						cObs[ii-1] = Obs[ii-1] * 1.8 + 32
+						cObs[ii] = ' [sup]o[/sup]F'
 					else:
 						cObs[ii-1] = Obs[ii-1]
-					cObs[ii] = " [sup]o[/sup]" + self.System['Units'][Type].upper()	
+						cObs[ii] = ' [sup]o[/sup]C'	
 
-		# Convert pressure observation
+		# Convert pressure and pressure trend observations 
 		elif Type == 'Pressure': 
 			for ii,P in enumerate(Obs):
-				if P == 'mb':
+				if P in ['mb','mb/hr']:
 					if self.System['Units'][Type] == 'inhg':
-						cObs[ii-1] = Obs[ii-1] * 0.029530
-						cObs[ii] = 'inHg'
+						cObs[ii-1] = Obs[ii-1] * 0.0295301
+						if P == 'mb':
+							cObs[ii] = ' inHg'
+						else:
+							cObs[ii] = ' inHg/hr'
+						
 					elif self.System['Units'][Type] == 'mmhg':
 						cObs[ii-1] = Obs[ii-1] * 0.750063
-						cObs[ii] = 'mmHg'
+						if P == 'mb':
+							cObs[ii] = ' mmHg'
+						else:
+							cObs[ii] = ' mmHg/hr'
 					elif self.System['Units'][Type] == 'hpa':
 						cObs[ii-1] = Obs[ii-1]
-						cObs[ii] = 'hPa'
+						if P == 'mb':
+							cObs[ii] = ' hpa'
+						else:
+							cObs[ii] = ' hpa/hr'
 					else:
 						cObs[ii-1] = Obs[ii-1]
-						cObs[ii] = 'mb'
+						if P == 'mb':
+							cObs[ii] = ' mb'
+						else:
+							cObs[ii] = ' mb/hr'
+						
+		# Convert windspeed observations
+		elif Type == 'Wind':
+			for ii,W in enumerate(Obs):
+				if W == 'mps':
+					if self.System['Units'][Type] == 'mph':
+						cObs[ii-1] = Obs[ii-1] * 2.2369362920544
+						cObs[ii] = 'mph'
+					elif self.System['Units'][Type] == 'kts':
+						cObs[ii-1] = Obs[ii-1] * 1.9438
+						cObs[ii] = 'kts'
+					elif self.System['Units'][Type] == 'kph':
+						cObs[ii-1] = Obs[ii-1] * 3.6
+						cObs[ii] = 'km/h'							
+					elif self.System['Units'][Type] == 'lfm':
+						cObs[ii-1] = Obs[ii-1] * 2.2369362920544 * 88
+						cObs[ii] = 'lfm'	
+					elif self.System['Units'][Type] == 'bft':
+						cObs[ii-1] = self.BeaufortScale(Obs[ii-1:ii+1])[2] 
+						cObs[ii] = 'bft'
+					else:
+						cObs[ii-1] = Obs[ii-1]
+						cObs[ii] = 'm/s'	
 
-		# Return converted observation	
+		# Convert wind direction observations
+		elif Type == 'Direction':
+			for ii,W in enumerate(Obs):
+				if W == 'degrees':
+					if self.System['Units'][Type] == 'cardinal':
+						cObs[ii-1] = self.CardinalWindDirection(Obs[ii-1:ii+1],[1,'mps'])[0]   
+						cObs[ii] = ''
+					else:
+						cObs[ii-1] = Obs[ii-1]   
+						cObs[ii] = '[sup]o[/sup]'
+						
+		# Convert rain accumulation and rain rate observations
+		elif Type == 'Precip':
+			for ii,Prcp in enumerate(Obs):
+				if Prcp in ['mm','mm/hr']:
+					if self.System['Units'][Type] == 'in':
+						cObs[ii-1] = Obs[ii-1] * 0.0393701
+						if Prcp == 'mm':
+							cObs[ii] = ' in'
+						else:
+							cObs[ii] = ' in/hr'
+					elif self.System['Units'][Type] == 'cm':
+						cObs[ii-1] = Obs[ii-1] * 0.1
+						if Prcp == 'mm':
+							cObs[ii] = ' cm'
+						else:
+							cObs[ii] = ' cm/hr'	
+					else:
+						cObs[ii-1] = Obs[ii-1]
+						if Prcp == 'mm':
+							cObs[ii] = ' mm'	
+						else:
+							cObs[ii] = ' mm/hr'				
+						
+		# Return converted observations	
 		return cObs
 				
 	# ANIMATE RAPID-WIND WIND ROSE DIRECTION ARROW
@@ -525,15 +629,15 @@ class WeatherFlowPiConsole(App):
 		# Animate Wind Rose at constant speed between old and new Rapid-Wind 
 		# wind direction
 		if WindShift >= -180 and WindShift <= 180:
-			Animation(SkyRapidAngle=newDirec,duration=2*abs(WindShift)/360).start(self)
+			Animation(SkyRapidIcon=newDirec,duration=2*abs(WindShift)/360).start(self)
 		elif WindShift > 180:
-			Animation(SkyRapidAngle=0,duration=2*oldDirec/360).start(self)	
-			self.SkyRapidAngle = 360
-			Animation(SkyRapidAngle=newDirec,duration=2*(360-newDirec)/360).start(self)
+			Animation(SkyRapidIcon=0,duration=2*oldDirec/360).start(self)	
+			self.SkyRapidIcon = 360
+			Animation(SkyRapidIcon=newDirec,duration=2*(360-newDirec)/360).start(self)
 		elif WindShift < -180:
-			Animation(SkyRapidAngle=360,duration=2*(360-oldDirec)/360).start(self)	
-			self.SkyRapidAngle = 0
-			Animation(SkyRapidAngle=newDirec,duration=2*newDirec/360).start(self)
+			Animation(SkyRapidIcon=360,duration=2*(360-oldDirec)/360).start(self)	
+			self.SkyRapidIcon = 0
+			Animation(SkyRapidIcon=newDirec,duration=2*newDirec/360).start(self)
 			
 	# CALCULATE DEW POINT FROM HUMIDITY AND TEMPERATURE
     # --------------------------------------------------------------------------
@@ -556,7 +660,7 @@ class WeatherFlowPiConsole(App):
 		# Return Dew Point
 		return [DewPoint,'c']
 		
-	# CALCULATE "FEELS LIKE" TEMPERATURE FROM HUMIDITY, TEMPERATURE, AND WIND 
+	# CALCULATE 'FEELS LIKE' TEMPERATURE FROM HUMIDITY, TEMPERATURE, AND WIND 
 	# SPEED
     # --------------------------------------------------------------------------
 	def FeelsLike(self):
@@ -625,8 +729,7 @@ class WeatherFlowPiConsole(App):
 		TimeEnd = self.Air['Obs'][0]
 
 		# Download pressure data for last three hours
-		Template = ("https://swd.weatherflow.com/swd/rest/observations/"
-		            "device/{}?time_start={}&time_end={}&api_key={}")
+		Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&api_key={}'
 		URL = Template.format(self.System['AirID'],TimeStart,TimeEnd,self.System['WFlowKey'])
 		Data = requests.get(URL).json()['obs']
 		Pres = [item[1] for item in Data]
@@ -637,45 +740,53 @@ class WeatherFlowPiConsole(App):
 		
 		# Calculate pressure trend text
 		if Trend >= 1:
-			TrendText = "[color=ff8837ff]Rising[/color]"
+			TrendText = '[color=ff8837ff]Rising[/color]'
 		elif Trend <= -1:
-			TrendText = "[color=00a4b4ff]Falling[/color]"
+			TrendText = '[color=00a4b4ff]Falling[/color]'
 		else:
-			TrendText = "[color=9aba2fff]Steady[/color]"
+			TrendText = '[color=9aba2fff]Steady[/color]'
 		
 		# Return pressure trend
-		return [Trend,'mb',TrendText]
-
+		return [Trend/3,'mb/hr',TrendText]
+		
 	# CALCULATE DAILY RAIN ACCUMULATION LEVELS
     # --------------------------------------------------------------------------
-	def RainAccumulation(self):
+	def RainAccumulation(self,Rain):
 		
-		# Extract required meteorological fields
-		Rain = self.Sky['Obs'][3]
+		# Convert observation units as required
+		cRain = self.ConvertObservationUnits(Rain,'Precip')
 		
 		# Define current time in station timezone
 		Tz = self.System['tz']
 		Now = datetime.now(pytz.utc).astimezone(Tz)	
 		
-		# Code initialising. Download all data for current day
-		# using Weatherflow API. Calculate total daily rainfall
-		if self.Sky['DayRain'][0] == '--':
+		# Code initialising. Download all data for current day using Weatherflow 
+		# API. Calculate total daily rainfall
+		if self.Sky['DayRain'][0] == '-':
 		
-			# Download data from current day
-			Template = ("https://swd.weatherflow.com/swd/rest/observations/"
-						"device/{}?day_offset=0&api_key={}")
-			URL = Template.format(self.System['SkyID'],self.System['WFlowKey'])
+			# Convert midnight today in Station timezone to midnight today in  
+			# UTC. Convert UTC time into UNIX timestamp
+			Date = date.today()																
+			Midnight = Tz.localize(datetime.combine(Date,time()))
+			Midnight_UTC = int(Midnight.timestamp())
+			
+			# Convert current time in Station timezone to current time in  UTC. 
+			# Convert current time time into UNIX timestamp
+			Now = Tz.localize(datetime.now())
+			Now_UTC = int(Now.timestamp())													
+
+			# Download rainfall data for current month
+			Template = ('https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&api_key={}')
+			URL = Template.format(self.System['SkyID'],Midnight_UTC,Now_UTC,self.System['WFlowKey'])
 			Data = requests.get(URL).json()['obs']
-			Rain = [item[3] if item[3] != None else NaN for item in Data]
+			Rain = [[item[3],'mm'] if item[3] != None else NaN for item in Data]
 			
 			# Calculate daily rain accumulation
-			self.Sky['DayRain'][0] = sum(Rain)
-			self.Sky['DayRain'][1] = "{:2.1f}".format(self.Sky['DayRain'][0])
-			self.Sky['DayRain'][2] = Now
-			
-		# Code initialising. Download all data for current month
-		# using Weatherflow API. Calculate total monthly rainfall
-		if self.Sky['MonthRain'][0] == '--':
+			DayRain = [sum([x for x,y in Rain]),'mm',Now]
+
+		# Code initialising. Download all data for current month using 
+		# Weatherflow API. Calculate total monthly rainfall
+		if self.Sky['MonthRain'][0] == '-':
 		
 			# Calculate timestamps for current month
 			Time = datetime.utcfromtimestamp(self.Sky['Obs'][0])
@@ -685,20 +796,17 @@ class WeatherFlowPiConsole(App):
 			TimeEnd = self.Sky['Obs'][0]
 
 			# Download rainfall data for current month
-			Template = ("https://swd.weatherflow.com/swd/rest/observations/"
-		            "device/{}?time_start={}&time_end={}&api_key={}")
+			Template = ('https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&api_key={}')
 			URL = Template.format(self.System['SkyID'],TimeStart,TimeEnd,self.System['WFlowKey'])
 			Data = requests.get(URL).json()['obs']
-			Rain = [item[3] if item[3] != None else NaN for item in Data]
-
-			# Calculate monthly rain accumulation
-			self.Sky['MonthRain'][0] = sum(Rain)
-			self.Sky['MonthRain'][1] = "{:3.0f}".format(self.Sky['MonthRain'][0])
-			self.Sky['MonthRain'][2] = Now	
+			Rain = [[item[3],'mm'] if item[3] != None else NaN for item in Data]
 			
-		# Code initialising. Download all data for current year
-		# using Weatherflow API. Calculate total yearly rainfall
-		if self.Sky['YearRain'][0] == '--':
+			# Calculate monthly rain accumulation
+			MonthRain = [sum([x for x,y in Rain]),'mm',Now]
+			
+		# Code initialising. Download all data for current year using 
+		# Weatherflow API. Calculate total yearly rainfall
+		if self.Sky['YearRain'][0] == '-':
 		
 			# Calculate timestamps for current year
 			Time = datetime.utcfromtimestamp(self.Sky['Obs'][0])
@@ -708,60 +816,50 @@ class WeatherFlowPiConsole(App):
 			TimeEnd = self.Sky['Obs'][0]
 
 			# Download rainfall data for current year
-			Template = ("https://swd.weatherflow.com/swd/rest/observations/"
-		            "device/{}?time_start={}&time_end={}&api_key={}")
+			Template = ('https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&api_key={}')
 			URL = Template.format(self.System['SkyID'],TimeStart,TimeEnd,self.System['WFlowKey'])
 			Data = requests.get(URL).json()['obs']
-			Rain = [item[3] if item[3] != None else NaN for item in Data]
-
-			# Calculate yearly rain accumulation
-			self.Sky['YearRain'][0] = sum(Rain)
-			self.Sky['YearRain'][1] = "{:3.0f}".format(self.Sky['YearRain'][0])
-			self.Sky['YearRain'][2] = Now	
-			return
+			Rain = [[item[3],'mm'] if item[3] != None else NaN for item in Data]
 			
-		# At midnight, reset daily rainfall to zero, else add
-		# current rainfall to current daily rainfall
-		if Now.date() > self.Sky['DayRain'][2].date():
-			self.Sky['DayRain'][0] = Rain
-			self.Sky['DayRain'][1] = "{:2.1f}".format(self.Sky['DayRain'][0])
-			self.Sky['DayRain'][2] = Now
+			# Calculate yearly rain accumulation
+			YearRain = [sum([x for x,y in Rain]),'mm',Now]
+			
+			# Return Daily, Monthly, and Yearly rainfall accumulation totals
+			return DayRain,MonthRain,YearRain
+			
+		# At midnight, reset daily rainfall accumulation to zero, else add 
+		# current rainfall to current daily rainfall accumulation
+		if Now.date() > self.Sky['DayRain'][3].date():
+			DayRain = [cRain[0],cRain[1],Now]
 		else:
-			self.Sky['DayRain'][0] = self.Sky['DayRain'][0] + Rain
-			self.Sky['DayRain'][1] = "{:2.1f}".format(self.Sky['DayRain'][0])
-			self.Sky['DayRain'][2] = Now
+			DayRain = [self.Sky['DayRain'][2] + cRain[0],cRain[1],Now]	
 		
-		# At end of month, reset monthly rainfall to zero, else 
-		# add current rainfall to current monthly rainfall
-		if (Now.month > self.Sky['MonthRain'][2].month or 
-			  Now.year  > self.Sky['MonthRain'][2].year):
-			self.Sky['MonthRain'][0] = Rain
-			self.Sky['MonthRain'][1] = "{:3.0f}".format(self.Sky['MonthRain'][0])
-			self.Sky['MonthRain'][2] = Now
+		# At end of month, reset monthly rainfall accumulation to zero, else add 
+		# current rainfall to current monthly rainfall accumulation
+		if Now.month > self.Sky['MonthRain'][3].month:
+			MonthRain = [cRain[0],cRain[1],Now]
 		else:
-			self.Sky['MonthRain'][0] = self.Sky['MonthRain'][0] + Rain
-			self.Sky['MonthRain'][1] = "{:3.0f}".format(self.Sky['MonthRain'][0])
-			self.Sky['MonthRain'][2] = Now	
+			MonthRain = [self.Sky['MonthRain'][2] + cRain[0],cRain[1],Now]
 		
-		# At end of year, reset yearly rainfall to zero, else 
-		# add current rainfall to current yearly rainfall
-		if Now.year > self.Sky['YearRain'][2].year:
-			self.Sky['YearRain'][0] = Rain
-			self.Sky['YearRain'][1] = "{:3.0f}".format(self.Sky['YearRain'][0])
-			self.Sky['YearRain'][2] = Now
+		# At end of year, reset monthly and yearly rainfall accumulation to zero, 
+		# else add current rainfall to current yearly rainfall accumulation
+		if Now.year > self.Sky['YearRain'][3].year:
+			YearRain = [cRain[0],cRain[1],Now]
+			MonthRain = [cRain[0],cRain[1],Now]
 		else:
-			self.Sky['YearRain'][0] = self.Sky['YearRain'][0] + Rain
-			self.Sky['YearRain'][1] = "{:3.0f}".format(self.Sky['YearRain'][0])
-			self.Sky['YearRain'][2] = Now	
+			YearRain = [self.Sky['YearRain'][2] + cRain[0],cRain[1],Now]
+			
+		# Return Daily, Monthly, and Yearly rainfall accumulation totals
+		return DayRain,MonthRain,YearRain
 		
-	# CALCULATE MAXIMUM AND MINIMUM OBSERVED TEMPERATURE
+	# CALCULATE MAXIMUM AND MINIMUM OBSERVED TEMPERATURE AND PRESSURE
 	# --------------------------------------------------------------------------
 	def AirObsMaxMin(self):
 
 		# Extract required meteorological fields
 		Time = self.Air['Obs'][0]
 		Temp = [self.Air['Obs'][2],'c']
-		Pres = [1050,'mb']
+		Pres = [self.Air['Obs'][1],'mb']
 
 		# Calculate sea level pressure
 		SLP = self.SeaLevelPressure(Pres)
@@ -781,11 +879,23 @@ class WeatherFlowPiConsole(App):
 		# Code initialising. Download all data for current day using Weatherflow 
 		# API. Extract maximum and minimum observed temperature and time
 		if self.Air['MaxTemp'] == '---':
-					
+		
+			# Convert midnight today in Station timezone to midnight today in 
+			# UTC. Convert UTC time into UNIX timestamp
+			Date = date.today()																
+			Midnight = Tz.localize(datetime.combine(Date,time()))
+			Midnight_UTC = int(Midnight.timestamp())
+			
+			# Convert current time in Station timezone to current time in 
+			# UTC. Convert current time time into UNIX timestamp
+			Now = Tz.localize(datetime.now())
+			Now_UTC = int(Now.timestamp())													
+
 			# Download data from current day using Weatherflow  API and extract 
 			# temperature, pressure and time data
-			Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?day_offset=0&api_key={}'
-			URL = Template.format(self.System['AirID'],self.System['WFlowKey'])
+			# Download rainfall data for current month
+			Template = ('https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&api_key={}')
+			URL = Template.format(self.System['AirID'],Midnight_UTC,Now_UTC,self.System['WFlowKey'])
 			Data = requests.get(URL).json()['obs']
 			Time = [item[0] if item[0] != None else NaN for item in Data]
 			Temp = [[item[2],'c'] if item[2] != None else [NaN,'c'] for item in Data]
@@ -868,14 +978,13 @@ class WeatherFlowPiConsole(App):
 		# Return required variables
 		return TempMaxMin,PresMaxMin	
 			
-	# CALCULATE MAXIMUM AND MINIMUM OBSERVED WEATHER PARAMETERS FROM SKY MODULE 
-	# (WIND SPEED AND GUST STRENGTH)
+	# CALCULATE MAXIMUM AND MINIMUM OBSERVED WIND SPEED AND GUST STRENGTH
 	# --------------------------------------------------------------------------
-	def SkyObsMaxMin(self):
-
-		# Extract required meteorological fields
-		Wind = self.Sky['Obs'][5] * 2.23694                   # Wind in mph
-		Gust = self.Sky['Obs'][6] * 2.23694                   # Wind in mph
+	def SkyObsMaxMin(self,WindSpd,WindGust):
+		
+		# Convert observation units as required
+		cWindSpd = self.ConvertObservationUnits(WindSpd,'Wind')
+		cWindGust = self.ConvertObservationUnits(WindGust,'Wind')
 		
 		# Define current time in station timezone
 		Tz = self.System['tz']
@@ -886,59 +995,84 @@ class WeatherFlowPiConsole(App):
 		# observed temperature and time
 		if self.Sky['MaxWind'] == '--':
 		
-			# Download data from current day using Weatherflow 
-			# API and extract temperature and time data
-			Template = ("https://swd.weatherflow.com/swd/rest/observations/"
-			            "device/{}?day_offset=0&api_key={}")
-			URL = Template.format(self.System['SkyID'],self.System['WFlowKey'])
-			Data = requests.get(URL).json()['obs']
-			Wind = [item[5]*2.23694 if item[5] != None else NaN for item in Data]
-			Gust = [item[6]*2.23694 if item[6] != None else NaN for item in Data]
+			# Convert midnight today in Station timezone to midnight today in 
+			# UTC. Convert UTC time into UNIX timestamp
+			Date = date.today()																
+			Midnight = Tz.localize(datetime.combine(Date,time()))
+			Midnight_UTC = int(Midnight.timestamp())
 			
-			# Define Kivy label binds
-			self.Sky['MaxWind'] = "{:.1f}".format(max(Wind))
-			self.Sky['MaxGust'] = "{:.1f}".format(max(Gust))
-			self.Sky['MetDay'] = Now.date()
-			return
+			# Convert current time in Station timezone to current time in 
+			# UTC. Convert current time time into UNIX timestamp
+			Now = Tz.localize(datetime.now())
+			Now_UTC = int(Now.timestamp())													
+
+			# Download data from current day using Weatherflow  API and extract 
+			# temperature, pressure and time data
+			# Download rainfall data for current month
+			Template = ('https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&api_key={}')
+			URL = Template.format(self.System['SkyID'],Midnight_UTC,Now_UTC,self.System['WFlowKey'])
+			Data = requests.get(URL).json()['obs']
+			WindSpd = [[item[5],'mps'] if item[5] != None else [NaN,'mps'] for item in Data]
+			WindGust = [[item[6],'mps'] if item[6] != None else [NaN,'mps'] for item in Data]
+
+			# Define maximum wind speed and wind gust
+			MaxWind = [max([x for x,y in WindSpd]),'mps',Now]
+			MaxGust = [max([x for x,y in WindGust]),'mps',Now]
+			
+			# Return maximum wind speed and gust
+			return MaxWind,MaxGust
 
 		# At midnight, reset maximum recorded wind speed and gust
-		if self.Sky['MetDay'] < Now.date():
-			self.Sky['MaxWind'] = "{:.1f}".format(Wind)
-			self.Sky['MaxGust'] = "{:.1f}".format(Gust)
-			self.Sky['MetDay'] = Now.date()
+		if self.Sky['MaxWind'][2].date() < Now.date():
+			MaxWind = [WindSpd[0],'mps',Now]
+			MaxGust = [WindGust[0],'mps',Now]
 			
-		# Current wind speed is greater than maximum recorded
-		# wind speed. Update maximum wind speed
-		if Wind > float(self.Sky['MaxWind']):
-			self.Sky['MaxWind'] = "{:.1f}".format(Wind)
+		# Current wind speed is greater than maximum recorded wind speed. Update 
+		# maximum wind speed
+		if cWindSpd[0] > float(self.Sky['MaxWind'][0]):
+			MaxWind = [WindSpd[0],'mps',Now]
 			
-		# Current gust is greater than maximum recorded gust. 
-		# Update maximum gust	
-		if Gust > float(self.Sky['MaxGust']):
-			self.Sky['MaxGust'] = "{:.1f}".format(Gust)	
+		# Maximum wind speed is unchanged. Return existing value
+		else:
+			MaxWind = [float(self.Sky['MaxWind'][0]),self.Sky['MaxWind'][1],self.Sky['MaxWind'][2]]
+			
+		# Current gust is greater than maximum recorded gust. Update maximum 
+		# gust	
+		if cWindGust[0] > float(self.Sky['MaxGust'][0]):
+			MaxGust = [WindGust[0],'mps',Now]	
+				
+		# Maximum gust is unchanged. Return existing value
+		else:
+			MaxGust = [float(self.Sky['MaxGust'][0]),self.Sky['MaxGust'][1],self.Sky['MaxGust'][2]]	
+			
+		# Return maximum wind speed and gust
+		return MaxWind,MaxGust	
 		
 	# SET THE RAIN RATE TEXT
     # --------------------------------------------------------------------------
-	def RainRate(self):
+	def RainRate(self,RainAccum):
 				
-		# Extract required meteorological fields
-		RainRate = self.Sky['Obs'][3] * 60
+		# Calculate instantaneous rain rate from instantaneous rain accumulation
+		RainRate = RainAccum[0]*60
 		
-		# Define rain rate text
+		# Define rain rate text based on calculated 
 		if RainRate == 0:
-			self.Sky['RainRateText'] = "Currently Dry"
+			RainRateTxt = 'Currently Dry'
 		elif RainRate < 0.25:
-			self.Sky['RainRateText'] = "Very Light Rain"
+			RainRateTxt = 'Very Light Rain'
 		elif RainRate < 1.0:
-			self.Sky['RainRateText'] = "Light Rain"	
+			RainRateTxt = 'Light Rain'
 		elif RainRate < 4.0:
-			self.Sky['RainRateText'] = "Moderate Rain"	
+			RainRateTxt = 'Moderate Rain'
 		elif RainRate < 16.0:
-			self.Sky['RainRateText'] = "Heavy Rain"		
+			RainRateTxt = 'Heavy Rain'	
 		elif RainRate < 50.0:
-			self.Sky['RainRateText'] = "Very Heavy Rain"
+			RainRateTxt = 'Very Heavy Rain'
 		else:
-			self.Sky['RainRateText'] = "Extreme Rain"
+			RainRateTxt = 'Extreme Rain'
+			
+		# Return instantaneous rain rate and text
+		return [RainRate,'mm/hr',RainRateTxt]
 			
 	# SET THE COMFORT LEVEL TEXT STRING AND ICON
 	# --------------------------------------------------------------------------
@@ -981,138 +1115,150 @@ class WeatherFlowPiConsole(App):
 		# Return comfort level text string and icon
 		return ComfortLevel	
 					
-	# DEFINE COMPASS DIRECTION TEXT BASED ON SPECIFIED WIND DIRECTION BEARING
+	# SET CARDINAL WIND DIRECTION AND DESCRIPTION
 	# --------------------------------------------------------------------------
-	def WindBearingToCompassDirec(self,Dir,Spd):
+	def CardinalWindDirection(self,Dir,Spd):
 			
-		# Define compass direction text with and without markup based on input
-		# wind direction bearing
-		if Spd == 0:
-			CompassText_wMarkup = "[color=9aba2fff]Calm[/color]"
-			CompassText = "N"
-		elif float(Dir) <= 11.25:
-			CompassText_wMarkup = "Due [color=9aba2fff]North[/color]"
-			CompassText = "N"
-		elif float(Dir) <= 33.75:
-			CompassText_wMarkup = "North [color=9aba2fff]NE[/color]"
-			CompassText = "NNE"
-		elif float(Dir) <= 56.25:
-			CompassText_wMarkup = "North [color=9aba2fff]East[/color]"
-			CompassText = "NE"
-		elif float(Dir) <= 78.75:
-			CompassText_wMarkup = "East [color=9aba2fff]NE[/color]"
-			CompassText = "ENE"
-		elif float(Dir) <= 101.25:
-			CompassText_wMarkup = "Due [color=9aba2fff]East[/color]"
-			CompassText = "E"
-		elif float(Dir) <= 123.75:
-			CompassText_wMarkup = "East [color=9aba2fff]SE[/color]"
-			CompassText = "ESE"
-		elif float(Dir) <= 146.25:
-			CompassText_wMarkup = "South [color=9aba2fff]East[/color]"
-			CompassText = "SE"
-		elif float(Dir) <= 168.75:
-			CompassText_wMarkup = "South [color=9aba2fff]SE[/color]"
-			CompassText = "SSE"
-		elif float(Dir) <= 191.25:
-			CompassText_wMarkup = "Due [color=9aba2fff]South[/color]"
-			CompassText = "S"
-		elif float(Dir) <= 213.75:
-			CompassText_wMarkup = "South [color=9aba2fff]SW[/color]"
-			CompassText = "SSW"
-		elif float(Dir) <= 236.25:
-			CompassText_wMarkup = "South [color=9aba2fff]West[/color]"
-			CompassText = "SW"
-		elif float(Dir) <= 258.75:
-			CompassText_wMarkup = "West [color=9aba2fff]SW[/color]"
-			CompassText = "WSW"
-		elif float(Dir) <= 281.25:
-			CompassText_wMarkup = "Due [color=9aba2fff]West[/color]"
-			CompassText = "W"
-		elif float(Dir) <= 303.75:
-			CompassText_wMarkup = "West [color=9aba2fff]NW[/color]"
-			CompassText = "WNW"
-		elif float(Dir) <= 326.25:
-			CompassText_wMarkup = "North [color=9aba2fff]West[/color]"
-			CompassText = "NW"			
-		elif float(Dir) <= 348.75:
-			CompassText_wMarkup = "North [color=9aba2fff]NW[/color]"
-			CompassText = "NNW"
+		# Define cardinal wind direction and description
+		if Spd[0] == 0:
+			Description = '[color=9aba2fff]Calm[/color]'
+			Direction = 'N'
+		elif Dir[0] <= 11.25:
+			Description = 'Due [color=9aba2fff]North[/color]'
+			Direction = 'N'
+		elif Dir[0] <= 33.75:
+			Description = 'North [color=9aba2fff]NE[/color]'
+			Direction = 'NNE'
+		elif Dir[0] <= 56.25:
+			Description = 'North [color=9aba2fff]East[/color]'
+			Direction = 'NE'
+		elif Dir[0] <= 78.75:
+			Description = 'East [color=9aba2fff]NE[/color]'
+			Direction = 'ENE'
+		elif Dir[0] <= 101.25:
+			Description = 'Due [color=9aba2fff]East[/color]'
+			Direction = 'E'
+		elif Dir[0] <= 123.75:
+			Description = 'East [color=9aba2fff]SE[/color]'
+			Direction = 'ESE'
+		elif Dir[0] <= 146.25:
+			Description = 'South [color=9aba2fff]East[/color]'
+			Direction = 'SE'
+		elif Dir[0] <= 168.75:
+			Description = 'South [color=9aba2fff]SE[/color]'
+			Direction = 'SSE'
+		elif Dir[0] <= 191.25:
+			Description = 'Due [color=9aba2fff]South[/color]'
+			Direction = 'S'
+		elif Dir[0] <= 213.75:
+			Description = 'South [color=9aba2fff]SW[/color]'
+			Direction = 'SSW'
+		elif Dir[0] <= 236.25:
+			Description = 'South [color=9aba2fff]West[/color]'
+			Direction = 'SW'
+		elif Dir[0] <= 258.75:
+			Description = 'West [color=9aba2fff]SW[/color]'
+			Direction = 'WSW'
+		elif Dir[0] <= 281.25:
+			Description = 'Due [color=9aba2fff]West[/color]'
+			Direction = 'W'
+		elif Dir[0] <= 303.75:
+			Description = 'West [color=9aba2fff]NW[/color]'
+			Direction = 'WNW'
+		elif Dir[0] <= 326.25:
+			Description = 'North [color=9aba2fff]West[/color]'
+			Direction = 'NW'			
+		elif Dir[0] <= 348.75:
+			Description = 'North [color=9aba2fff]NW[/color]'
+			Direction = 'NNW'
 		else:
-			CompassText_wMarkup = "Due [color=9aba2fff]North[/color]"
-			CompassText = "N"
+			Description = 'Due [color=9aba2fff]North[/color]'
+			Direction = 'N'
 			
-		# Return compass direction text with and without markup
-		return CompassText, CompassText_wMarkup
+		# Cardinal wind direction and description
+		return [Direction,Description]
 			
-	# SET THE BEAUFORT SCALE WIND SPEED ICON AND TEXT
+	# SET THE BEAUFORT SCALE WIND SPEED, DESCRIPTION, AND ICON
     # --------------------------------------------------------------------------
-	def BeaufortScale(self):
+	def BeaufortScale(self,Wind):
 	
-		# Extract required meteorological fields
-		Wind = self.Sky['Obs'][5] * 1.94384                      # Wind in knots
-	
-		# Define Beaufort Scale text and Icon
-		if Wind <= 1:
-			self.Sky['BeaufortIcon'] = "1kts"
-			self.Sky['BeaufortText'] = "Calm Conditions"
-		elif Wind <= 3:
-			self.Sky['BeaufortIcon'] = "3kts"
-			self.Sky['BeaufortText'] = "Light Air"
-		elif Wind <= 6:
-			self.Sky['BeaufortIcon'] = "6kts"
-			self.Sky['BeaufortText'] = "Light Breeze"
-		elif Wind <= 10:
-			self.Sky['BeaufortIcon'] = "10kts"
-			self.Sky['BeaufortText'] = "Gentle Breeze"
-		elif Wind <= 16:
-			self.Sky['BeaufortIcon'] = "16kts"
-			self.Sky['BeaufortText'] = "Moderate Breeze"
-		elif Wind <= 21:
-			self.Sky['BeaufortIcon'] = "21kts"
-			self.Sky['BeaufortText'] = "Fresh Breeze"
-		elif Wind <= 27:
-			self.Sky['BeaufortIcon'] = "27kts"
-			self.Sky['BeaufortText'] = "Strong Breeze"
-		elif Wind <= 33:
-			self.Sky['BeaufortIcon'] = "33kts"
-			self.Sky['BeaufortText'] = "Moderate Gale"
-		elif Wind <= 40:
-			self.Sky['BeaufortIcon'] = "40kts"
-			self.Sky['BeaufortText'] = "Gale Force"
-		elif Wind <= 47:
-			self.Sky['BeaufortIcon'] = "47kts"
-			self.Sky['BeaufortText'] = "Severe Gale"
-		elif Wind <= 55:
-			self.Sky['BeaufortIcon'] = "55kts"
-			self.Sky['BeaufortText'] = "Storm Force"
-		elif Wind <= 63:
-			self.Sky['BeaufortIcon'] = "63kts"
-			self.Sky['BeaufortText'] = "Violent Storm"
+		# Define Beaufort Scale wind speed, description, and icon
+		if Wind[0] <= 0.3:
+			Speed = 0.0
+			Icon = '0'
+			Description = 'Calm Conditions'
+		elif Wind[0] <= 1.6:
+			Speed = 1.0
+			Icon = '1'
+			Description = 'Light Air'
+		elif Wind[0] <= 3.5:
+			Speed = 2.0
+			Icon = '2'
+			Description = 'Light Breeze'
+		elif Wind[0] <= 5.5:
+			Speed = 3.0
+			Icon = '3'
+			Description = 'Gentle Breeze'
+		elif Wind[0] <= 8.0:
+			Speed = 4.0
+			Icon = '4'
+			Description = 'Moderate Breeze'
+		elif Wind[0] <= 10.8:
+			Speed = 5.0
+			Icon = '5'
+			Description = 'Fresh Breeze'
+		elif Wind[0] <= 13.9:
+			Speed = 6.0
+			Icon = '6'
+			Description = 'Strong Breeze'
+		elif Wind[0] <= 17.2:
+			Speed = 7.0
+			Icon = '7'
+			Description = 'Near Gale Force'
+		elif Wind[0] <= 20.8:
+			Speed = 8.0
+			Icon = '8'
+			Description = 'Gale Force'
+		elif Wind[0] <= 24.5:
+			Speed = 9.0
+			Icon = '9'
+			Description = 'Severe Gale Force'
+		elif Wind[0] <= 28.5:
+			Speed = 10.0
+			Icon = '10'
+			Description = 'Storm Force'
+		elif Wind[0] <= 32.7:
+			Speed = 11.0
+			Icon = '11'
+			Description = 'Violent Storm'
 		else:
-			self.Sky['BeaufortIcon'] = "71kts"
-			self.Sky['BeaufortText'] = "Hurricane Force"
+			Speed = 12.0
+			Icon = '12'
+			Description = 'Hurricane Force'
+			
+		# Return Beaufort Scale speed, description, and icon
+		return [Icon,Description,Speed]
 	
 	# SET THE UV INDEX ICON
     # --------------------------------------------------------------------------
-	def UVIndex(self):
-	
-		# Extract required meteorological fields
-		UV = self.Sky['Obs'][2]  
-	
+	def UVIndex(self,UV):
+		
 		# Set the UV index icon
-		if UV < 1:
-			self.Sky['UVIcon'] = "0"
-		elif 1 <= UV < 3:
-			self.Sky['UVIcon'] = "1"
-		elif 3 <= UV < 6:
-			self.Sky['UVIcon'] = "2"
-		elif 6 <= UV < 8:
-			self.Sky['UVIcon'] = "3"
-		elif 8 <= UV < 11:
-			self.Sky['UVIcon'] = "4"
+		if UV[0] < 1:
+			UVIcon = '0'
+		elif 1 <= UV[0] < 3:
+			UVIcon = '1'
+		elif 3 <= UV[0] < 6:
+			UVIcon = '2'
+		elif 6 <= UV[0] < 8:
+			UVIcon = '3'
+		elif 8 <= UV[0] < 11:
+			UVIcon = '4'
 		else:
-			self.Sky['UVIcon'] = "5"
+			UVIcon = '5'
+			
+		# Return UV Index icon
+		return [UV[0],'index',UVIcon]
 			
 	# CALCULATE SUNRISE/SUNSET TIMES
 	# --------------------------------------------------------------------------
@@ -1126,7 +1272,7 @@ class WeatherFlowPiConsole(App):
 		
 		# The code is initialising. Calculate sunset/sunrise times for current 
 		# day starting at midnight in Station timezone
-		if self.SunData['Sunset'] == '--':
+		if self.SunData['Sunset'][0] == '-':
 		
 			# Convert midnight today in Station timezone to midnight 
 			# today in UTC
@@ -1138,12 +1284,14 @@ class WeatherFlowPiConsole(App):
 			# Sunrise time in station time zone
 			Sunrise = Ob.next_rising(ephem.Sun())
 			Sunrise = pytz.utc.localize(Sunrise.datetime())
-			self.SunData['Sunrise'] = Sunrise.astimezone(Tz)
 
 			# Sunset time in station time zone
 			Sunset = Ob.next_setting(ephem.Sun())
 			Sunset = pytz.utc.localize(Sunset.datetime())
-			self.SunData['Sunset'] = Sunset.astimezone(Tz)
+			
+			# Define Kivy label binds
+			self.SunData['Sunrise'][0] = Sunrise.astimezone(Tz)
+			self.SunData['Sunset'][0] = Sunset.astimezone(Tz)
 			
 		# Sunset has passed. Calculate sunset/sunrise times for tomorrow 
 		# starting at midnight in Station timezone
@@ -1159,12 +1307,14 @@ class WeatherFlowPiConsole(App):
 			# Sunrise time in station time zone
 			Sunrise = Ob.next_rising(ephem.Sun())
 			Sunrise = pytz.utc.localize(Sunrise.datetime())
-			self.SunData['Sunrise'] = Sunrise.astimezone(Tz)
 			
 			# Sunset time in station time zone
 			Sunset = Ob.next_setting(ephem.Sun())
 			Sunset = pytz.utc.localize(Sunset.datetime())
-			self.SunData['Sunset'] = Sunset.astimezone(Tz)
+			
+			# Define Kivy label binds
+			self.SunData['Sunrise'][0] = Sunrise.astimezone(Tz)
+			self.SunData['Sunset'][0] = Sunset.astimezone(Tz)
 			
 		# Define Kivy label binds for sunset and sunrise times
 		self.SunriseSunsetText()
@@ -1182,7 +1332,7 @@ class WeatherFlowPiConsole(App):
 		
 		# The code is initialising. Calculate moonrise time for current day 
 		# starting at midnight in station time zone
-		if self.MoonData['Moonrise'] == '--':
+		if self.MoonData['Moonrise'][0] == '-':
 		
 			# Convert midnight in Station timezone to midnight in UTC
 			Date = date.today()
@@ -1193,30 +1343,30 @@ class WeatherFlowPiConsole(App):
 			# Calculate Moonrise time in Station time zone
 			Moonrise = Ob.next_rising(ephem.Moon())
 			Moonrise = pytz.utc.localize(Moonrise.datetime())
-			self.MoonData['Moonrise'] = Moonrise.astimezone(Tz)
+			self.MoonData['Moonrise'][0] = Moonrise.astimezone(Tz)
 						
 		# Moonset has passed. Calculate time of next moonrise in station 
 		# timezone
 		else:
 		
 			# Convert moonset time in Station timezone to moonset time in UTC
-			Moonset = self.MoonData['Moonset'].astimezone(pytz.utc)
+			Moonset = self.MoonData['Moonset'][0].astimezone(pytz.utc)
 			Ob.date = Moonset.strftime('%Y/%m/%d %H:%M:%S')
 			
 			# Calculate Moonrise time in Station time zone
 			Moonrise = Ob.next_rising(ephem.Moon())
 			Moonrise = pytz.utc.localize(Moonrise.datetime())
-			self.MoonData['Moonrise'] = Moonrise.astimezone(Tz)			
+			self.MoonData['Moonrise'][0] = Moonrise.astimezone(Tz)			
 			
 		# Convert Moonrise time in Station timezone to Moonrise time in UTC
-		Moonrise = self.MoonData['Moonrise'].astimezone(pytz.utc)
+		Moonrise = self.MoonData['Moonrise'][0].astimezone(pytz.utc)
 		Ob.date = Moonrise.strftime('%Y/%m/%d %H:%M:%S')
 		
 		# Calculate time of next Moonset in station timezone based on current 
 		# Moonrise time in UTC
 		Moonset = Ob.next_setting(ephem.Moon())
 		Moonset = pytz.utc.localize(Moonset.datetime())
-		self.MoonData['Moonset'] = Moonset.astimezone(Tz)
+		self.MoonData['Moonset'][0] = Moonset.astimezone(Tz)
 			
 		# Calculate date of next full moon in UTC
 		Ob.date = Now.strftime('%Y/%m/%d')
@@ -1247,49 +1397,49 @@ class WeatherFlowPiConsole(App):
 		
 		# Define sunrise/sunset kivy label binds based on date of
 		# next sunrise/sunset
-		if datetime.now(self.System['tz']).date() == self.SunData['Sunrise'].date():
-			self.SunData['SunriseTxt'] = self.SunData['Sunrise'].strftime("%H:%M")
-			self.SunData['SunsetTxt'] = self.SunData['Sunset'].strftime("%H:%M")
+		if datetime.now(self.System['tz']).date() == self.SunData['Sunrise'][0].date():
+			self.SunData['Sunrise'][1] = self.SunData['Sunrise'][0].strftime('%H:%M')
+			self.SunData['Sunset'][1] = self.SunData['Sunset'][0].strftime('%H:%M')
 		else:
-			self.SunData['SunriseTxt'] = self.SunData['Sunrise'].strftime("%H:%M") + " (+1)"
-			self.SunData['SunsetTxt'] = self.SunData['Sunset'].strftime("%H:%M") + " (+1)"
+			self.SunData['Sunrise'][1] = self.SunData['Sunrise'][0].strftime('%H:%M') + ' (+1)'
+			self.SunData['Sunset'][1] = self.SunData['Sunset'][0].strftime('%H:%M') + ' (+1)'
 			
 	# DEFINE SUNSET AND SUNRISE KIVY LABEL BINDS
 	# --------------------------------------------------------------------------
 	def MoonriseMoonsetText(self):
 		
-		# Define Moonrise kivy label bind based on date of next 
+		# Define Moonrise Kivy Label bind based on date of next 
 		# moonrise
-		if datetime.now(self.System['tz']).date() == self.MoonData['Moonrise'].date():
-			self.MoonData['MoonriseTxt'] = self.MoonData['Moonrise'].strftime("%H:%M")
-		elif datetime.now(self.System['tz']).date() < self.MoonData['Moonrise'].date():
-			self.MoonData['MoonriseTxt'] = self.MoonData['Moonrise'].strftime("%H:%M") + " (+1)"
+		if datetime.now(self.System['tz']).date() == self.MoonData['Moonrise'][0].date():
+			self.MoonData['Moonrise'][1] = self.MoonData['Moonrise'][0].strftime('%H:%M')
+		elif datetime.now(self.System['tz']).date() < self.MoonData['Moonrise'][0].date():
+			self.MoonData['Moonrise'][1] = self.MoonData['Moonrise'][0].strftime('%H:%M') + ' (+1)'
 		else:
-			self.MoonData['MoonriseTxt'] = self.MoonData['Moonrise'].strftime("%H:%M") + " (-1)"
+			self.MoonData['Moonrise'][1] = self.MoonData['Moonrise'][0].strftime('%H:%M') + ' (-1)'
 			
-		# Define Moonset kivy label bind based on date of next
+		# Define Moonset Kivy Label bind based on date of next
 		# moonset
-		if datetime.now(self.System['tz']).date() == self.MoonData['Moonset'].date():
-			self.MoonData['MoonsetTxt'] = self.MoonData['Moonset'].strftime("%H:%M")
-		elif datetime.now(self.System['tz']).date() < self.MoonData['Moonset'].date():
-			self.MoonData['MoonsetTxt'] = self.MoonData['Moonset'].strftime("%H:%M") + " (+1)"
+		if datetime.now(self.System['tz']).date() == self.MoonData['Moonset'][0].date():
+			self.MoonData['Moonset'][1] = self.MoonData['Moonset'][0].strftime('%H:%M')
+		elif datetime.now(self.System['tz']).date() < self.MoonData['Moonset'][0].date():
+			self.MoonData['Moonset'][1] = self.MoonData['Moonset'][0].strftime('%H:%M') + ' (+1)'
 		else:
-			self.MoonData['MoonsetTxt'] = self.MoonData['Moonset'].strftime("%H:%M") + " (-1)"	
+			self.MoonData['Moonset'][1] = self.MoonData['Moonset'][0].strftime('%H:%M') + ' (-1)'	
 			
 	# CALCULATE THE SUN TRANSIT ANGLE AND THE TIME UNTIL SUNRISE OR SUNSET
 	# --------------------------------------------------------------------------
-	def SunTransit(self):
+	def SunTransit(self,dt):
 	
 		# If time is between sunrise and sun set, calculate sun
 		# transit angle
-		if (datetime.now(self.System['tz']) >= self.SunData['Sunrise'] and 
-		    datetime.now(self.System['tz']) <= self.SunData['Sunset']):
+		if (datetime.now(self.System['tz']) >= self.SunData['Sunrise'][0] and 
+		    datetime.now(self.System['tz']) <= self.SunData['Sunset'][0]):
 			
 			# Determine total length of daylight, amount of daylight
 			# that has passed, and amount of daylight left
-			DaylightTotal = self.SunData['Sunset'] - self.SunData['Sunrise']
-			DaylightLapsed = datetime.now(self.System['tz']) - self.SunData['Sunrise']
-			DaylightLeft = self.SunData['Sunset'] - datetime.now(self.System['tz'])
+			DaylightTotal = self.SunData['Sunset'][0] - self.SunData['Sunrise'][0]
+			DaylightLapsed = datetime.now(self.System['tz']) - self.SunData['Sunrise'][0]
+			DaylightLeft = self.SunData['Sunset'][0] - datetime.now(self.System['tz'])
 			
 			# Determine sun transit angle
 			Angle = DaylightLapsed.total_seconds() / DaylightTotal.total_seconds() * 180
@@ -1300,29 +1450,25 @@ class WeatherFlowPiConsole(App):
 			minutes,seconds = divmod(remainder,60)
 			
 			# Define Kivy Label binds
-			self.SunData['SunAngle'] = "{:3.1f}".format(Angle)
-			self.SunData['Event'] = "Till [color=f05e40ff]Sunset[/color]"
-			self.SunData['EventHrs'] = "{:02.0f}".format(hours)
-			self.SunData['EventMins'] = "{:02.0f}".format(minutes)
+			self.SunData['SunAngle'] = '{:.1f}'.format(Angle)
+			self.SunData['Event'] = ['Till [color=f05e40ff]Sunset[/color]','{:02.0f}'.format(hours),'{:02.0f}'.format(minutes)]
 
 		# When not daylight, set sun transit angle to building
 		# value. Define time until sunrise
-		elif datetime.now(self.System['tz']) <= self.SunData['Sunrise']:
+		elif datetime.now(self.System['tz']) <= self.SunData['Sunrise'][0]:
 		
 			# Determine hours and minutes left until sunrise
-			NightLeft = self.SunData['Sunrise'] - datetime.now(self.System['tz'])
+			NightLeft = self.SunData['Sunrise'][0] - datetime.now(self.System['tz'])
 			hours,remainder = divmod(NightLeft.total_seconds(), 3600)
 			minutes,seconds = divmod(remainder,60)
 			
 			# Define Kivy Label binds
-			self.SunData['SunAngle'] = "--"
-			self.SunData['Event'] = "Till [color=f0b240ff]Sunrise[/color]"
-			self.SunData['EventHrs'] = "{:02.0f}".format(hours)
-			self.SunData['EventMins'] = "{:02.0f}".format(minutes)		
+			self.SunData['SunAngle'] = '-'
+			self.SunData['Event'] = ['Till [color=f0b240ff]Sunrise[/color]','{:02.0f}'.format(hours),'{:02.0f}'.format(minutes)]	
 
 	# CALCULATE THE PHASE OF THE MOON
 	# --------------------------------------------------------------------------
-	def MoonPhase(self):	
+	def MoonPhase(self,dt):	
 	
 		# Define current time and date in UTC and station timezone
 		Tz = self.System['tz']
@@ -1351,30 +1497,33 @@ class WeatherFlowPiConsole(App):
 		
 		# Define Moon phase icon
 		if FullMoon < NewMoon:
-			self.MoonData['Icon'] = 'Waxing_' + "{:.0f}".format(Moon.phase)
+			PhaseIcon = 'Waxing_' + '{:.0f}'.format(Moon.phase)
 		elif NewMoon < FullMoon:
-			self.MoonData['Icon'] = 'Waning_' + "{:.0f}".format(Moon.phase)
-
+			PhaseIcon = 'Waning_' + '{:.0f}'.format(Moon.phase)
+			
 		# Define Moon phase text
 		if self.MoonData['NewMoon'] == '[color=ff8837ff]Today[/color]':
-			self.MoonData['Phase'] = 'New Moon'
+			PhaseTxt = 'New Moon'
 		elif self.MoonData['FullMoon'] == '[color=ff8837ff]Today[/color]':
-			self.MoonData['Phase'] = 'Full Moon'	
+			PhaseTxt = 'Full Moon'	
 		elif FullMoon < NewMoon and Moon.phase < 49:
-			self.MoonData['Phase'] = 'Waxing crescent'
+			PhaseTxt = 'Waxing crescent'
 		elif FullMoon < NewMoon and 49 <= Moon.phase <= 51:
-			self.MoonData['Phase'] = 'First Quarter'
+			PhaseTxt = 'First Quarter'
 		elif FullMoon < NewMoon and Moon.phase > 51:
-			self.MoonData['Phase'] = 'Waxing gibbous'
+			PhaseTxt = 'Waxing gibbous'
 		elif NewMoon < FullMoon and Moon.phase > 51:
-			self.MoonData['Phase'] = 'Waning gibbous'
+			PhaseTxt = 'Waning gibbous'
 		elif NewMoon < FullMoon and 49 <= Moon.phase <= 51:
-			self.MoonData['Phase'] = 'Last Quarter'
+			PhaseTxt = 'Last Quarter'
 		elif NewMoon < FullMoon and Moon.phase < 49:
-			self.MoonData['Phase'] = 'Waning crescent'	
+			PhaseTxt = 'Waning crescent'	
+		
+		# Define Moon phase illumination
+		Illumination = '{:.0f}'.format(Moon.phase)	
 
-		# Define Kivy labels
-		self.MoonData['Illuminated'] = "{:.0f}".format(Moon.phase)	
+		# Define Kivy Label binds
+		self.MoonData['Phase'] = [PhaseIcon,PhaseTxt,Illumination]	
 			
 	# DOWNLOAD THE LATEST FORECAST FOR STATION LOCATION
 	# --------------------------------------------------------------------------
@@ -1383,8 +1532,7 @@ class WeatherFlowPiConsole(App):
 		# If Station is located in Great Britain, download latest 
 		# MetOffice three-hourly forecast
 		if self.System['Country'] == 'GB':
-			Template = ("http://datapoint.metoffice.gov.uk/public/data/"
-						"val/wxfcs/all/json/{}?res=3hourly&key={}")
+			Template = 'http://datapoint.metoffice.gov.uk/public/data/val/wxfcs/all/json/{}?res=3hourly&key={}'
 			URL = Template.format(self.System['MetOfficeID'],self.System['MetOfficeKey'])    
 			self.MetDict = requests.get(URL).json()
 			self.ExtractMetOfficeForecast()
@@ -1392,8 +1540,7 @@ class WeatherFlowPiConsole(App):
 		# If station is located outside of Great Britain, download the latest 
 		# DarkSky hourly forecast
 		else:
-			Template = ("https://api.darksky.net/forecast/{}/{},{}?"
-						"exclude=currently,minutely,alerts,flags&units=uk2")
+			Template = 'https://api.darksky.net/forecast/{}/{},{}?exclude=currently,minutely,alerts,flags&units=uk2'
 			URL = Template.format(self.System['DarkSkyKey'],self.System['Lat'],self.System['Lon'])    
 			self.MetDict = requests.get(URL).json()
 			self.ExtractDarkSkyForecast()			
@@ -1428,14 +1575,14 @@ class WeatherFlowPiConsole(App):
 		# Extract date of all available forecasts, and retrieve forecast for 
 		# today
 		Dates = list(item['value'] for item in MetData)
-		MetData = MetData[Dates.index(datetime.now(self.System['tz']).strftime("%Y-%m-%dZ"))]['Rep']
+		MetData = MetData[Dates.index(datetime.now(self.System['tz']).strftime('%Y-%m-%dZ'))]['Rep']
 		
-		# Extract "valid from" time of all available three-hourly forecasts, and 
+		# Extract 'valid from' time of all available three-hourly forecasts, and 
 		# retrieve forecast for the current three-hour period
 		Times = list(int(item['$'])//60 for item in MetData)
 		MetData = MetData[bisect.bisect(Times,datetime.now().hour)-1]
 		
-		# Extract "valid until" time for the retrieved forecast
+		# Extract 'valid until' time for the retrieved forecast
 		Valid = Times[bisect.bisect(Times,datetime.now(self.System['tz']).hour)-1] + 3
 		if Valid == 24:
 			Valid = 0
@@ -1453,8 +1600,8 @@ class WeatherFlowPiConsole(App):
 		# Define and format Kivy label binds
 		self.MetData['Time'] = datetime.now(self.System['tz'])
 		self.MetData['Issued'] = Issued
-		self.MetData['Valid'] = "{:02.0f}".format(Valid) + ':00'	
-		self.MetData['Temp'] = ["{:.1f}".format(Temp[0]),Temp[1]]
+		self.MetData['Valid'] = '{:02.0f}'.format(Valid) + ':00'	
+		self.MetData['Temp'] = ['{:.1f}'.format(Temp[0]),Temp[1]]
 		self.MetData['WindDir'] = WindDir
 		self.MetData['WindSpd'] = WindSpd
 		self.MetData['Weather'] = Weather
@@ -1483,12 +1630,12 @@ class WeatherFlowPiConsole(App):
 			Clock.schedule_once(lambda dt: self.DownloadForecast(),600)
 			return
 		
-		# Extract "valid from" time of all available hourly forecasts, and 
+		# Extract 'valid from' time of all available hourly forecasts, and 
 		# retrieve forecast for the current hourly period
 		Times = list(item['time'] for item in MetData)
 		MetData = MetData[bisect.bisect(Times,int(UNIX.time()))-1]
 		
-		# Extract "Issued" and "Valid" times
+		# Extract 'Issued' and 'Valid' times
 		Issued = Times[0]
 		Valid = Times[bisect.bisect(Times,int(UNIX.time()))]
 		Issued = datetime.fromtimestamp(Issued,pytz.utc).astimezone(self.System['tz'])
@@ -1508,10 +1655,10 @@ class WeatherFlowPiConsole(App):
 		self.MetData['Time'] = datetime.now(self.System['tz'])
 		self.MetData['Issued'] = datetime.strftime(Issued,'%H:%M')
 		self.MetData['Valid'] = datetime.strftime(Valid,'%H:%M')
-		self.MetData['Temp'] = ["{:.1f}".format(Temp[0]),Temp[1]]
+		self.MetData['Temp'] = ['{:.1f}'.format(Temp[0]),Temp[1]]
 		self.MetData['WindDir'] = self.WindBearingToCompassDirec(WindDir,1)[0]
-		self.MetData['WindSpd'] = "{:.0f}".format(WindSpd)
-		self.MetData['Precip'] = "{:.0f}".format(Precip)
+		self.MetData['WindSpd'] = '{:.0f}'.format(WindSpd)
+		self.MetData['Precip'] = '{:.0f}'.format(Precip)
 		
 		# Define weather icon
 		if Weather == 'clear-day':
@@ -1544,13 +1691,12 @@ class WeatherFlowPiConsole(App):
 		
 		# Get current UNIX timestamp in UTC
 		Now = int(UNIX.time())
-		Hours_6 = (60*60*6)+60
+		Hours_6 = (6*60*60)+60
 			
 		# Download Sky data from last 6 hours using Weatherflow API 
 		# and extract observation times, wind speed, wind direction, 
 		# and rainfall
-		Template = ("https://swd.weatherflow.com/swd/rest/observations/"
-		            "device/{}?time_start={}&time_end={}&api_key={}")
+		Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&api_key={}'
 		URL = Template.format(self.System['SkyID'],Now-Hours_6,Now,self.System['WFlowKey'])
 		Sky = {}
 		Sky['obs'] = requests.get(URL).json()['obs']
@@ -1567,8 +1713,7 @@ class WeatherFlowPiConsole(App):
 		
 		# Download AIR data from current day using Weatherflow API 
 		# and extract observation times, pressure and temperature
-		Template = ("https://swd.weatherflow.com/swd/rest/observations/"
-		            "device/{}?time_start={}&time_end={}&api_key={}")
+		Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&api_key={}'
 		URL = Template.format(self.System['AirID'],Now-Hours_6,Now,self.System['WFlowKey'])
 		Air = {}
 		Air['obs'] = requests.get(URL).json()['obs']
@@ -1617,7 +1762,7 @@ class WeatherFlowPiConsole(App):
 		
 		# Download closet METAR information to station location
 		header = {'X-API-Key':self.System['CheckWXKey']}
-		Template = "https://api.checkwx.com/metar/lat/{}/lon/{}/decoded"
+		Template = 'https://api.checkwx.com/metar/lat/{}/lon/{}/decoded'
 		URL = Template.format(self.System['Lat'],self.System['Lon'])
 		Data = requests.get(URL,headers=header).json()
 		self.Sager['METAR'] = Data['data'][0]
@@ -1656,24 +1801,24 @@ class WeatherFlowPiConsole(App):
 			AirTime = datetime.fromtimestamp(self.Air['Obs'][0],self.System['tz'])
 			AirDiff = (datetime.now(self.System['tz']) - AirTime).total_seconds()
 			if AirDiff < 300:
-				self.Air['StatusIcon'] = "OK"
+				self.Air['StatusIcon'] = 'OK'
 			
 			# Latest AIR observation time is greater than 5 minutes old
 			else:
-				self.Air['StatusIcon'] = "Error"
+				self.Air['StatusIcon'] = 'Error'
 			
 		# Check latest Sky observation time is less than 5 minutes old
 		if self.Sky['Obs'] != '--':
 			SkyTime = datetime.fromtimestamp(self.Sky['Obs'][0],self.System['tz'])
 			SkyDiff = (datetime.now(self.System['tz']) - SkyTime).total_seconds()
 			if SkyDiff < 300:
-				self.Sky['StatusIcon'] = "OK"
+				self.Sky['StatusIcon'] = 'OK'
 				
 			# Latest Sky observation time is greater than 5 minutes old	
 			else:
-				self.Sky['StatusIcon'] = "Error"
+				self.Sky['StatusIcon'] = 'Error'
 	
-	# UPDATE "WeatherFlowPiConsole" METHODS AT REQUIRED INTERVALS
+	# UPDATE 'WeatherFlowPiConsole' METHODS AT REQUIRED INTERVALS
 	# --------------------------------------------------------------------------
 	def UpdateMethods(self,dt):
 	
@@ -1698,40 +1843,36 @@ class WeatherFlowPiConsole(App):
 
 		# If app is initialising or once sunset has passed, 
 		# calculate new sunrise/sunset times
-		if Now > self.SunData['Sunset']:
+		if Now > self.SunData['Sunset'][0]:
 			self.SunriseSunset()
 			
 		# If app is initialising or once moonset has passed, 
 		# calculate new moonrise/moonset times
-		if Now > self.MoonData['Moonset']:
+		if Now > self.MoonData['Moonset'][0]:
 			self.MoonriseMoonset()	
 
 		# At midnight, update Sunset and Sunrise Label binds
 		if Now.time() == time(0,0,0):
 			self.SunriseSunsetText()
 			self.MoonriseMoonsetText()
-			
-		# Update sun transit and moon phase icon
-		self.SunTransit()
-		self.MoonPhase()
 		
 # ==============================================================================
-# DEFINE "WeatherFlowPiConsoleScreen" SCREEN MANAGER
+# DEFINE 'WeatherFlowPiConsoleScreen' SCREEN MANAGER
 # ==============================================================================			
 class WeatherFlowPiConsoleScreen(ScreenManager):
     pass
 
 # ==============================================================================
-# DEFINE "CurrentConditions" SCREEN 
+# DEFINE 'CurrentConditions' SCREEN 
 # ==============================================================================
 class CurrentConditions(Screen):
 
-	# Define Kivy properties required by "CurrentConditions" 
+	# Define Kivy properties required by 'CurrentConditions' 
 	Screen = DictProperty([('Clock','--'),('SunMoon','Sun'),
 						   ('MetSager','Met'),
 						   ('xRainAnim',476),('yRainAnim',3)])
 					
-	# INITIALISE "CurrentConditions" CLASS
+	# INITIALISE 'CurrentConditions' CLASS
 	# --------------------------------------------------------------------------
 	def __init__(self,**kwargs):
 		super(CurrentConditions,self).__init__(**kwargs)
@@ -1742,7 +1883,7 @@ class CurrentConditions(Screen):
 	# --------------------------------------------------------------------------
 	def Clock(self,dt):
 		Tz = App.get_running_app().System['tz']
-		self.Screen['Clock'] = datetime.now(Tz).strftime("%a, %d %b %Y\n%H:%M:%S")
+		self.Screen['Clock'] = datetime.now(Tz).strftime('%a, %d %b %Y\n%H:%M:%S')
 		
 	# ANIMATE RAIN RATE ICON
 	# --------------------------------------------------------------------------
@@ -1814,21 +1955,21 @@ class CurrentConditions(Screen):
 	# --------------------------------------------------------------------------
 	def ButtonPress(self,ID):
 		if ID == 'Forecast':
-			self.ids.Forecast.source = "Buttons/Forecast_Pressed.png"
+			self.ids.Forecast.source = 'Buttons/Forecast_Pressed.png'
 		elif ID == 'SunMoon':
-			self.ids.SunMoon.source = "Buttons/SunMoon_Pressed.png"
+			self.ids.SunMoon.source = 'Buttons/SunMoon_Pressed.png'
 		elif ID == 'Credits':
-			self.ids.Credits.source = "Buttons/Credits_Pressed.png"
+			self.ids.Credits.source = 'Buttons/Credits_Pressed.png'
 		
 	# REMOVE BUTTON HIGHLIGHTING WHEN RELEASED
 	# --------------------------------------------------------------------------
 	def ButtonRelease(self,instance):
 		if instance.text == 'Forecast':
-			self.ids.Forecast.source = "Buttons/Forecast.png"
+			self.ids.Forecast.source = 'Buttons/Forecast.png'
 		elif instance.text == 'SunMoon':
-			self.ids.SunMoon.source = "Buttons/SunMoon.png"
+			self.ids.SunMoon.source = 'Buttons/SunMoon.png'
 		elif instance.text == 'Credits':
-			self.ids.Credits.source = "Buttons/Credits.png"
+			self.ids.Credits.source = 'Buttons/Credits.png'
 	
 	# SHOW CREDITS POPUP 
 	# --------------------------------------------------------------------------
@@ -1852,6 +1993,6 @@ class Version(ModalView):
 # ==============================================================================
 # RUN WeatherFlowPiConsole
 # ==============================================================================
-if __name__ == "__main__":
+if __name__ == '__main__':
 	log.startLogging(sys.stdout)
 	WeatherFlowPiConsole().run()
