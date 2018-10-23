@@ -21,13 +21,15 @@ PiConsole. These instructions assume you have installed the PiConsole in the
 default directory (~/wfpiconsole/). If you have installed the PiConsole in a 
 different location, I assume you know what you are doing!
 
-**!!WARNING!!** - Updating the code will overwrite the WeatherFlow_PiConsole.ini 
-configuration file. This is expected behaviour as I am likely to update it from 
-time to time. Before running the update, I suggest you make a backup of your 
-existing WeatherFlow_PiConsole.ini file so you can copy the relavent API keys 
-back into the updated WeatherFlow_PiConsole.ini file.
+**!!WARNING!!** - Updating the code will overwrite/delete all files in the 
+existing version, including the WeatherFlow_PiConsole.ini configuration file. 
+This is expected behaviour as I am likely to update the .ini file from time to 
+time, as well as delete files that are no longer needed. Before running the 
+update, I suggest you make a backup of your existing WeatherFlow_PiConsole.ini 
+file, as well as any local modifications you may have made.
 
 ```
+rm -rf ~/wfpiconsole/*
 cd ~/wfpiconsole/
 wget https://api.github.com/repos/peted-davis/WeatherFlow_PiConsole/tarball -O PiConsole.tar.gz
 tar -xvf PiConsole.tar.gz --strip 1
