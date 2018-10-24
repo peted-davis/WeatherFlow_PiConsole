@@ -102,14 +102,14 @@ WeatherFlowPiConsoleScreen:
 			
 		## FORECAST WINDSPEED	
 		Label:
-			text: app.MetData['WindSpd'] + ' mph ' + app.MetData['WindDir']
+			text: app.MetData['WindSpd'][0] + ' ' + app.MetData['WindSpd'][1] + ' ' + app.MetData['WindDir']
 			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
 			font_size: '30sp'
 			text_size: self.size
 			halign: 'left'
 			valign: 'center'
 			size_hint: (None,None)
-			size: (170,31)
+			size: (200,31)
 			pos: (8,282)
 			color: [0.84,0.84,0.84,1]
 			

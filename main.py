@@ -852,6 +852,32 @@ class WeatherFlowPiConsole(App):
 		# Return Daily, Monthly, and Yearly rainfall accumulation totals
 		return DayRain,MonthRain,YearRain
 		
+	# SET THE RAIN RATE TEXT
+    # --------------------------------------------------------------------------
+	def RainRate(self,RainAccum):
+				
+		# Calculate instantaneous rain rate from instantaneous rain accumulation
+		RainRate = RainAccum[0]*60
+		
+		# Define rain rate text based on calculated 
+		if RainRate == 0:
+			RainRateTxt = 'Currently Dry'
+		elif RainRate < 0.25:
+			RainRateTxt = 'Very Light Rain'
+		elif RainRate < 1.0:
+			RainRateTxt = 'Light Rain'
+		elif RainRate < 4.0:
+			RainRateTxt = 'Moderate Rain'
+		elif RainRate < 16.0:
+			RainRateTxt = 'Heavy Rain'	
+		elif RainRate < 50.0:
+			RainRateTxt = 'Very Heavy Rain'
+		else:
+			RainRateTxt = 'Extreme Rain'
+			
+		# Return instantaneous rain rate and text
+		return [RainRate,'mm/hr',RainRateTxt]	
+		
 	# CALCULATE MAXIMUM AND MINIMUM OBSERVED TEMPERATURE AND PRESSURE
 	# --------------------------------------------------------------------------
 	def AirObsMaxMin(self):
@@ -876,8 +902,7 @@ class WeatherFlowPiConsole(App):
 		TempMaxMin = []
 		PresMaxMin = []
 
-		# Code initialising. Download all data for current day using Weatherflow 
-		# API. Extract maximum and minimum observed temperature and time
+		# CODE INITIALISING. DOWNLOAD DATA FOR CURRENT DAY USING WEATHERFLOW API
 		if self.Air['MaxTemp'] == '---':
 		
 			# Convert midnight today in Station timezone to midnight today in 
@@ -891,9 +916,8 @@ class WeatherFlowPiConsole(App):
 			Now = Tz.localize(datetime.now())
 			Now_UTC = int(Now.timestamp())													
 
-			# Download data from current day using Weatherflow  API and extract 
+			# Download data from current day using Weatherflow API and extract 
 			# temperature, pressure and time data
-			# Download rainfall data for current month
 			Template = ('https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&api_key={}')
 			URL = Template.format(self.System['AirID'],Midnight_UTC,Now_UTC,self.System['WFlowKey'])
 			Data = requests.get(URL).json()['obs']
@@ -920,8 +944,7 @@ class WeatherFlowPiConsole(App):
 			# Return required variables
 			return TempMaxMin,PresMaxMin
 			
-		# At midnight, reset maximum and minimum temperature and pressure 
-		# recorded by AIR module
+		# AT MIDNIGHT RESET MAXIMUM AND MINIMUM TEMPERATURE AND PRESSURE 
 		if self.Air['MetDay'] < Now.date():
 			TempMaxMin.extend(Temp)
 			TempMaxMin.append(datetime.fromtimestamp(Time,self.System['tz']).strftime('%H:%M'))
@@ -945,7 +968,6 @@ class WeatherFlowPiConsole(App):
 		# Current temperature is less than minimum recorded temperature. Update 
 		# minimum temperature and time	
 		elif cTemp[0] < float(self.Air['MinTemp'][0]):
-			
 			TempMaxMin.append(float(self.Air['MaxTemp'][0]))
 			TempMaxMin.extend(self.Air['MaxTemp'][1:])
 			TempMaxMin.extend(Temp)
@@ -990,9 +1012,7 @@ class WeatherFlowPiConsole(App):
 		Tz = self.System['tz']
 		Now = datetime.now(pytz.utc).astimezone(Tz)	
 		
-		# Code initialising. Download all data for current day
-		# using Weatherflow API. Extract maximum and minimum
-		# observed temperature and time
+		# CODE INITIALISING. DOWNLOAD DATA FOR CURRENT DAY USING WEATHERFLOW API
 		if self.Sky['MaxWind'] == '--':
 		
 			# Convert midnight today in Station timezone to midnight today in 
@@ -1001,14 +1021,13 @@ class WeatherFlowPiConsole(App):
 			Midnight = Tz.localize(datetime.combine(Date,time()))
 			Midnight_UTC = int(Midnight.timestamp())
 			
-			# Convert current time in Station timezone to current time in 
-			# UTC. Convert current time time into UNIX timestamp
+			# Convert current time in Station timezone to current time in UTC. 
+			# Convert current time time into UNIX timestamp
 			Now = Tz.localize(datetime.now())
 			Now_UTC = int(Now.timestamp())													
 
-			# Download data from current day using Weatherflow  API and extract 
-			# temperature, pressure and time data
-			# Download rainfall data for current month
+			# Download data from current day using Weatherflow API and extract 
+			# wind speed and wind gust data
 			Template = ('https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&api_key={}')
 			URL = Template.format(self.System['SkyID'],Midnight_UTC,Now_UTC,self.System['WFlowKey'])
 			Data = requests.get(URL).json()['obs']
@@ -1022,12 +1041,15 @@ class WeatherFlowPiConsole(App):
 			# Return maximum wind speed and gust
 			return MaxWind,MaxGust
 
-		# At midnight, reset maximum recorded wind speed and gust
+		# AT MIDNIGHT RESET MAXIMUM RECORDED WIND SPEED AND GUST	
 		if self.Sky['MaxWind'][2].date() < Now.date():
 			MaxWind = [WindSpd[0],'mps',Now]
 			MaxGust = [WindGust[0],'mps',Now]
 			
-		# Current wind speed is greater than maximum recorded wind speed. Update 
+			# Return maximum wind speed and gust
+			return MaxWind,MaxGust	
+			
+		# Current wind speed is greater than maximum recorded wind speed. Update
 		# maximum wind speed
 		if cWindSpd[0] > float(self.Sky['MaxWind'][0]):
 			MaxWind = [WindSpd[0],'mps',Now]
@@ -1036,43 +1058,17 @@ class WeatherFlowPiConsole(App):
 		else:
 			MaxWind = [float(self.Sky['MaxWind'][0]),self.Sky['MaxWind'][1],self.Sky['MaxWind'][2]]
 			
-		# Current gust is greater than maximum recorded gust. Update maximum 
-		# gust	
+		# Current gust speed is greater than maximum recorded gust speed. Update 
+		# maximum gust speed 
 		if cWindGust[0] > float(self.Sky['MaxGust'][0]):
 			MaxGust = [WindGust[0],'mps',Now]	
 				
-		# Maximum gust is unchanged. Return existing value
+		# Maximum gust speed is unchanged. Return existing value
 		else:
 			MaxGust = [float(self.Sky['MaxGust'][0]),self.Sky['MaxGust'][1],self.Sky['MaxGust'][2]]	
 			
 		# Return maximum wind speed and gust
 		return MaxWind,MaxGust	
-		
-	# SET THE RAIN RATE TEXT
-    # --------------------------------------------------------------------------
-	def RainRate(self,RainAccum):
-				
-		# Calculate instantaneous rain rate from instantaneous rain accumulation
-		RainRate = RainAccum[0]*60
-		
-		# Define rain rate text based on calculated 
-		if RainRate == 0:
-			RainRateTxt = 'Currently Dry'
-		elif RainRate < 0.25:
-			RainRateTxt = 'Very Light Rain'
-		elif RainRate < 1.0:
-			RainRateTxt = 'Light Rain'
-		elif RainRate < 4.0:
-			RainRateTxt = 'Moderate Rain'
-		elif RainRate < 16.0:
-			RainRateTxt = 'Heavy Rain'	
-		elif RainRate < 50.0:
-			RainRateTxt = 'Very Heavy Rain'
-		else:
-			RainRateTxt = 'Extreme Rain'
-			
-		# Return instantaneous rain rate and text
-		return [RainRate,'mm/hr',RainRateTxt]
 			
 	# SET THE COMFORT LEVEL TEXT STRING AND ICON
 	# --------------------------------------------------------------------------
@@ -1550,9 +1546,9 @@ class WeatherFlowPiConsole(App):
 	# --------------------------------------------------------------------------
 	def ExtractMetOfficeForecast(self):
 	
-		# Extract all forecast data from MetOffice JSON file. If 
-		# forecast is unavailable, set forecast variables to blank 
-		# and indicate to user that forecast is unavailable
+		# Extract all forecast data from DarkSky JSON file. If  forecast is 
+		# unavailable, set forecast variables to blank and indicate to user that 
+		# forecast is unavailable
 		try:
 			MetData = (self.MetDict['SiteRep']['DV']['Location']['Period'])
 		except KeyError:
@@ -1587,15 +1583,16 @@ class WeatherFlowPiConsole(App):
 		if Valid == 24:
 			Valid = 0
 			
-		# Extract weather variables from DarkSky forecast
+		# Extract weather variables from MetOffice forecast
 		Temp = [float(MetData['T']),'c']
+		WindSpd = [float(MetData['S'])/2.2369362920544,'mps']
 		WindDir = MetData['D']
-		WindSpd = MetData['S']
-		Weather = MetData['W']
 		Precip = MetData['Pp']	
+		Weather = MetData['W']	
 		
 		# Convert forecast units as required
 		Temp = self.ConvertObservationUnits(Temp,'Temp')
+		WindSpd = self.ConvertObservationUnits(WindSpd,'Wind')
 		
 		# Define and format Kivy label binds
 		self.MetData['Time'] = datetime.now(self.System['tz'])
@@ -1603,7 +1600,7 @@ class WeatherFlowPiConsole(App):
 		self.MetData['Valid'] = '{:02.0f}'.format(Valid) + ':00'	
 		self.MetData['Temp'] = ['{:.1f}'.format(Temp[0]),Temp[1]]
 		self.MetData['WindDir'] = WindDir
-		self.MetData['WindSpd'] = WindSpd
+		self.MetData['WindSpd'] = ['{:.0f}'.format(WindSpd[0]),WindSpd[1]]
 		self.MetData['Weather'] = Weather
 		self.MetData['Precip'] = Precip
 
@@ -1611,9 +1608,9 @@ class WeatherFlowPiConsole(App):
 	# --------------------------------------------------------------------------
 	def ExtractDarkSkyForecast(self):
 		
-		# Extract all forecast data from DarkSky JSON file. If 
-		# forecast is unavailable, set forecast variables to blank 
-		# and indicate to user that forecast is unavailable
+		# Extract all forecast data from DarkSky JSON file. If  forecast is 
+		# unavailable, set forecast variables to blank and indicate to user that 
+		# forecast is unavailable
 		try:
 			MetData = (self.MetDict['hourly']['data'])
 		except KeyError:
@@ -1643,13 +1640,14 @@ class WeatherFlowPiConsole(App):
 		
 		# Extract weather variables from DarkSky forecast
 		Temp = [MetData['temperature'],'c']
+		WindSpd = [MetData['windSpeed']/2.2369362920544,'mps']
 		WindDir = MetData['windBearing']
-		WindSpd = MetData['windSpeed']
-		Weather = MetData['icon']
-		Precip = MetData['precipProbability']*100	
+		Precip = MetData['precipProbability']*100
+		Weather = MetData['icon']	
 		
 		# Convert forecast units as required
 		Temp = self.ConvertObservationUnits(Temp,'Temp')
+		WindSpd = self.ConvertObservationUnits(WindSpd,'Wind')
 
 		# Define and format Kivy label binds
 		self.MetData['Time'] = datetime.now(self.System['tz'])
@@ -1657,7 +1655,7 @@ class WeatherFlowPiConsole(App):
 		self.MetData['Valid'] = datetime.strftime(Valid,'%H:%M')
 		self.MetData['Temp'] = ['{:.1f}'.format(Temp[0]),Temp[1]]
 		self.MetData['WindDir'] = self.WindBearingToCompassDirec(WindDir,1)[0]
-		self.MetData['WindSpd'] = '{:.0f}'.format(WindSpd)
+		self.MetData['WindSpd'] = ['{:.0f}'.format(WindSpd[0]),WindSpd[1]]
 		self.MetData['Precip'] = '{:.0f}'.format(Precip)
 		
 		# Define weather icon
