@@ -1549,10 +1549,11 @@ class WeatherFlowPiConsole(App):
 		# Extract all forecast data from DarkSky JSON file. If  forecast is 
 		# unavailable, set forecast variables to blank and indicate to user that 
 		# forecast is unavailable
+		Tz = self.System['tz']
 		try:
 			MetData = (self.MetDict['SiteRep']['DV']['Location']['Period'])
 		except KeyError:
-			self.MetData['Time'] = datetime.now(self.System['tz'])
+			self.MetData['Time'] = datetime.now(pytz.utc).astimezone(Tz)	
 			self.MetData['Temp'] = '--'
 			self.MetData['WindDir'] = '--'
 			self.MetData['WindSpd'] = '--'
@@ -1586,8 +1587,8 @@ class WeatherFlowPiConsole(App):
 		# Extract weather variables from MetOffice forecast
 		Temp = [float(MetData['T']),'c']
 		WindSpd = [float(MetData['S'])/2.2369362920544,'mps']
-		WindDir = MetData['D']
-		Precip = MetData['Pp']	
+		WindDir = [MetData['D'],'cardinal']
+		Precip = [MetData['Pp'],'%']	
 		Weather = MetData['W']	
 		
 		# Convert forecast units as required
@@ -1595,14 +1596,14 @@ class WeatherFlowPiConsole(App):
 		WindSpd = self.ConvertObservationUnits(WindSpd,'Wind')
 		
 		# Define and format Kivy label binds
-		self.MetData['Time'] = datetime.now(self.System['tz'])
+		self.MetData['Time'] = datetime.now(pytz.utc).astimezone(Tz)	
 		self.MetData['Issued'] = Issued
 		self.MetData['Valid'] = '{:02.0f}'.format(Valid) + ':00'	
 		self.MetData['Temp'] = ['{:.1f}'.format(Temp[0]),Temp[1]]
-		self.MetData['WindDir'] = WindDir
+		self.MetData['WindDir'] = WindDir[0]
 		self.MetData['WindSpd'] = ['{:.0f}'.format(WindSpd[0]),WindSpd[1]]
 		self.MetData['Weather'] = Weather
-		self.MetData['Precip'] = Precip
+		self.MetData['Precip'] = Precip[0]
 
 	# EXTRACT THE LATEST HOURLY DARK SKY FORECAST FOR THE STATION LOCATION
 	# --------------------------------------------------------------------------
@@ -1611,10 +1612,11 @@ class WeatherFlowPiConsole(App):
 		# Extract all forecast data from DarkSky JSON file. If  forecast is 
 		# unavailable, set forecast variables to blank and indicate to user that 
 		# forecast is unavailable
+		Tz = self.System['tz']
 		try:
 			MetData = (self.MetDict['hourly']['data'])
 		except KeyError:
-			self.MetData['Time'] = datetime.now(self.System['tz'])
+			self.MetData['Time'] = datetime.now(pytz.utc).astimezone(Tz)	
 			self.MetData['Temp'] = '--'
 			self.MetData['WindDir'] = '--'
 			self.MetData['WindSpd'] = '--'
@@ -1641,8 +1643,8 @@ class WeatherFlowPiConsole(App):
 		# Extract weather variables from DarkSky forecast
 		Temp = [MetData['temperature'],'c']
 		WindSpd = [MetData['windSpeed']/2.2369362920544,'mps']
-		WindDir = MetData['windBearing']
-		Precip = MetData['precipProbability']*100
+		WindDir = [MetData['windBearing'],'degrees']
+		Precip = [MetData['precipProbability']*100,'%']
 		Weather = MetData['icon']	
 		
 		# Convert forecast units as required
@@ -1650,13 +1652,13 @@ class WeatherFlowPiConsole(App):
 		WindSpd = self.ConvertObservationUnits(WindSpd,'Wind')
 
 		# Define and format Kivy label binds
-		self.MetData['Time'] = datetime.now(self.System['tz'])
+		self.MetData['Time'] = datetime.now(pytz.utc).astimezone(Tz)
 		self.MetData['Issued'] = datetime.strftime(Issued,'%H:%M')
 		self.MetData['Valid'] = datetime.strftime(Valid,'%H:%M')
 		self.MetData['Temp'] = ['{:.1f}'.format(Temp[0]),Temp[1]]
-		self.MetData['WindDir'] = self.WindBearingToCompassDirec(WindDir,1)[0]
+		self.MetData['WindDir'] = self.CardinalWindDirection(WindDir,[1,'mps'])[0]
 		self.MetData['WindSpd'] = ['{:.0f}'.format(WindSpd[0]),WindSpd[1]]
-		self.MetData['Precip'] = '{:.0f}'.format(Precip)
+		self.MetData['Precip'] = '{:.0f}'.format(Precip[0])
 		
 		# Define weather icon
 		if Weather == 'clear-day':
