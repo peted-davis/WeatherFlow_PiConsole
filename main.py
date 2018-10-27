@@ -1312,8 +1312,8 @@ class WeatherFlowPiConsole(App):
 			self.SunData['Sunrise'][0] = Sunrise.astimezone(Tz)
 			self.SunData['Sunset'][0] = Sunset.astimezone(Tz)
 			
-		# Define Kivy label binds for sunset and sunrise times
-		self.SunriseSunsetText()
+		# Update Kivy label binds based on date of next sunrise
+		self.UpdateSunriseSunset()
 		
 	# CALCULATE MOONRISE/MOONSET TIMES
 	# --------------------------------------------------------------------------
@@ -1373,26 +1373,16 @@ class WeatherFlowPiConsole(App):
 		NewMoon = ephem.next_new_moon(Ob.date)
 		NewMoon = pytz.utc.localize(NewMoon.datetime())
 		
-		# Define Kivy label binds for next new/full moon in 
-		# station time zone
-		if FullMoon.date() == Now.date():
-			self.MoonData['FullMoon'] = '[color=ff8837ff]Today[/color]'   
-		else:
-			self.MoonData['FullMoon'] = FullMoon.astimezone(Tz).strftime('%b %d') 
-		if NewMoon.date() == Now.date():
-			self.MoonData['NewMoon'] = '[color=ff8837ff]Today[/color]'
-		else:
-			self.MoonData['NewMoon'] = NewMoon.astimezone(Tz).strftime('%b %d') 
+		# Define Kivy label binds for next new/full moon in station time zone
+		self.MoonData['FullMoon'] = [FullMoon.astimezone(Tz).strftime('%b %d'),FullMoon] 
+		self.MoonData['NewMoon'] = [NewMoon.astimezone(Tz).strftime('%b %d'),NewMoon] 
 		
-		# Define Kivy label binds for moonrise and moonset times
-		self.MoonriseMoonsetText()	
+		# Update Kivy label binds based on date of next moonrise
+		self.UpdateMoonriseMoonset()	
 		
-	# DEFINE SUNSET AND SUNRISE KIVY LABEL BINDS
+	# UPDATE SUNSET AND SUNRISE KIVY LABEL BINDS BASED ON DATE OF NEXT SUNRISE
 	# --------------------------------------------------------------------------
-	def SunriseSunsetText(self):
-		
-		# Define sunrise/sunset kivy label binds based on date of
-		# next sunrise/sunset
+	def UpdateSunriseSunset(self):
 		if datetime.now(self.System['tz']).date() == self.SunData['Sunrise'][0].date():
 			self.SunData['Sunrise'][1] = self.SunData['Sunrise'][0].strftime('%H:%M')
 			self.SunData['Sunset'][1] = self.SunData['Sunset'][0].strftime('%H:%M')
@@ -1400,12 +1390,16 @@ class WeatherFlowPiConsole(App):
 			self.SunData['Sunrise'][1] = self.SunData['Sunrise'][0].strftime('%H:%M') + ' (+1)'
 			self.SunData['Sunset'][1] = self.SunData['Sunset'][0].strftime('%H:%M') + ' (+1)'
 			
-	# DEFINE SUNSET AND SUNRISE KIVY LABEL BINDS
+	# UPDATE MOONRISE AND MOONSET KIVY LABEL BINDS BASED ON DATE OF NEXT 
+	# MOONRISE
 	# --------------------------------------------------------------------------
-	def MoonriseMoonsetText(self):
+	def UpdateMoonriseMoonset(self):
+	
+		# Get current time in station time zone
+		Tz = self.System['tz']
+		Now = datetime.now(pytz.utc).astimezone(Tz)	
 		
-		# Define Moonrise Kivy Label bind based on date of next 
-		# moonrise
+		# Update Moonrise Kivy Label bind based on date of next moonrise
 		if datetime.now(self.System['tz']).date() == self.MoonData['Moonrise'][0].date():
 			self.MoonData['Moonrise'][1] = self.MoonData['Moonrise'][0].strftime('%H:%M')
 		elif datetime.now(self.System['tz']).date() < self.MoonData['Moonrise'][0].date():
@@ -1413,14 +1407,21 @@ class WeatherFlowPiConsole(App):
 		else:
 			self.MoonData['Moonrise'][1] = self.MoonData['Moonrise'][0].strftime('%H:%M') + ' (-1)'
 			
-		# Define Moonset Kivy Label bind based on date of next
-		# moonset
+		# Update Moonset Kivy Label bind based on date of next moonset
 		if datetime.now(self.System['tz']).date() == self.MoonData['Moonset'][0].date():
 			self.MoonData['Moonset'][1] = self.MoonData['Moonset'][0].strftime('%H:%M')
 		elif datetime.now(self.System['tz']).date() < self.MoonData['Moonset'][0].date():
 			self.MoonData['Moonset'][1] = self.MoonData['Moonset'][0].strftime('%H:%M') + ' (+1)'
 		else:
 			self.MoonData['Moonset'][1] = self.MoonData['Moonset'][0].strftime('%H:%M') + ' (-1)'	
+			
+		# Update New Moon Kivy Label bind based on date of next new moon
+		if self.MoonData['FullMoon'][1].date() == Now.date():
+			self.MoonData['FullMoon'] = ['[color=ff8837ff]Today[/color]',self.MoonData['FullMoon'][1]]  
+		
+		# Update Full Moon Kivy Label bind based on date of next full moon
+		elif self.MoonData['NewMoon'][1].date() == Now.date():
+			self.MoonData['NewMoon'] = ['[color=ff8837ff]Today[/color]',self.MoonData['NewMoon'][1]] 		
 			
 	# CALCULATE THE SUN TRANSIT ANGLE AND THE TIME UNTIL SUNRISE OR SUNSET
 	# --------------------------------------------------------------------------
@@ -1827,34 +1828,35 @@ class WeatherFlowPiConsole(App):
 		Now = datetime.now(pytz.utc).astimezone(Tz)	
 		Now = Now.replace(microsecond=0)
 			
-		# At 5 minutes past each hour, download a new forecast
-		# for the Station location
+		# At 5 minutes past each hour, download a new forecast for the Station 
+		# location
 		if (Now.minute,Now.second) == (5,0):
 			self.DownloadForecast()
 			
-		# At the top of each hour update the on-screen forecast
-		# for the Station location
-		if Now.hour > self.MetData['Time'].hour or Now.time() == time(0,0,0):
+		# At the top of each hour update the on-screen forecast for the Station 
+		# location
+		if Now.hour > self.MetData['Time'].hour or Now.date() > self.MetData['Time'].date():
 			if self.System['Country'] == 'GB':
 				self.ExtractMetOfficeForecast()
 			else:
 				self.ExtractDarkSkyForecast()
 			self.MetData['Time'] = Now
 
-		# If app is initialising or once sunset has passed, 
-		# calculate new sunrise/sunset times
+		# If app is initialising or once sunset has passed, calculate new 
+		# sunrise/sunset times
 		if Now > self.SunData['Sunset'][0]:
 			self.SunriseSunset()
 			
-		# If app is initialising or once moonset has passed, 
-		# calculate new moonrise/moonset times
+		# If app is initialising or once moonset has passed, calculate new 
+		# moonrise/moonset times
 		if Now > self.MoonData['Moonset'][0]:
 			self.MoonriseMoonset()	
 
-		# At midnight, update Sunset and Sunrise Label binds
+		# At midnight, update Sunset, Sunrise, Moonrise and Moonset Kivy Label 
+		# binds
 		if Now.time() == time(0,0,0):
-			self.SunriseSunsetText()
-			self.MoonriseMoonsetText()
+			self.UpdateSunriseSunset()
+			self.UpdateMoonriseMoonset()
 		
 # ==============================================================================
 # DEFINE 'WeatherFlowPiConsoleScreen' SCREEN MANAGER

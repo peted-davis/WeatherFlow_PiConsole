@@ -725,7 +725,7 @@ WeatherFlowPiConsoleScreen:
 
 		## NEXT NEW MOON
 		Label:
-			text: app.MoonData['NewMoon']
+			text: app.MoonData['NewMoon'][0]
 			font_name: 'Fonts/Helvetica.ttf'
 			font_size: '15sp'
 			text_size: self.size
@@ -739,7 +739,7 @@ WeatherFlowPiConsoleScreen:
 			
 		## NEXT FULL MOON
 		Label:
-			text: app.MoonData['FullMoon']
+			text: app.MoonData['FullMoon'][0]
 			font_name: 'Fonts/Helvetica.ttf'
 			font_size: '15sp'
 			text_size: self.size
