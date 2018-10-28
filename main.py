@@ -139,7 +139,7 @@ class WeatherFlowPiConsole(App):
 	SkyRapid = DictProperty([('Time','-'),('Speed','--'),('Direc','---')])	
 	SkyRapidIcon = NumericProperty(0)							 
 	Sky = DictProperty([('Radiation','----'),('RainRate','---'),('WindSpd','----'),
-						('WindGust','--'),('WindDir','---'),('MaxWind','--'),
+						('WindGust','--'),('WindDir','---'),('AvgWind','--'),
 						('MaxGust','--'),('DayRain','--'),('MonthRain','--'),
 						('YearRain','--'),('Time','-'),('Battery','--'),
 						('StatusIcon','Error'),('Obs','--')])
@@ -356,63 +356,51 @@ class WeatherFlowPiConsole(App):
 		FeelsLike = self.FeelsLike()
 		RainRate = self.RainRate(Rain)
 		DayRain,MonthRain,YearRain = self.RainAccumulation(Rain) 
-		MaxWind,MaxGust = self.SkyObsMaxMin(WindSpd,WindGust)
+		AvgWind = self.MeanWindSpeed(WindSpd)
+		MaxGust = self.SkyObsMaxMin(WindSpd,WindGust)
 		Beaufort = self.BeaufortScale(WindSpd)
 		Cardinal = self.CardinalWindDirection(WindDir,WindSpd)
 		UV = self.UVIndex(UV)
 		
 		# Convert observation units as required
-		cRainRate = self.ConvertObservationUnits(RainRate,'Precip')
-		cDayRain = self.ConvertObservationUnits(DayRain,'Precip')
-		cMonthRain = self.ConvertObservationUnits(MonthRain,'Precip')
-		cYearRain = self.ConvertObservationUnits(YearRain,'Precip')
-		cWindSpd = self.ConvertObservationUnits(WindSpd,'Wind')
-		cWindDir = self.ConvertObservationUnits(WindDir,'Direction')
-		cWindGust = self.ConvertObservationUnits(WindGust,'Wind')
-		cMaxWind = self.ConvertObservationUnits(MaxWind,'Wind')
-		cMaxGust = self.ConvertObservationUnits(MaxGust,'Wind')
-		cFeelsLike = self.ConvertObservationUnits(FeelsLike,'Temp')
+		RainRate = self.ObservationUnits(RainRate,'Precip')
+		DayRain = self.ObservationUnits(DayRain,'Precip')
+		MonthRain = self.ObservationUnits(MonthRain,'Precip')
+		YearRain = self.ObservationUnits(YearRain,'Precip')
+		WindSpd = self.ObservationUnits(WindSpd,'Wind')
+		WindDir = self.ObservationUnits(WindDir,'Direction')
+		WindGust = self.ObservationUnits(WindGust,'Wind')
+		AvgWind = self.ObservationUnits(AvgWind,'Wind')
+		MaxGust = self.ObservationUnits(MaxGust,'Wind')
+		FeelsLike = self.ObservationUnits(FeelsLike,'Temp')
 		
-		# Define Rain Rate format string based on current Rain Rate
-		if cRainRate[0] == 0:
-			RainRateFmt = '{:.0f}'
-		elif cRainRate[0] < 1:
-			RainRateFmt = '{:.2f}'
-		else:
-			RainRateFmt = '{:.1f}'
-		
-		# Define Rain Accumulation format string based on current Rain Accumulation
-		if cDayRain[0] == 0:
-			DayRainFmt = '{:.0f}'
-		elif cDayRain[0] < 10:
-			DayRainFmt = '{:.1f}'
-		else:
-			DayRainFmt = '{:.0f}'
-		if cMonthRain[0] < 10:
-			MonthRainFmt = '{:.1f}'
-		else:
-			MonthRainFmt = '{:.0f}'		
-		if cYearRain[0] < 10:
-			YearRainFmt = '{:.1f}'
-		else:
-			YearRainFmt = '{:.0f}'						
+		# Set observation format string if required
+		RainRate = self.ObservationFormat(RainRate,'Precip')
+		DayRain = self.ObservationFormat(DayRain,'Precip')
+		MonthRain = self.ObservationFormat(MonthRain,'Precip')
+		YearRain = self.ObservationFormat(YearRain,'Precip')
+		WindSpd = self.ObservationFormat(WindSpd,'Wind')
+		WindGust = self.ObservationFormat(WindGust,'Wind')
+		AvgWind = self.ObservationFormat(AvgWind,'Wind')
+		MaxGust = self.ObservationFormat(MaxGust,'Wind')
+		FeelsLike = self.ObservationFormat(FeelsLike,'Temp')
 					
 		# Define and format SKY Kivy label binds		
 		self.Sky['Time'] =  datetime.fromtimestamp(Time[0],self.System['tz']).strftime('%H:%M:%S')
-		self.Sky['RainRate'] = [RainRateFmt.format(cRainRate[0]),cRainRate[1],cRainRate[2]]
-		self.Sky['DayRain'] = [DayRainFmt.format(cDayRain[0]),cDayRain[1],cDayRain[0],cDayRain[2]]
-		self.Sky['MonthRain'] = [MonthRainFmt.format(cMonthRain[0]),cMonthRain[1],cMonthRain[0],cMonthRain[2]]
-		self.Sky['YearRain'] = [YearRainFmt.format(cYearRain[0]),cYearRain[1],cYearRain[0],cYearRain[2]]
-		self.Sky['WindSpd'] = ['{:.1f}'.format(cWindSpd[0]),cWindSpd[1],Beaufort[0],Beaufort[1]]
-		self.Sky['WindGust'] = ['{:.1f}'.format(cWindGust[0]),cWindGust[1]]
-		self.Sky['MaxWind'] = ['{:.1f}'.format(cMaxWind[0]),cMaxWind[1],cMaxWind[2]]
-		self.Sky['MaxGust'] = ['{:.1f}'.format(cMaxGust[0]),cMaxGust[1],cMaxGust[2]]
-		self.Sky['WindDir'] = [cWindDir[0] if isinstance(cWindDir[0],str) else '{:.0f}'.format(cWindDir[0]),cWindDir[1],Cardinal[0]]
-		self.Sky['Battery'] = ['{:.2f}'.format(Battery[0]),Battery[1]]
-		self.Sky['Radiation'] = ['{:.0f}'.format(Radiation[0]),Radiation[1],'{:.1f}'.format(UV[0]),UV[2]]
+		self.Sky['RainRate'] = [RainRate[2].format(RainRate[0]),RainRate[1],RainRate[3]]
+		self.Sky['DayRain'] = [DayRain[2].format(DayRain[0]),DayRain[1],DayRain[0],DayRain[3]]
+		self.Sky['MonthRain'] = [MonthRain[2].format(MonthRain[0]),MonthRain[1],MonthRain[0],MonthRain[3]]
+		self.Sky['YearRain'] = [YearRain[2].format(YearRain[0]),YearRain[1],YearRain[0],YearRain[3]]
+		self.Sky['WindSpd'] = [WindSpd[2].format(WindSpd[0]),WindSpd[1],Beaufort[0],Beaufort[1]]
+		self.Sky['WindGust'] = [WindGust[2].format(WindGust[0]),WindGust[1]]
+		self.Sky['AvgWind'] = [AvgWind[2].format(AvgWind[0]),AvgWind[1],AvgWind[0],AvgWind[3],AvgWind[4]]
+		self.Sky['MaxGust'] = [MaxGust[2].format(MaxGust[0]),MaxGust[1],MaxGust[3]]
+		self.Sky['WindDir'] = [str(WindDir[0]),WindDir[1],Cardinal[0]]
+		self.Sky['Battery'] = [str(Battery[0]),Battery[1]]
+		self.Sky['Radiation'] = [str(Radiation[0]),Radiation[1],str(UV[0]),UV[2]]
 
 		# Define and format AIR Kivy label binds
-		self.Air['FeelsLike'] = ['-' if math.isnan(cFeelsLike[0]) else '{:2.1f}'.format(cFeelsLike[0]),cFeelsLike[1]]
+		self.Air['FeelsLike'] = ['-' if math.isnan(FeelsLike[0]) else FeelsLike[2].format(FeelsLike[0]),FeelsLike[1]]
 	
 	# EXTRACT OBSERVATIONS FROM OBS_AIR WEBSOCKET JSON MESSAGE
 	# --------------------------------------------------------------------------
@@ -440,35 +428,38 @@ class WeatherFlowPiConsole(App):
 		TempMaxMin,PresMaxMin = self.AirObsMaxMin()
 
 		# Convert observation units as required
-		cTemp = self.ConvertObservationUnits(Temp,'Temp')
-		cDewPoint = self.ConvertObservationUnits(DewPoint,'Temp')
-		cFeelsLike = self.ConvertObservationUnits(FeelsLike,'Temp')
-		cTempMaxMin = self.ConvertObservationUnits(TempMaxMin,'Temp')
-		cSLP = self.ConvertObservationUnits(SLP,'Pressure')
-		cPresTrend = self.ConvertObservationUnits(PresTrend,'Pressure')
-		cPresMaxMin = self.ConvertObservationUnits(PresMaxMin,'Pressure')
-					
-		# Define Pressure format string based on observation unit
-		if self.System['Units']['Pressure'] == 'inhg':
-			PresFormat = '{:2.3f}'
-		elif self.System['Units']['Pressure'] == 'mmhg':
-			PresFormat = '{:3.2f}'
-		else:
-			PresFormat = '{:4.1f}'
+		Temp = self.ObservationUnits(Temp,'Temp')
+		DewPoint = self.ObservationUnits(DewPoint,'Temp')
+		FeelsLike = self.ObservationUnits(FeelsLike,'Temp')
+		TempMaxMin = self.ObservationUnits(TempMaxMin,'Temp')
+		SLP = self.ObservationUnits(SLP,'Pressure')
+		PresTrend = self.ObservationUnits(PresTrend,'Pressure')
+		PresMaxMin = self.ObservationUnits(PresMaxMin,'Pressure')
+
+		# Set observation format string if required
+		Temp = self.ObservationFormat(Temp,'Temp')
+		DewPoint = self.ObservationFormat(DewPoint,'Temp')
+		FeelsLike = self.ObservationFormat(FeelsLike,'Temp')
+		TempMaxMin = self.ObservationFormat(TempMaxMin,'Temp')
+		SLP = self.ObservationFormat(SLP,'Pressure')
+		PresTrend = self.ObservationFormat(PresTrend,'Pressure')
+		PresMaxMin = self.ObservationFormat(PresMaxMin,'Pressure')
 		
+		print(TempMaxMin)
+								
 		# Define and format Kivy labels
 		self.Air['Time'] = datetime.fromtimestamp(Time[0],self.System['tz']).strftime('%H:%M:%S')
-		self.Air['Temp'] = ['{:.1f}'.format(cTemp[0]),cTemp[1]]
-		self.Air['MaxTemp'] = ['{:.1f}'.format(float(cTempMaxMin[0])),cTempMaxMin[1],cTempMaxMin[2]]
-		self.Air['MinTemp'] = ['{:.1f}'.format(float(cTempMaxMin[3])),cTempMaxMin[4],cTempMaxMin[5]]
-		self.Air['DewPoint'] = ['{:.1f}'.format(cDewPoint[0]),cDewPoint[1]]		
-		self.Air['FeelsLike'] = ['-' if math.isnan(cFeelsLike[0]) else '{:2.1f}'.format(cFeelsLike[0]),cFeelsLike[1]]
-		self.Air['Pres'] = ['{:.1f}'.format(SLP[0]),PresFormat.format(cSLP[0]),cSLP[1]]
-		self.Air['MaxPres'] = [PresFormat.format(cPresMaxMin[0]),cPresMaxMin[1]]
-		self.Air['MinPres'] = [PresFormat.format(cPresMaxMin[2]),cPresMaxMin[3]]
-		self.Air['PresTrend'] = [PresFormat.format(cPresTrend[0]),cPresTrend[1],cPresTrend[2]]		
-		self.Air['Humidity'] = ['{:.0f}'.format(Humidity[0]),' ' + Humidity[1]]
-		self.Air['Battery'] = ['{:.2f}'.format(Battery[0]),Battery[1]]
+		self.Air['Temp'] = [Temp[2].format(Temp[0]),Temp[1]]
+		self.Air['MaxTemp'] = [TempMaxMin[2].format(TempMaxMin[0]),TempMaxMin[1],TempMaxMin[3],TempMaxMin[8]]
+		self.Air['MinTemp'] = [TempMaxMin[6].format(TempMaxMin[4]),TempMaxMin[5],TempMaxMin[7],TempMaxMin[8]]
+		self.Air['DewPoint'] = [DewPoint[2].format(DewPoint[0]),DewPoint[1]]		
+		self.Air['FeelsLike'] = ['-' if math.isnan(FeelsLike[0]) else FeelsLike[2].format(FeelsLike[0]),FeelsLike[1]]
+		self.Air['Pres'] = [SLP[2].format(SLP[0]),SLP[1],SLP[3]]
+		self.Air['MaxPres'] = [PresMaxMin[2].format(PresMaxMin[0]),PresMaxMin[1],PresMaxMin[6]]
+		self.Air['MinPres'] = [PresMaxMin[5].format(PresMaxMin[3]),PresMaxMin[4],PresMaxMin[6]]
+		self.Air['PresTrend'] = [PresTrend[2].format(PresTrend[0]),PresTrend[1],PresTrend[3]]		
+		self.Air['Humidity'] = [str(Humidity[0]),' ' + Humidity[1]]
+		self.Air['Battery'] = [str(Battery[0]),Battery[1]]
 		self.Air['Comfort'] = ComfortLevel
 
 	# EXTRACT OBSERVATIONS FROM RAPID_WIND WEBSOCKET JSON MESSAGE
@@ -503,19 +494,19 @@ class WeatherFlowPiConsole(App):
 		Cardinal = self.CardinalWindDirection(WindDir,WindSpd)
 		
 		# Convert observation units as required
-		cWindSpd = self.ConvertObservationUnits(WindSpd,'Wind')
+		WindSpd = self.ObservationUnits(WindSpd,'Wind')
 
 		# Animate wind rose arrow 
 		self.WindRoseAnimation(WindDir[0],WindDirOld[0])
 		
 		# Define and format Kivy labels
 		self.SkyRapid['Time'] = datetime.fromtimestamp(Time[0],self.System['tz']).strftime('%H:%M:%S')
-		self.SkyRapid['Speed'] = ['{:.1f}'.format(cWindSpd[0]),cWindSpd[1]]
-		self.SkyRapid['Direc'] = ['{:.0f}'.format(WindDir[0]),'[sup]o[/sup]',Cardinal[1]]		
+		self.SkyRapid['Speed'] = ['{:.1f}'.format(WindSpd[0]),WindSpd[1]]
+		self.SkyRapid['Direc'] = [str(WindDir[0]),'[sup]o[/sup]',Cardinal[1]]		
 	
 	# CONVERT STATION OBSERVATIONS INTO REQUIRED UNITS
     # --------------------------------------------------------------------------		
-	def ConvertObservationUnits(self,Obs,Type):
+	def ObservationUnits(self,Obs,Type):
 		
 		# Convert temperature observations
 		cObs = Obs[:]
@@ -563,7 +554,7 @@ class WeatherFlowPiConsole(App):
 		elif Type == 'Wind':
 			for ii,W in enumerate(Obs):
 				if W == 'mps':
-					if self.System['Units'][Type] == 'mph':
+					if self.System['Units'][Type] == 'mph' or self.System['Units'][Type] == 'lfm':
 						cObs[ii-1] = Obs[ii-1] * 2.2369362920544
 						cObs[ii] = 'mph'
 					elif self.System['Units'][Type] == 'kts':
@@ -572,9 +563,6 @@ class WeatherFlowPiConsole(App):
 					elif self.System['Units'][Type] == 'kph':
 						cObs[ii-1] = Obs[ii-1] * 3.6
 						cObs[ii] = 'km/h'							
-					elif self.System['Units'][Type] == 'lfm':
-						cObs[ii-1] = Obs[ii-1] * 2.2369362920544 * 88
-						cObs[ii] = 'lfm'	
 					elif self.System['Units'][Type] == 'bft':
 						cObs[ii-1] = self.BeaufortScale(Obs[ii-1:ii+1])[2] 
 						cObs[ii] = 'bft'
@@ -587,7 +575,7 @@ class WeatherFlowPiConsole(App):
 			for ii,W in enumerate(Obs):
 				if W == 'degrees':
 					if self.System['Units'][Type] == 'cardinal':
-						cObs[ii-1] = self.CardinalWindDirection(Obs[ii-1:ii+1],[1,'mps'])[0]   
+						cObs[ii-1] = self.CardinalWindDirection(Obs[ii-1:ii+1])[0]   
 						cObs[ii] = ''
 					else:
 						cObs[ii-1] = Obs[ii-1]   
@@ -617,6 +605,55 @@ class WeatherFlowPiConsole(App):
 							cObs[ii] = ' mm/hr'				
 						
 		# Return converted observations	
+		return cObs
+				
+	# DEFINE STATION OBSERVATIONS FORMAT STRING
+	# --------------------------------------------------------------------------
+	def ObservationFormat(self,Obs,Type):
+
+		# Format temperature observations
+		cObs = Obs[:]
+		if Type == 'Temp':
+			for ii,T in enumerate(Obs):
+				if isinstance(T,str) and T.strip() in ['[sup]o[/sup]F','[sup]o[/sup]C']:
+						Offset = int(len(cObs)-len(Obs))
+						cObs.insert(ii+1+Offset,'{:.1f}')
+						
+		# Format pressure observations
+		elif Type == 'Pressure':
+			for ii,P in enumerate(Obs):
+				if isinstance(P,str): 
+					Offset = int(len(cObs)-len(Obs))
+					if P.strip() in ['inHg/hr','inHg']:
+						cObs.insert(ii+1+Offset,'{:2.3f}')	
+					elif P.strip() in ['mmHg/hr','mmHg']:
+						cObs.insert(ii+1+Offset,'{:3.2f}')
+					elif P.strip() in ['hpa/hr','mb/hr','hpa','mb']:
+						cObs.insert(ii+1+Offset,'{:4.1f}')
+	
+		# Format windspeed observations
+		elif Type == 'Wind':
+			for ii,W in enumerate(Obs):
+				if isinstance(W,str) and W.strip() in ['mph','kts','km/h','bft','m/s']:
+					Offset = int(len(cObs)-len(Obs))
+					if cObs[ii-1] < 10:
+						cObs.insert(ii+1+Offset,'{:.1f}')
+					else:
+						cObs.insert(ii+1+Offset,'{:.0f}')
+						
+		# Format rain accumulation and rain rate observations
+		elif Type == 'Precip':
+			for ii,Prcp in enumerate(Obs):
+				if isinstance(Prcp,str) and Prcp.strip() in ['in/hr','cm/hr','mm/hr','in','cm','mm']:
+					Offset = int(len(cObs)-len(Obs))
+					if cObs[ii-1] == 0:
+						cObs.insert(ii+1+Offset,'{:.0f}')
+					elif cObs[ii-1] < 1:
+						cObs.insert(ii+1+Offset,'{:.1f}')	
+					else:
+						cObs.insert(ii+1+Offset,'{:.0f}')	
+		
+		# Return format string
 		return cObs
 				
 	# ANIMATE RAPID-WIND WIND ROSE DIRECTION ARROW
@@ -718,7 +755,7 @@ class WeatherFlowPiConsole(App):
 		SLP = Psta * (1 + ((P0/Psta)**((Rd*GammaS)/g)) * ((GammaS*Elev)/T0))**(g/(Rd*GammaS))
 
 		# Return Sea Level Pressure
-		return [SLP,'mb']		
+		return [SLP,'mb','{:.1f}'.format(SLP)]		
 							
 	# CALCULATE THE PRESSURE TREND AND SET THE PRESSURE TREND TEXT
     # --------------------------------------------------------------------------
@@ -735,26 +772,29 @@ class WeatherFlowPiConsole(App):
 		Pres = [item[1] for item in Data]
 		
 		# Calculate pressure trend
-		Trend = []
-		Trend = Pres[-1] - Pres[0]
+		Trend = (Pres[-1] - Pres[0])/3
 		
-		# Calculate pressure trend text
-		if Trend >= 1:
-			TrendText = '[color=ff8837ff]Rising[/color]'
-		elif Trend <= -1:
-			TrendText = '[color=00a4b4ff]Falling[/color]'
+		# Remove sign from pressure trend if it rounds to 0.0
+		if abs(Trend) < 0.05:
+			Trend = abs(Trend)
+		
+		# Define pressure trend text
+		if Trend >= 1/3:
+			TrendTxt = '[color=ff8837ff]Rising[/color]'
+		elif Trend <= -1/3:
+			TrendTxt = '[color=00a4b4ff]Falling[/color]'
 		else:
-			TrendText = '[color=9aba2fff]Steady[/color]'
+			TrendTxt = '[color=9aba2fff]Steady[/color]'
 		
 		# Return pressure trend
-		return [Trend/3,'mb/hr',TrendText]
+		return [Trend,'mb/hr',TrendTxt]
 		
 	# CALCULATE DAILY RAIN ACCUMULATION LEVELS
     # --------------------------------------------------------------------------
 	def RainAccumulation(self,Rain):
 		
 		# Convert observation units as required
-		cRain = self.ConvertObservationUnits(Rain,'Precip')
+		cRain = self.ObservationUnits(Rain,'Precip')
 		
 		# Define current time in station timezone
 		Tz = self.System['tz']
@@ -878,11 +918,66 @@ class WeatherFlowPiConsole(App):
 		# Return instantaneous rain rate and text
 		return [RainRate,'mm/hr',RainRateTxt]	
 		
+	# CALCULATE DAILY AVERAGED WIND SPEED
+	# --------------------------------------------------------------------------
+	def MeanWindSpeed(self,WindSpd):
+	
+		# Convert observation units as required
+		cWindSpd = self.ObservationUnits(WindSpd,'Wind')
+
+		# Define current time in station timezone
+		Tz = self.System['tz']
+		Now = datetime.now(pytz.utc).astimezone(Tz)	
+		
+		# CODE INITIALISING. DOWNLOAD DATA FOR CURRENT DAY USING WEATHERFLOW API
+		if self.Sky['AvgWind'] == '--':
+		
+			# Convert midnight today in Station timezone to midnight today in 
+			# UTC. Convert UTC time into UNIX timestamp
+			Date = date.today()																
+			Midnight = Tz.localize(datetime.combine(Date,time()))
+			Midnight_UTC = int(Midnight.timestamp())
+			
+			# Convert current time in Station timezone to current time in UTC. 
+			# Convert current time time into UNIX timestamp
+			Now = Tz.localize(datetime.now())
+			Now_UTC = int(Now.timestamp())													
+
+			# Download data from current day using Weatherflow API and extract 
+			# wind speed and wind gust data
+			Template = ('https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&api_key={}')
+			URL = Template.format(self.System['SkyID'],Midnight_UTC,Now_UTC,self.System['WFlowKey'])
+			Data = requests.get(URL).json()['obs']
+			WindSpd = [[item[5],'mps'] if item[5] != None else [NaN,'mps'] for item in Data]
+
+			# Calculate daily averaged wind speed
+			Sum = sum([x for x,y in WindSpd])
+			Length = len(WindSpd)
+			AvgWind = [Sum/Length,'mps',Length,Now]
+			
+			# Return daily averaged wind speed
+			return AvgWind
+		
+		# At midnight, reset daily averaged wind speed to zero
+		if Now.date() > self.Sky['AvgWind'][4].date():
+			AvgWind = [WindSpd,'mps',1,Now]
+		
+		# Update current daily averaged wind speed with new wind speed 
+		# observation
+		else:
+			Len = self.Sky['AvgWind'][3] + 1
+			CurrentAvg = self.Sky['AvgWind'][2]
+			NewAvg = (Len-1)/Len * CurrentAvg + 1/Len * cWindSpd[0]
+			AvgWind = [NewAvg,cWindSpd[1],Len,Now]
+		
+		# Return daily averaged wind speed
+		return AvgWind
+		
 	# CALCULATE MAXIMUM AND MINIMUM OBSERVED TEMPERATURE AND PRESSURE
 	# --------------------------------------------------------------------------
 	def AirObsMaxMin(self):
 
-		# Extract required meteorological fields
+		# Extract current station observations
 		Time = self.Air['Obs'][0]
 		Temp = [self.Air['Obs'][2],'c']
 		Pres = [self.Air['Obs'][1],'mb']
@@ -891,16 +986,12 @@ class WeatherFlowPiConsole(App):
 		SLP = self.SeaLevelPressure(Pres)
 		
 		# Convert observation units as required
-		cTemp = self.ConvertObservationUnits(Temp,'Temp')
-		cSLP = self.ConvertObservationUnits(SLP,'Pressure')
+		Temp = self.ObservationUnits(Temp,'Temp')
+		SLP = self.ObservationUnits(SLP,'Pressure')
 		
 		# Define current time in station timezone
 		Tz = self.System['tz']
 		Now = datetime.now(pytz.utc).astimezone(Tz)	
-		
-		# Define required variables
-		TempMaxMin = []
-		PresMaxMin = []
 
 		# CODE INITIALISING. DOWNLOAD DATA FOR CURRENT DAY USING WEATHERFLOW API
 		if self.Air['MaxTemp'] == '---':
@@ -929,91 +1020,76 @@ class WeatherFlowPiConsole(App):
 			SLP = [self.SeaLevelPressure(P) for P in Pres]
 
 			# Define maximum and minimum temperature and time
-			TempMaxMin.extend(Temp[Temp.index(max(Temp))])
-			TempMaxMin.append(datetime.fromtimestamp(Time[Temp.index(max(Temp))],Tz).strftime('%H:%M'))
-			TempMaxMin.extend(Temp[Temp.index(min(Temp))])
-			TempMaxMin.append(datetime.fromtimestamp(Time[Temp.index(min(Temp))],Tz).strftime('%H:%M'))
+			TempMax = [max(Temp)[0],max(Temp)[1],datetime.fromtimestamp(Time[Temp.index(max(Temp))],Tz).strftime('%H:%M')]
+			TempMin = [min(Temp)[0],min(Temp)[1],datetime.fromtimestamp(Time[Temp.index(min(Temp))],Tz).strftime('%H:%M')]
+			TempMaxMin = TempMax + TempMin + [Now]
 
 			# Define maximum and minimum pressure
-			PresMaxMin.extend(max(SLP))
-			PresMaxMin.extend(min(SLP))
-
-			# Define current meteorological day
-			self.Air['MetDay'] = Now.date()
+			PresMaxMin = [max(SLP)[0],max(SLP)[1],min(SLP)[0],min(SLP)[1],Now]
 			
 			# Return required variables
 			return TempMaxMin,PresMaxMin
 			
 		# AT MIDNIGHT RESET MAXIMUM AND MINIMUM TEMPERATURE AND PRESSURE 
-		if self.Air['MetDay'] < Now.date():
-			TempMaxMin.extend(Temp)
-			TempMaxMin.append(datetime.fromtimestamp(Time,self.System['tz']).strftime('%H:%M'))
-			TempMaxMin.extend(Temp)
-			TempMaxMin.append(datetime.fromtimestamp(Time,self.System['tz']).strftime('%H:%M'))
-			PresMaxMin.extend(SLP)
-			PresMaxMin.extend(SLP)
-			self.Air['MetDay'] = Now.date()
+		if self.Air['MaxTemp'][3].date() < Now.date():
+			TempMax = [Temp[0],'c',datetime.fromtimestamp(Time,self.System['tz']).strftime('%H:%M')]
+			TempMin = [Temp[0],'c',datetime.fromtimestamp(Time,self.System['tz']).strftime('%H:%M')]
+			TempMaxMin = TempMax + TempMin + [Now]
 			
 			# Return required variables
 			return TempMaxMin,PresMaxMin
 	
 		# Current temperature is greater than maximum recorded temperature. 
 		# Update maximum temperature and time
-		if cTemp[0] > float(self.Air['MaxTemp'][0]):
-			TempMaxMin.extend(Temp)
-			TempMaxMin.append(datetime.fromtimestamp(Time,self.System['tz']).strftime('%H:%M'))
-			TempMaxMin.append(float(self.Air['MinTemp'][0]))
-			TempMaxMin.extend(self.Air['MinTemp'][1:])
+		if Temp[0] > float(self.Air['MaxTemp'][0]):
+			TempMax = [Temp[0],'c',datetime.fromtimestamp(Time,self.System['tz']).strftime('%H:%M')]
+			TempMin = [float(self.Air['MinTemp'][0]),self.Air['MinTemp'][1],self.Air['MinTemp'][2]]
+			TempMaxMin = TempMax + TempMin + [Now]
 
 		# Current temperature is less than minimum recorded temperature. Update 
 		# minimum temperature and time	
-		elif cTemp[0] < float(self.Air['MinTemp'][0]):
-			TempMaxMin.append(float(self.Air['MaxTemp'][0]))
-			TempMaxMin.extend(self.Air['MaxTemp'][1:])
-			TempMaxMin.extend(Temp)
-			TempMaxMin.append(datetime.fromtimestamp(Time,self.System['tz']).strftime('%H:%M'))
+		elif Temp[0] < float(self.Air['MinTemp'][0]):
+			TempMax = [float(self.Air['MaxTemp'][0]),self.Air['MaxTemp'][1],self.Air['MaxTemp'][2]]
+			TempMin = [Temp[0],'c',datetime.fromtimestamp(Time,self.System['tz']).strftime('%H:%M')]
+			TempMaxMin = TempMax + TempMin + [Now]
 
 		# Maximum and minimum temperature unchanged. Return existing values	
 		else:
-			TempMaxMin.append(float(self.Air['MaxTemp'][0]))
-			TempMaxMin.extend(self.Air['MaxTemp'][1:])
-			TempMaxMin.append(float(self.Air['MinTemp'][0]))
-			TempMaxMin.extend(self.Air['MinTemp'][1:])
-
+			TempMax = [float(self.Air['MaxTemp'][0]),self.Air['MaxTemp'][1],self.Air['MaxTemp'][2]]
+			TempMin = [float(self.Air['MinTemp'][0]),self.Air['MinTemp'][1],self.Air['MinTemp'][2]]
+			TempMaxMin = TempMax + TempMin + [Now]
+			
 		# Current pressure is greater than maximum recorded pressure. Update 
 		# maximum pressure
-		if cSLP[0] > float(self.Air['MaxPres'][0]):
-			PresMaxMin.extend(SLP)
-			PresMaxMin.extend([float(self.Air['MinPres'][0]),self.Air['MinPres'][1]])
+		if SLP[0] > float(self.Air['MaxPres'][0]):
+			PresMaxMin = [SLP[0],SLP[1],float(self.Air['MinPres'][0]),self.Air['MinPres'][1],Now]
 			
 		# Current pressure is less than minimum recorded pressure. Update 
 		# minimum pressure and time	
-		elif cSLP[0] < float(self.Air['MinPres'][0]):
-			PresMaxMin.extend([float(self.Air['MaxPres'][0]),self.Air['MaxPres'][1]])
-			PresMaxMin.extend(SLP)
+		elif SLP[0] < float(self.Air['MinPres'][0]):		
+			PresMaxMin = [float(self.Air['MaxPres'][0]),self.Air['MaxPres'][1],SLP[0],SLP[1],Now]
 			
 		# Maximum and minimum pressure unchanged. Return existing values
 		else:
-			PresMaxMin.extend([float(self.Air['MaxPres'][0]),self.Air['MaxPres'][1]])
-			PresMaxMin.extend([float(self.Air['MinPres'][0]),self.Air['MinPres'][1]])
+			PresMaxMin = [float(self.Air['MaxPres'][0]),self.Air['MaxPres'][1],float(self.Air['MinPres'][0]),self.Air['MinPres'][1],Now]
 			
 		# Return required variables
 		return TempMaxMin,PresMaxMin	
 			
-	# CALCULATE MAXIMUM AND MINIMUM OBSERVED WIND SPEED AND GUST STRENGTH
+	# CALCULATE MAXIMUM OBSERVED WIND SPEED AND GUST STRENGTH
 	# --------------------------------------------------------------------------
 	def SkyObsMaxMin(self,WindSpd,WindGust):
 		
 		# Convert observation units as required
-		cWindSpd = self.ConvertObservationUnits(WindSpd,'Wind')
-		cWindGust = self.ConvertObservationUnits(WindGust,'Wind')
+		cWindSpd = self.ObservationUnits(WindSpd,'Wind')
+		cWindGust = self.ObservationUnits(WindGust,'Wind')
 		
 		# Define current time in station timezone
 		Tz = self.System['tz']
 		Now = datetime.now(pytz.utc).astimezone(Tz)	
 		
 		# CODE INITIALISING. DOWNLOAD DATA FOR CURRENT DAY USING WEATHERFLOW API
-		if self.Sky['MaxWind'] == '--':
+		if self.Sky['MaxGust'] == '--':
 		
 			# Convert midnight today in Station timezone to midnight today in 
 			# UTC. Convert UTC time into UNIX timestamp
@@ -1031,32 +1107,20 @@ class WeatherFlowPiConsole(App):
 			Template = ('https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&api_key={}')
 			URL = Template.format(self.System['SkyID'],Midnight_UTC,Now_UTC,self.System['WFlowKey'])
 			Data = requests.get(URL).json()['obs']
-			WindSpd = [[item[5],'mps'] if item[5] != None else [NaN,'mps'] for item in Data]
 			WindGust = [[item[6],'mps'] if item[6] != None else [NaN,'mps'] for item in Data]
 
-			# Define maximum wind speed and wind gust
-			MaxWind = [max([x for x,y in WindSpd]),'mps',Now]
+			# Define maximum wind gust
 			MaxGust = [max([x for x,y in WindGust]),'mps',Now]
 			
-			# Return maximum wind speed and gust
-			return MaxWind,MaxGust
+			# Return maximum wind gust
+			return MaxGust
 
-		# AT MIDNIGHT RESET MAXIMUM RECORDED WIND SPEED AND GUST	
-		if self.Sky['MaxWind'][2].date() < Now.date():
-			MaxWind = [WindSpd[0],'mps',Now]
+		# AT MIDNIGHT RESET MAXIMUM RECORDED WIND GUST	
+		if self.Sky['MaxGust'][2].date() < Now.date():
 			MaxGust = [WindGust[0],'mps',Now]
 			
-			# Return maximum wind speed and gust
-			return MaxWind,MaxGust	
-			
-		# Current wind speed is greater than maximum recorded wind speed. Update
-		# maximum wind speed
-		if cWindSpd[0] > float(self.Sky['MaxWind'][0]):
-			MaxWind = [WindSpd[0],'mps',Now]
-			
-		# Maximum wind speed is unchanged. Return existing value
-		else:
-			MaxWind = [float(self.Sky['MaxWind'][0]),self.Sky['MaxWind'][1],self.Sky['MaxWind'][2]]
+			# Return maximum wind gust
+			return MaxGust	
 			
 		# Current gust speed is greater than maximum recorded gust speed. Update 
 		# maximum gust speed 
@@ -1065,10 +1129,10 @@ class WeatherFlowPiConsole(App):
 				
 		# Maximum gust speed is unchanged. Return existing value
 		else:
-			MaxGust = [float(self.Sky['MaxGust'][0]),self.Sky['MaxGust'][1],self.Sky['MaxGust'][2]]	
+			MaxGust = [float(self.Sky['MaxGust'][0]),self.Sky['MaxGust'][1],Now]	
 			
 		# Return maximum wind speed and gust
-		return MaxWind,MaxGust	
+		return MaxGust
 			
 	# SET THE COMFORT LEVEL TEXT STRING AND ICON
 	# --------------------------------------------------------------------------
@@ -1113,7 +1177,7 @@ class WeatherFlowPiConsole(App):
 					
 	# SET CARDINAL WIND DIRECTION AND DESCRIPTION
 	# --------------------------------------------------------------------------
-	def CardinalWindDirection(self,Dir,Spd):
+	def CardinalWindDirection(self,Dir,Spd=[1,'mps']):
 			
 		# Define cardinal wind direction and description
 		if Spd[0] == 0:
@@ -1254,7 +1318,7 @@ class WeatherFlowPiConsole(App):
 			UVIcon = '5'
 			
 		# Return UV Index icon
-		return [UV[0],'index',UVIcon]
+		return [round(UV[0],1),'index',UVIcon]
 			
 	# CALCULATE SUNRISE/SUNSET TIMES
 	# --------------------------------------------------------------------------
@@ -1593,8 +1657,8 @@ class WeatherFlowPiConsole(App):
 		Weather = MetData['W']	
 		
 		# Convert forecast units as required
-		Temp = self.ConvertObservationUnits(Temp,'Temp')
-		WindSpd = self.ConvertObservationUnits(WindSpd,'Wind')
+		Temp = self.ObservationUnits(Temp,'Temp')
+		WindSpd = self.ObservationUnits(WindSpd,'Wind')
 		
 		# Define and format Kivy label binds
 		self.MetData['Time'] = datetime.now(pytz.utc).astimezone(Tz)	
@@ -1649,15 +1713,15 @@ class WeatherFlowPiConsole(App):
 		Weather = MetData['icon']	
 		
 		# Convert forecast units as required
-		Temp = self.ConvertObservationUnits(Temp,'Temp')
-		WindSpd = self.ConvertObservationUnits(WindSpd,'Wind')
+		Temp = self.ObservationUnits(Temp,'Temp')
+		WindSpd = self.ObservationUnits(WindSpd,'Wind')
 
 		# Define and format Kivy label binds
 		self.MetData['Time'] = datetime.now(pytz.utc).astimezone(Tz)
 		self.MetData['Issued'] = datetime.strftime(Issued,'%H:%M')
 		self.MetData['Valid'] = datetime.strftime(Valid,'%H:%M')
 		self.MetData['Temp'] = ['{:.1f}'.format(Temp[0]),Temp[1]]
-		self.MetData['WindDir'] = self.CardinalWindDirection(WindDir,[1,'mps'])[0]
+		self.MetData['WindDir'] = self.CardinalWindDirection(WindDir)[0]
 		self.MetData['WindSpd'] = ['{:.0f}'.format(WindSpd[0]),WindSpd[1]]
 		self.MetData['Precip'] = '{:.0f}'.format(Precip[0])
 		

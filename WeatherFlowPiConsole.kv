@@ -377,9 +377,9 @@ WeatherFlowPiConsoleScreen:
 			pos: (539,340)	
 			color: [0.84,0.84,0.84,1]
 			
-		## MAXIMUM WIND SPEED
+		## DAILY AVERAGED WIND SPEED
 		Label:
-			text: 'Max [color=ff8837ff]' + app.Sky['MaxWind'][0] + '[/color] ' + app.Sky['MaxWind'][1]    
+			text: 'Avg [color=ff8837ff]' + app.Sky['AvgWind'][0] + '[/color] ' + app.Sky['AvgWind'][1]    
 			font_name: 'Fonts/Helvetica.ttf'
 			font_size: '15sp'
 			text_size: self.size
@@ -387,7 +387,7 @@ WeatherFlowPiConsoleScreen:
 			halign: 'center'
 			valign: 'center'
 			size_hint: (None,None)
-			size: (95,18)
+			size: (101,18)
 			pos: (539,434)	
 			color: [0.84,0.84,0.84,1]	
 		Label:
@@ -399,7 +399,7 @@ WeatherFlowPiConsoleScreen:
 			halign: 'center'
 			valign: 'center'
 			size_hint: (None,None)
-			size: (95,18)
+			size: (101,18)
 			pos: (539,416)	
 			color: [0.84,0.84,0.84,1]	
 			
@@ -884,7 +884,7 @@ WeatherFlowPiConsoleScreen:
 	
 		## CURRENT PRESSURE ARROW
 		Image:
-			source: 'Icons/Barometer/' + app.Air['Pres'][0] + '.png'
+			source: 'Icons/Barometer/' + app.Air['Pres'][2] + '.png'
 			size_hint: (None,None)
 			keep_ratio: 0
 			allow_stretch: 1
@@ -921,7 +921,7 @@ WeatherFlowPiConsoleScreen:
 	
 		## CURRENT PRESSURE
 		Label:
-			text: app.Air['Pres'][1]
+			text: app.Air['Pres'][0]
 			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
 			font_size: '30sp'
 			text_size: self.size
@@ -934,7 +934,7 @@ WeatherFlowPiConsoleScreen:
 			pos: (616,119)	
 			color: [0.84,0.84,0.84,1]
 		Label:
-			text: app.Air['Pres'][2]
+			text: app.Air['Pres'][1]
 			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
 			font_size: '20sp'
 			text_size: self.size
