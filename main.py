@@ -444,8 +444,6 @@ class WeatherFlowPiConsole(App):
 		SLP = self.ObservationFormat(SLP,'Pressure')
 		PresTrend = self.ObservationFormat(PresTrend,'Pressure')
 		PresMaxMin = self.ObservationFormat(PresMaxMin,'Pressure')
-		
-		print(TempMaxMin)
 								
 		# Define and format Kivy labels
 		self.Air['Time'] = datetime.fromtimestamp(Time[0],self.System['tz']).strftime('%H:%M:%S')
