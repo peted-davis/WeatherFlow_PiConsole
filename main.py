@@ -956,9 +956,9 @@ class WeatherFlowPiConsole(App):
 			# Return daily averaged wind speed
 			return AvgWind
 		
-		# At midnight, reset daily averaged wind speed to zero
+		# At midnight, reset daily averaged wind speed to zero	
 		if Now.date() > self.Sky['AvgWind'][4].date():
-			AvgWind = [WindSpd,'mps',1,Now]
+			AvgWind = [WindSpd[0],'mps',1,Now]
 		
 		# Update current daily averaged wind speed with new wind speed 
 		# observation
@@ -984,8 +984,8 @@ class WeatherFlowPiConsole(App):
 		SLP = self.SeaLevelPressure(Pres)
 		
 		# Convert observation units as required
-		Temp = self.ObservationUnits(Temp,'Temp')
-		SLP = self.ObservationUnits(SLP,'Pressure')
+		cTemp = self.ObservationUnits(Temp,'Temp')
+		cSLP = self.ObservationUnits(SLP,'Pressure')
 		
 		# Define current time in station timezone
 		Tz = self.System['tz']
@@ -1029,24 +1029,29 @@ class WeatherFlowPiConsole(App):
 			return TempMaxMin,PresMaxMin
 			
 		# AT MIDNIGHT RESET MAXIMUM AND MINIMUM TEMPERATURE AND PRESSURE 
-		if self.Air['MaxTemp'][3].date() < Now.date():
+		if Now.date() > self.Air['MaxTemp'][3].date():
+		
+			# Reset maximum and minimum temperature
 			TempMax = [Temp[0],'c',datetime.fromtimestamp(Time,self.System['tz']).strftime('%H:%M')]
 			TempMin = [Temp[0],'c',datetime.fromtimestamp(Time,self.System['tz']).strftime('%H:%M')]
 			TempMaxMin = TempMax + TempMin + [Now]
+			
+			# Reset maximum and minimum pressure
+			PresMaxMin = [SLP[0],'mb',SLP[0],'mb',Now]
 			
 			# Return required variables
 			return TempMaxMin,PresMaxMin
 	
 		# Current temperature is greater than maximum recorded temperature. 
 		# Update maximum temperature and time
-		if Temp[0] > float(self.Air['MaxTemp'][0]):
+		if cTemp[0] > float(self.Air['MaxTemp'][0]):
 			TempMax = [Temp[0],'c',datetime.fromtimestamp(Time,self.System['tz']).strftime('%H:%M')]
 			TempMin = [float(self.Air['MinTemp'][0]),self.Air['MinTemp'][1],self.Air['MinTemp'][2]]
 			TempMaxMin = TempMax + TempMin + [Now]
 
 		# Current temperature is less than minimum recorded temperature. Update 
 		# minimum temperature and time	
-		elif Temp[0] < float(self.Air['MinTemp'][0]):
+		elif cTemp[0] < float(self.Air['MinTemp'][0]):
 			TempMax = [float(self.Air['MaxTemp'][0]),self.Air['MaxTemp'][1],self.Air['MaxTemp'][2]]
 			TempMin = [Temp[0],'c',datetime.fromtimestamp(Time,self.System['tz']).strftime('%H:%M')]
 			TempMaxMin = TempMax + TempMin + [Now]
@@ -1059,13 +1064,13 @@ class WeatherFlowPiConsole(App):
 			
 		# Current pressure is greater than maximum recorded pressure. Update 
 		# maximum pressure
-		if SLP[0] > float(self.Air['MaxPres'][0]):
-			PresMaxMin = [SLP[0],SLP[1],float(self.Air['MinPres'][0]),self.Air['MinPres'][1],Now]
+		if cSLP[0] > float(self.Air['MaxPres'][0]):
+			PresMaxMin = [SLP[0],'mb',float(self.Air['MinPres'][0]),self.Air['MinPres'][1],Now]
 			
 		# Current pressure is less than minimum recorded pressure. Update 
 		# minimum pressure and time	
-		elif SLP[0] < float(self.Air['MinPres'][0]):		
-			PresMaxMin = [float(self.Air['MaxPres'][0]),self.Air['MaxPres'][1],SLP[0],SLP[1],Now]
+		elif cSLP[0] < float(self.Air['MinPres'][0]):		
+			PresMaxMin = [float(self.Air['MaxPres'][0]),self.Air['MaxPres'][1],SLP[0],'mb',Now]
 			
 		# Maximum and minimum pressure unchanged. Return existing values
 		else:
