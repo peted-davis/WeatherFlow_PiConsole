@@ -363,17 +363,17 @@ class WeatherFlowPiConsole(App):
 		UV = self.UVIndex(UV)
 		
 		# Convert observation units as required
-		RainRate = self.ObservationUnits(RainRate,'Precip')
-		DayRain = self.ObservationUnits(DayRain,'Precip')
-		MonthRain = self.ObservationUnits(MonthRain,'Precip')
-		YearRain = self.ObservationUnits(YearRain,'Precip')
-		WindSpd = self.ObservationUnits(WindSpd,'Wind')
-		WindDir = self.ObservationUnits(WindDir,'Direction')
-		WindGust = self.ObservationUnits(WindGust,'Wind')
-		AvgWind = self.ObservationUnits(AvgWind,'Wind')
-		MaxGust = self.ObservationUnits(MaxGust,'Wind')
-		FeelsLike = self.ObservationUnits(FeelsLike,'Temp')
-		
+		RainRate = self.ObservationUnits(RainRate,self.System['Units']['Precip'])
+		DayRain = self.ObservationUnits(DayRain,self.System['Units']['Precip'])
+		MonthRain = self.ObservationUnits(MonthRain,self.System['Units']['Precip'])
+		YearRain = self.ObservationUnits(YearRain,self.System['Units']['Precip'])
+		WindSpd = self.ObservationUnits(WindSpd,self.System['Units']['Wind'])
+		WindDir = self.ObservationUnits(WindDir,self.System['Units']['Direction'])
+		WindGust = self.ObservationUnits(WindGust,self.System['Units']['Wind'])
+		AvgWind = self.ObservationUnits(AvgWind,self.System['Units']['Wind'])
+		MaxGust = self.ObservationUnits(MaxGust,self.System['Units']['Wind'])
+		FeelsLike = self.ObservationUnits(FeelsLike,self.System['Units']['Temp'])
+
 		# Round observations to required precision for display
 		RainRate = self.ObservationFormat(RainRate,'Precip')
 		DayRain = self.ObservationFormat(DayRain,'Precip')
@@ -385,21 +385,21 @@ class WeatherFlowPiConsole(App):
 		MaxGust = self.ObservationFormat(MaxGust,'Wind')
 		FeelsLike = self.ObservationFormat(FeelsLike,'Temp')
 					
-		# Define and format SKY Kivy label binds		
+		# Define SKY Kivy label binds		
 		self.Sky['Time'] =  datetime.fromtimestamp(Time[0],self.System['tz']).strftime('%H:%M:%S')
-		self.Sky['RainRate'] = [RainRate[2].format(RainRate[0]),RainRate[1],RainRate[3]]
-		self.Sky['DayRain'] = [DayRain[2].format(DayRain[0]),DayRain[1],DayRain[0],DayRain[3]]
-		self.Sky['MonthRain'] = [MonthRain[2].format(MonthRain[0]),MonthRain[1],MonthRain[0],MonthRain[3]]
-		self.Sky['YearRain'] = [YearRain[2].format(YearRain[0]),YearRain[1],YearRain[0],YearRain[3]]
-		self.Sky['WindSpd'] = [WindSpd[2].format(WindSpd[0]),WindSpd[1],Beaufort[0],Beaufort[1]]
-		self.Sky['WindGust'] = [WindGust[2].format(WindGust[0]),WindGust[1]]
-		self.Sky['AvgWind'] = [AvgWind[2].format(AvgWind[0]),AvgWind[1],AvgWind[0],AvgWind[3],AvgWind[4]]
-		self.Sky['MaxGust'] = [MaxGust[2].format(MaxGust[0]),MaxGust[1],MaxGust[3]]
+		self.Sky['RainRate'] = [str(RainRate[0]),RainRate[1],RainRate[2]]
+		self.Sky['DayRain'] = [str(DayRain[0]),DayRain[1],DayRain[0],DayRain[2]]
+		self.Sky['MonthRain'] = [str(MonthRain[0]),MonthRain[1],MonthRain[0],MonthRain[2]]
+		self.Sky['YearRain'] = [str(YearRain[0]),YearRain[1],YearRain[0],YearRain[2]]
+		self.Sky['WindSpd'] = [str(WindSpd[0]),WindSpd[1],Beaufort[0],Beaufort[1]]
+		self.Sky['WindGust'] = [str(WindGust[0]),WindGust[1]]
+		self.Sky['AvgWind'] = [str(AvgWind[0]),AvgWind[1],AvgWind[0],AvgWind[2],AvgWind[3]]
+		self.Sky['MaxGust'] = [str(MaxGust[0]),MaxGust[1],MaxGust[2]]
 		self.Sky['WindDir'] = [str(WindDir[0]),WindDir[1],Cardinal[0]]
-		self.Sky['Battery'] = [str(Battery[0]),Battery[1]]
 		self.Sky['Radiation'] = [str(Radiation[0]),Radiation[1],str(UV[0]),UV[2]]
+		self.Sky['Battery'] = [str(Battery[0]),Battery[1]]
 
-		# Define and format AIR Kivy label binds
+		# Define AIR Kivy label binds
 		self.Air['FeelsLike'] = [str(FeelsLike[0]),FeelsLike[1]]
 	
 	# EXTRACT OBSERVATIONS FROM OBS_AIR WEBSOCKET JSON MESSAGE
@@ -420,21 +420,22 @@ class WeatherFlowPiConsole(App):
 		self.Air['Obs'] = Obs
 
 		# Calculate derived variables from AIR observations
-		DewPoint = self.DewPoint()
+		DewPoint = self.DewPoint(Temp[0],Humidity[0])
 		FeelsLike = self.FeelsLike()
 		ComfortLevel = self.ComfortLevel(FeelsLike)
 		SLP = self.SeaLevelPressure(Pres)
+		TempMaxMin,PresMaxMin = self.AirObsMaxMin(Time,Temp,Pres)
 		PresTrend = self.PressureTrend()
-		TempMaxMin,PresMaxMin = self.AirObsMaxMin()
+		
 
 		# Convert observation units as required
-		Temp = self.ObservationUnits(Temp,'Temp')
-		DewPoint = self.ObservationUnits(DewPoint,'Temp')
-		FeelsLike = self.ObservationUnits(FeelsLike,'Temp')
-		TempMaxMin = self.ObservationUnits(TempMaxMin,'Temp')
-		SLP = self.ObservationUnits(SLP,'Pressure')
-		PresTrend = self.ObservationUnits(PresTrend,'Pressure')
-		PresMaxMin = self.ObservationUnits(PresMaxMin,'Pressure')
+		Temp = self.ObservationUnits(Temp,self.System['Units']['Temp'])
+		DewPoint = self.ObservationUnits(DewPoint,self.System['Units']['Temp'])
+		FeelsLike = self.ObservationUnits(FeelsLike,self.System['Units']['Temp'])
+		TempMaxMin = self.ObservationUnits(TempMaxMin,self.System['Units']['Temp'])
+		SLP = self.ObservationUnits(SLP,self.System['Units']['Pressure'])
+		PresTrend = self.ObservationUnits(PresTrend,self.System['Units']['Pressure'])
+		PresMaxMin = self.ObservationUnits(PresMaxMin,self.System['Units']['Pressure'])
 
 		# Round observations to required precision for display
 		Temp = self.ObservationFormat(Temp,'Temp')
@@ -444,8 +445,6 @@ class WeatherFlowPiConsole(App):
 		SLP = self.ObservationFormat(SLP,'Pressure')
 		PresTrend = self.ObservationFormat(PresTrend,'Pressure')
 		PresMaxMin = self.ObservationFormat(PresMaxMin,'Pressure')
-		
-		print(PresTrend)
 								
 		# Define AIR Kivy label binds
 		self.Air['Time'] = datetime.fromtimestamp(Time[0],self.System['tz']).strftime('%H:%M:%S')
@@ -494,7 +493,7 @@ class WeatherFlowPiConsole(App):
 		Cardinal = self.CardinalWindDirection(WindDir,WindSpd)
 		
 		# Convert observation units as required
-		WindSpd = self.ObservationUnits(WindSpd,'Wind')
+		WindSpd = self.ObservationUnits(WindSpd,self.System['Units']['Wind'])
 
 		# Animate wind rose arrow 
 		self.WindRoseAnimation(WindDir[0],WindDirOld[0])
@@ -506,14 +505,14 @@ class WeatherFlowPiConsole(App):
 	
 	# CONVERT STATION OBSERVATIONS INTO REQUIRED UNITS
     # --------------------------------------------------------------------------		
-	def ObservationUnits(self,Obs,Type):
+	def ObservationUnits(self,Obs,Unit):
 		
 		# Convert temperature observations
 		cObs = Obs[:]
-		if Type == 'Temp': 
+		if Unit in ['f','c']: 
 			for ii,T in enumerate(Obs):
 				if T == 'c':
-					if self.System['Units'][Type] == 'f':
+					if Unit == 'f':
 						cObs[ii-1] = Obs[ii-1] * 1.8 + 32
 						cObs[ii] = ' [sup]o[/sup]F'
 					else:
@@ -521,23 +520,23 @@ class WeatherFlowPiConsole(App):
 						cObs[ii] = ' [sup]o[/sup]C'	
 
 		# Convert pressure and pressure trend observations 
-		elif Type == 'Pressure': 
+		elif Unit in ['inhg','mmhg','hpa','mb']: 
 			for ii,P in enumerate(Obs):
 				if P in ['mb','mb/hr']:
-					if self.System['Units'][Type] == 'inhg':
+					if Unit == 'inhg':
 						cObs[ii-1] = Obs[ii-1] * 0.0295301
 						if P == 'mb':
 							cObs[ii] = ' inHg'
 						else:
 							cObs[ii] = ' inHg/hr'
 						
-					elif self.System['Units'][Type] == 'mmhg':
+					elif Unit == 'mmhg':
 						cObs[ii-1] = Obs[ii-1] * 0.750063
 						if P == 'mb':
 							cObs[ii] = ' mmHg'
 						else:
 							cObs[ii] = ' mmHg/hr'
-					elif self.System['Units'][Type] == 'hpa':
+					elif Unit == 'hpa':
 						cObs[ii-1] = Obs[ii-1]
 						if P == 'mb':
 							cObs[ii] = ' hpa'
@@ -551,19 +550,19 @@ class WeatherFlowPiConsole(App):
 							cObs[ii] = ' mb/hr'
 						
 		# Convert windspeed observations
-		elif Type == 'Wind':
+		elif Unit in ['mph','lfm','kts','kph','bft','mps']:
 			for ii,W in enumerate(Obs):
 				if W == 'mps':
-					if self.System['Units'][Type] == 'mph' or self.System['Units'][Type] == 'lfm':
+					if Unit == 'mph' or Unit == 'lfm':
 						cObs[ii-1] = Obs[ii-1] * 2.2369362920544
 						cObs[ii] = 'mph'
-					elif self.System['Units'][Type] == 'kts':
+					elif Unit == 'kts':
 						cObs[ii-1] = Obs[ii-1] * 1.9438
 						cObs[ii] = 'kts'
-					elif self.System['Units'][Type] == 'kph':
+					elif Unit == 'kph':
 						cObs[ii-1] = Obs[ii-1] * 3.6
 						cObs[ii] = 'km/h'							
-					elif self.System['Units'][Type] == 'bft':
+					elif Unit == 'bft':
 						cObs[ii-1] = self.BeaufortScale(Obs[ii-1:ii+1])[2] 
 						cObs[ii] = 'bft'
 					else:
@@ -571,10 +570,10 @@ class WeatherFlowPiConsole(App):
 						cObs[ii] = 'm/s'	
 
 		# Convert wind direction observations
-		elif Type == 'Direction':
+		elif Unit in ['degrees','cardinal']:
 			for ii,W in enumerate(Obs):
 				if W == 'degrees':
-					if self.System['Units'][Type] == 'cardinal':
+					if Unit == 'cardinal':
 						cObs[ii-1] = self.CardinalWindDirection(Obs[ii-1:ii+1])[0]   
 						cObs[ii] = ''
 					else:
@@ -582,16 +581,16 @@ class WeatherFlowPiConsole(App):
 						cObs[ii] = '[sup]o[/sup]'
 						
 		# Convert rain accumulation and rain rate observations
-		elif Type == 'Precip':
+		elif Unit in ['in','cm','mm']:
 			for ii,Prcp in enumerate(Obs):
 				if Prcp in ['mm','mm/hr']:
-					if self.System['Units'][Type] == 'in':
+					if Unit == 'in':
 						cObs[ii-1] = Obs[ii-1] * 0.0393701
 						if Prcp == 'mm':
 							cObs[ii] = '"'
 						else:
 							cObs[ii] = ' in/hr'
-					elif self.System['Units'][Type] == 'cm':
+					elif Unit == 'cm':
 						cObs[ii-1] = Obs[ii-1] * 0.1
 						if Prcp == 'mm':
 							cObs[ii] = ' cm'
@@ -611,7 +610,7 @@ class WeatherFlowPiConsole(App):
 	# --------------------------------------------------------------------------
 	def ObservationFormat(self,Obs,Type):
 
-		# Format temperature observations
+		# Round temperature observations
 		cObs = Obs[:]
 		if Type == 'Temp':
 			for ii,T in enumerate(Obs):
@@ -621,11 +620,10 @@ class WeatherFlowPiConsole(App):
 					else:	
 						cObs[ii-1] = round(cObs[ii-1],1)
 						
-		# Format pressure observations
+		# Round pressure observations
 		elif Type == 'Pressure':
 			for ii,P in enumerate(Obs):
 				if isinstance(P,str): 
-					Offset = int(len(cObs)-len(Obs))
 					if P.strip() in ['inHg/hr','inHg']:
 						cObs[ii-1] = round(cObs[ii-1],3)	
 					elif P.strip() in ['mmHg/hr','mmHg']:
@@ -633,39 +631,38 @@ class WeatherFlowPiConsole(App):
 					elif P.strip() in ['hpa/hr','mb/hr','hpa','mb']:
 						cObs[ii-1] = round(cObs[ii-1],1)
 	
-		# Format windspeed observations
+		# Round windspeed observations
 		elif Type == 'Wind':
 			for ii,W in enumerate(Obs):
 				if isinstance(W,str) and W.strip() in ['mph','kts','km/h','bft','m/s']:
-					Offset = int(len(cObs)-len(Obs))
 					if cObs[ii-1] < 10:
-						cObs.insert(ii+1+Offset,'{:.1f}')
+						cObs[ii-1] = round(cObs[ii-1],1)	
 					else:
-						cObs.insert(ii+1+Offset,'{:.0f}')
+						cObs[ii-1] = int(round(cObs[ii-1],0))
 						
-		# Format rain accumulation and rain rate observations
+		# Round rain accumulation and rain rate observations
 		elif Type == 'Precip':
 			for ii,Prcp in enumerate(Obs):
 				if isinstance(Prcp,str):
 					Offset = int(len(cObs)-len(Obs))
-					if Prcp.strip() in ['in/hr','cm/hr','mm/hr','cm','mm']:
+					if Prcp.strip() in ['mm','mm/hr']:	
 						if cObs[ii-1] == 0:
-							cObs.insert(ii+1+Offset,'{:.0f}')
-						elif cObs[ii-1] < 1:
-							cObs.insert(ii+1+Offset,'{:.1f}')	
-						else:
-							cObs.insert(ii+1+Offset,'{:.0f}')	
-					elif Prcp.strip() in ['"','in/hr']:							
-						if cObs[ii-1] == 0:
-							cObs.insert(ii+1+Offset,'{:.0f}')
+							cObs[ii-1] = int(round(cObs[ii-1],0))
 						elif cObs[ii-1] < 10:
-							cObs.insert(ii+1+Offset,'{:.2f}')	
-						elif cObs[ii-1] < 100:
-							cObs.insert(ii+1+Offset,'{:.1f}')	
+							cObs[ii-1] = round(cObs[ii-1],1)	
 						else:
-							cObs.insert(ii+1+Offset,'{:.0f}')	
+							cObs[ii-1] = int(round(cObs[ii-1],0))					
+					elif Prcp.strip() in ['"','in/hr','cm/hr','cm']:							
+						if cObs[ii-1] == 0:
+							cObs[ii-1] = int(round(cObs[ii-1],0))
+						elif cObs[ii-1] < 10:
+							cObs[ii-1] = round(cObs[ii-1],2)
+						elif cObs[ii-1] < 100:
+							cObs[ii-1] = round(cObs[ii-1],1)
+						else:
+							cObs[ii-1] = int(round(cObs[ii-1],0))
 		
-		# Return format string
+		# Return rounded observations
 		return cObs
 				
 	# ANIMATE RAPID-WIND WIND ROSE DIRECTION ARROW
@@ -696,11 +693,7 @@ class WeatherFlowPiConsole(App):
 			
 	# CALCULATE DEW POINT FROM HUMIDITY AND TEMPERATURE
     # --------------------------------------------------------------------------
-	def DewPoint(self):
-	
-		# Extract required meteorological fields
-		Temp = self.Air['Obs'][2]
-		Humidity = self.Air['Obs'][3]
+	def DewPoint(self,Temp,Humidity):
 		
 		# Calculate dew point unless humidity equals zero
 		if Humidity != 0:
@@ -812,7 +805,7 @@ class WeatherFlowPiConsole(App):
 	def RainAccumulation(self,Rain):
 		
 		# Convert observation units as required
-		cRain = self.ObservationUnits(Rain,'Precip')
+		cRain = self.ObservationUnits(Rain,self.System['Units']['Precip'])
 		
 		# Define current time in station timezone
 		Tz = self.System['tz']
@@ -941,7 +934,7 @@ class WeatherFlowPiConsole(App):
 	def MeanWindSpeed(self,WindSpd):
 	
 		# Convert observation units as required
-		cWindSpd = self.ObservationUnits(WindSpd,'Wind')
+		cWindSpd = self.ObservationUnits(WindSpd,self.System['Units']['Wind'])
 
 		# Define current time in station timezone
 		Tz = self.System['tz']
@@ -993,19 +986,14 @@ class WeatherFlowPiConsole(App):
 		
 	# CALCULATE MAXIMUM AND MINIMUM OBSERVED TEMPERATURE AND PRESSURE
 	# --------------------------------------------------------------------------
-	def AirObsMaxMin(self):
-
-		# Extract current station observations
-		Time = self.Air['Obs'][0]
-		Temp = [self.Air['Obs'][2],'c']
-		Pres = [self.Air['Obs'][1],'mb']
+	def AirObsMaxMin(self,Time,Temp,Pres):
 
 		# Calculate sea level pressure
 		SLP = self.SeaLevelPressure(Pres)
 		
 		# Convert observation units as required
-		cTemp = self.ObservationUnits(Temp,'Temp')
-		cSLP = self.ObservationUnits(SLP,'Pressure')
+		cTemp = self.ObservationUnits(Temp,self.System['Units']['Temp'])
+		cSLP = self.ObservationUnits(SLP,self.System['Units']['Pressure'])
 		
 		# Define current time in station timezone
 		Tz = self.System['tz']
@@ -1104,8 +1092,8 @@ class WeatherFlowPiConsole(App):
 	def SkyObsMaxMin(self,WindSpd,WindGust):
 		
 		# Convert observation units as required
-		cWindSpd = self.ObservationUnits(WindSpd,'Wind')
-		cWindGust = self.ObservationUnits(WindGust,'Wind')
+		cWindSpd = self.ObservationUnits(WindSpd,self.System['Units']['Wind'])
+		cWindGust = self.ObservationUnits(WindGust,self.System['Units']['Wind'])
 		
 		# Define current time in station timezone
 		Tz = self.System['tz']
@@ -1205,7 +1193,7 @@ class WeatherFlowPiConsole(App):
 		# Define cardinal wind direction and description
 		if Spd[0] == 0:
 			Description = '[color=9aba2fff]Calm[/color]'
-			Direction = 'N'
+			Direction = 'Calm'
 		elif Dir[0] <= 11.25:
 			Description = 'Due [color=9aba2fff]North[/color]'
 			Direction = 'N'
@@ -1680,8 +1668,8 @@ class WeatherFlowPiConsole(App):
 		Weather = MetData['W']	
 		
 		# Convert forecast units as required
-		Temp = self.ObservationUnits(Temp,'Temp')
-		WindSpd = self.ObservationUnits(WindSpd,'Wind')
+		Temp = self.ObservationUnits(Temp,self.System['Units']['Temp'])
+		WindSpd = self.ObservationUnits(WindSpd,self.System['Units']['Wind'])
 		
 		# Define and format Kivy label binds
 		self.MetData['Time'] = datetime.now(pytz.utc).astimezone(Tz)	
@@ -1736,8 +1724,8 @@ class WeatherFlowPiConsole(App):
 		Weather = MetData['icon']	
 		
 		# Convert forecast units as required
-		Temp = self.ObservationUnits(Temp,'Temp')
-		WindSpd = self.ObservationUnits(WindSpd,'Wind')
+		Temp = self.ObservationUnits(Temp,self.System['Units']['Temp'])
+		WindSpd = self.ObservationUnits(WindSpd,self.System['Units']['Wind'])
 
 		# Define and format Kivy label binds
 		self.MetData['Time'] = datetime.now(pytz.utc).astimezone(Tz)
