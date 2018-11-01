@@ -426,7 +426,6 @@ class WeatherFlowPiConsole(App):
 		SLP = self.SeaLevelPressure(Pres)
 		TempMaxMin,PresMaxMin = self.AirObsMaxMin(Time,Temp,Pres)
 		PresTrend = self.PressureTrend()
-		
 
 		# Convert observation units as required
 		Temp = self.ObservationUnits(Temp,self.System['Units']['Temp'])
@@ -1018,7 +1017,7 @@ class WeatherFlowPiConsole(App):
 			Template = ('https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&api_key={}')
 			URL = Template.format(self.System['AirID'],Midnight_UTC,Now_UTC,self.System['WFlowKey'])
 			Data = requests.get(URL).json()['obs']
-			Time = [item[0] if item[0] != None else NaN for item in Data]
+			Time = [[item[0],'s'] if item[0] != None else NaN for item in Data]
 			Temp = [[item[2],'c'] if item[2] != None else [NaN,'c'] for item in Data]
 			Pres = [[item[1],'mb'] if item[1] != None else [NaN,'mb'] for item in Data]
 
@@ -1026,8 +1025,8 @@ class WeatherFlowPiConsole(App):
 			SLP = [self.SeaLevelPressure(P) for P in Pres]
 
 			# Define maximum and minimum temperature and time
-			TempMax = [max(Temp)[0],max(Temp)[1],datetime.fromtimestamp(Time[Temp.index(max(Temp))],Tz).strftime('%H:%M')]
-			TempMin = [min(Temp)[0],min(Temp)[1],datetime.fromtimestamp(Time[Temp.index(min(Temp))],Tz).strftime('%H:%M')]
+			TempMax = [max(Temp)[0],max(Temp)[1],datetime.fromtimestamp(Time[Temp.index(max(Temp))][0],Tz).strftime('%H:%M')]
+			TempMin = [min(Temp)[0],min(Temp)[1],datetime.fromtimestamp(Time[Temp.index(min(Temp))][0],Tz).strftime('%H:%M')]
 			TempMaxMin = TempMax + TempMin + [Now]
 
 			# Define maximum and minimum pressure
@@ -1040,8 +1039,8 @@ class WeatherFlowPiConsole(App):
 		if Now.date() > self.Air['MaxTemp'][3].date():
 		
 			# Reset maximum and minimum temperature
-			TempMax = [Temp[0],'c',datetime.fromtimestamp(Time,self.System['tz']).strftime('%H:%M')]
-			TempMin = [Temp[0],'c',datetime.fromtimestamp(Time,self.System['tz']).strftime('%H:%M')]
+			TempMax = [Temp[0],'c',datetime.fromtimestamp(Time[0],self.System['tz']).strftime('%H:%M')]
+			TempMin = [Temp[0],'c',datetime.fromtimestamp(Time[0],self.System['tz']).strftime('%H:%M')]
 			TempMaxMin = TempMax + TempMin + [Now]
 			
 			# Reset maximum and minimum pressure
@@ -1053,7 +1052,7 @@ class WeatherFlowPiConsole(App):
 		# Current temperature is greater than maximum recorded temperature. 
 		# Update maximum temperature and time
 		if cTemp[0] > float(self.Air['MaxTemp'][0]):
-			TempMax = [Temp[0],'c',datetime.fromtimestamp(Time,self.System['tz']).strftime('%H:%M')]
+			TempMax = [Temp[0],'c',datetime.fromtimestamp(Time[0],self.System['tz']).strftime('%H:%M')]
 			TempMin = [float(self.Air['MinTemp'][0]),self.Air['MinTemp'][1],self.Air['MinTemp'][2]]
 			TempMaxMin = TempMax + TempMin + [Now]
 
@@ -1061,7 +1060,7 @@ class WeatherFlowPiConsole(App):
 		# minimum temperature and time	
 		elif cTemp[0] < float(self.Air['MinTemp'][0]):
 			TempMax = [float(self.Air['MaxTemp'][0]),self.Air['MaxTemp'][1],self.Air['MaxTemp'][2]]
-			TempMin = [Temp[0],'c',datetime.fromtimestamp(Time,self.System['tz']).strftime('%H:%M')]
+			TempMin = [Temp[0],'c',datetime.fromtimestamp(Time[0],self.System['tz']).strftime('%H:%M')]
 			TempMaxMin = TempMax + TempMin + [Now]
 
 		# Maximum and minimum temperature unchanged. Return existing values	
