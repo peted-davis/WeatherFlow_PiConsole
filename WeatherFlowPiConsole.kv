@@ -543,7 +543,7 @@ WeatherFlowPiConsoleScreen:
 			
 		## WIND DIRECTION TEXT	
 		Label:
-			text: app.SkyRapid['Direc'][2]
+			text: app.SkyRapid['Direc'][3]
 			font_name: 'Fonts/Helvetica.ttf'
 			font_size: '15sp'
 			text_size: self.size
@@ -585,7 +585,7 @@ WeatherFlowPiConsoleScreen:
 
 		## UV INDEX
 		Label:		
-			text: app.Sky['Radiation'][2]
+			text: app.Sky['UV'][0]
 			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
 			font_size: '20sp'
 			text_size: self.size
@@ -597,7 +597,7 @@ WeatherFlowPiConsoleScreen:
 			pos: (161,176)	
 			color: [0.84,0.84,0.84,1]			
 		Image:		
-			source: 'Icons/UVIndex/' + app.Sky['Radiation'][3] + '.png'
+			source: 'Icons/UVIndex/' + app.Sky['UV'][2] + '.png'
 			size_hint: (None,None)
 			keep_ratio: 0
 			allow_stretch: 1
