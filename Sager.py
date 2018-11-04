@@ -600,7 +600,6 @@ def Forecast(Sager):
 			
 		# Southern Hemisphere: Temperate Zone	
 		elif Lat <= -23.5 and Lat > -66.6: 			
-			Direction = array ();
 			Direction[0] = "South or southeast"
 			Direction[1] = "Southeast or east"
 			Direction[2] = "East or northeast"

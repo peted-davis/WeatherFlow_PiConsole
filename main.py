@@ -1069,7 +1069,7 @@ class WeatherFlowPiConsole(App):
 		# minimum temperature and time	
 		elif cTemp[0] < float(self.Air['MinTemp'][0]):
 			MaxTemp = [float(self.Air['MaxTemp'][0]),self.Air['MaxTemp'][1],self.Air['MaxTemp'][2],Now]
-			MinTemp = [Temp[0],'c',datetime.fromtimestamp(Time[0],self.System['tz']).strftime('%H:%M').Now]
+			MinTemp = [Temp[0],'c',datetime.fromtimestamp(Time[0],self.System['tz']).strftime('%H:%M'),Now]
 
 		# Maximum and minimum temperature unchanged. Return existing values	
 		else:
