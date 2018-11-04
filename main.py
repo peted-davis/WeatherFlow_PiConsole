@@ -336,10 +336,10 @@ class WeatherFlowPiConsole(App):
 	# --------------------------------------------------------------------------
 	def WebsocketObsSky(self,Msg):
 	
-		# Replace missing observations from SKY Websocket JSON with NaN
+		# Replace missing observations from latest SKY Websocket JSON with NaN
 		Obs = [x if x != None else NaN for x in Msg['obs'][0]]	
 		
-		# Extract observations from SKY Websocket JSON 
+		# Extract required observations from latest SKY Websocket JSON 
 		Time = [Obs[0],'s']
 		UV = [Obs[2],'index']
 		Rain = [Obs[3],'mm'] 
@@ -351,9 +351,17 @@ class WeatherFlowPiConsole(App):
 
 		# Store latest SKY Websocket JSON
 		self.Sky['Obs'] = Obs
+		
+		# Extract required observations from latest AIR Websocket JSON
+		if 'Obs' in self.Air:
+			Temp = [self.Air['Obs'][2],'c']
+			Humidity = [self.Air['Obs'][3],'%']
+		else:
+			Temp = None
+			Humidity = None
 
 		# Calculate derived variables from SKY observations
-		FeelsLike = self.FeelsLike()
+		FeelsLike = self.FeelsLike(Temp,Humidity,WindSpd)
 		RainRate = self.RainRate(Rain)
 		DayRain,MonthRain,YearRain = self.RainAccumulation(Rain) 
 		AvgWind = self.MeanWindSpeed(WindSpd)
@@ -396,10 +404,10 @@ class WeatherFlowPiConsole(App):
 	# --------------------------------------------------------------------------
 	def WebsocketObsAir(self,Msg):
 	
-		# Replace missing observations from AIR Websocket JSON with NaN
+		# Replace missing observations in latest AIR Websocket JSON with NaN
 		Obs = [x if x != None else NaN for x in Msg['obs'][0]]	
 		
-		# Extract observations from AIR Websocket JSON 	
+		# Extract required observations from latest AIR Websocket JSON 	
 		Time = [Obs[0],'s']
 		Pres = [Obs[1],'mb']
 		Temp = [Obs[2],'c']
@@ -408,15 +416,21 @@ class WeatherFlowPiConsole(App):
 		
 		# Store latest AIR Websocket JSON
 		self.Air['Obs'] = Obs
+		
+		# Extract required observations from latest SKY Websocket JSON
+		if 'Obs' in self.Sky:
+			WindSpd = [self.Sky['Obs'][5],'mps']
+		else:
+			WindSpd = None
 
 		# Calculate derived variables from AIR observations
-		DewPoint = self.DewPoint(Temp[0],Humidity[0])
-		FeelsLike = self.FeelsLike()
+		DewPoint = self.DewPoint(Temp,Humidity)
+		FeelsLike = self.FeelsLike(Temp,Humidity,WindSpd)
 		ComfortLevel = self.ComfortLevel(FeelsLike)
 		SLP = self.SeaLevelPressure(Pres)
+		PresTrend = self.PressureTrend(Pres)
 		MaxTemp,MinTemp,MaxPres,MinPres = self.AirObsMaxMin(Time,Temp,Pres)
-		PresTrend = self.PressureTrend()
-
+		
 		# Convert observation units as required
 		Temp = self.ObservationUnits(Temp,self.System['Units']['Temp'])
 		MaxTemp = self.ObservationUnits(MaxTemp,self.System['Units']['Temp'])
@@ -496,7 +510,7 @@ class WeatherFlowPiConsole(App):
 			for ii,T in enumerate(Obs):
 				if T == 'c':
 					if Unit == 'f':
-						cObs[ii-1] = Obs[ii-1] * 1.8 + 32
+						cObs[ii-1] = Obs[ii-1] * 9/5 + 32
 						cObs[ii] = ' [sup]o[/sup]F'
 					else:
 						cObs[ii-1] = Obs[ii-1]
@@ -711,8 +725,8 @@ class WeatherFlowPiConsole(App):
 		if Humidity != 0:
 			A = 17.625
 			B = 243.04
-			N = B*(math.log(Humidity/100.0) + (A*Temp)/(B+Temp))
-			D = A-math.log(Humidity/100.0) - A*Temp/(B+Temp)
+			N = B*(math.log(Humidity[0]/100.0) + (A*Temp[0])/(B+Temp[0]))
+			D = A-math.log(Humidity[0]/100.0) - (A*Temp[0])/(B+Temp[0])
 			DewPoint = N/D
 		else:
 			DewPoint = NaN
@@ -720,44 +734,43 @@ class WeatherFlowPiConsole(App):
 		# Return Dew Point
 		return [DewPoint,'c']
 		
-	# CALCULATE 'FEELS LIKE' TEMPERATURE FROM HUMIDITY, TEMPERATURE, AND WIND 
-	# SPEED
+	# CALCULATE 'FEELS LIKE' TEMPERATURE FROM TEMPERATURE, RELATIVE HUMIDITY, 
+	# AND WIND SPEED
     # --------------------------------------------------------------------------
-	def FeelsLike(self):
+	def FeelsLike(self,TempC,RH,WindSpd):
 	
 		# Skip calculation during initialisation
-		if 'Obs' not in self.Air or self.Sky['Obs'] == '--':
+		if None in [TempC,RH,WindSpd]:
 			return [NaN,'c']
-				
-		# Extract required meteorological fields
-		TempC = self.Air['Obs'][2]						# Temperature in C
-		TempF = self.Air['Obs'][2] * 9/5 + 32			# Temperature in F
-		RH = self.Air['Obs'][3]							# Relative humidity in %
-		WindMPH = self.Sky['Obs'][5] * 2.23694          # Wind speed in mph
-		WindKPH = self.Sky['Obs'][5] * 3.6				# Wind speed in km/h 
+						
+		# Convert observation units as required
+		TempF = self.ObservationUnits(TempC,'f')
+		WindMPH = self.ObservationUnits(WindSpd,'mph')         
+		WindKPH = self.ObservationUnits(WindSpd,'kph')				
 						
 		# If temperature is less than 10 degrees celcius and wind speed is 
 		# higher than 5 mph, calculate wind chill using the Joint Action Group 
 		# for Temperature Indices formula
-		if TempC <= 10 and WindMPH > 5:
+		if TempC[0] <= 10 and WindMPH[0] > 5:
 		
 			# Calculate wind chill
-			FeelsLike = 13.12 + 0.6215*TempC - 11.37*(WindKPH)**0.16 + 0.3965*TempC*(WindKPH)**0.16
+			WindChill = 13.12 + 0.6215*TempC[0] - 11.37*(WindKPH[0])**0.16 + 0.3965*TempC[0]*(WindKPH[0])**0.16
+			FeelsLike = [WindChill,'c']
 			
-		# If temperature is greater than 26.67 degress celcius (80 F), calculate
-		# the Heat Index
-		elif TempF >= 80:
+		# If temperature is at or above 80 degress farenheit (26.67 C), and 
+		# humidity is at or above 40%, calculate the Heat Index
+		elif TempF[0] >= 80 and RH >= 40:
 		
 			# Calculate Heat Index
-			FeelsLike = -42.379 + (2.04901523*TempF) + (10.1433127*RH) - (0.22475541*TempF*RH) - (6.83783e-3*TempF**2) - (5.481717e-2*RH**2) + (1.22874e-3*TempF**2*RH) + (8.5282e-4*TempF*RH**2) - (1.99e-6*TempF**2*RH**2)
-			FeelsLike = (FeelsLike-32) * 5/9
+			HeatIndex = -42.379 + (2.04901523*TempF[0]) + (10.1433127*RH[0]) - (0.22475541*TempF[0]*RH[0]) - (6.83783e-3*TempF[0]**2) - (5.481717e-2*RH[0]**2) + (1.22874e-3*TempF[0]**2*RH[0]) + (8.5282e-4*TempF[0]*RH[0]**2) - (1.99e-6*TempF[0]**2*RH[0]**2)
+			FeelsLike = [(HeatIndex-32)*5/9,'c']
 
 		# Else set 'Feels Like' temperature to observed temperature
 		else: 
 			FeelsLike = TempC
 			
 		# Return 'Feels Like' temperature
-		return [FeelsLike,'c']
+		return FeelsLike
 						
 	# CALCULATE SEA LEVEL PRESSURE FROM AMBIENT PRESSURE AND STATION ELEVATION
 	# --------------------------------------------------------------------------
@@ -782,20 +795,22 @@ class WeatherFlowPiConsole(App):
 							
 	# CALCULATE THE PRESSURE TREND AND SET THE PRESSURE TREND TEXT
     # --------------------------------------------------------------------------
-	def PressureTrend(self):
+	def PressureTrend(self,Pres0h):
 	
 		# Calculate timestamp three hours past
-		TimeStart = self.Air['Obs'][0] - (3600*3+59)
-		TimeEnd = self.Air['Obs'][0]
+		TimeStart = self.Air['Obs'][0] - int((3600*3+59))
+		TimeEnd = self.Air['Obs'][0] - int((3600*2.9))
 
 		# Download pressure data for last three hours
 		Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&api_key={}'
 		URL = Template.format(self.System['AirID'],TimeStart,TimeEnd,self.System['WFlowKey'])
 		Data = requests.get(URL).json()['obs']
-		Pres = [item[1] for item in Data]
+
+		# Extract pressure from three hours ago
+		Pres3h = [Data[0][1],'mb']
 		
 		# Calculate pressure trend
-		Trend = (Pres[-1] - Pres[0])/3
+		Trend = (Pres0h[0] - Pres3h[0])/3
 		
 		# Remove sign from pressure trend if it rounds to 0.0
 		if abs(Trend) < 0.05:
@@ -1001,8 +1016,8 @@ class WeatherFlowPiConsole(App):
 		SLP = self.SeaLevelPressure(Pres)
 		
 		# Convert observation units as required
-		cTemp = self.ObservationUnits(Temp,self.System['Units']['Temp'])
-		cSLP = self.ObservationUnits(SLP,self.System['Units']['Pressure'])
+		cTemp = self.ObservationUnits(Temp,self.System['Units']['Temp'])         #########################################
+		cSLP = self.ObservationUnits(SLP,self.System['Units']['Pressure'])       #########################################
 		
 		# Define current time in station timezone
 		Tz = self.System['tz']
@@ -1101,7 +1116,7 @@ class WeatherFlowPiConsole(App):
 	def SkyObsMaxMin(self,WindSpd,WindGust):
 		
 		# Convert observation units as required
-		cWindGust = self.ObservationUnits(WindGust,self.System['Units']['Wind'])
+		cWindGust = self.ObservationUnits(WindGust,self.System['Units']['Wind'])    ######################################
 		
 		# Define current time in station timezone
 		Tz = self.System['tz']
