@@ -127,7 +127,7 @@ def CircularMean(angles):
 class WeatherFlowPiConsole(App):
 	
 	# Define Kivy properties required for display in 'WeatherFlowPiConsole.kv' 
-	System = DictProperty([('ForecastLocn','--'),('Units',{}),('Barometer','--')])
+	System = DictProperty([('ForecastLocn','--'),('Units',{}),('BaromLim','--')])
 	MetData = DictProperty([('Temp','--'),('Precip','--'),('WindSpd','--'),
 							('WindDir','--'),('Weather','Building'),
 	                        ('Valid','--'),('Issued','--')])
@@ -218,15 +218,15 @@ class WeatherFlowPiConsole(App):
 		self.System['Units']['Direction'] = Data['station_units']['units_direction']
 		self.System['Units']['Other'] = Data['station_units']['units_other']
 		
-		# Define maximum and minimum pressure for barometer
+		# Define maximum and minimum pressure limits for barometer
 		if self.System['Units']['Pressure'] == 'mb':
-			self.System['Barometer'] = ['950','1050']
+			self.System['BaromLim'] = ['950','1050']
 		elif self.System['Units']['Pressure'] == 'hpa':
-			self.System['Barometer'] = ['950','1050']
+			self.System['BaromLim'] = ['950','1050']
 		elif self.System['Units']['Pressure'] == 'inhg':
-			self.System['Barometer'] = ['28.0','31.0']
+			self.System['BaromLim'] = ['28.0','31.0']
 		elif self.System['Units']['Pressure'] == 'mmhg':
-			self.System['Barometer'] = ['713','788']
+			self.System['BaromLim'] = ['713','788']
 		
 		# Determine country of Station
 		Template = 'http://api.geonames.org/countryCode?lat={}&lng={}&username={}&type=json'
@@ -430,7 +430,7 @@ class WeatherFlowPiConsole(App):
 		SLP = self.SeaLevelPressure(Pres)
 		PresTrend = self.PressureTrend(Pres)
 		MaxTemp,MinTemp,MaxPres,MinPres = self.AirObsMaxMin(Time,Temp,Pres)
-		
+
 		# Convert observation units as required
 		Temp = self.ObservationUnits(Temp,self.System['Units']['Temp'])
 		MaxTemp = self.ObservationUnits(MaxTemp,self.System['Units']['Temp'])
@@ -1015,10 +1015,6 @@ class WeatherFlowPiConsole(App):
 		# Calculate sea level pressure
 		SLP = self.SeaLevelPressure(Pres)
 		
-		# Convert observation units as required
-		cTemp = self.ObservationUnits(Temp,self.System['Units']['Temp'])         #########################################
-		cSLP = self.ObservationUnits(SLP,self.System['Units']['Pressure'])       #########################################
-		
 		# Define current time in station timezone
 		Tz = self.System['tz']
 		Now = datetime.now(pytz.utc).astimezone(Tz)	
@@ -1050,63 +1046,63 @@ class WeatherFlowPiConsole(App):
 			SLP = [self.SeaLevelPressure(P) for P in Pres]
 
 			# Define maximum and minimum temperature and time
-			MaxTemp = [max(Temp)[0],max(Temp)[1],datetime.fromtimestamp(Time[Temp.index(max(Temp))][0],Tz).strftime('%H:%M'),Now]
-			MinTemp = [min(Temp)[0],min(Temp)[1],datetime.fromtimestamp(Time[Temp.index(min(Temp))][0],Tz).strftime('%H:%M'),Now]
+			MaxTemp = [max(Temp)[0],max(Temp)[1],datetime.fromtimestamp(Time[Temp.index(max(Temp))][0],Tz).strftime('%H:%M'),max(Temp)[0],Now]
+			MinTemp = [min(Temp)[0],min(Temp)[1],datetime.fromtimestamp(Time[Temp.index(min(Temp))][0],Tz).strftime('%H:%M'),min(Temp)[0],Now]
 
 			# Define maximum and minimum pressure
-			MaxPres = [max(SLP)[0],max(SLP)[1],Now]
-			MinPres = [min(SLP)[0],min(SLP)[1],Now]
+			MaxPres = [max(SLP)[0],max(SLP)[1],max(SLP)[0],Now]
+			MinPres = [min(SLP)[0],min(SLP)[1],min(SLP)[0],Now]
 			
 			# Return required variables
 			return MaxTemp,MinTemp,MaxPres,MinPres
 			
 		# AT MIDNIGHT RESET MAXIMUM AND MINIMUM TEMPERATURE AND PRESSURE 
-		if Now.date() > self.Air['MaxTemp'][3].date():
+		if Now.date() > self.Air['MaxTemp'][4].date():
 		
 			# Reset maximum and minimum temperature
-			MaxTemp = [Temp[0],'c',datetime.fromtimestamp(Time[0],self.System['tz']).strftime('%H:%M'),Now]
-			MinTemp = [Temp[0],'c',datetime.fromtimestamp(Time[0],self.System['tz']).strftime('%H:%M'),Now]
+			MaxTemp = [Temp[0],'c',datetime.fromtimestamp(Time[0],self.System['tz']).strftime('%H:%M'),Temp[0],Now]
+			MinTemp = [Temp[0],'c',datetime.fromtimestamp(Time[0],self.System['tz']).strftime('%H:%M'),Temp[0],Now]
 			
 			# Reset maximum and minimum pressure
-			MaxPres = [SLP[0],'mb',Now]
-			MinPres = [SLP[0],'mb',Now]
+			MaxPres = [SLP[0],'mb',SLP[0],Now]
+			MinPres = [SLP[0],'mb',SLP[0],Now]
 			
 			# Return required variables
 			return MaxTemp,MinTemp,MaxPres,MinPres
 	
 		# Current temperature is greater than maximum recorded temperature. 
 		# Update maximum temperature and time
-		if cTemp[0] > float(self.Air['MaxTemp'][0]):
-			MaxTemp = [Temp[0],'c',datetime.fromtimestamp(Time[0],self.System['tz']).strftime('%H:%M'),Now]
-			MinTemp = [float(self.Air['MinTemp'][0]),self.Air['MinTemp'][1],self.Air['MinTemp'][2],Now]
+		if Temp[0] > self.Air['MaxTemp'][3]:
+			MaxTemp = [Temp[0],'c',datetime.fromtimestamp(Time[0],self.System['tz']).strftime('%H:%M'),Temp[0],Now]
+			MinTemp = [self.Air['MinTemp'][3],'c',self.Air['MinTemp'][2],self.Air['MinTemp'][3],Now]
 
 		# Current temperature is less than minimum recorded temperature. Update 
 		# minimum temperature and time	
-		elif cTemp[0] < float(self.Air['MinTemp'][0]):
-			MaxTemp = [float(self.Air['MaxTemp'][0]),self.Air['MaxTemp'][1],self.Air['MaxTemp'][2],Now]
-			MinTemp = [Temp[0],'c',datetime.fromtimestamp(Time[0],self.System['tz']).strftime('%H:%M'),Now]
+		elif Temp[0] < self.Air['MinTemp'][3]:
+			MaxTemp = [self.Air['MaxTemp'][3],'c',self.Air['MaxTemp'][2],self.Air['MaxTemp'][3],Now]
+			MinTemp = [Temp[0],'c',datetime.fromtimestamp(Time[0],self.System['tz']).strftime('%H:%M'),Temp[0],Now]
 
 		# Maximum and minimum temperature unchanged. Return existing values	
 		else:
-			MaxTemp = [float(self.Air['MaxTemp'][0]),self.Air['MaxTemp'][1],self.Air['MaxTemp'][2],Now]
-			MinTemp = [float(self.Air['MinTemp'][0]),self.Air['MinTemp'][1],self.Air['MinTemp'][2],Now]
+			MaxTemp = [self.Air['MaxTemp'][3],'c',self.Air['MaxTemp'][2],self.Air['MaxTemp'][3],Now]
+			MinTemp = [self.Air['MinTemp'][3],'c',self.Air['MinTemp'][2],self.Air['MinTemp'][3],Now]
 			
 		# Current pressure is greater than maximum recorded pressure. Update 
 		# maximum pressure
-		if cSLP[0] > float(self.Air['MaxPres'][0]):
-			MaxPres = [SLP[0],'mb',Now]
-			MinPres = [float(self.Air['MinPres'][0]),self.Air['MinPres'][1],Now]
+		if SLP[0] > self.Air['MaxPres'][2]:
+			MaxPres = [SLP[0],'mb',SLP[0],Now]
+			MinPres = [self.Air['MinPres'][2],'mb',self.Air['MinPres'][2],Now]
 			
 		# Current pressure is less than minimum recorded pressure. Update 
 		# minimum pressure and time	
-		elif cSLP[0] < float(self.Air['MinPres'][0]):		
-			MaxPres = [float(self.Air['MaxPres'][0]),self.Air['MaxPres'][1],Now]
-			MinPres = [SLP[0],'mb',Now]
+		elif SLP[0] < self.Air['MinPres'][2]:		
+			MaxPres = [self.Air['MaxPres'][2],'mb',self.Air['MaxPres'][2],Now]
+			MinPres = [SLP[0],'mb',SLP[0],Now]
 			
 		# Maximum and minimum pressure unchanged. Return existing values
 		else:
-			MaxPres = [float(self.Air['MaxPres'][0]),self.Air['MaxPres'][1],Now]
-			MinPres = [float(self.Air['MinPres'][0]),self.Air['MinPres'][1],Now]
+			MaxPres = [self.Air['MaxPres'][2],'mb',self.Air['MaxPres'][2],Now]
+			MinPres = [self.Air['MinPres'][2],'mb',self.Air['MinPres'][2],Now]
 			
 		# Return required variables
 		return MaxTemp,MinTemp,MaxPres,MinPres	
@@ -1114,9 +1110,6 @@ class WeatherFlowPiConsole(App):
 	# CALCULATE MAXIMUM OBSERVED WIND SPEED AND GUST STRENGTH
 	# --------------------------------------------------------------------------
 	def SkyObsMaxMin(self,WindSpd,WindGust):
-		
-		# Convert observation units as required
-		cWindGust = self.ObservationUnits(WindGust,self.System['Units']['Wind'])    ######################################
 		
 		# Define current time in station timezone
 		Tz = self.System['tz']
@@ -1144,26 +1137,26 @@ class WeatherFlowPiConsole(App):
 			WindGust = [[item[6],'mps'] if item[6] != None else [NaN,'mps'] for item in Data]
 
 			# Define maximum wind gust
-			MaxGust = [max([x for x,y in WindGust]),'mps',Now]
+			MaxGust = [max([x for x,y in WindGust]),'mps',max([x for x,y in WindGust]),Now]
 			
 			# Return maximum wind gust
 			return MaxGust
 
 		# AT MIDNIGHT RESET MAXIMUM RECORDED WIND GUST	
-		if self.Sky['MaxGust'][2].date() < Now.date():
-			MaxGust = [WindGust[0],'mps',Now]
+		if Now.date() > self.Sky['MaxGust'][3].date():
+			MaxGust = [WindGust[0],'mps',WindGust[0],Now]
 			
 			# Return maximum wind gust
 			return MaxGust	
 			
 		# Current gust speed is greater than maximum recorded gust speed. Update 
 		# maximum gust speed 
-		if cWindGust[0] > float(self.Sky['MaxGust'][0]):
-			MaxGust = [WindGust[0],'mps',Now]	
+		if WindGust[0] > self.Sky['MaxGust'][2]:
+			MaxGust = [WindGust[0],'mps',WindGust[0],Now]	
 				
 		# Maximum gust speed is unchanged. Return existing value
 		else:
-			MaxGust = [float(self.Sky['MaxGust'][0]),self.Sky['MaxGust'][1],Now]	
+			MaxGust = [self.Sky['MaxGust'][2],'mps',self.Sky['MaxGust'][2],Now]	
 			
 		# Return maximum wind speed and gust
 		return MaxGust
