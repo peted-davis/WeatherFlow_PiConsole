@@ -55,7 +55,7 @@ def DialSetting(Met):
 	pcode = {}
 	if len(Ind) != 0:		
 		pcode = pcodes[min(Ind,key=Ind.get)]
-		
+			
 	# Determines the Present Weather result used with The Sager Weathercaster:
 	if len(pcode) > 0:
 		pw = "Precipitation"
@@ -68,7 +68,9 @@ def DialSetting(Met):
 	elif ccode == "OVC":
 		pw = "Overcast"
 	elif ccode == "VV":
-		pw = "Precipitation"	
+		pw = "Precipitation"
+	else:
+		pw = None
 	
 	# Convert the average wind direction in degrees from 6 hours 
 	# ago into a direction. An average direction of exactly zero
@@ -483,6 +485,8 @@ def DialSetting(Met):
 		d4 = "4"
 	elif pw == "Precipitation":
 		d4 = "5"
+	elif pw == None:
+		d4 = "x"
 			
 	# Return SagerWeathercaster dial setting as function output
 	Sager = dict()

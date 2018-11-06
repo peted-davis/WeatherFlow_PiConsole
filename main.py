@@ -23,7 +23,7 @@ if platform.system() == 'Linux':
 	os.environ['KIVY_GL_BACKEND'] = 'gl'
 elif platform.system() == 'Windows':
 	os.environ['KIVY_GL_BACKEND'] = 'glew'
-
+	
 # ==============================================================================
 # INITIALISE KIVY TWISTED WEBSOCKET CLIENT
 # ==============================================================================
@@ -231,8 +231,14 @@ class WeatherFlowPiConsole(App):
 		# Determine country of Station
 		Template = 'http://api.geonames.org/countryCode?lat={}&lng={}&username={}&type=json'
 		URL = Template.format(self.System['Lat'],self.System['Lon'],self.System['GeoNamesKey'])
-		Data = requests.get(URL).json()
-		self.System['Country'] = Data['countryCode']
+		Data = requests.get(URL)
+		if Data.ok:
+			if 'countryCode' in Data.json():
+				self.System['Country'] = Data.json()['countryCode']
+			else:
+				self.System['Country'] = None
+		else:
+			self.System['Country'] = None		
 		
 		# If Station is located in Great Britain: determine closest MetOffice 
 		# forecast location
