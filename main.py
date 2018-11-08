@@ -365,7 +365,11 @@ class WeatherFlowPiConsole(App):
 		else:
 			Temp = None
 			Humidity = None
-
+			
+		# Set wind direction to None if wind speed is zero
+		if WindSpd[0] == 0:
+			WindDir = [None,'degrees']	
+				
 		# Calculate derived variables from SKY observations
 		FeelsLike = self.FeelsLike(Temp,Humidity,WindSpd)
 		RainRate = self.RainRate(Rain)
@@ -373,7 +377,7 @@ class WeatherFlowPiConsole(App):
 		AvgWind = self.MeanWindSpeed(WindSpd)
 		MaxGust = self.SkyObsMaxMin(WindSpd,WindGust)
 		Beaufort = self.BeaufortScale(WindSpd)
-		Cardinal = self.CardinalWindDirection(WindDir,WindSpd)
+		WindDir = self.WindDirection(WindDir,WindSpd)
 		UV = self.UVIndex(UV)
 		
 		# Convert observation units as required
@@ -401,7 +405,7 @@ class WeatherFlowPiConsole(App):
 		self.Sky['Radiation'] = self.ObservationFormat(Radiation,'Radiation')
 		self.Sky['UV'] = self.ObservationFormat(UV,'UV')
 		self.Sky['Battery'] = self.ObservationFormat(Battery,'Battery')
-		self.Sky['WindDir'] = WindDir + Cardinal
+		self.Sky['WindDir'] = self.ObservationFormat(WindDir,'Direction')
 
 		# Define AIR Kivy label binds
 		self.Air['FeelsLike'] = self.ObservationFormat(FeelsLike,'Temp')
@@ -492,7 +496,7 @@ class WeatherFlowPiConsole(App):
 		self.SkyRapid['Obs'] = Obs
 		
 		# Calculate derived variables from Rapid SKY observations
-		Cardinal = self.CardinalWindDirection(WindDir,WindSpd)
+		WindDir = self.WindDirection(WindDir,WindSpd)
 		
 		# Convert observation units as required
 		WindSpd = self.ObservationUnits(WindSpd,self.System['Units']['Wind'])
@@ -501,7 +505,7 @@ class WeatherFlowPiConsole(App):
 		# Define Rapid-SKY Kivy label binds
 		self.SkyRapid['Time'] = datetime.fromtimestamp(Time[0],self.System['tz']).strftime('%H:%M:%S')
 		self.SkyRapid['Speed'] = self.ObservationFormat(WindSpd,'Wind')
-		self.SkyRapid['Direc'] = self.ObservationFormat(WindDir,'Direction') + Cardinal
+		self.SkyRapid['Direc'] = self.ObservationFormat(WindDir,'Direction')
 		
 		# Animate wind rose arrow 
 		self.WindRoseAnimation(WindDir[0],WindDirOld[0])
@@ -576,8 +580,11 @@ class WeatherFlowPiConsole(App):
 		elif Unit in ['degrees','cardinal']:
 			for ii,W in enumerate(Obs):
 				if W == 'degrees':
-					if Unit == 'cardinal':
-						cObs[ii-1] = self.CardinalWindDirection(Obs[ii-1:ii+1])[0]   
+					if cObs[ii-1] is None:
+						cObs[ii-1] = 'Calm'
+						cObs[ii] = ''
+					elif Unit == 'cardinal':
+						cObs[ii-1] = self.WindDirection(Obs[ii-1:ii+1])[2]   
 						cObs[ii] = ''
 					else:
 						cObs[ii-1] = Obs[ii-1]   
@@ -1206,12 +1213,13 @@ class WeatherFlowPiConsole(App):
 		
 		# Return comfort level text string and icon
 		return [Description,Icon]	
-					
-	# SET CARDINAL WIND DIRECTION AND DESCRIPTION
+
+	# CALCULATE CARDINAL WIND DIRECTION FROM WIND DIRECTION IN DEGREES
 	# --------------------------------------------------------------------------
-	def CardinalWindDirection(self,Dir,Spd=[1,'mps']):
+	def WindDirection(self,Dir,Spd=[1,'mps']):
 			
-		# Define cardinal wind direction and description
+		# Define cardinal wind direction and description based on wind direction 
+		# in degrees
 		if Spd[0] == 0:
 			Description = '[color=9aba2fff]Calm[/color]'
 			Direction = 'Calm'
@@ -1268,8 +1276,8 @@ class WeatherFlowPiConsole(App):
 			Direction = 'N'
 			
 		# Cardinal wind direction and description
-		return [Direction,Description]
-			
+		return [Dir[0],Dir[1],Direction,Description]		
+	
 	# SET THE BEAUFORT SCALE WIND SPEED, DESCRIPTION, AND ICON
     # --------------------------------------------------------------------------
 	def BeaufortScale(self,Wind):
@@ -1753,7 +1761,7 @@ class WeatherFlowPiConsole(App):
 		self.MetData['Issued'] = datetime.strftime(Issued,'%H:%M')
 		self.MetData['Valid'] = datetime.strftime(Valid,'%H:%M')
 		self.MetData['Temp'] = ['{:.1f}'.format(Temp[0]),Temp[1]]
-		self.MetData['WindDir'] = self.CardinalWindDirection(WindDir)[0]
+		self.MetData['WindDir'] = self.WindDirection(WindDir)[2]
 		self.MetData['WindSpd'] = ['{:.0f}'.format(WindSpd[0]),WindSpd[1]]
 		self.MetData['Precip'] = '{:.0f}'.format(Precip[0])
 		
