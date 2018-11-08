@@ -765,7 +765,7 @@ class WeatherFlowPiConsole(App):
 			
 		# If temperature is at or above 80 degress farenheit (26.67 C), and 
 		# humidity is at or above 40%, calculate the Heat Index
-		elif TempF[0] >= 80 and RH >= 40:
+		elif TempF[0] >= 80 and RH[0] >= 40:
 		
 			# Calculate Heat Index
 			HeatIndex = -42.379 + (2.04901523*TempF[0]) + (10.1433127*RH[0]) - (0.22475541*TempF[0]*RH[0]) - (6.83783e-3*TempF[0]**2) - (5.481717e-2*RH[0]**2) + (1.22874e-3*TempF[0]**2*RH[0]) + (8.5282e-4*TempF[0]*RH[0]**2) - (1.99e-6*TempF[0]**2*RH[0]**2)
@@ -1176,37 +1176,36 @@ class WeatherFlowPiConsole(App):
 			return
 		
 		# Define comfort level text and icon
-		ComfortLevel = []
 		if FeelsLike[0] < -4:
-			ComfortLevel.append('Feeling extremely cold')
-			ComfortLevel.append('ExtremelyCold')
+			Description = 'Feeling extremely cold'
+			Icon = 'ExtremelyCold'
 		elif FeelsLike[0] < 0:
-			ComfortLevel.append('Feeling freezing cold')
-			ComfortLevel.append('FreezingCold')
+			Description = 'Feeling freezing cold'
+			Icon = 'FreezingCold'
 		elif FeelsLike[0] < 4:
-			ComfortLevel.append('Feeling very cold')
-			ComfortLevel.append('VeryCold')
+			Description = 'Feeling very cold'
+			Icon = 'VeryCold'
 		elif FeelsLike[0] < 9:
-			ComfortLevel.append('Feeling cold')
-			ComfortLevel.append('Cold')
+			Description = 'Feeling cold'
+			Icon = 'Cold'
 		elif FeelsLike[0] < 14:
-			ComfortLevel.append('Feeling mild')
-			ComfortLevel.append('Mild')
+			Description = 'Feeling mild'
+			Icon = 'Mild'
 		elif FeelsLike[0] < 18:
-			ComfortLevel.append('Feeling warm')
-			ComfortLevel.append('Warm')
+			Description = 'Feeling warm'
+			Icon = 'Warm'
 		elif FeelsLike[0] < 23:
-			ComfortLevel.append('Feeling hot')
-			ComfortLevel.append('Hot')
+			Description = 'Feeling hot'
+			Icon = 'Hot'
 		elif FeelsLike[0] < 28:
-			ComfortLevel.append('Feeling very hot')
-			ComfortLevel.append('VeryHot')
+			Description = 'Feeling very hot'
+			Icon = 'VeryHot'
 		elif FeelsLike[0] >= 28:
-			ComfortLevel.append('Feeling extremely hot')
-			ComfortLevel.append('ExtremelyHot')
+			Description = 'Feeling extremely hot'
+			Icon = 'ExtremelyHot'
 		
 		# Return comfort level text string and icon
-		return ComfortLevel	
+		return [Description,Icon]	
 					
 	# SET CARDINAL WIND DIRECTION AND DESCRIPTION
 	# --------------------------------------------------------------------------
