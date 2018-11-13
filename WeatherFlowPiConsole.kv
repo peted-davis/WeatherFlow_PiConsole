@@ -794,22 +794,48 @@ WeatherFlowPiConsoleScreen:
 	## ----------------------------------------------------------
 	FloatLayout:
 	
+		## CURRENT RAIN RATE AND TEXT
+		Label:
+			text: app.Sky['RainRate'][0] + app.Sky['RainRate'][1]
+			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
+			font_size: '15sp'
+			text_size: self.size
+			markup: 1
+			halign: 'center'
+			valign: 'center'
+			size_hint: (None,None)
+			size: (86,21)
+			pos: (444,96)	
+			color: [0.84,0.84,0.84,1]	
+		Label:
+			text: app.Sky['RainRate'][2]                      
+			font_name: 'Fonts/Helvetica.ttf'
+			font_size: '15sp'
+			text_size: self.size
+			markup: 1
+			halign: 'center'
+			valign: 'center'
+			size_hint: (None,None)
+			size: (175,21)
+			pos: (269,96)	
+			color: [0.84,0.84,0.84,1]
+	
 		## RAINFALL INTENSITY ANIMATION
 		StencilView:
 			size_hint: (None,None)
 			size: (33,113)
-			pos: (476,116)
+			pos: (471,125)	
 			Image:
 				source: 'Icons/RainIntensity/Water.png'
 				size_hint: (None,None)
 				keep_ratio: 0
 				allow_stretch: 1
 				size: (264,113)
-				pos: (root.Screen['xRainAnim'],root.Screen['yRainAnim'])		
-		
-		## CURRENT RAIN RATE AND TEXT
+				pos: (root.Screen['xRainAnim'],root.Screen['yRainAnim'])	
+								
+		## TOTAL DAILY RAINFALL
 		Label:
-			text: app.Sky['RainRate'][0] + '[size=15sp]' + app.Sky['RainRate'][1] + '[/size]' 
+			text: app.Sky['TodayRain'][0] + '[size=15sp]' + app.Sky['TodayRain'][1] + '[/size]' 
 			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
 			font_size: '20sp'
 			text_size: self.size
@@ -820,22 +846,10 @@ WeatherFlowPiConsoleScreen:
 			size: (88,35)
 			pos: (269,175)	
 			color: [0.84,0.84,0.84,1]
+			
+		## TOTAL YESTERDAY RAINFALL
 		Label:
-			text: app.Sky['RainRate'][2]
-			font_name: 'Fonts/Helvetica.ttf'
-			font_size: '15sp'
-			text_size: self.size
-			markup: 1
-			halign: 'center'
-			valign: 'center'
-			size_hint: (None,None)
-			size: (185,18)
-			pos: (269,95)	
-			color: [0.84,0.84,0.84,1]		
-		
-		## TOTAL DAILY RAINFALL
-		Label:
-			text: app.Sky['DayRain'][0] + '[size=15sp]' + app.Sky['DayRain'][1] + '[/size]' 
+			text: app.Sky['YesterdayRain'][0] + '[size=15sp]' + app.Sky['YesterdayRain'][1] + '[/size]' 
 			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
 			font_size: '20sp'
 			text_size: self.size
@@ -844,10 +858,10 @@ WeatherFlowPiConsoleScreen:
 			valign: 'center'
 			size_hint: (None,None)
 			size: (88,35)
-			pos: (365,175)	
-			color: [0.84,0.84,0.84,1]	
-			
-		## TOTAL MONTHLY RAINFALL
+			pos: (356,175)	
+			color: [0.84,0.84,0.84,1]			
+		
+		## TOTAL MONTHLY RAINFALL  
 		Label:
 			text: app.Sky['MonthRain'][0] + '[size=15sp]' + app.Sky['MonthRain'][1] + '[/size]' 
 			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
@@ -872,7 +886,7 @@ WeatherFlowPiConsoleScreen:
 			valign: 'center'
 			size_hint: (None,None)
 			size: (88,35)
-			pos: (365,115)	
+			pos: (356,115)	
 			color: [0.84,0.84,0.84,1]	
 		
 	## ----------------------------------------------------------

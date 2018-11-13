@@ -140,9 +140,9 @@ class WeatherFlowPiConsole(App):
 	SkyRapidIcon = NumericProperty(0)							 
 	Sky = DictProperty([('WindSpd','----'),('WindGust','--'),('WindDir','---'),
 						('AvgWind','--'),('MaxGust','--'),('RainRate','---'),
-						('DayRain','--'),('MonthRain','--'),('YearRain','--'),
-						('Radiation','----'),('UV','---'),('Time','-'),
-						('Battery','--'),('StatusIcon','Error')])
+						('TodayRain','--'),('YesterdayRain','--'),('MonthRain','--'),
+						('YearRain','--'),('Radiation','----'),('UV','---'),
+						('Time','-'),('Battery','--'),('StatusIcon','Error')])
 	Breathe = DictProperty([('Temp','--'),('MinTemp','---'),('MaxTemp','---')])		
 	Air = DictProperty([('Temp','--'),('MinTemp','---'),('MaxTemp','---'),
 						('Humidity','--'),('DewPoint','--'),('Pres','---'),
@@ -264,12 +264,13 @@ class WeatherFlowPiConsole(App):
 		else:
 			Template = 'http://api.geonames.org/findNearbyPlaceName?lat={}&lng={}&username={}&radius=10&featureClass=P&maxRows=20&type=json'	
 			URL = Template.format(self.System['Lat'],self.System['Lon'],self.System['GeoNamesKey'])
-			Data = requests.get(URL).json()
-			Locns = [Item['name'] for Item in Data['geonames']]
-			Len = [len(Item) for Item in Locns]
-			Ind = next((Item for Item in Len if Item<=11),NaN)
-			if Ind != NaN:
-				self.System['ForecastLocn'] = Locns[Len.index(Ind)]
+			Data = requests.get(URL)
+			if Data.ok:
+				Locns = [Item['name'] for Item in Data.json()['geonames']]
+				Len = [len(Item) for Item in Locns]
+				Ind = next((Item for Item in Len if Item<=11),NaN)
+				if Ind != NaN:
+					self.System['ForecastLocn'] = Locns[Len.index(Ind)]
 			else:
 				self.System['ForecastLocn'] = ''
 									
@@ -373,16 +374,17 @@ class WeatherFlowPiConsole(App):
 		# Calculate derived variables from SKY observations
 		FeelsLike = self.FeelsLike(Temp,Humidity,WindSpd)
 		RainRate = self.RainRate(Rain)
-		DayRain,MonthRain,YearRain = self.RainAccumulation(Rain) 
+		TodayRain,YesterdayRain,MonthRain,YearRain = self.RainAccumulation(Rain) 
 		AvgWind = self.MeanWindSpeed(WindSpd)
 		MaxGust = self.SkyObsMaxMin(WindSpd,WindGust)
 		Beaufort = self.BeaufortScale(WindSpd)
-		WindDir = self.WindDirection(WindDir,WindSpd)
+		WindDir = self.CardinalWindDirection(WindDir,WindSpd)
 		UV = self.UVIndex(UV)
 		
 		# Convert observation units as required
 		RainRate = self.ObservationUnits(RainRate,self.System['Units']['Precip'])
-		DayRain = self.ObservationUnits(DayRain,self.System['Units']['Precip'])
+		TodayRain = self.ObservationUnits(TodayRain,self.System['Units']['Precip'])
+		YesterdayRain = self.ObservationUnits(YesterdayRain,self.System['Units']['Precip'])
 		MonthRain = self.ObservationUnits(MonthRain,self.System['Units']['Precip'])
 		YearRain = self.ObservationUnits(YearRain,self.System['Units']['Precip'])
 		WindSpd = self.ObservationUnits(WindSpd,self.System['Units']['Wind'])
@@ -395,7 +397,8 @@ class WeatherFlowPiConsole(App):
 		# Define SKY Kivy label binds	
 		self.Sky['Time'] =  datetime.fromtimestamp(Time[0],self.System['tz']).strftime('%H:%M:%S')
 		self.Sky['RainRate'] = self.ObservationFormat(RainRate,'Precip')
-		self.Sky['DayRain'] = self.ObservationFormat(DayRain,'Precip')
+		self.Sky['TodayRain'] = self.ObservationFormat(TodayRain,'Precip')
+		self.Sky['YesterdayRain'] = self.ObservationFormat(YesterdayRain,'Precip')
 		self.Sky['MonthRain'] = self.ObservationFormat(MonthRain,'Precip')
 		self.Sky['YearRain'] = self.ObservationFormat(YearRain,'Precip')
 		self.Sky['WindSpd'] = self.ObservationFormat(WindSpd,'Wind') + Beaufort
@@ -496,7 +499,7 @@ class WeatherFlowPiConsole(App):
 		self.SkyRapid['Obs'] = Obs
 		
 		# Calculate derived variables from Rapid SKY observations
-		WindDir = self.WindDirection(WindDir,WindSpd)
+		WindDir = self.CardinalWindDirection(WindDir,WindSpd)
 		
 		# Convert observation units as required
 		WindSpd = self.ObservationUnits(WindSpd,self.System['Units']['Wind'])
@@ -584,7 +587,7 @@ class WeatherFlowPiConsole(App):
 						cObs[ii-1] = 'Calm'
 						cObs[ii] = ''
 					elif Unit == 'cardinal':
-						cObs[ii-1] = self.WindDirection(Obs[ii-1:ii+1])[2]   
+						cObs[ii-1] = self.CardinalWindDirection(Obs[ii-1:ii+1])[2]   
 						cObs[ii] = ''
 					else:
 						cObs[ii-1] = Obs[ii-1]   
@@ -850,7 +853,7 @@ class WeatherFlowPiConsole(App):
 		
 		# Code initialising. Download all data for current day using Weatherflow 
 		# API. Calculate total daily rainfall
-		if self.Sky['DayRain'][0] == '-':
+		if self.Sky['TodayRain'][0] == '-':
 		
 			# Convert midnight today in Station timezone to midnight today in  
 			# UTC. Convert UTC time into UNIX timestamp
@@ -870,7 +873,30 @@ class WeatherFlowPiConsole(App):
 			Rain = [[item[3],'mm'] if item[3] != None else NaN for item in Data]
 			
 			# Calculate daily rain accumulation
-			DayRain = [sum([x for x,y in Rain]),'mm',sum([x for x,y in Rain]),Now]
+			TodayRain = [sum([x for x,y in Rain]),'mm',sum([x for x,y in Rain]),Now]
+			
+		# Code initialising. Download all data for yesterday using Weatherflow 
+		# API. Calculate total daily rainfall
+		if self.Sky['YesterdayRain'][0] == '-':
+		
+			# Convert midnight yesterday in Station timezone to midnight 
+			# yesterday in UTC. Convert UTC time into UNIX timestamp
+			Date = date.today()	- timedelta(days=1)		
+			Midnight = Tz.localize(datetime.combine(Date,time()))		
+			Midnight_UTC = int(Midnight.timestamp())
+			
+			# Convert current time in Station timezone to current time in  UTC. 
+			# Convert current time time into UNIX timestamp
+			End_UTC = Midnight_UTC + (60*60*24)-1												
+
+			# Download rainfall data for current month
+			Template = ('https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&api_key={}')
+			URL = Template.format(self.System['SkyID'],Midnight_UTC,End_UTC,self.System['WFlowKey'])
+			Data = requests.get(URL).json()['obs']
+			Rain = [[item[3],'mm'] if item[3] != None else NaN for item in Data]
+			
+			# Calculate daily rain accumulation
+			YesterdayRain = [sum([x for x,y in Rain]),'mm',sum([x for x,y in Rain]),Now]
 
 		# Code initialising. Download all data for current month using 
 		# Weatherflow API. Calculate total monthly rainfall
@@ -913,15 +939,17 @@ class WeatherFlowPiConsole(App):
 			YearRain = [sum([x for x,y in Rain]),'mm',sum([x for x,y in Rain]),Now]
 			
 			# Return Daily, Monthly, and Yearly rainfall accumulation totals
-			return DayRain,MonthRain,YearRain
+			return TodayRain,YesterdayRain,MonthRain,YearRain
 			
 		# At midnight, reset daily rainfall accumulation to zero, else add 
 		# current rainfall to current daily rainfall accumulation
-		if Now.date() > self.Sky['DayRain'][3].date():
-			DayRain = [Rain[0],'mm',Rain[0],Now]
+		if Now.date() > self.Sky['TodayRain'][3].date():
+			TodayRain = [Rain[0],'mm',Rain[0],Now]
+			YesterdayRain = [self.Sky['TodayRain'][2],'mm',self.Sky['TodayRain'][2],Now]
 		else:
-			RainAccum = self.Sky['DayRain'][2]+Rain[0]
-			DayRain = [RainAccum,'mm',RainAccum,Now]	
+			RainAccum = self.Sky['TodayRain'][2]+Rain[0]
+			TodayRain = [RainAccum,'mm',RainAccum,Now]
+			YesterdayRain = [self.Sky['YesterdayRain'][2],'mm',self.Sky['YesterdayRain'][2],Now]
 		
 		# At end of month, reset monthly rainfall accumulation to zero, else add 
 		# current rainfall to current monthly rainfall accumulation
@@ -941,7 +969,7 @@ class WeatherFlowPiConsole(App):
 			YearRain = [RainAccum,'mm',RainAccum,Now]	
 			
 		# Return Daily, Monthly, and Yearly rainfall accumulation totals
-		return DayRain,MonthRain,YearRain
+		return TodayRain,YesterdayRain,MonthRain,YearRain
 		
 	# CALCULATE THE RAIN RATE FROM THE PREVIOUS 1 MINUTE RAIN ACCUMULATION
     # --------------------------------------------------------------------------
@@ -1216,66 +1244,25 @@ class WeatherFlowPiConsole(App):
 
 	# CALCULATE CARDINAL WIND DIRECTION FROM WIND DIRECTION IN DEGREES
 	# --------------------------------------------------------------------------
-	def WindDirection(self,Dir,Spd=[1,'mps']):
-			
-		# Define cardinal wind direction and description based on wind direction 
-		# in degrees
+	def CardinalWindDirection(self,Dir,Spd=[1,'mps']):
+	
+		# Define all possible cardinal wind directions and descriptions
+		Direction = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW','N']
+		Description = ['Due North','North NE','North East','East NE','Due East','East SE','South East','South SE',
+					   'Due South','South SW','South West','West SW','Due West','West NW','North West','North NW',
+					   'Due North']
+	
+		# Define actual cardinal wind direction and description based on current
+		# wind direction in degrees
 		if Spd[0] == 0:
-			Description = '[color=9aba2fff]Calm[/color]'
 			Direction = 'Calm'
-		elif Dir[0] <= 11.25:
-			Description = 'Due [color=9aba2fff]North[/color]'
-			Direction = 'N'
-		elif Dir[0] <= 33.75:
-			Description = 'North [color=9aba2fff]NE[/color]'
-			Direction = 'NNE'
-		elif Dir[0] <= 56.25:
-			Description = 'North [color=9aba2fff]East[/color]'
-			Direction = 'NE'
-		elif Dir[0] <= 78.75:
-			Description = 'East [color=9aba2fff]NE[/color]'
-			Direction = 'ENE'
-		elif Dir[0] <= 101.25:
-			Description = 'Due [color=9aba2fff]East[/color]'
-			Direction = 'E'
-		elif Dir[0] <= 123.75:
-			Description = 'East [color=9aba2fff]SE[/color]'
-			Direction = 'ESE'
-		elif Dir[0] <= 146.25:
-			Description = 'South [color=9aba2fff]East[/color]'
-			Direction = 'SE'
-		elif Dir[0] <= 168.75:
-			Description = 'South [color=9aba2fff]SE[/color]'
-			Direction = 'SSE'
-		elif Dir[0] <= 191.25:
-			Description = 'Due [color=9aba2fff]South[/color]'
-			Direction = 'S'
-		elif Dir[0] <= 213.75:
-			Description = 'South [color=9aba2fff]SW[/color]'
-			Direction = 'SSW'
-		elif Dir[0] <= 236.25:
-			Description = 'South [color=9aba2fff]West[/color]'
-			Direction = 'SW'
-		elif Dir[0] <= 258.75:
-			Description = 'West [color=9aba2fff]SW[/color]'
-			Direction = 'WSW'
-		elif Dir[0] <= 281.25:
-			Description = 'Due [color=9aba2fff]West[/color]'
-			Direction = 'W'
-		elif Dir[0] <= 303.75:
-			Description = 'West [color=9aba2fff]NW[/color]'
-			Direction = 'WNW'
-		elif Dir[0] <= 326.25:
-			Description = 'North [color=9aba2fff]West[/color]'
-			Direction = 'NW'			
-		elif Dir[0] <= 348.75:
-			Description = 'North [color=9aba2fff]NW[/color]'
-			Direction = 'NNW'
+			Description = '[color=9aba2fff]Calm[/color]'
 		else:
-			Description = 'Due [color=9aba2fff]North[/color]'
-			Direction = 'N'
-			
-		# Cardinal wind direction and description
+			Ind = int(round(Dir[0]/22.5))
+			Direction = Direction[Ind]
+			Description = Description[Ind].split()[0] + ' [color=9aba2fff]' + Description[Ind].split()[1] + '[/color]'
+					
+		# Return cardinal wind direction and description
 		return [Dir[0],Dir[1],Direction,Description]		
 	
 	# SET THE BEAUFORT SCALE WIND SPEED, DESCRIPTION, AND ICON
@@ -1976,7 +1963,7 @@ class CurrentConditions(Screen):
 	# Define Kivy properties required by 'CurrentConditions' 
 	Screen = DictProperty([('Clock','--'),('SunMoon','Sun'),
 						   ('MetSager','Met'),
-						   ('xRainAnim',476),('yRainAnim',3)])
+						   ('xRainAnim',471),('yRainAnim',12)])
 					
 	# INITIALISE 'CurrentConditions' CLASS
 	# --------------------------------------------------------------------------
@@ -2002,8 +1989,8 @@ class CurrentConditions(Screen):
 			return	
 			
 		# Define required animation variables
-		x0 = 3
-		xt = 116
+		x0 = 12
+		xt = 125
 		t = 50
 			
 		# Calculate rain rate animation y position	
@@ -2018,8 +2005,8 @@ class CurrentConditions(Screen):
 			self.Screen['yRainAnim'] = xt				
 
 		# Rain rate animation x position
-		if self.Screen['xRainAnim']-1 == 245:
-			self.Screen['xRainAnim'] = 476
+		if self.Screen['xRainAnim']-1 == 240:
+			self.Screen['xRainAnim'] = 471
 		else:
 			self.Screen['xRainAnim'] -= 1	
 			
