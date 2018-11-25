@@ -33,8 +33,7 @@ install_twisted_reactor()
 from twisted.python import log
 from twisted.internet.protocol import ReconnectingClientFactory
 from twisted.protocols.policies import TimeoutMixin
-from autobahn.twisted.websocket import WebSocketClientProtocol, \
-                                       WebSocketClientFactory
+from autobahn.twisted.websocket import WebSocketClientProtocol,WebSocketClientFactory
 
 # Specifies behaviour of Websocket Client									   
 class WeatherFlowClientProtocol(WebSocketClientProtocol,TimeoutMixin):
@@ -159,7 +158,7 @@ class WeatherFlowPiConsole(App):
 	# --------------------------------------------------------------------------
 	def __init__(self,**kwargs):
 	
-		# Initiate class and force window size if required
+		# Initiate class
 		super(WeatherFlowPiConsole,self).__init__(**kwargs)
 		
 		# Force window size if required
@@ -666,6 +665,9 @@ class WeatherFlowPiConsole(App):
 					if Prcp.strip() in ['mm','mm/hr']:	
 						if cObs[ii-1] == 0:
 							cObs[ii-1] = '{:.0f}'.format(cObs[ii-1])
+						elif cObs[ii-1] < 0.05:
+							cObs[ii-1] = 'Trace'
+							cObs[ii] = ''
 						elif cObs[ii-1] < 10:
 							cObs[ii-1] = '{:.1f}'.format(cObs[ii-1])	
 						else:
@@ -673,6 +675,9 @@ class WeatherFlowPiConsole(App):
 					elif Prcp.strip() in ['"','in/hr','cm/hr','cm']:							
 						if cObs[ii-1] == 0:
 							cObs[ii-1] = '{:.0f}'.format(cObs[ii-1])
+						elif cObs[ii-1] < 0.005:
+							cObs[ii-1] = 'Trace'
+							cObs[ii] = ''
 						elif cObs[ii-1] < 10:
 							cObs[ii-1] = '{:.2f}'.format(cObs[ii-1])
 						elif cObs[ii-1] < 100:
@@ -871,7 +876,7 @@ class WeatherFlowPiConsole(App):
 			URL = Template.format(self.System['SkyID'],Midnight_UTC,Now_UTC,self.System['WFlowKey'])
 			Data = requests.get(URL).json()['obs']
 			Rain = [[item[3],'mm'] if item[3] != None else NaN for item in Data]
-			
+
 			# Calculate daily rain accumulation
 			TodayRain = [sum([x for x,y in Rain]),'mm',sum([x for x,y in Rain]),Now]
 			
@@ -1976,7 +1981,7 @@ class CurrentConditions(Screen):
 	# --------------------------------------------------------------------------
 	def Clock(self,dt):
 		Tz = App.get_running_app().System['tz']
-		self.Screen['Clock'] = datetime.now(Tz).strftime('%a, %d %b %Y\n%H:%M:%S')
+		self.Screen['Clock'] = datetime.now(pytz.utc).astimezone(Tz).strftime('%a, %d %b %Y\n%H:%M:%S')
 		
 	# ANIMATE RAIN RATE ICON
 	# --------------------------------------------------------------------------
@@ -2075,11 +2080,14 @@ class CurrentConditions(Screen):
 		Credits().open()
 		
 # ==============================================================================
-# DEFINE POPUPS
+# DEFINE CREDITS POPUP
 # ==============================================================================	
 class Credits(Popup):
 	pass
 
+# ==============================================================================
+# DEFINE VERSION POPUP
+# ==============================================================================
 class Version(ModalView):
 	pass
 	
