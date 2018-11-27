@@ -1753,7 +1753,7 @@ class WeatherFlowPiConsole(App):
 		self.MetData['Issued'] = datetime.strftime(Issued,'%H:%M')
 		self.MetData['Valid'] = datetime.strftime(Valid,'%H:%M')
 		self.MetData['Temp'] = ['{:.1f}'.format(Temp[0]),Temp[1]]
-		self.MetData['WindDir'] = self.WindDirection(WindDir)[2]
+		self.MetData['WindDir'] = self.CardinalWindDirection(WindDir)[2]
 		self.MetData['WindSpd'] = ['{:.0f}'.format(WindSpd[0]),WindSpd[1]]
 		self.MetData['Precip'] = '{:.0f}'.format(Precip[0])
 		
