@@ -15,11 +15,11 @@
 # this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # ==============================================================================
-# INITIALISE KIVY BACKEND
+# INITIALISE KIVY BACKEND BASED ON CURRENT HARDWARE TYPE
 # ==============================================================================
 import platform
 import os
-if platform.system() == 'Linux':
+if platform.system() == 'Linux' and 'arm' in platform.machine():
 	os.environ['KIVY_GL_BACKEND'] = 'gl'
 elif platform.system() == 'Windows':
 	os.environ['KIVY_GL_BACKEND'] = 'glew'
@@ -95,6 +95,7 @@ from kivy.animation import Animation
 from twisted.internet import reactor,ssl
 from datetime import datetime,date,time,timedelta
 from geopy import distance as geopy
+from packaging import version
 import time as UNIX
 import numpy as np
 import Sager
@@ -281,6 +282,7 @@ class WeatherFlowPiConsole(App):
 		Clock.schedule_once(lambda dt: self.DownloadForecast())
 		Clock.schedule_once(lambda dt: self.WebsocketConnect())
 		Clock.schedule_once(self.SagerForecast)
+		Clock.schedule_once(self.CheckVersion)
 		Clock.schedule_interval(self.UpdateMethods,1.0)
 		Clock.schedule_interval(self.SkyAirStatus,1.0)
 		Clock.schedule_interval(self.SunTransit,1.0)
@@ -1953,7 +1955,49 @@ class WeatherFlowPiConsole(App):
 		if Now.time() == time(0,0,0):
 			self.UpdateSunriseSunset()
 			self.UpdateMoonriseMoonset()
+	
+	# CHECK CURRENT VERSION OF CODE AGAINST LATEST AVAILABLE VERSION
+	# --------------------------------------------------------------------------
+	def CheckVersion(self,dt):
+
+		# Get latest verion tag from Github API
+		header = {'Accept': 'application/vnd.github.v3+json'}
+		Template = 'https://api.github.com/repos/{}/{}/releases/latest'
+		URL = Template.format('peted-davis','WeatherFlow_PiConsole')
+		#Data = requests.get(URL,headers=header).json()
+		self.System['LatestVer'] = 'v1.7' #Data['tag_name']
+
+		# If current version and latest version do not match, open update 
+		# notification
+		if version.parse(self.System['Version']) < version.parse(self.System['LatestVer']):
+			print('Yes')
+			
+			# Check if update notification is already open. Close if required
+			if 'UpdateNotif' in self.System:
+				self.System['UpdateNotif'].dismiss()
 		
+			# Open update notification
+			self.System['UpdateNotif'] = Version()
+			self.System['UpdateNotif'].open()
+		
+		else:
+			pass
+
+		
+		
+		
+
+		# Determine time until next version check
+		#Tz = self.System['tz']
+		#Now = datetime.now(pytz.utc).astimezone(Tz)
+		#Next = Tz.localize(datetime.combine(date.today()+timedelta(days=1),time(0,0,0)))
+		
+		# Schedule next Version Check
+		#Seconds = (Next - Now).total_seconds()
+		Clock.schedule_once(self.CheckVersion,500)
+
+
+	
 # ==============================================================================
 # DEFINE 'WeatherFlowPiConsoleScreen' SCREEN MANAGER
 # ==============================================================================			
@@ -1968,7 +2012,7 @@ class CurrentConditions(Screen):
 	# Define Kivy properties required by 'CurrentConditions' 
 	Screen = DictProperty([('Clock','--'),('SunMoon','Sun'),
 						   ('MetSager','Met'),
-						   ('xRainAnim',471),('yRainAnim',12)])
+						   ('xRainAnim',471),('yRainAnim',11)])
 					
 	# INITIALISE 'CurrentConditions' CLASS
 	# --------------------------------------------------------------------------
@@ -1994,8 +2038,8 @@ class CurrentConditions(Screen):
 			return	
 			
 		# Define required animation variables
-		x0 = 12
-		xt = 125
+		x0 = 11
+		xt = 124
 		t = 50
 			
 		# Calculate rain rate animation y position	
@@ -2088,7 +2132,7 @@ class Credits(Popup):
 # ==============================================================================
 # DEFINE VERSION POPUP
 # ==============================================================================
-class Version(ModalView):
+class Version(Popup):
 	pass
 	
 # ==============================================================================

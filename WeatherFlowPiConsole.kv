@@ -46,8 +46,8 @@ WeatherFlowPiConsoleScreen:
 			halign: 'center'
 			valign: 'center'
 			size_hint: (None,None)
-			size: (264,48)
-			pos: (268,37)
+			size: (262,48)
+			pos: (269,36)
 			color: [0.84,0.84,0.84,1]
 		
 	## ----------------------------------------------------------
@@ -61,8 +61,8 @@ WeatherFlowPiConsoleScreen:
 			size_hint: (None,None)
 			keep_ratio: 0
 			allow_stretch: 1
-			size: (262,218)
-			pos: (2,261)	
+			size: (262,219)
+			pos: (2,259)
 			
 		## CURRENT WEATHER ICON
 		Image:
@@ -824,7 +824,7 @@ WeatherFlowPiConsoleScreen:
 		StencilView:
 			size_hint: (None,None)
 			size: (33,113)
-			pos: (471,125)	
+			pos: (471,124.5)
 			Image:
 				source: 'Icons/RainIntensity/Water.png'
 				size_hint: (None,None)
@@ -844,7 +844,7 @@ WeatherFlowPiConsoleScreen:
 			valign: 'center'
 			size_hint: (None,None)
 			size: (88,35)
-			pos: (269,175)	
+			pos: (270,175)
 			color: [0.84,0.84,0.84,1]
 			
 		## TOTAL YESTERDAY RAINFALL
@@ -858,7 +858,7 @@ WeatherFlowPiConsoleScreen:
 			valign: 'center'
 			size_hint: (None,None)
 			size: (88,35)
-			pos: (356,175)	
+			pos: (357,175)
 			color: [0.84,0.84,0.84,1]			
 		
 		## TOTAL MONTHLY RAINFALL  
@@ -872,7 +872,7 @@ WeatherFlowPiConsoleScreen:
 			valign: 'center'
 			size_hint: (None,None)
 			size: (88,35)
-			pos: (269,115)	
+			pos: (270,115)
 			color: [0.84,0.84,0.84,1]	
 			
 		## TOTAL YEARLY RAINFALL
@@ -886,7 +886,7 @@ WeatherFlowPiConsoleScreen:
 			valign: 'center'
 			size_hint: (None,None)
 			size: (88,35)
-			pos: (356,115)	
+			pos: (357,115)
 			color: [0.84,0.84,0.84,1]	
 		
 	## ----------------------------------------------------------
@@ -901,7 +901,7 @@ WeatherFlowPiConsoleScreen:
 			keep_ratio: 0
 			allow_stretch: 1
 			size: (168,91)
-			pos: (582,96)
+			pos: (582,95)
 		
 		## MAXIMUM AND MINIMUM PRESSURE ON PRESSURE DIAL
 		Label:
@@ -1166,7 +1166,7 @@ WeatherFlowPiConsoleScreen:
 	title: ''
 	separator_height: 0
 	background: 'Background/Credits.png'
-	separator_color: [0,0,0,1]
+	background_color: [0,0,0,0]
     size_hint: (None,None)
     size: (500,400)
 	
@@ -1174,23 +1174,33 @@ WeatherFlowPiConsoleScreen:
 ## NEW VERSION AVAILABLE POPUP
 ## =============================================================================
 <Version>:
-	pos_hint: {'x':0,'y':0}
-	size_hint: (None,None)
-    size: (170,70)
-	BoxLayout:
-		spacing: 0
-		orientation: 'vertical'
-		
+	title: ''
+	separator_height: 0
+	background: 'Background/UpdateNotification.png'
+	background_color: [0,0,0,0]
+	pos_hint: {'x': 269/800, 'y':2/480}
+    size_hint: (None,None)
+    size: (262,82)
+	FloatLayout:
 		Label:
-			text: 'Update Available'
-			size_hint: (1,1/3)
-		Label:
-			text: 'Current Version: ' + app.System['Version'] + '\nLatest Version: ' + app.System['LatestVer'] 
+			text: app.System['Version']
+			font_name: 'Fonts/Helvetica.ttf'
+			font_size: '15sp'
+			text_size: self.size
+			markup: 1
 			halign: 'left'
-			size_hint: (1,2/3)
-		
-	
-
-
-
-
+			valign: 'center'
+			size_hint: (None,None)
+			size: (90,20)
+			pos: (390,43)
+		Label:
+			text: app.System['LatestVer']
+			font_name: 'Fonts/Helvetica.ttf'
+			font_size: '15sp'
+			text_size: self.size
+			markup: 1
+			halign: 'left'
+			valign: 'center'
+			size_hint: (None,None)
+			size: (90,20)
+			pos: (390,23)
