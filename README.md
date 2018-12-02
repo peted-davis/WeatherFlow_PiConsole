@@ -129,7 +129,7 @@ y (confirms you want to install dependencies)
 ### Step 5: Install required Python modules
 
 ```
-sudo python3 -m pip install autobahn[twisted] pytz pyasn1-modules service_identity geopy ephem Cython
+sudo python3 -m pip install autobahn[twisted] pytz pyasn1-modules service_identity geopy ephem Cython numpy packaging
 ```
 
 ### Step 6: Install Kivy Python library - this make take some time

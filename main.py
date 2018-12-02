@@ -1964,13 +1964,12 @@ class WeatherFlowPiConsole(App):
 		header = {'Accept': 'application/vnd.github.v3+json'}
 		Template = 'https://api.github.com/repos/{}/{}/releases/latest'
 		URL = Template.format('peted-davis','WeatherFlow_PiConsole')
-		#Data = requests.get(URL,headers=header).json()
-		self.System['LatestVer'] = 'v1.7' #Data['tag_name']
+		Data = requests.get(URL,headers=header).json()
+		self.System['LatestVer'] = Data['tag_name']
 
 		# If current version and latest version do not match, open update 
 		# notification
 		if version.parse(self.System['Version']) < version.parse(self.System['LatestVer']):
-			print('Yes')
 			
 			# Check if update notification is already open. Close if required
 			if 'UpdateNotif' in self.System:
@@ -1979,25 +1978,13 @@ class WeatherFlowPiConsole(App):
 			# Open update notification
 			self.System['UpdateNotif'] = Version()
 			self.System['UpdateNotif'].open()
-		
-		else:
-			pass
 
-		
-		
-		
-
-		# Determine time until next version check
-		#Tz = self.System['tz']
-		#Now = datetime.now(pytz.utc).astimezone(Tz)
-		#Next = Tz.localize(datetime.combine(date.today()+timedelta(days=1),time(0,0,0)))
-		
 		# Schedule next Version Check
-		#Seconds = (Next - Now).total_seconds()
-		Clock.schedule_once(self.CheckVersion,500)
-
-
-	
+		Tz = self.System['tz']
+		Now = datetime.now(pytz.utc).astimezone(Tz)
+		Next = Tz.localize(datetime.combine(date.today()+timedelta(days=1),time(0,0,0)))
+		Clock.schedule_once(self.CheckVersion,(Next - Now).total_seconds())
+		
 # ==============================================================================
 # DEFINE 'WeatherFlowPiConsoleScreen' SCREEN MANAGER
 # ==============================================================================			
