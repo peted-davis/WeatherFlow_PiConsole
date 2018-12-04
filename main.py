@@ -121,6 +121,18 @@ def CircularMean(angles):
 	r = np.nanmean(np.exp(1j*angles))
 	return np.angle(r, deg=True) % 360
 
+# VERIFY IF DATA IS VALID JSON STRING
+# ------------------------------------------------------------------------------
+def VerifyJSON(Data):
+	if not Data.ok:
+		return False
+	try:
+		Data.json()
+	except ValueError:
+		return False
+	else:
+		return True
+
 # ==============================================================================
 # DEFINE 'WeatherFlowPiConsole' APP CLASS
 # ==============================================================================
@@ -1863,9 +1875,12 @@ class WeatherFlowPiConsole(App):
 		header = {'X-API-Key':self.System['CheckWXKey']}
 		Template = 'https://api.checkwx.com/metar/lat/{}/lon/{}/decoded'
 		URL = Template.format(self.System['Lat'],self.System['Lon'])
-		Data = requests.get(URL,headers=header).json()
-		self.Sager['METAR'] = Data['data'][0]
-	
+		Data = requests.get(URL,headers=header)
+		if VerifyJSON(Data) and 'data' in Data.json():
+			self.Sager['METAR'] = Data.json()['data'][0]
+		else:
+			return
+
 		# Calculate Sager Weathercaster Forecast
 		self.Sager['Dial'] = Sager.DialSetting(self.Sager)
 		self.Sager['Forecast'] = Sager.Forecast(self.Sager['Dial'])

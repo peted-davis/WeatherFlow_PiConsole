@@ -1178,6 +1178,7 @@ WeatherFlowPiConsoleScreen:
 	separator_height: 0
 	background: 'Background/UpdateNotification.png'
 	background_color: [0,0,0,0]
+	auto_dismiss: False
 	pos_hint: {'x': 269/800, 'y':2/480}
     size_hint: (None,None)
     size: (262,82)
@@ -1204,3 +1205,10 @@ WeatherFlowPiConsoleScreen:
 			size_hint: (None,None)
 			size: (90,20)
 			pos: (390,23)
+		Button:
+			size_hint: (None,None)
+			size: (20,20)
+			pos: (508,61)
+			background_normal: 'Buttons/Exit.png'
+			background_down: 'Buttons/Exit_Pressed.png'
+			on_release: root.dismiss()
