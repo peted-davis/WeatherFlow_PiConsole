@@ -25,6 +25,7 @@ WeatherFlowPiConsoleScreen:
 ## ==============================================================
 ## CURRENT CONDITIONS SCREEN
 ## ==============================================================
+#:import Factory kivy.factory.Factory
 <CurrentConditions>: 
 	name: 'CurrentConditions'
 	orientation: 'vertical' 
@@ -1114,50 +1115,26 @@ WeatherFlowPiConsoleScreen:
 	## ----------------------------------------------------------
 	FloatLayout:
 		Button:
-			text: 'Forecast'
 			size_hint: (None,None)
 			size: (90,30)
 			pos: (2,0)
-			on_press: root.SwitchMetOfficeSager(self)
-			on_release: root.ButtonRelease(self)
-			Image:
-				source: 'Buttons/Forecast.png'    
-				id: Forecast
-				size_hint: (None,None)
-				keep_ratio: 0
-				allow_stretch: 1
-				size: self.parent.size
-				pos: self.parent.pos
+			background_normal: 'Buttons/Forecast.png'
+			background_down: 'Buttons/Forecast_Pressed.png'
+			on_press: root.SwitchPanel(self,'MetSager')
 		Button:
-			text: 'SunMoon'
 			size_hint: (None,None)
 			size: (100,30)
 			pos: (107,0)
-			on_press: root.SwitchSunMoon(self)
-			on_release: root.ButtonRelease(self)
-			Image:
-				source: 'Buttons/SunMoon.png'     
-				id: SunMoon
-				size_hint: (None,None)
-				keep_ratio: 0
-				allow_stretch: 1
-				size: self.parent.size
-				pos: self.parent.pos	
+			background_normal: 'Buttons/SunMoon.png'
+			background_down: 'Buttons/SunMoon_Pressed.png'
+			on_press: root.SwitchPanel(self,'SunMoon')
 		Button:
-			text: 'Credits'
 			size_hint: (None,None)
 			size: (81,30)
-			pos: (453,0)	
-			on_press: root.ShowCredits(self)
-			on_release: root.ButtonRelease(self)		
-			Image:
-				source: 'Buttons/Credits.png'  
-				id: Credits
-				size_hint: (None,None)
-				keep_ratio: 0
-				allow_stretch: 1
-				size: self.parent.size
-				pos: self.parent.pos			
+			pos: (453,0)
+			background_normal: 'Buttons/Credits.png'
+			background_down: 'Buttons/Credits_Pressed.png'
+			on_press: Factory.Credits().open()
 
 ## =============================================================================
 ## CREDITS POPUP

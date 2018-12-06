@@ -2060,71 +2060,33 @@ class CurrentConditions(Screen):
 			self.Screen['xRainAnim'] = 471
 		else:
 			self.Screen['xRainAnim'] -= 1	
-			
-	# SWITCH BETWEEN SUNRISE/SUNSET AND MOON DATA
-	# --------------------------------------------------------------------------		
-	def SwitchSunMoon(self,instance):
-	
-		# Highlight Sun/Moon button press
-		self.ButtonPress(instance.text)
-	
-		# Switch between Sun and Moon screens
-		if self.Screen['SunMoon'] == 'Sun':
-			self.ids.Sunrise.opacity = 0
-			self.ids.Moon.opacity = 1
-			self.Screen['SunMoon'] = 'Moon'
-		else:
-			self.ids.Sunrise.opacity = 1
-			self.ids.Moon.opacity = 0		
-			self.Screen['SunMoon'] = 'Sun'	
-			
-	# SWITCH BETWEEN SUNRISE/SUNSET AND MOOD DATA
+
+	# SWITCH BETWEEN PANELS BASED ON USER INPUT
 	# --------------------------------------------------------------------------
-	def SwitchMetOfficeSager(self,instance):
+	def SwitchPanel(self,Instance,Panel):
+
+		# Switch between Sunrise/Sunset and Moonrise/Moonset panels
+		if Panel == 'SunMoon':
+			if self.Screen['SunMoon'] == 'Sun':
+				self.ids.Sunrise.opacity = 0
+				self.ids.Moon.opacity = 1
+				self.Screen['SunMoon'] = 'Moon'
+			else:
+				self.ids.Sunrise.opacity = 1
+				self.ids.Moon.opacity = 0
+				self.Screen['SunMoon'] = 'Sun'
 	
-		# Highlight Sun/Moon button press
-		self.ButtonPress(instance.text)
-	
-		# Switch between Sun and Moon screens
-		if self.Screen['MetSager'] == 'Met':
-			self.ids.MetOffice.opacity = 0
-			self.ids.Sager.opacity = 1
-			self.Screen['MetSager'] = 'Sager'
-		else:
-			self.ids.MetOffice.opacity = 1
-			self.ids.Sager.opacity = 0		
-			self.Screen['MetSager'] = 'Met'			
-	
-	# HIGHLIGHT BUTTON WHEN PRESSED
-	# --------------------------------------------------------------------------
-	def ButtonPress(self,ID):
-		if ID == 'Forecast':
-			self.ids.Forecast.source = 'Buttons/Forecast_Pressed.png'
-		elif ID == 'SunMoon':
-			self.ids.SunMoon.source = 'Buttons/SunMoon_Pressed.png'
-		elif ID == 'Credits':
-			self.ids.Credits.source = 'Buttons/Credits_Pressed.png'
-		
-	# REMOVE BUTTON HIGHLIGHTING WHEN RELEASED
-	# --------------------------------------------------------------------------
-	def ButtonRelease(self,instance):
-		if instance.text == 'Forecast':
-			self.ids.Forecast.source = 'Buttons/Forecast.png'
-		elif instance.text == 'SunMoon':
-			self.ids.SunMoon.source = 'Buttons/SunMoon.png'
-		elif instance.text == 'Credits':
-			self.ids.Credits.source = 'Buttons/Credits.png'
-	
-	# SHOW CREDITS POPUP 
-	# --------------------------------------------------------------------------
-	def ShowCredits(self,instance):
-	
-		# Highlight Credits button press
-		self.ButtonPress(instance.text)
-		
-		# Open Credits popup
-		Credits().open()
-		
+		# Switch between MetOffice and Sager Forecast panels
+		elif Panel == 'MetSager':
+			if self.Screen['MetSager'] == 'Met':
+				self.ids.MetOffice.opacity = 0
+				self.ids.Sager.opacity = 1
+				self.Screen['MetSager'] = 'Sager'
+			else:
+				self.ids.MetOffice.opacity = 1
+				self.ids.Sager.opacity = 0
+				self.Screen['MetSager'] = 'Met'
+
 # ==============================================================================
 # DEFINE CREDITS POPUP
 # ==============================================================================	
