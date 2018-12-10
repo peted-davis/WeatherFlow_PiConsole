@@ -286,17 +286,22 @@ class WeatherFlowPiConsole(App):
 			else:
 				self.System['ForecastLocn'] = ''
 									
-		# Initialise Sunrise/sunset and Moonrise/moonset times
+		# Initialise Sunrise and Sunset time, Moonrise andMoonset time, and 
+		# MetOffice or DarkSky weather forecast data
 		self.SunriseSunset()
 		self.MoonriseMoonset()
+		self.DownloadForecast()
 
-		# Define Kivy loop schedule
-		Clock.schedule_once(lambda dt: self.DownloadForecast())
-		Clock.schedule_once(lambda dt: self.WebsocketConnect())
+		# Initialise Sager Weathercaster forecast, and check for latest version
 		Clock.schedule_once(self.SagerForecast)
 		Clock.schedule_once(self.CheckVersion)
-		Clock.schedule_interval(self.UpdateMethods,1.0)
+
+		# Initialise websocket connection
+		self.WebsocketConnect()
+
+		# Define Kivy loop schedule
 		Clock.schedule_interval(self.SkyAirStatus,1.0)
+		Clock.schedule_interval(self.UpdateMethods,1.0)
 		Clock.schedule_interval(self.SunTransit,1.0)
 		Clock.schedule_interval(self.MoonPhase,1.0)
 		
@@ -679,7 +684,7 @@ class WeatherFlowPiConsole(App):
 					if Prcp.strip() in ['mm','mm/hr']:	
 						if cObs[ii-1] == 0:
 							cObs[ii-1] = '{:.0f}'.format(cObs[ii-1])
-						elif cObs[ii-1] < 0.05:
+						elif cObs[ii-1] < 0.1:
 							cObs[ii-1] = 'Trace'
 							cObs[ii] = ''
 						elif cObs[ii-1] < 10:
@@ -689,7 +694,7 @@ class WeatherFlowPiConsole(App):
 					elif Prcp.strip() in ['"','in/hr','cm/hr','cm']:							
 						if cObs[ii-1] == 0:
 							cObs[ii-1] = '{:.0f}'.format(cObs[ii-1])
-						elif cObs[ii-1] < 0.005:
+						elif cObs[ii-1] < 0.01:
 							cObs[ii-1] = 'Trace'
 							cObs[ii] = ''
 						elif cObs[ii-1] < 10:
@@ -1955,18 +1960,15 @@ class WeatherFlowPiConsole(App):
 				self.ExtractDarkSkyForecast()
 			self.MetData['Time'] = Now
 
-		# If app is initialising or once sunset has passed, calculate new 
-		# sunrise/sunset times
+		# Once sunset has passed, calculate new sunrise/sunset times
 		if Now > self.SunData['Sunset'][0]:
 			self.SunriseSunset()
 			
-		# If app is initialising or once moonset has passed, calculate new 
-		# moonrise/moonset times
+		# Once moonset has passed, calculate new moonrise/moonset times
 		if Now > self.MoonData['Moonset'][0]:
 			self.MoonriseMoonset()	
 
-		# At midnight, update Sunset, Sunrise, Moonrise and Moonset Kivy Label 
-		# binds
+		# At midnight, update Sunset, Sunrise, Moonrise and Moonset Kivy Labels
 		if Now.time() == time(0,0,0):
 			self.UpdateSunriseSunset()
 			self.UpdateMoonriseMoonset()
