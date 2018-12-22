@@ -18,9 +18,10 @@
 ## SCREEN MANAGER
 ## ==============================================================
 #:import NoTransition kivy.uix.screenmanager.NoTransition	
-WeatherFlowPiConsoleScreen:
+ScreenManager:
 	transition: NoTransition()
     CurrentConditions:
+	UserSettings:
 		
 ## ==============================================================
 ## CURRENT CONDITIONS SCREEN
@@ -1129,13 +1130,33 @@ WeatherFlowPiConsoleScreen:
 			background_down: 'Buttons/SunMoon_Pressed.png'
 			on_press: root.SwitchPanel(self,'SunMoon')
 		Button:
+			text: 'settings'
+			size_hint: (None,None)
+			on_press: app.root.current = 'UserSettings'
+			size: (81,30)
+			pos: (300,0)		
+		Button:
 			size_hint: (None,None)
 			size: (81,30)
 			pos: (453,0)
 			background_normal: 'Buttons/Credits.png'
 			background_down: 'Buttons/Credits_Pressed.png'
 			on_press: Factory.Credits().open()
-
+			
+## =============================================================================
+## UserSettings SCREEN
+## =============================================================================			
+<UserSettings>: 
+	name: 'UserSettings'
+	orientation: 'vertical'
+	FloatLayout:
+		Button:
+			text: 'current'
+			size_hint: (None,None)
+			on_press: app.root.current = 'CurrentConditions'
+			size: (81,30)
+			pos: (300,0)
+	
 ## =============================================================================
 ## CREDITS POPUP
 ## =============================================================================

@@ -98,7 +98,7 @@ from geopy import distance as geopy
 from packaging import version
 import time as UNIX
 import numpy as np
-import Sager
+import sager
 import pytz
 import math
 import bisect
@@ -136,7 +136,7 @@ def VerifyJSON(Data):
 # ==============================================================================
 # DEFINE 'WeatherFlowPiConsole' APP CLASS
 # ==============================================================================
-class WeatherFlowPiConsole(App):
+class wfpiconsole(App):
 	
 	# Define Kivy properties required for display in 'WeatherFlowPiConsole.kv' 
 	System = DictProperty([('ForecastLocn','--'),('Units',{}),('BaromLim','--')])
@@ -167,12 +167,12 @@ class WeatherFlowPiConsole(App):
 							 ('FullMoon','--'),('Phase','---')])	
 	MetDict = DictProperty()						
     
-	# INITIALISE 'WeatherFlowPiConsole' CLASS
+	# INITIALISE 'WeatherFlowPiConsole' APP CLASS
 	# --------------------------------------------------------------------------
 	def __init__(self,**kwargs):
 	
 		# Initiate class
-		super(WeatherFlowPiConsole,self).__init__(**kwargs)
+		super(wfpiconsole,self).__init__(**kwargs)
 		
 		# Force window size if required
 		if 'arm' not in platform.machine():
@@ -180,7 +180,7 @@ class WeatherFlowPiConsole(App):
 	
 		# Parse variables from WeatherPi configuration file
 		config = configparser.ConfigParser()
-		config.read('WeatherFlowPiConsole.ini')
+		config.read('wfpiconsole.ini')
 		
 		# Assign configuration variables to Kivy properties
 		self.System['WFlowKey'] = config['System']['WFlowKey']
@@ -304,11 +304,11 @@ class WeatherFlowPiConsole(App):
 		Clock.schedule_interval(self.UpdateMethods,1.0)
 		Clock.schedule_interval(self.SunTransit,1.0)
 		Clock.schedule_interval(self.MoonPhase,1.0)
-		
+
 	# POINT 'WeatherFlowPiConsole' APP CLASS TO ASSOCIATED .kv FILE
 	# --------------------------------------------------------------------------
-	def build(self):
-		return Builder.load_file('WeatherFlowPiConsole.kv')
+	#def build(self):
+	#	return Builder.load_file('wfpiconsole.kv')
 	
 	# CONNECT TO THE WEATHER FLOW WEBSOCKET SERVER
 	# --------------------------------------------------------------------------
@@ -1887,8 +1887,8 @@ class WeatherFlowPiConsole(App):
 			return
 
 		# Calculate Sager Weathercaster Forecast
-		self.Sager['Dial'] = Sager.DialSetting(self.Sager)
-		self.Sager['Forecast'] = Sager.Forecast(self.Sager['Dial'])
+		self.Sager['Dial'] = sager.DialSetting(self.Sager)
+		self.Sager['Forecast'] = sager.Forecast(self.Sager['Dial'])
 		self.Sager['Issued'] = datetime.now(self.System['tz']).strftime('%H:%M')
 		
 		# Determine time until generation of next Sager Weathercaster forecast
@@ -2003,12 +2003,6 @@ class WeatherFlowPiConsole(App):
 		Clock.schedule_once(self.CheckVersion,(Next - Now).total_seconds())
 		
 # ==============================================================================
-# DEFINE 'WeatherFlowPiConsoleScreen' SCREEN MANAGER
-# ==============================================================================			
-class WeatherFlowPiConsoleScreen(ScreenManager):
-    pass
-
-# ==============================================================================
 # DEFINE 'CurrentConditions' SCREEN 
 # ==============================================================================
 class CurrentConditions(Screen):
@@ -2090,6 +2084,12 @@ class CurrentConditions(Screen):
 				self.Screen['MetSager'] = 'Met'
 
 # ==============================================================================
+# DEFINE 'Settings' SCREEN
+# ==============================================================================	
+class UserSettings(Screen):
+	pass
+	
+# ==============================================================================
 # DEFINE CREDITS POPUP
 # ==============================================================================	
 class Credits(Popup):
@@ -2099,11 +2099,11 @@ class Credits(Popup):
 # DEFINE VERSION POPUP
 # ==============================================================================
 class Version(Popup):
-	pass
+	pass			
 	
 # ==============================================================================
 # RUN WeatherFlowPiConsole
 # ==============================================================================
 if __name__ == '__main__':
 	log.startLogging(sys.stdout)
-	WeatherFlowPiConsole().run()
+	wfpiconsole().run()
