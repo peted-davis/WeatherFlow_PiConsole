@@ -25,6 +25,16 @@ elif platform.system() == 'Windows':
 	os.environ['KIVY_GL_BACKEND'] = 'glew'
 	
 # ==============================================================================
+# CREATE OR UPDATE wfpiconsole.ini FILE
+# ==============================================================================
+from lib import configCreate
+from pathlib import Path
+if not Path('wfpiconsole.ini').is_file():
+	configCreate.create_ini()
+else:
+	configCreate.update_ini()
+	
+# ==============================================================================
 # INITIALISE KIVY TWISTED WEBSOCKET CLIENT
 # ==============================================================================
 from kivy.support import install_twisted_reactor
@@ -81,7 +91,6 @@ class WeatherFlowClientFactory(WebSocketClientFactory,ReconnectingClientFactory)
 # ==============================================================================
 # IMPORT REQUIRED MODULES
 # ==============================================================================
-# Import required modules
 from kivy.app import App
 from kivy.lang import Builder
 from kivy.factory import Factory
@@ -92,21 +101,32 @@ from kivy.uix.modalview import ModalView
 from kivy.properties import StringProperty,DictProperty,NumericProperty
 from kivy.clock import Clock
 from kivy.animation import Animation
+from kivy.config import ConfigParser
+from kivy.uix.settings import SettingsWithSidebar
 from twisted.internet import reactor,ssl
 from datetime import datetime,date,time,timedelta
 from geopy import distance as geopy
 from packaging import version
+from lib import sager
 import time as UNIX
 import numpy as np
-import sager
 import pytz
 import math
 import bisect
 import json
 import requests
 import ephem
-import configparser
 import sys
+
+from kivy.uix.settings import SettingOptions 
+from kivy.uix.gridlayout import GridLayout 
+from kivy.uix.scrollview import ScrollView 
+from kivy.uix.widget import Widget 
+from kivy.uix.togglebutton import ToggleButton 
+from kivy.uix.settings import SettingSpacer 
+from kivy.uix.button import Button 
+from kivy.metrics import dp 
+from kivy.uix.popup import Popup
 
 # ==============================================================================
 # DEFINE GLOBAL FUNCTIONS AND VARIABLES
@@ -137,7 +157,7 @@ def VerifyJSON(Data):
 # DEFINE 'WeatherFlowPiConsole' APP CLASS
 # ==============================================================================
 class wfpiconsole(App):
-	
+
 	# Define Kivy properties required for display in 'WeatherFlowPiConsole.kv' 
 	System = DictProperty([('ForecastLocn','--'),('Units',{}),('BaromLim','--')])
 	MetData = DictProperty([('Temp','--'),('Precip','--'),('WindSpd','--'),
@@ -167,7 +187,7 @@ class wfpiconsole(App):
 							 ('FullMoon','--'),('Phase','---')])	
 	MetDict = DictProperty()						
     
-	# INITIALISE 'WeatherFlowPiConsole' APP CLASS
+	# INITIALISE 'WeatherFlowPiConsole' CLASS
 	# --------------------------------------------------------------------------
 	def __init__(self,**kwargs):
 	
@@ -178,45 +198,39 @@ class wfpiconsole(App):
 		if 'arm' not in platform.machine():
 			Window.size = (800,480)
 	
-		# Parse variables from WeatherPi configuration file
-		config = configparser.ConfigParser()
-		config.read('wfpiconsole.ini')
+		# Parse variables from wfpiconsole.ini configuration file
+		config = ConfigParser()
+		config.read('wfpiconsole.ini')		
 		
 		# Assign configuration variables to Kivy properties
-		self.System['WFlowKey'] = config['System']['WFlowKey']
+		self.System['WFlowKey'] = config['System']['WFKey']
 		self.System['Version'] = config['System']['Version']
-		self.System['GeoNamesKey'] = config['User']['GeoNamesKey']
-		self.System['MetOfficeKey'] = config['User']['MetOfficeKey']
-		self.System['DarkSkyKey'] = config['User']['DarkSkyKey']
-		self.System['CheckWXKey'] = config['User']['CheckWXKey']
-		self.System['StationID'] = config['User']['StationID']
-		self.System['AirName'] = config['User']['AirName']
-		self.System['SkyName'] = config['User']['SkyName']
+		self.System['GeoNamesKey'] = config['Keys']['GeoNames']
+		self.System['MetOfficeKey'] = config['Keys']['MetOffice']
+		self.System['DarkSkyKey'] = config['Keys']['DarkSky']
+		self.System['CheckWXKey'] = config['Keys']['CheckWX']
+		self.System['StationID'] = config['Station']['StationID']
+		self.System['OutdoorID'] = config['Station']['OutdoorID']
+		self.System['IndoorID'] = config['Station']['IndoorID']
+		self.System['SkyID'] = config['Station']['SkyID']
 
-		# Determine Sky and AIR IDs and extract height above ground
+		# Determine height above ground of the outdoor, indoor, and Sky modules
 		Template = 'https://swd.weatherflow.com/swd/rest/stations/{}?api_key={}'
 		URL = Template.format(self.System['StationID'],self.System['WFlowKey'])
-		Data = requests.get(URL).json()
-		Devices = Data['stations'][0]['devices']
+		Station = requests.get(URL).json()
+		Devices = Station['stations'][0]['devices']
 		for Dev in Devices:
 			if 'device_type' in Dev:
-				Type = Dev['device_type']
-				if Type == 'AR' and not 'AirID' in self.System:
-					Name = Dev['device_meta']['name']
-					if Name == self.System['AirName'] or not self.System['AirName']:
-						self.System['AirID'] = str(Dev['device_id'])
-						self.System['AirHeight'] = Dev['device_meta']['agl']
-				elif Type == 'SK' and not 'SkyID' in self.System:
-					Name = Dev['device_meta']['name']
-					if Name == self.System['SkyName'] or not self.System['SkyName']:
-						self.System['SkyID'] = str(Dev['device_id'])
-						self.System['SkyHeight'] = Dev['device_meta']['agl']
+				if str(Dev['device_id']) == self.System['OutdoorID']:
+					self.System['OutdoorHeight'] = Dev['device_meta']['agl']
+				elif str(Dev['device_id']) == self.System['SkyID']:
+					self.System['SkyHeight'] = Dev['device_meta']['agl']
 					
 		# Determine Station latitude/longitude, elevation, and timezone
-		self.System['Lat'] = Data['stations'][0]['latitude']
-		self.System['Lon'] = Data['stations'][0]['longitude']
-		self.System['tz'] = pytz.timezone(Data['stations'][0]['timezone'])
-		self.System['StnElev'] = Data['stations'][0]['station_meta']['elevation']
+		self.System['Lat'] = Station['stations'][0]['latitude']
+		self.System['Lon'] = Station['stations'][0]['longitude']
+		self.System['tz'] = pytz.timezone(Station['stations'][0]['timezone'])
+		self.System['StnElev'] = Station['stations'][0]['station_meta']['elevation']
 		
 		# Determine Station units
 		Template = 'https://swd.weatherflow.com/swd/rest/observations/station/{}?api_key={}'
@@ -304,12 +318,20 @@ class wfpiconsole(App):
 		Clock.schedule_interval(self.UpdateMethods,1.0)
 		Clock.schedule_interval(self.SunTransit,1.0)
 		Clock.schedule_interval(self.MoonPhase,1.0)
-
-	# POINT 'WeatherFlowPiConsole' APP CLASS TO ASSOCIATED .kv FILE
+		
+		self.Config = ConfigParser()
+		self.Config.optionxform = str
+		self.Config.read('wfpiconsole.ini')
+		self.settings_cls = SettingsWithSidebar
+		
+	# BUILD SETTINGS SCREEN
 	# --------------------------------------------------------------------------
-	#def build(self):
-	#	return Builder.load_file('wfpiconsole.kv')
-	
+	def build_settings(self,settings):
+		settings.register_type('scrolloptions', SettingScrollOptions)
+		self.use_kivy_settings  =  False
+		jsondata = configCreate.settings_json()
+		settings.add_json_panel('Display',self.Config,data=jsondata)	
+		
 	# CONNECT TO THE WEATHER FLOW WEBSOCKET SERVER
 	# --------------------------------------------------------------------------
 	def WebsocketConnect(self):
@@ -335,15 +357,16 @@ class wfpiconsole(App):
 		
 		# Initialise data streaming upon connection of websocket
 		if Type == 'connection_opened':	
-			self.WebsocketSendMessage('{"type":"listen_start",' +
-			                           ' "device_id":' + self.System['SkyID'] + ',' + 
-									   ' "id":"Sky"}')
-			self.WebsocketSendMessage('{"type":"listen_rapid_start",' +
-			                           ' "device_id":' + self.System['SkyID'] + ',' +
-									   ' "id":"RapidSky"}')
-			self.WebsocketSendMessage('{"type":"listen_start",' +
-			                           ' "device_id":' + self.System['AirID'] + ',' +
-									   ' "id":"Air"}')
+			pass
+#			self.WebsocketSendMessage('{"type":"listen_start",' +
+#			                           ' "device_id":' + self.System['SkyID'] + ',' + 
+#									   ' "id":"Sky"}')
+#			self.WebsocketSendMessage('{"type":"listen_rapid_start",' +
+#			                           ' "device_id":' + self.System['SkyID'] + ',' +
+#									   ' "id":"RapidSky"}')
+#			self.WebsocketSendMessage('{"type":"listen_start",' +
+#			                           ' "device_id":' + self.System['OutdoorID'] + ',' +
+#									   ' "id":"Outdoor"}')
 			
 		# Extract observations from obs_Sky websocket message
 		elif Type == 'obs_sky':
@@ -824,7 +847,7 @@ class wfpiconsole(App):
 		Rd = 287.05
 		GammaS = 0.0065
 		g = 9.80665
-		Elev = self.System['StnElev'] + self.System['AirHeight']
+		Elev = self.System['StnElev'] + self.System['OutdoorHeight']
 		T0 = 288.15
 		
 		# Calculate sea level pressure
@@ -843,7 +866,7 @@ class wfpiconsole(App):
 
 		# Download pressure data for last three hours
 		Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&api_key={}'
-		URL = Template.format(self.System['AirID'],TimeStart,TimeEnd,self.System['WFlowKey'])
+		URL = Template.format(self.System['OutdoorID'],TimeStart,TimeEnd,self.System['WFlowKey'])
 		Data = requests.get(URL).json()['obs']
 
 		# Extract pressure from three hours ago
@@ -1101,7 +1124,7 @@ class wfpiconsole(App):
 			# Download data from current day using Weatherflow API and extract 
 			# temperature, pressure and time data
 			Template = ('https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&api_key={}')
-			URL = Template.format(self.System['AirID'],Midnight_UTC,Now_UTC,self.System['WFlowKey'])
+			URL = Template.format(self.System['OutdoorID'],Midnight_UTC,Now_UTC,self.System['WFlowKey'])
 			Data = requests.get(URL).json()['obs']
 			Time = [[item[0],'s'] if item[0] != None else NaN for item in Data]
 			Temp = [[item[2],'c'] if item[2] != None else [NaN,'c'] for item in Data]
@@ -1231,8 +1254,8 @@ class wfpiconsole(App):
 	def ComfortLevel(self,FeelsLike):		
 	
 		# Skip during initialisation
-		if FeelsLike == '--':
-			return
+		if math.isnan(FeelsLike[0]):
+			return ['-','-']
 		
 		# Define comfort level text and icon
 		if FeelsLike[0] < -4:
@@ -1830,7 +1853,7 @@ class wfpiconsole(App):
 		# Download AIR data from current day using Weatherflow API 
 		# and extract observation times, pressure and temperature
 		Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&api_key={}'
-		URL = Template.format(self.System['AirID'],Now-Hours_6,Now,self.System['WFlowKey'])
+		URL = Template.format(self.System['OutdoorID'],Now-Hours_6,Now,self.System['WFlowKey'])
 		Air = {}
 		Air['obs'] = requests.get(URL).json()['obs']
 		Air['Time'] = [item[0] if item[0] != None else NaN for item in Air['obs']]
@@ -2084,12 +2107,6 @@ class CurrentConditions(Screen):
 				self.Screen['MetSager'] = 'Met'
 
 # ==============================================================================
-# DEFINE 'Settings' SCREEN
-# ==============================================================================	
-class UserSettings(Screen):
-	pass
-	
-# ==============================================================================
 # DEFINE CREDITS POPUP
 # ==============================================================================	
 class Credits(Popup):
@@ -2099,10 +2116,47 @@ class Credits(Popup):
 # DEFINE VERSION POPUP
 # ==============================================================================
 class Version(Popup):
-	pass			
-	
+	pass	
+
+
+class SettingScrollOptions(SettingOptions):
+
+	def _create_popup(self, instance):
+		
+		#global oORCA
+		# create the popup
+
+		content         = GridLayout(cols=1, spacing='5dp')
+		scrollview      = ScrollView(do_scroll_x=False)
+		scrollcontent   = GridLayout(cols=1,  spacing='5dp', size_hint=(1, None))
+		#scrollcontent.bind(minimum_height=scrollcontent.setter('height'))
+		self.modalview  = ModalView(size_hint=(0.5, 0.5), auto_dismiss=False, padding=[0,0])
+		self.modalview.add_widget(content)
+		
+		
+		#we need to open the popup first to get the metrics 
+		self.modalview.open()
+		#Add some space on top
+		#content.add_widget(Widget(size_hint_y=None, height=dp(2)))
+		# add all the options
+		#uid = str(self.uid)
+		#for option in self.options:
+		#	state = 'down' if option == self.value else 'normal'
+		#	btn = ToggleButton(text=option, state=state, group=uid, size_hint=(None,None), width=self.modalview.width,  height=dp(50))
+		#	btn.bind(on_release=self._set_option)
+		#	scrollcontent.add_widget(btn)
+
+		# finally, add a cancel button to return on the previous panel
+		scrollview.add_widget(scrollcontent)
+		content.add_widget(scrollview)
+		content.add_widget(SettingSpacer())
+		btn = Button(text='Cancel', size=(self.modalview.width, dp(50)),size_hint=(0.9, None))
+		btn.bind(on_release=self.modalview.dismiss)
+		content.add_widget(btn)		
+		#print(scrollcontent.height)
+		
 # ==============================================================================
-# RUN WeatherFlowPiConsole
+# RUN APP
 # ==============================================================================
 if __name__ == '__main__':
 	log.startLogging(sys.stdout)

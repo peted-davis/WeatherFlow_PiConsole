@@ -21,7 +21,6 @@
 ScreenManager:
 	transition: NoTransition()
     CurrentConditions:
-	UserSettings:
 		
 ## ==============================================================
 ## CURRENT CONDITIONS SCREEN
@@ -1132,7 +1131,8 @@ ScreenManager:
 		Button:
 			text: 'settings'
 			size_hint: (None,None)
-			on_press: app.root.current = 'UserSettings'
+			##on_press: app.root.current = 'UserSettings'
+			on_press: app.open_settings() 
 			size: (81,30)
 			pos: (300,0)		
 		Button:
@@ -1142,20 +1142,6 @@ ScreenManager:
 			background_normal: 'Buttons/Credits.png'
 			background_down: 'Buttons/Credits_Pressed.png'
 			on_press: Factory.Credits().open()
-			
-## =============================================================================
-## UserSettings SCREEN
-## =============================================================================			
-<UserSettings>: 
-	name: 'UserSettings'
-	orientation: 'vertical'
-	FloatLayout:
-		Button:
-			text: 'current'
-			size_hint: (None,None)
-			on_press: app.root.current = 'CurrentConditions'
-			size: (81,30)
-			pos: (300,0)
 	
 ## =============================================================================
 ## CREDITS POPUP
@@ -1210,3 +1196,37 @@ ScreenManager:
 			background_normal: 'Buttons/Exit.png'
 			background_down: 'Buttons/Exit_Pressed.png'
 			on_release: root.dismiss()
+				
+## =============================================================================
+## SETTINGS SCREEN
+## =============================================================================			
+<MenuSidebar>:
+    size_hint_x: None
+    width: '150dp'
+    buttons_layout: menu
+    close_button: button
+    GridLayout:
+        pos: root.pos
+        cols: 1
+        id: menu
+        orientation: 'vertical'
+        padding: 5
+        canvas.after:
+            Color:
+                rgb: 1, 1, 1
+            Rectangle:
+                pos: self.right - 1, self.y+5
+                size: 1, self.height-10
+    Button:
+        text: 'Close'
+        id: button
+        size_hint: None, None
+        width: root.width - dp(20)
+        height: max(50, self.texture_size[1] + dp(20))
+        pos: root.x + dp(10), root.y + dp(10)
+        font_size: '15sp'		
+<-SettingsPanel>:
+    spacing: 5
+    padding: 5
+    size_hint_y: None
+    height: self.minimum_height		
