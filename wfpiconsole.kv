@@ -1,4 +1,4 @@
-## WeatherFlow PiConsole: Raspberry Pi Python console for Weather Flow 
+## WeatherFlow PiConsole: Raspberry Pi Python console for Weather Flow
 ## Smart Home Weather Station. Copyright (C) 2018  Peter Davis
 
 ## This program is free software: you can redistribute it and/or modify
@@ -17,28 +17,28 @@
 ## ==============================================================
 ## SCREEN MANAGER
 ## ==============================================================
-#:import NoTransition kivy.uix.screenmanager.NoTransition	
+#:import NoTransition kivy.uix.screenmanager.NoTransition
 ScreenManager:
 	transition: NoTransition()
     CurrentConditions:
-		
+
 ## ==============================================================
 ## CURRENT CONDITIONS SCREEN
 ## ==============================================================
 #:import Factory kivy.factory.Factory
-<CurrentConditions>: 
+<CurrentConditions>:
 	name: 'CurrentConditions'
-	orientation: 'vertical' 
+	orientation: 'vertical'
 	canvas.before:
 		Rectangle:
 			size: self.size
 			source: 'Background/CurrentConditions.png'
-			
+
 	## ----------------------------------------------------------
 	## CLOCK
 	## ----------------------------------------------------------
 	FloatLayout:
-		Label:		
+		Label:
 			text: root.Screen['Clock']
 			font_name: 'Fonts/SystemSanFranciscoDisplayRegular.ttf'
 			halign: 'center'
@@ -50,21 +50,21 @@ ScreenManager:
 			size: (262,48)
 			pos: (269,36)
 			color: [0.84,0.84,0.84,1]
-		
+
 	## ----------------------------------------------------------
 	## CURRENT WEATHER FORECAST FROM UK METOFFICE
 	## ----------------------------------------------------------
 	FloatLayout:
 		id: MetOffice
 		opacity: 1
-		Image:		
+		Image:
 			source: 'Background/MetOffice.png'
 			size_hint: (None,None)
 			keep_ratio: 0
 			allow_stretch: 1
 			size: (262,219)
 			pos: (2,259)
-			
+
 		## CURRENT WEATHER ICON
 		Image:
 			source: 'Icons/Weather/' + app.MetData['Weather'] + '.png'
@@ -72,8 +72,8 @@ ScreenManager:
 			keep_ratio: 0
 			allow_stretch: 1
 			size: (115,123)
-			pos: (125,322)		
-		
+			pos: (125,322)
+
 		## FORECAST TEMPERATURE
 		Label:
 			text:  app.MetData['Temp'][0] + app.MetData['Temp'][1]
@@ -86,9 +86,9 @@ ScreenManager:
 			size_hint: (None,None)
 			size: (170,31)
 			pos: (8,405)
-			color: [0.84,0.84,0.84,1]	
-			
-		## FORECAST PRECIPITATION	
+			color: [0.84,0.84,0.84,1]
+
+		## FORECAST PRECIPITATION
 		Label:
 			text: app.MetData['Precip'] + ' %'
 			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
@@ -99,9 +99,9 @@ ScreenManager:
 			size_hint: (None,None)
 			size: (170,31)
 			pos: (8,344)
-			color: [0.84,0.84,0.84,1]			
-			
-		## FORECAST WINDSPEED	
+			color: [0.84,0.84,0.84,1]
+
+		## FORECAST WINDSPEED
 		Label:
 			text: app.MetData['WindSpd'][0] + ' ' + app.MetData['WindSpd'][1] + ' ' + app.MetData['WindDir']
 			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
@@ -113,8 +113,8 @@ ScreenManager:
 			size: (200,31)
 			pos: (8,282)
 			color: [0.84,0.84,0.84,1]
-			
-		## FORECAST LOCATION, VALID, AND ISSUED TIME	
+
+		## FORECAST LOCATION, VALID, AND ISSUED TIME
 		Label:
 			text: 'Forecast issued: ' + app.MetData['Issued'] + '; Valid until ' + app.MetData['Valid']
 			font_name: 'Fonts/Helvetica.ttf'
@@ -125,9 +125,9 @@ ScreenManager:
 			size_hint: (None,None)
 			size: (252,16)
 			pos: (8,264)
-			color: [0.84,0.84,0.84,1]	
+			color: [0.84,0.84,0.84,1]
 		Label:
-			text: app.System['ForecastLocn']
+			text: app.ForecastLocn
 			font_name: 'Fonts/Helvetica.ttf'
 			font_size: '13sp'
 			text_size: self.size
@@ -136,15 +136,15 @@ ScreenManager:
 			size_hint: (None,None)
 			size: (252,16)
 			pos: (8,280)
-			color: [0.84,0.84,0.84,1]			
+			color: [0.84,0.84,0.84,1]
 
 	## ----------------------------------------------------------
 	## CURRENT SAGER WEATHERCASTER FORECAST
-	## ----------------------------------------------------------	
+	## ----------------------------------------------------------
 	FloatLayout:
 		id: Sager
 		opacity: 0
-			
+
 		## SAGER WEATHERCASTER FORECAST
 		Label:
 			text:  app.Sager['Forecast']
@@ -157,9 +157,9 @@ ScreenManager:
 			size_hint: (None,None)
 			size: (252,170)
 			pos: (7,276)
-			color: [0.84,0.84,0.84,1]	
+			color: [0.84,0.84,0.84,1]
 		Label:
-			text: 'Forecast issued: ' + app.Sager['Issued'] 
+			text: 'Forecast issued: ' + app.Sager['Issued']
 			font_name: 'Fonts/Helvetica.ttf'
 			font_size: '13sp'
 			text_size: self.size
@@ -168,14 +168,14 @@ ScreenManager:
 			size_hint: (None,None)
 			size: (252,16)
 			pos: (8,264)
-			color: [0.84,0.84,0.84,1]	
-				
+			color: [0.84,0.84,0.84,1]
+
 	## ----------------------------------------------------------
 	## INDOOR/OUTDOOR TEMPERATURE DATA FROM BREATH/AIR MODULES
 	## ----------------------------------------------------------
 	FloatLayout:
 		id: Temperature
-	
+
 		## INDOOR TEMPERATURE
 		Label:
 			text: app.Breathe['Temp'][0] + app.Breathe['Temp'][1]
@@ -187,9 +187,9 @@ ScreenManager:
 			valign: 'center'
 			size_hint: (None,None)
 			size: (131,41)
-			pos: (269,395)	
+			pos: (269,395)
 			color: [0.84,0.84,0.84,1]
-			
+
 		## OUTDOOR TEMPERATURE
 		Label:
 			text: app.Air['Temp'][0] + app.Air['Temp'][1]
@@ -201,12 +201,12 @@ ScreenManager:
 			valign: 'center'
 			size_hint: (None,None)
 			size: (131,41)
-			pos: (400,395)	
+			pos: (400,395)
 			color: [0.84,0.84,0.84,1]
 
 		## INDOOR TEMPERATURE MINIMUM
 		Label:
-			text: '[color=00a4b4ff]' + app.Breathe['MinTemp'][0] + '[size=15sp]' + app.Breathe['MinTemp'][1] + '[/color][/size]' 
+			text: '[color=00a4b4ff]' + app.Breathe['MinTemp'][0] + '[size=15sp]' + app.Breathe['MinTemp'][1] + '[/color][/size]'
 			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
 			font_size: '20sp'
 			text_size: self.size
@@ -215,12 +215,12 @@ ScreenManager:
 			valign: 'center'
 			size_hint: (None,None)
 			size: (65.5,25)
-			pos: (269,369)	
+			pos: (269,369)
 			color: [0.84,0.84,0.84,1]
 
-		## INDOOR TEMPERATURE MAXIMUM	
+		## INDOOR TEMPERATURE MAXIMUM
 		Label:
-			text: '[color=f05e40ff]' + app.Breathe['MaxTemp'][0] + '[size=15sp]' + app.Breathe['MaxTemp'][1] + '[/color][/size]' 
+			text: '[color=f05e40ff]' + app.Breathe['MaxTemp'][0] + '[size=15sp]' + app.Breathe['MaxTemp'][1] + '[/color][/size]'
 			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
 			font_size: '20sp'
 			text_size: self.size
@@ -229,12 +229,12 @@ ScreenManager:
 			valign: 'center'
 			size_hint: (None,None)
 			size: (65.5,25)
-			pos: (334.5,369)	
-			color: [0.84,0.84,0.84,1]	
-			
-		## OUTDOOR TEMPERATURE MINIMUM	
+			pos: (334.5,369)
+			color: [0.84,0.84,0.84,1]
+
+		## OUTDOOR TEMPERATURE MINIMUM
 		Label:
-			text: '[color=00a4b4ff]' + app.Air['MinTemp'][0] + '[size=15sp]' + app.Air['MinTemp'][1] + '[/color][/size]' 
+			text: '[color=00a4b4ff]' + app.Air['MinTemp'][0] + '[size=15sp]' + app.Air['MinTemp'][1] + '[/color][/size]'
 			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
 			font_size: '20sp'
 			text_size: self.size
@@ -243,8 +243,8 @@ ScreenManager:
 			valign: 'center'
 			size_hint: (None,None)
 			size: (65.5,25)
-			pos: (400,372)	
-			color: [0.84,0.84,0.84,1]	
+			pos: (400,372)
+			color: [0.84,0.84,0.84,1]
 		Label:
 			text: app.Air['MinTemp'][2]
 			font_name: 'Fonts/Helvetica.ttf'
@@ -255,12 +255,12 @@ ScreenManager:
 			valign: 'center'
 			size_hint: (None,None)
 			size: (65.5,25)
-			pos: (400,348)	
-			color: [0.84,0.84,0.84,1]	
-		
-		## OUTDOOR TEMPERATURE MAXIMUM	
+			pos: (400,348)
+			color: [0.84,0.84,0.84,1]
+
+		## OUTDOOR TEMPERATURE MAXIMUM
 		Label:
-			text: '[color=f05e40ff]' + app.Air['MaxTemp'][0] + '[size=15sp]' + app.Air['MaxTemp'][1] + '[/color][/size]' 
+			text: '[color=f05e40ff]' + app.Air['MaxTemp'][0] + '[size=15sp]' + app.Air['MaxTemp'][1] + '[/color][/size]'
 			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
 			font_size: '20sp'
 			text_size: self.size
@@ -269,7 +269,7 @@ ScreenManager:
 			valign: 'center'
 			size_hint: (None,None)
 			size: (65.5,25)
-			pos: (465.5,372)	
+			pos: (465.5,372)
 			color: [0.84,0.84,0.84,1]
 		Label:
 			text: app.Air['MaxTemp'][2]
@@ -281,9 +281,9 @@ ScreenManager:
 			valign: 'center'
 			size_hint: (None,None)
 			size: (65.5,25)
-			pos: (465.5,348)	
-			color: [0.84,0.84,0.84,1]	
-	
+			pos: (465.5,348)
+			color: [0.84,0.84,0.84,1]
+
 		## 'FEELS LIKE' TEMPERATURE
 		Label:
 			text: app.Air['FeelsLike'][0] + app.Air['FeelsLike'][1]
@@ -295,9 +295,9 @@ ScreenManager:
 			valign: 'center'
 			size_hint: (None,None)
 			size: (87.33,30)
-			pos: (269,297)	
-			color: [0.84,0.84,0.84,1]	
-			
+			pos: (269,297)
+			color: [0.84,0.84,0.84,1]
+
 		## HUMIDITY
 		Label:
 			text: app.Air['Humidity'][0] + app.Air['Humidity'][1]
@@ -309,9 +309,9 @@ ScreenManager:
 			valign: 'center'
 			size_hint: (None,None)
 			size: (87.33,30)
-			pos: (356.33,297)	
+			pos: (356.33,297)
 			color: [0.84,0.84,0.84,1]
-			
+
 		## DEW POINT
 		Label:
 			text: app.Air['DewPoint'][0] + app.Air['DewPoint'][1]
@@ -323,9 +323,9 @@ ScreenManager:
 			valign: 'center'
 			size_hint: (None,None)
 			size: (87.33,30)
-			pos: (443.66,297)	
-			color: [0.84,0.84,0.84,1]	
-			
+			pos: (443.66,297)
+			color: [0.84,0.84,0.84,1]
+
 		## COMFORT LEVEL
 		Image:
 			source: 'Icons/FeelsLike/' + app.Air['Comfort'][1] + '.png'
@@ -333,7 +333,7 @@ ScreenManager:
 			keep_ratio: 0
 			allow_stretch: 1
 			size: (38,31)
-			pos: (276,266)	
+			pos: (276,266)
 		Label:
 			text: app.Air['Comfort'][0]
 			font_name: 'Fonts/Helvetica.ttf'
@@ -344,14 +344,14 @@ ScreenManager:
 			valign: 'center'
 			size_hint: (None,None)
 			size: (200,29)
-			pos: (318,263)	
+			pos: (318,263)
 			color: [0.84,0.84,0.84,1]
-	
-	## ----------------------------------------------------------	
+
+	## ----------------------------------------------------------
 	## WIND DIRECTION AND SPEED FROM SKY MODULE
 	## ----------------------------------------------------------
 	FloatLayout:
-	
+
 		## CURRENT AVERAGE WIND SPEED
 		Label:
 			text: app.Sky['WindSpd'][0]
@@ -363,7 +363,7 @@ ScreenManager:
 			valign: 'center'
 			size_hint: (None,None)
 			size: (60,34)
-			pos: (539,360)	
+			pos: (539,360)
 			color: [0.84,0.84,0.84,1]
 		Label:
 			text: app.Sky['WindSpd'][1]
@@ -375,12 +375,12 @@ ScreenManager:
 			valign: 'center'
 			size_hint: (None,None)
 			size: (60,25)
-			pos: (539,340)	
+			pos: (539,340)
 			color: [0.84,0.84,0.84,1]
-			
+
 		## DAILY AVERAGED WIND SPEED
 		Label:
-			text: 'Avg [color=ff8837ff]' + app.Sky['AvgWind'][0] + '[/color] ' + app.Sky['AvgWind'][1]    
+			text: 'Avg [color=ff8837ff]' + app.Sky['AvgWind'][0] + '[/color] ' + app.Sky['AvgWind'][1]
 			font_name: 'Fonts/Helvetica.ttf'
 			font_size: '15sp'
 			text_size: self.size
@@ -389,10 +389,10 @@ ScreenManager:
 			valign: 'center'
 			size_hint: (None,None)
 			size: (101,18)
-			pos: (539,434)	
-			color: [0.84,0.84,0.84,1]	
+			pos: (539,434)
+			color: [0.84,0.84,0.84,1]
 		Label:
-			text: 'Wind'   
+			text: 'Wind'
 			font_name: 'Fonts/Helvetica.ttf'
 			font_size: '15sp'
 			text_size: self.size
@@ -401,9 +401,9 @@ ScreenManager:
 			valign: 'center'
 			size_hint: (None,None)
 			size: (101,18)
-			pos: (539,416)	
-			color: [0.84,0.84,0.84,1]	
-			
+			pos: (539,416)
+			color: [0.84,0.84,0.84,1]
+
 		## CURRENT WIND GUST
 		Label:
 			text: app.Sky['WindGust'][0]
@@ -416,7 +416,7 @@ ScreenManager:
 			size_hint: (None,None)
 			width: 60
 			height: 34
-			pos: (737,360)	
+			pos: (737,360)
 			color: [0.84,0.84,0.84,1]
 		Label:
 			text: app.Sky['WindGust'][1]
@@ -429,12 +429,12 @@ ScreenManager:
 			size_hint: (None,None)
 			width: 60
 			height: 25
-			pos: (737,340)	
-			color: [0.84,0.84,0.84,1]	
-			
+			pos: (737,340)
+			color: [0.84,0.84,0.84,1]
+
 		## MAXIMUM WIND GUST
 		Label:
-			text: 'Max [color=ff8837ff]' + app.Sky['MaxGust'][0] + '[/color] ' + app.Sky['MaxGust'][1]  
+			text: 'Max [color=ff8837ff]' + app.Sky['MaxGust'][0] + '[/color] ' + app.Sky['MaxGust'][1]
 			font_name: 'Fonts/Helvetica.ttf'
 			font_size: '15sp'
 			text_size: self.size
@@ -443,21 +443,21 @@ ScreenManager:
 			valign: 'center'
 			size_hint: (None,None)
 			size: (101,18)
-			pos: (695,434)	
-			color: [0.84,0.84,0.84,1]	
-		Label:
-			text: 'Gust'   
-			font_name: 'Fonts/Helvetica.ttf'
-			font_size: '15sp'
-			text_size: self.size
-			markup: 1
-			halign: 'center'
-			valign: 'center'
-			size_hint: (None,None)
-			size: (101,18)
-			pos: (695,416)	
+			pos: (695,434)
 			color: [0.84,0.84,0.84,1]
-			
+		Label:
+			text: 'Gust'
+			font_name: 'Fonts/Helvetica.ttf'
+			font_size: '15sp'
+			text_size: self.size
+			markup: 1
+			halign: 'center'
+			valign: 'center'
+			size_hint: (None,None)
+			size: (101,18)
+			pos: (695,416)
+			color: [0.84,0.84,0.84,1]
+
 		## CURRENT AVERAGE WIND DIRECTION
 		Image:
 			source: 'Icons/Wind/AvgWindDir/' + app.Sky['WindDir'][2] + '.png'
@@ -465,9 +465,9 @@ ScreenManager:
 			keep_ratio: 0
 			allow_stretch: 1
 			size: (30,31)
-			pos: (752,290)	
+			pos: (752,290)
 		Label:
-			text: 'Direction: [color=9aba2fff]' + app.Sky['WindDir'][0] + app.Sky['WindDir'][1] + '[/color]'   
+			text: 'Direction: [color=9aba2fff]' + app.Sky['WindDir'][0] + app.Sky['WindDir'][1] + '[/color]'
 			font_name: 'Fonts/Helvetica.ttf'
 			font_size: '15sp'
 			text_size: self.size
@@ -476,7 +476,7 @@ ScreenManager:
 			valign: 'center'
 			size_hint: (None,None)
 			size: (135,18)
-			pos: (655,265)	
+			pos: (655,265)
 			color: [0.84,0.84,0.84,1]
 
 		## CURRENT BEAUFORT SCALE TEXT AND ICON
@@ -486,7 +486,7 @@ ScreenManager:
 			keep_ratio: 0
 			allow_stretch: 1
 			size: (30,31)
-			pos: (554,290)	
+			pos: (554,290)
 		Label:
 			text: app.Sky['WindSpd'][3]
 			font_name: 'Fonts/Helvetica.ttf'
@@ -497,17 +497,17 @@ ScreenManager:
 			valign: 'center'
 			size_hint: (None,None)
 			size: (126,18)
-			pos: (542,265)	
+			pos: (542,265)
 			color: [0.84,0.84,0.84,1]
-		
+
 	## ----------------------------------------------------------
 	## WIND ROSE FROM SKY MODULE
 	## ----------------------------------------------------------
 	FloatLayout:
-	
+
 		## WIND DIRECTION ARROW
 		Image:
-			source: 'Icons/Wind/WindRose/' + str(round(app.SkyRapidIcon)) + '.png'
+			source: 'Icons/Wind/WindRose/' + str(round(app.RapidIcon)) + '.png'
 			size_hint: (None,None)
 			keep_ratio: 0
 			allow_stretch: 1
@@ -516,7 +516,7 @@ ScreenManager:
 
 		## WIND DIRECTION IN DEGREES
 		Label:
-			text: app.SkyRapid['Direc'][0] + app.SkyRapid['Direc'][1]
+			text: app.Rapid['Direc'][0] + app.Rapid['Direc'][1]
 			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
 			font_size: '20sp'
 			text_size: self.size
@@ -525,12 +525,12 @@ ScreenManager:
 			valign: 'center'
 			size_hint: (None,None)
 			size: (60,25)
-			pos: (638,380)		
+			pos: (638,380)
 			color: [0.84,0.84,0.84,1]
-			
-		## WIND SPEED	
+
+		## WIND SPEED
 		Label:
-			text: app.SkyRapid['Speed'][0] + ' [size=15sp]' + app.SkyRapid['Speed'][1] + '[/size]'
+			text: app.Rapid['Speed'][0] + ' [size=15sp]' + app.Rapid['Speed'][1] + '[/size]'
 			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
 			font_size: '20sp'
 			text_size: self.size
@@ -539,12 +539,12 @@ ScreenManager:
 			valign: 'center'
 			size_hint: (None,None)
 			size: (80,25)
-			pos: (628,352)	
-			color: [0.84,0.84,0.84,1]	
-			
-		## WIND DIRECTION TEXT	
+			pos: (628,352)
+			color: [0.84,0.84,0.84,1]
+
+		## WIND DIRECTION TEXT
 		Label:
-			text: app.SkyRapid['Direc'][3]
+			text: app.Rapid['Direc'][3]
 			font_name: 'Fonts/Helvetica.ttf'
 			font_size: '15sp'
 			text_size: self.size
@@ -553,25 +553,25 @@ ScreenManager:
 			valign: 'center'
 			size_hint: (None,None)
 			size: (80,25)
-			pos: (628,324)	
-			color: [0.84,0.84,0.84,1]	
-		
+			pos: (628,324)
+			color: [0.84,0.84,0.84,1]
+
 	## ----------------------------------------------------------
-	## SUNRISE/SUNSET DATA FROM PyEphem MODULE 
+	## SUNRISE/SUNSET DATA FROM PyEphem MODULE
 	## ----------------------------------------------------------
 	FloatLayout:
 		id: Sunrise
 		opacity: 1
-		Image:		
+		Image:
 			source: 'Background/SunriseSunset.png'
 			size_hint: (None,None)
 			keep_ratio: 0
 			allow_stretch: 1
 			size: (262,218)
 			pos: (2,37)
-			
+
 		## SOLAR RADIATION
-		Label:		
+		Label:
 			text: app.Sky['Radiation'][0] + app.Sky['Radiation'][1]
 			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
 			font_size: '20sp'
@@ -581,11 +581,11 @@ ScreenManager:
 			valign: 'center'
 			size_hint: (None,None)
 			size: (105,34)
-			pos: (5,176)	
-			color: [0.84,0.84,0.84,1]	
+			pos: (5,176)
+			color: [0.84,0.84,0.84,1]
 
 		## UV INDEX
-		Label:		
+		Label:
 			text: app.Sky['UV'][0]
 			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
 			font_size: '20sp'
@@ -595,19 +595,19 @@ ScreenManager:
 			valign: 'center'
 			size_hint: (None,None)
 			size: (52.5,34)
-			pos: (161,176)	
-			color: [0.84,0.84,0.84,1]			
-		Image:		
+			pos: (161,176)
+			color: [0.84,0.84,0.84,1]
+		Image:
 			source: 'Icons/UVIndex/' + app.Sky['UV'][2] + '.png'
 			size_hint: (None,None)
 			keep_ratio: 0
 			allow_stretch: 1
 			size: (41,36)
-			pos: (210,175)	
+			pos: (210,175)
 
 		## SUNRISE TIME
 		Label:
-			text: app.SunData['Sunrise'][1] 
+			text: app.SunData['Sunrise'][1]
 			font_name: 'Fonts/Helvetica.ttf'
 			font_size: '15sp'
 			text_size: self.size
@@ -617,12 +617,12 @@ ScreenManager:
 			size_hint: (None,None)
 			width: 80
 			height: 19
-			pos: (9,40)	
+			pos: (9,40)
 			color: [0.84,0.84,0.84,1]
-			
+
 		## SUNSET TIME
 		Label:
-			text: app.SunData['Sunset'][1]   
+			text: app.SunData['Sunset'][1]
 			font_name: 'Fonts/Helvetica.ttf'
 			font_size: '15sp'
 			text_size: self.size
@@ -632,9 +632,9 @@ ScreenManager:
 			size_hint: (None,None)
 			width: 80
 			height: 19
-			pos: (177,40)	
+			pos: (177,40)
 			color: [0.84,0.84,0.84,1]
-			
+
 		## SUN TRANSIT ICON
 		Image:
 			source: 'Icons/Sun/' + app.SunData['SunAngle'] + '.png'
@@ -645,7 +645,7 @@ ScreenManager:
 			pos: (42,76)
 
 		## TIME REMAINING UNTIL SUNRISE OR SUNSET
-		Label:		
+		Label:
 			text: app.SunData['Event'][1]
 			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
 			font_size: '30sp'
@@ -655,9 +655,9 @@ ScreenManager:
 			valign: 'center'
 			size_hint: (None,None)
 			size: (40,30)
-			pos: (93,92)	
-			color: [0.84,0.84,0.84,1]	
-		Label:		
+			pos: (93,92)
+			color: [0.84,0.84,0.84,1]
+		Label:
 			text: app.SunData['Event'][2]
 			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
 			font_size: '30sp'
@@ -667,9 +667,9 @@ ScreenManager:
 			valign: 'center'
 			size_hint: (None,None)
 			size: (40,30)
-			pos: (133,92)	
-			color: [0.84,0.84,0.84,1]		
-		Label:		
+			pos: (133,92)
+			color: [0.84,0.84,0.84,1]
+		Label:
 			text: app.SunData['Event'][0]
 			font_name: 'Fonts/Helvetica.ttf'
 			font_size: '15sp'
@@ -679,26 +679,26 @@ ScreenManager:
 			valign: 'center'
 			size_hint: (None,None)
 			size: (80,19)
-			pos: (93,73)	
-			color: [0.84,0.84,0.84,1]		
+			pos: (93,73)
+			color: [0.84,0.84,0.84,1]
 
 	## ----------------------------------------------------------
-	## MOONRISE/MOONSET DATA FROM PyEphem MODULE 
-	## ----------------------------------------------------------		
+	## MOONRISE/MOONSET DATA FROM PyEphem MODULE
+	## ----------------------------------------------------------
 	FloatLayout:
 		id: Moon
 		opacity: 0
-		Image:		
+		Image:
 			source: 'Background/Moon.png'
 			size_hint: (None,None)
 			keep_ratio: 0
 			allow_stretch: 1
 			size: (262,218)
-			pos: (2,37)	
-			
+			pos: (2,37)
+
 		## MOONRISE TIME
 		Label:
-			text: app.MoonData['Moonrise'][1] 
+			text: app.MoonData['Moonrise'][1]
 			font_name: 'Fonts/Helvetica.ttf'
 			font_size: '15sp'
 			text_size: self.size
@@ -707,12 +707,12 @@ ScreenManager:
 			valign: 'center'
 			size_hint: (None,None)
 			size: (80,19)
-			pos: (7,40)	
-			color: [0.84,0.84,0.84,1]	
-			
+			pos: (7,40)
+			color: [0.84,0.84,0.84,1]
+
 		## MOONSET TIME
 		Label:
-			text: app.MoonData['Moonset'][1] 
+			text: app.MoonData['Moonset'][1]
 			font_name: 'Fonts/Helvetica.ttf'
 			font_size: '15sp'
 			text_size: self.size
@@ -721,8 +721,8 @@ ScreenManager:
 			valign: 'center'
 			size_hint: (None,None)
 			size: (80,19)
-			pos: (179,40)	
-			color: [0.84,0.84,0.84,1]	
+			pos: (179,40)
+			color: [0.84,0.84,0.84,1]
 
 		## NEXT NEW MOON
 		Label:
@@ -735,9 +735,9 @@ ScreenManager:
 			valign: 'center'
 			size_hint: (None,None)
 			size: (70,19)
-			pos: (8,184)	
-			color: [0.84,0.84,0.84,1]	
-			
+			pos: (8,184)
+			color: [0.84,0.84,0.84,1]
+
 		## NEXT FULL MOON
 		Label:
 			text: app.MoonData['FullMoon'][0]
@@ -749,8 +749,8 @@ ScreenManager:
 			valign: 'center'
 			size_hint: (None,None)
 			size: (70,19)
-			pos: (188,184)	
-			color: [0.84,0.84,0.84,1]	
+			pos: (188,184)
+			color: [0.84,0.84,0.84,1]
 
 		## MOON PHASE ICON
 		Image:
@@ -759,8 +759,8 @@ ScreenManager:
 			keep_ratio: 0
 			allow_stretch: 1
 			size: (46,50)
-			pos: (110,136)	
-			color: [0.84,0.84,0.84,1]		
+			pos: (110,136)
+			color: [0.84,0.84,0.84,1]
 
 		## MOON PHASE TEXT
 		Label:
@@ -773,9 +773,9 @@ ScreenManager:
 			valign: 'center'
 			size_hint: (None,None)
 			size: (112,19)
-			pos: (77,111)	
-			color: [0.84,0.84,0.84,1]	
-			
+			pos: (77,111)
+			color: [0.84,0.84,0.84,1]
+
 		## MOON ILLUMINANCE TEXT
 		Label:
 			text: app.MoonData['Phase'][2] + '% Illumin.'
@@ -787,14 +787,14 @@ ScreenManager:
 			valign: 'center'
 			size_hint: (None,None)
 			size: (90,19)
-			pos: (88,91)	
-			color: [0.84,0.84,0.84,1]		
-		
+			pos: (88,91)
+			color: [0.84,0.84,0.84,1]
+
 	## ----------------------------------------------------------
 	## RAINFALL FROM SKY MODULE
 	## ----------------------------------------------------------
 	FloatLayout:
-	
+
 		## CURRENT RAIN RATE AND TEXT
 		Label:
 			text: app.Sky['RainRate'][0] + app.Sky['RainRate'][1]
@@ -806,10 +806,10 @@ ScreenManager:
 			valign: 'center'
 			size_hint: (None,None)
 			size: (86,21)
-			pos: (444,96)	
-			color: [0.84,0.84,0.84,1]	
+			pos: (444,96)
+			color: [0.84,0.84,0.84,1]
 		Label:
-			text: app.Sky['RainRate'][2]                      
+			text: app.Sky['RainRate'][2]
 			font_name: 'Fonts/Helvetica.ttf'
 			font_size: '15sp'
 			text_size: self.size
@@ -818,9 +818,9 @@ ScreenManager:
 			valign: 'center'
 			size_hint: (None,None)
 			size: (175,21)
-			pos: (269,96)	
+			pos: (269,96)
 			color: [0.84,0.84,0.84,1]
-	
+
 		## RAINFALL INTENSITY ANIMATION
 		StencilView:
 			size_hint: (None,None)
@@ -832,11 +832,11 @@ ScreenManager:
 				keep_ratio: 0
 				allow_stretch: 1
 				size: (264,113)
-				pos: (root.Screen['xRainAnim'],root.Screen['yRainAnim'])	
-								
+				pos: (root.Screen['xRainAnim'],root.Screen['yRainAnim'])
+
 		## TOTAL DAILY RAINFALL
 		Label:
-			text: app.Sky['TodayRain'][0] + '[size=15sp]' + app.Sky['TodayRain'][1] + '[/size]' 
+			text: app.Sky['TodayRain'][0] + '[size=15sp]' + app.Sky['TodayRain'][1] + '[/size]'
 			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
 			font_size: '20sp'
 			text_size: self.size
@@ -847,10 +847,10 @@ ScreenManager:
 			size: (88,35)
 			pos: (270,175)
 			color: [0.84,0.84,0.84,1]
-			
+
 		## TOTAL YESTERDAY RAINFALL
 		Label:
-			text: app.Sky['YesterdayRain'][0] + '[size=15sp]' + app.Sky['YesterdayRain'][1] + '[/size]' 
+			text: app.Sky['YesterdayRain'][0] + '[size=15sp]' + app.Sky['YesterdayRain'][1] + '[/size]'
 			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
 			font_size: '20sp'
 			text_size: self.size
@@ -860,11 +860,11 @@ ScreenManager:
 			size_hint: (None,None)
 			size: (88,35)
 			pos: (357,175)
-			color: [0.84,0.84,0.84,1]			
-		
-		## TOTAL MONTHLY RAINFALL  
+			color: [0.84,0.84,0.84,1]
+
+		## TOTAL MONTHLY RAINFALL
 		Label:
-			text: app.Sky['MonthRain'][0] + '[size=15sp]' + app.Sky['MonthRain'][1] + '[/size]' 
+			text: app.Sky['MonthRain'][0] + '[size=15sp]' + app.Sky['MonthRain'][1] + '[/size]'
 			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
 			font_size: '20sp'
 			text_size: self.size
@@ -874,11 +874,11 @@ ScreenManager:
 			size_hint: (None,None)
 			size: (88,35)
 			pos: (270,115)
-			color: [0.84,0.84,0.84,1]	
-			
+			color: [0.84,0.84,0.84,1]
+
 		## TOTAL YEARLY RAINFALL
 		Label:
-			text: app.Sky['YearRain'][0] + '[size=15sp]' + app.Sky['YearRain'][1] + '[/size]'  
+			text: app.Sky['YearRain'][0] + '[size=15sp]' + app.Sky['YearRain'][1] + '[/size]'
 			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
 			font_size: '20sp'
 			text_size: self.size
@@ -888,13 +888,13 @@ ScreenManager:
 			size_hint: (None,None)
 			size: (88,35)
 			pos: (357,115)
-			color: [0.84,0.84,0.84,1]	
-		
+			color: [0.84,0.84,0.84,1]
+
 	## ----------------------------------------------------------
 	## BAROMETER FROM AIR MODULE
 	## ----------------------------------------------------------
 	FloatLayout:
-	
+
 		## CURRENT PRESSURE ARROW
 		Image:
 			source: 'Icons/Barometer/' + app.Air['Pres'][2] + '.png'
@@ -903,10 +903,10 @@ ScreenManager:
 			allow_stretch: 1
 			size: (168,91)
 			pos: (582,95)
-		
+
 		## MAXIMUM AND MINIMUM PRESSURE ON PRESSURE DIAL
 		Label:
-			text: app.System['BaromLim'][0]
+			text: app.BarometerMax
 			font_name: 'Fonts/SystemSanFranciscoDisplayBold.ttf'
 			font_size: '10pt'
 			text_size: self.size
@@ -916,10 +916,10 @@ ScreenManager:
 			valign: 'center'
 			size_hint: (None,None)
 			size: (40,20)
-			pos: (565,78)	
-			color: [0.84,0.84,0.84,1]		
+			pos: (565,78)
+			color: [0.84,0.84,0.84,1]
 		Label:
-			text: app.System['BaromLim'][1]
+			text: app.BarometerMin
 			font_name: 'Fonts/SystemSanFranciscoDisplayBold.ttf'
 			font_size: '10pt'
 			text_size: self.size
@@ -929,9 +929,9 @@ ScreenManager:
 			valign: 'center'
 			size_hint: (None,None)
 			size: (40,20)
-			pos: (727,78)	
-			color: [0.84,0.84,0.84,1]	
-	
+			pos: (727,78)
+			color: [0.84,0.84,0.84,1]
+
 		## CURRENT PRESSURE
 		Label:
 			text: app.Air['Pres'][0]
@@ -944,7 +944,7 @@ ScreenManager:
 			size_hint: (None,None)
 			width: 100
 			height: 30
-			pos: (616,119)	
+			pos: (616,119)
 			color: [0.84,0.84,0.84,1]
 		Label:
 			text: app.Air['Pres'][1]
@@ -957,9 +957,9 @@ ScreenManager:
 			size_hint: (None,None)
 			width: 100
 			height: 25
-			pos: (616,92)	
-			color: [0.84,0.84,0.84,1]	
-			
+			pos: (616,92)
+			color: [0.84,0.84,0.84,1]
+
 		## CURRENT PRESSURE TREND
 		Label:
 			text: 'Trend: ' + app.Air['PresTrend'][2]
@@ -971,10 +971,10 @@ ScreenManager:
 			valign: 'center'
 			size_hint: (None,None)
 			size: (96,18)
-			pos: (691,213)	
+			pos: (691,213)
 			color: [0.84,0.84,0.84,1]
 		Label:
-			text: app.Air['PresTrend'][0] + app.Air['PresTrend'][1] 
+			text: app.Air['PresTrend'][0] + app.Air['PresTrend'][1]
 			font_name: 'Fonts/Helvetica.ttf'
 			font_size: '15sp'
 			text_size: self.size
@@ -983,8 +983,8 @@ ScreenManager:
 			valign: 'center'
 			size_hint: (None,None)
 			size: (96,18)
-			pos: (691,194)	
-			color: [0.84,0.84,0.84,1]	
+			pos: (691,194)
+			color: [0.84,0.84,0.84,1]
 
 		## 24 HOUR PRESSURE LOW
 		Label:
@@ -997,9 +997,9 @@ ScreenManager:
 			valign: 'center'
 			size_hint: (None,None)
 			size: (70,18)
-			pos: (539,194)	
+			pos: (539,194)
 			color: [0.84,0.84,0.84,1]
-			
+
 		## 24 HOUR PRESSURE HIGH
 		Label:
 			text: app.Air['MaxPres'][0]
@@ -1011,17 +1011,17 @@ ScreenManager:
 			valign: 'center'
 			size_hint: (None,None)
 			size: (70,18)
-			pos: (609,194)	
-			color: [0.84,0.84,0.84,1]	
-		
+			pos: (609,194)
+			color: [0.84,0.84,0.84,1]
+
 	## ----------------------------------------------------------
 	## STATUS INDICATORS FOR AIR/SKY MODULES
 	## ----------------------------------------------------------
 	FloatLayout:
-	
+
 		## SKY
 		Label:
-			text: '[color=00a4b4ff]Sky: [/color]'         
+			text: '[color=00a4b4ff]Sky: [/color]'
 			font_name: 'Fonts/Helvetica.ttf'
 			font_size: '15sp'
 			text_size: self.size
@@ -1030,10 +1030,10 @@ ScreenManager:
 			valign: 'center'
 			size_hint: (None,None)
 			size: (30,18)
-			pos: (555,29)	
+			pos: (555,29)
 			color: [0.84,0.84,0.84,1]
 		Label:
-			text: app.Sky['Time']        
+			text: app.Sky['Time']
 			font_name: 'Fonts/Helvetica.ttf'
 			font_size: '15sp'
 			text_size: self.size
@@ -1042,18 +1042,18 @@ ScreenManager:
 			valign: 'center'
 			size_hint: (None,None)
 			size: (75,18)
-			pos: (584,29)	
-			color: [0.84,0.84,0.84,1]	
+			pos: (584,29)
+			color: [0.84,0.84,0.84,1]
 		Image:
-			source: 'Icons/Status/' + app.Sky['StatusIcon'] + '.png'        
+			source: 'Icons/Status/' + app.Sky['StatusIcon'] + '.png'
 			size_hint: (None,None)
 			keep_ratio: 0
 			allow_stretch: 1
 			size: (18,20)
-			pos: (658,29)	
+			pos: (658,29)
 			color: [0.84,0.84,0.84,1]
 		Label:
-			text: 'Voltage: ' + app.Sky['Battery'][0]         
+			text: 'Voltage: ' + app.Sky['Battery'][0]
 			font_name: 'Fonts/Helvetica.ttf'
 			font_size: '15sp'
 			text_size: self.size
@@ -1062,12 +1062,12 @@ ScreenManager:
 			valign: 'center'
 			size_hint: (None,None)
 			size: (103,18)
-			pos: (676,29)	
-			color: [0.84,0.84,0.84,1]			
+			pos: (676,29)
+			color: [0.84,0.84,0.84,1]
 
 		## AIR
 		Label:
-			text: '[color=f05e40ff]Air: [/color]'           
+			text: '[color=f05e40ff]Air: [/color]'
 			font_name: 'Fonts/Helvetica.ttf'
 			font_size: '15sp'
 			text_size: self.size
@@ -1076,10 +1076,10 @@ ScreenManager:
 			valign: 'center'
 			size_hint: (None,None)
 			size: (30,18)
-			pos: (555,6)		
+			pos: (555,6)
 			color: [0.84,0.84,0.84,1]
 		Label:
-			text: app.Air['Time']     
+			text: app.Air['Time']
 			font_name: 'Fonts/Helvetica.ttf'
 			font_size: '15sp'
 			text_size: self.size
@@ -1088,17 +1088,17 @@ ScreenManager:
 			valign: 'center'
 			size_hint: (None,None)
 			size: (75,18)
-			pos: (584,6)	
-			color: [0.84,0.84,0.84,1]		
+			pos: (584,6)
+			color: [0.84,0.84,0.84,1]
 		Image:
-			source: 'Icons/Status/' + app.Air['StatusIcon'] + '.png'         
+			source: 'Icons/Status/' + app.Air['StatusIcon'] + '.png'
 			size_hint: (None,None)
 			keep_ratio: 0
 			allow_stretch: 1
 			size: (18,20)
-			pos: (658,6)		
+			pos: (658,6)
 		Label:
-			text: 'Voltage: ' + app.Air['Battery'][0]       
+			text: 'Voltage: ' + app.Air['Battery'][0]
 			font_name: 'Fonts/Helvetica.ttf'
 			font_size: '15sp'
 			text_size: self.size
@@ -1107,9 +1107,9 @@ ScreenManager:
 			valign: 'center'
 			size_hint: (None,None)
 			size: (103,18)
-			pos: (676,6)		
-			color: [0.84,0.84,0.84,1]		
-	
+			pos: (676,6)
+			color: [0.84,0.84,0.84,1]
+
 	## ----------------------------------------------------------
 	## BOTTOM MENU BAR
 	## ----------------------------------------------------------
@@ -1131,10 +1131,9 @@ ScreenManager:
 		Button:
 			text: 'settings'
 			size_hint: (None,None)
-			##on_press: app.root.current = 'UserSettings'
-			on_press: app.open_settings() 
+			on_press: app.open_settings()
 			size: (81,30)
-			pos: (300,0)		
+			pos: (300,0)
 		Button:
 			size_hint: (None,None)
 			size: (81,30)
@@ -1142,7 +1141,7 @@ ScreenManager:
 			background_normal: 'Buttons/Credits.png'
 			background_down: 'Buttons/Credits_Pressed.png'
 			on_press: Factory.Credits().open()
-	
+
 ## =============================================================================
 ## CREDITS POPUP
 ## =============================================================================
@@ -1153,7 +1152,7 @@ ScreenManager:
 	background_color: [0,0,0,0]
     size_hint: (None,None)
     size: (500,400)
-	
+
 ## =============================================================================
 ## NEW VERSION AVAILABLE POPUP
 ## =============================================================================
@@ -1168,7 +1167,7 @@ ScreenManager:
     size: (262,82)
 	FloatLayout:
 		Label:
-			text: app.System['Version']
+			text: app.Version
 			font_name: 'Fonts/Helvetica.ttf'
 			font_size: '15sp'
 			text_size: self.size
@@ -1196,11 +1195,11 @@ ScreenManager:
 			background_normal: 'Buttons/Exit.png'
 			background_down: 'Buttons/Exit_Pressed.png'
 			on_release: root.dismiss()
-				
+
 ## =============================================================================
-## SETTINGS SCREEN
-## =============================================================================			
-<MenuSidebar>:
+## SETTINGS
+## =============================================================================
+<-MenuSidebar>:
     size_hint_x: None
     width: '150dp'
     buttons_layout: menu
@@ -1224,9 +1223,18 @@ ScreenManager:
         width: root.width - dp(20)
         height: max(50, self.texture_size[1] + dp(20))
         pos: root.x + dp(10), root.y + dp(10)
-        font_size: '15sp'		
+        font_size: '15sp'
 <-SettingsPanel>:
     spacing: 5
     padding: 5
     size_hint_y: None
-    height: self.minimum_height		
+    height: self.minimum_height
+<-SettingSpacer>:
+    size_hint_y: None
+    height: 11
+    canvas.after:
+        Color:
+            rgb: 1,1,1,1
+        Rectangle:
+            pos: self.x, self.center_y
+            size: self.width, 2
