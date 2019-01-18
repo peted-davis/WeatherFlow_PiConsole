@@ -89,7 +89,7 @@ class WeatherFlowClientFactory(WebSocketClientFactory,ReconnectingClientFactory)
 		self._proto = None
 
 # ==============================================================================
-# IMPORT REQUIRED MODULES
+# IMPORT REQUIRED CORE KIVY MODULES
 # ==============================================================================
 from kivy.app import App
 from kivy.lang import Builder
@@ -99,20 +99,14 @@ from kivy.clock import Clock
 from kivy.animation import Animation
 from kivy.config import ConfigParser
 from kivy.metrics import dp
-from kivy.uix.screenmanager import ScreenManager,Screen
-from kivy.uix.popup import Popup
-from kivy.uix.modalview import ModalView
-from kivy.uix.gridlayout import GridLayout
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.scrollview import ScrollView
-from kivy.uix.widget import Widget
-from kivy.uix.togglebutton import ToggleButton
-from kivy.uix.settings import SettingSpacer
-from kivy.uix.button import Button
-from kivy.uix.settings import SettingsWithSidebar, SettingOptions
-from kivy.properties import DictProperty,NumericProperty,ConfigParserProperty
+from kivy.compat import text_type
+from kivy.properties import DictProperty,NumericProperty,ConfigParserProperty, ObjectProperty, StringProperty	##
+
+# ==============================================================================
+# IMPORT REQUIRED SYSTEM MODULES
+# ==============================================================================
 from twisted.internet import reactor,ssl
-from datetime import datetime,date,time,timedelta
+from datetime import datetime, date, time, timedelta
 from packaging import version
 from lib import sager
 import time as UNIX
@@ -124,6 +118,23 @@ import json
 import requests
 import ephem
 import sys
+
+# ==============================================================================
+# IMPORT REQUIRED KIVY GRAPHICAL AND SETTINGS MODULES
+# ==============================================================================
+from kivy.uix.popup import Popup
+from kivy.uix.modalview import ModalView
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.gridlayout import GridLayout
+from kivy.uix.scrollview import ScrollView
+from kivy.uix.widget import Widget
+from kivy.uix.togglebutton import ToggleButton
+from kivy.uix.button import Button
+from kivy.uix.label import Label
+from kivy.uix.textinput import TextInput
+from kivy.uix.settings import SettingsWithSidebar, SettingOptions
+from kivy.uix.settings import SettingString, SettingSpacer, SettingItem		##
+from kivy.uix.screenmanager import ScreenManager,Screen
 
 # ==============================================================================
 # DEFINE GLOBAL FUNCTIONS AND VARIABLES
@@ -138,9 +149,9 @@ def CircularMean(angles):
 	r = np.nanmean(np.exp(1j*angles))
 	return np.angle(r, deg=True) % 360
 
-# VERIFY IF DATA IS VALID JSON STRING
+# VERIFY IF DATA IS VALID WEATHERFLOW JSON STRING, AND FIELD IS NOT NONE
 # ------------------------------------------------------------------------------
-def VerifyJSON(Data):
+def VerifyWeatherFlowJSON(Data,Field):
 	if not Data.ok:
 		return False
 	try:
@@ -148,7 +159,11 @@ def VerifyJSON(Data):
 	except ValueError:
 		return False
 	else:
-		return True
+		Data = Data.json()
+		if 'SUCCESS' in Data['status']['status_message'] and Field in Data and Data[Field] is not None:
+			return True
+		else:
+			return False
 
 # ==============================================================================
 # DEFINE 'WeatherFlowPiConsole' APP CLASS
@@ -164,8 +179,8 @@ class wfpiconsole(App):
 	Air = DictProperty			([('Temp','--'),('MinTemp','---'),('MaxTemp','---'),
 								('Humidity','--'),('DewPoint','--'),('Pres','---'),
 								('MaxPres','--'),('MinPres','--'),('PresTrend','---'),
-								('FeelsLike','--'),('Comfort','--'),('Time','-'),
-								('Battery','--'),('StatusIcon','Error')])							
+								('FeelsLike','----'),('Time','-'),('Battery','--'),
+								('StatusIcon','Error')])
 	Rapid = DictProperty		([('Time','-'),('Speed','--'),('Direc','----')])
 	Breathe = DictProperty		([('Temp','--'),('MinTemp','---'),('MaxTemp','---')])
 	SunData = DictProperty		([('Sunrise',['-','-']),('Sunset',['-','-']),('SunAngle','-'),
@@ -186,8 +201,10 @@ class wfpiconsole(App):
 	BarometerMax = ConfigParserProperty('-','System','BarometerMax','wfpiconsole')
 	BarometerMin = ConfigParserProperty('-','System','BarometerMin','wfpiconsole')
 	ForecastLocn = ConfigParserProperty('-','Station','ForecastLocn','wfpiconsole')
+	TimeFormat = ConfigParserProperty('-','Settings','TimeFormat','wfpiconsole')
+	DateFormat = ConfigParserProperty('-','Settings','DateFormat','wfpiconsole')
 	Version = ConfigParserProperty('-','System','Version','wfpiconsole')
-
+	
 	# Define required Kivy numeric properties
 	RapidIcon = NumericProperty(0)
 
@@ -213,8 +230,8 @@ class wfpiconsole(App):
 		self.DownloadForecast()
 
 		# Initialise Sager Weathercaster forecast, and check for latest version
-		Clock.schedule_once(self.SagerForecast)
-		Clock.schedule_once(self.CheckVersion)
+		#Clock.schedule_once(self.SagerForecast)
+		#Clock.schedule_once(self.CheckVersion)
 
 		# Initialise websocket connection
 		self.WebsocketConnect()
@@ -225,14 +242,61 @@ class wfpiconsole(App):
 		Clock.schedule_interval(self.SunTransit,1.0)
 		Clock.schedule_interval(self.MoonPhase,1.0)
 
-	# BUILD 'WeatherFlowPiConsole' APP CLASS SETTINGS SCREEN
+	# BUILD 'WeatherFlowPiConsole' APP CLASS SETTINGS
 	# --------------------------------------------------------------------------
 	def build_settings(self,settings):
-		settings.register_type('scrolloptions', SettingScrollOptions)
-		settings.register_type('fixedoptions', SettingFixedOptions)
+	
+		# Register setting types
+		settings.register_type('ScrollOptions',SettingScrollOptions)
+		settings.register_type('FixedOptions',SettingFixedOptions)
+		settings.register_type('ToggleTemperature',SettingToggleTemperature)
+		
+		# Add required panels to setting screen. Remove Kivy settings panel
+		settings.add_json_panel('Units',self.config,data=configCreate.settings_json('Units'))
+		settings.add_json_panel('Feels Like',self.config,data=configCreate.settings_json('FeelsLike'))
+		settings.add_json_panel('Time & Date',self.config,data=configCreate.settings_json('Display'))
 		self.use_kivy_settings  =  False
-		jsondata = configCreate.settings_json()
-		settings.add_json_panel('Display',self.config,data=jsondata)
+
+	# OVERLOAD 'on_config_change' TO MAKE NECESSARY CHANGES TO CONFIG VALUES 
+	# WHEN REQUIRED
+	# --------------------------------------------------------------------------
+	def on_config_change(self, config, section, key, value):
+		
+		# Update current weather forecast when temperature or wind speed units 
+		# are changed
+		if section == 'Units' and key in ['Temp','Wind']:
+			if self.config['Station']['Country'] == 'GB':
+				self.ExtractMetOfficeForecast()
+			else:
+				self.ExtractDarkSkyForecast()
+			
+		# Update "Feels Like" temperature cutoffs in wfpiconsole.ini and the 
+		# settings screen when temperature units are changed
+		if section == 'Units' and key == 'Temp':
+			for Field in self.config['FeelsLike']:
+				if 'c' in value:
+					Temp = str(round((float(self.config['FeelsLike'][Field])-32) * 5/9))
+					self.config.set('FeelsLike',Field,Temp)
+				elif 'f' in value:
+					Temp = str(round(float(self.config['FeelsLike'][Field])*9/5 + 32))
+					self.config.set('FeelsLike',Field,Temp)
+			self.config.write()
+			panels = self._app_settings.children[0].content.panels
+			for Field in self.config['FeelsLike']:
+				for panel in panels.values():
+					if panel.title == 'Feels Like':
+						for item in panel.children:
+							if isinstance(item,Factory.SettingToggleTemperature):
+								if item.title.replace(' ','') == Field:
+									item.value = self.config['FeelsLike'][Field]
+									
+		# Update barometer limits when pressure units are changed
+		if section == 'Units' and key == 'Pressure':
+			Units = ['mb','hpa','inhg','mmhg']
+			Max = ['1050','1050','31.0','788']
+			Min = ['950','950','28.0','713']
+			self.config.set('System','BarometerMax',Max[Units.index(value)])	
+			self.config.set('System','BarometerMin',Min[Units.index(value)])	
 
 	# CONNECT TO THE WEATHER FLOW WEBSOCKET SERVER
 	# --------------------------------------------------------------------------
@@ -260,15 +324,15 @@ class wfpiconsole(App):
 		# Initialise data streaming upon connection of websocket
 		if Type == 'connection_opened':
 			pass
-#			self.WebsocketSendMessage('{"type":"listen_start",' +
-#			                           ' "device_id":' + self.config['Station']['SkyID'] + ',' +
-#									   ' "id":"Sky"}')
-#			self.WebsocketSendMessage('{"type":"listen_rapid_start",' +
-#			                           ' "device_id":' + self.config['Station']['SkyID'] + ',' +
-#									   ' "id":"RapidSky"}')
-#			self.WebsocketSendMessage('{"type":"listen_start",' +
-#			                           ' "device_id":' + self.config['Station']['OutdoorID'] + ',' +
-#									   ' "id":"Outdoor"}')
+			self.WebsocketSendMessage('{"type":"listen_start",' +
+			                           ' "device_id":' + self.config['Station']['SkyID'] + ',' +
+									   ' "id":"Sky"}')
+			self.WebsocketSendMessage('{"type":"listen_rapid_start",' +
+			                           ' "device_id":' + self.config['Station']['SkyID'] + ',' +
+									   ' "id":"RapidSky"}')
+			self.WebsocketSendMessage('{"type":"listen_start",' +
+			                           ' "device_id":' + self.config['Station']['OutdoorID'] + ',' +
+									   ' "id":"Outdoor"}')
 
 		# Extract observations from obs_Sky websocket message
 		elif Type == 'obs_sky':
@@ -385,7 +449,6 @@ class wfpiconsole(App):
 		# Calculate derived variables from AIR observations
 		DewPoint = self.DewPoint(Temp,Humidity)
 		FeelsLike = self.FeelsLike(Temp,Humidity,WindSpd)
-		ComfortLevel = self.ComfortLevel(FeelsLike)
 		SLP = self.SeaLevelPressure(Pres)
 		PresTrend = self.PressureTrend(Pres)
 		MaxTemp,MinTemp,MaxPres,MinPres = self.AirObsMaxMin(Time,Temp,Pres)
@@ -417,7 +480,6 @@ class wfpiconsole(App):
 		self.Air['PresTrend'] = self.ObservationFormat(PresTrend,'Pressure')
 		self.Air['Humidity'] = self.ObservationFormat(Humidity,'Humidity')
 		self.Air['Battery'] = self.ObservationFormat(Battery,'Battery')
-		self.Air['Comfort'] = ComfortLevel
 
 	# EXTRACT OBSERVATIONS FROM RAPID_WIND WEBSOCKET JSON MESSAGE
 	# --------------------------------------------------------------------------
@@ -588,27 +650,36 @@ class wfpiconsole(App):
 		# Format pressure observations
 		elif Type == 'Pressure':
 			for ii,P in enumerate(Obs):
-				if isinstance(P,str):
-					if P.strip() in ['inHg/hr','inHg']:
-						cObs[ii-1] = '{:2.3f}'.format(cObs[ii-1])
-					elif P.strip() in ['mmHg/hr','mmHg']:
-						cObs[ii-1] = '{:3.2f}'.format(cObs[ii-1])
-					elif P.strip() in ['hpa/hr','mb/hr','hpa','mb']:
-						cObs[ii-1] = '{:4.1f}'.format(cObs[ii-1])
+				if isinstance(P,str) and P.strip() in ['inHg/hr','inHg','mmHg/hr','mmHg','hpa/hr','mb/hr','hpa','mb']:
+					if math.isnan(cObs[ii-1]):
+						cObs[ii-1] = '-'
+					else:
+						if P.strip() in ['inHg/hr','inHg']:
+							cObs[ii-1] = '{:2.3f}'.format(cObs[ii-1])
+						elif P.strip() in ['mmHg/hr','mmHg']:
+							cObs[ii-1] = '{:3.2f}'.format(cObs[ii-1])
+						elif P.strip() in ['hpa/hr','mb/hr','hpa','mb']:
+							cObs[ii-1] = '{:4.1f}'.format(cObs[ii-1])
 
 		# Format windspeed observations
 		elif Type == 'Wind':
 			for ii,W in enumerate(Obs):
 				if isinstance(W,str) and W.strip() in ['mph','kts','km/h','bft','m/s']:
-					if cObs[ii-1] < 10:
-						cObs[ii-1] = '{:.1f}'.format(cObs[ii-1])
+					if math.isnan(cObs[ii-1]):
+						cObs[ii-1] = '-'
 					else:
-						cObs[ii-1] = '{:.0f}'.format(cObs[ii-1])
+						if cObs[ii-1] < 10:
+							cObs[ii-1] = '{:.1f}'.format(cObs[ii-1])
+						else:
+							cObs[ii-1] = '{:.0f}'.format(cObs[ii-1])
 
 		# Format wind direction observations
 		elif Type == 'Direction':
 			for ii,D in enumerate(Obs):
 				if isinstance(D,str) and D.strip() in ['[sup]o[/sup]']:
+					if math.isnan(cObs[ii-1]):
+						cObs[ii-1] = '-'
+					else:
 						cObs[ii-1] = '{:.0f}'.format(cObs[ii-1])
 
 		# Format rain accumulation and rain rate observations
@@ -616,50 +687,68 @@ class wfpiconsole(App):
 			for ii,Prcp in enumerate(Obs):
 				if isinstance(Prcp,str):
 					if Prcp.strip() in ['mm','mm/hr']:
-						if cObs[ii-1] == 0:
-							cObs[ii-1] = '{:.0f}'.format(cObs[ii-1])
-						elif cObs[ii-1] < 0.1:
-							cObs[ii-1] = 'Trace'
-							cObs[ii] = ''
-						elif cObs[ii-1] < 10:
-							cObs[ii-1] = '{:.1f}'.format(cObs[ii-1])
+						if math.isnan(cObs[ii-1]):
+							cObs[ii-1] = '-'
 						else:
-							cObs[ii-1] = '{:.0f}'.format(cObs[ii-1])
+							if cObs[ii-1] == 0:
+								cObs[ii-1] = '{:.0f}'.format(cObs[ii-1])
+							elif cObs[ii-1] < 0.1:
+								cObs[ii-1] = 'Trace'
+								cObs[ii] = ''
+							elif cObs[ii-1] < 10:
+								cObs[ii-1] = '{:.1f}'.format(cObs[ii-1])
+							else:
+								cObs[ii-1] = '{:.0f}'.format(cObs[ii-1])
 					elif Prcp.strip() in ['"','in/hr','cm/hr','cm']:
-						if cObs[ii-1] == 0:
-							cObs[ii-1] = '{:.0f}'.format(cObs[ii-1])
-						elif cObs[ii-1] < 0.01:
-							cObs[ii-1] = 'Trace'
-							cObs[ii] = ''
-						elif cObs[ii-1] < 10:
-							cObs[ii-1] = '{:.2f}'.format(cObs[ii-1])
-						elif cObs[ii-1] < 100:
-							cObs[ii-1] = '{:.1f}'.format(cObs[ii-1])
+						if math.isnan(cObs[ii-1]):
+							cObs[ii-1] = '-'
 						else:
-							cObs[ii-1] = '{:.0f}'.format(cObs[ii-1])
+							if cObs[ii-1] == 0:
+								cObs[ii-1] = '{:.0f}'.format(cObs[ii-1])
+							elif cObs[ii-1] < 0.01:
+								cObs[ii-1] = 'Trace'
+								cObs[ii] = ''
+							elif cObs[ii-1] < 10:
+								cObs[ii-1] = '{:.2f}'.format(cObs[ii-1])
+							elif cObs[ii-1] < 100:
+								cObs[ii-1] = '{:.1f}'.format(cObs[ii-1])
+							else:
+								cObs[ii-1] = '{:.0f}'.format(cObs[ii-1])
 
 		# Format humidity observations
 		elif Type == 'Humidity':
 			for ii,H in enumerate(Obs):
 				if isinstance(H,str) and H.strip() == '%':
+					if math.isnan(cObs[ii-1]):
+						cObs[ii-1] = '-'
+					else:
 						cObs[ii-1] = '{:.0f}'.format(cObs[ii-1])
 
 		# Format solar radiation observations
 		elif Type == 'Radiation':
 			for ii,Rad in enumerate(Obs):
 				if isinstance(Rad,str) and Rad.strip() == 'W m[sup]-2[/sup]':
+					if math.isnan(cObs[ii-1]):
+						cObs[ii-1] = '-'
+					else:
 						cObs[ii-1] = '{:.0f}'.format(cObs[ii-1])
 
 		# Format UV observations
 		elif Type == 'UV':
 			for ii,UV in enumerate(Obs):
 				if isinstance(UV,str) and UV.strip() == 'index':
+					if math.isnan(cObs[ii-1]):
+						cObs[ii-1] = '-'
+					else:
 						cObs[ii-1] = '{:.1f}'.format(cObs[ii-1])
 
 		# Format battery voltage observations
 		elif Type == 'Battery':
 			for ii,V in enumerate(Obs):
 				if isinstance(V,str) and V.strip() == 'v':
+					if math.isnan(cObs[ii-1]):
+						cObs[ii-1] = '-'
+					else:
 						cObs[ii-1] = '{:.2f}'.format(cObs[ii-1])
 
 		# Return formatted observations
@@ -715,34 +804,52 @@ class wfpiconsole(App):
 
 		# Skip calculation during initialisation
 		if None in [TempC,RH,WindSpd]:
-			return [NaN,'c']
+			FeelsLike = [NaN,'c','-','-']
 
-		# Convert observation units as required
-		TempF = self.ObservationUnits(TempC,'f')
-		WindMPH = self.ObservationUnits(WindSpd,'mph')
-		WindKPH = self.ObservationUnits(WindSpd,'kph')
+		# Calculate 'Feels Like' temperature
+		else: 
+		
+			# Convert observation units as required
+			TempF = self.ObservationUnits(TempC,'f')
+			WindMPH = self.ObservationUnits(WindSpd,'mph')
+			WindKPH = self.ObservationUnits(WindSpd,'kph')
 
-		# If temperature is less than 10 degrees celcius and wind speed is
-		# higher than 5 mph, calculate wind chill using the Joint Action Group
-		# for Temperature Indices formula
-		if TempC[0] <= 10 and WindMPH[0] > 5:
+			# If temperature is less than 10 degrees celcius and wind speed is
+			# higher than 5 mph, calculate wind chill using the Joint Action Group
+			# for Temperature Indices formula
+			if TempC[0] <= 10 and WindMPH[0] > 5:
 
-			# Calculate wind chill
-			WindChill = 13.12 + 0.6215*TempC[0] - 11.37*(WindKPH[0])**0.16 + 0.3965*TempC[0]*(WindKPH[0])**0.16
-			FeelsLike = [WindChill,'c']
+				# Calculate wind chill
+				WindChill = 13.12 + 0.6215*TempC[0] - 11.37*(WindKPH[0])**0.16 + 0.3965*TempC[0]*(WindKPH[0])**0.16
+				FeelsLike = [WindChill,'c']
 
-		# If temperature is at or above 80 degress farenheit (26.67 C), and
-		# humidity is at or above 40%, calculate the Heat Index
-		elif TempF[0] >= 80 and RH[0] >= 40:
+			# If temperature is at or above 80 degress farenheit (26.67 C), and
+			# humidity is at or above 40%, calculate the Heat Index
+			elif TempF[0] >= 80 and RH[0] >= 40:
 
-			# Calculate Heat Index
-			HeatIndex = -42.379 + (2.04901523*TempF[0]) + (10.1433127*RH[0]) - (0.22475541*TempF[0]*RH[0]) - (6.83783e-3*TempF[0]**2) - (5.481717e-2*RH[0]**2) + (1.22874e-3*TempF[0]**2*RH[0]) + (8.5282e-4*TempF[0]*RH[0]**2) - (1.99e-6*TempF[0]**2*RH[0]**2)
-			FeelsLike = [(HeatIndex-32)*5/9,'c']
+				# Calculate Heat Index
+				HeatIndex = -42.379 + (2.04901523*TempF[0]) + (10.1433127*RH[0]) - (0.22475541*TempF[0]*RH[0]) - (6.83783e-3*TempF[0]**2) - (5.481717e-2*RH[0]**2) + (1.22874e-3*TempF[0]**2*RH[0]) + (8.5282e-4*TempF[0]*RH[0]**2) - (1.99e-6*TempF[0]**2*RH[0]**2)
+				FeelsLike = [(HeatIndex-32)*5/9,'c']
 
-		# Else set 'Feels Like' temperature to observed temperature
-		else:
-			FeelsLike = TempC
-
+			# Else set 'Feels Like' temperature to observed temperature
+			else:
+				FeelsLike = TempC
+				
+			# Define 'FeelsLike' temperature cutoffs
+			Cutoff = list(self.config['FeelsLike'].values())
+			Cutoff = [float(item) for item in Cutoff]
+			
+			# Define 'FeelsLike temperature text and icon
+			Description = ['Feeling extremely cold', 'Feeling freezing cold', 'Feeling very cold',
+						   'Feeling cold', 'Feeling mild', 'Feeling warm', 'Feeling hot',
+						   'Feeling very hot', 'Feeling extremely hot']
+			Icon = ['ExtremelyCold', 'FreezingCold', 'VeryCold', 'Cold', 'Mild', 'Warm',
+					'Hot', 'VeryHot', 'ExtremelyHot']
+		
+			# Extract required 'FeelsLike' description and icon
+			Ind = bisect.bisect(Cutoff,FeelsLike[0])
+			FeelsLike = [FeelsLike[0],FeelsLike[1],Description[Ind],Icon[Ind]]
+		
 		# Return 'Feels Like' temperature
 		return FeelsLike
 
@@ -778,10 +885,15 @@ class wfpiconsole(App):
 		# Download pressure data for last three hours
 		Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&api_key={}'
 		URL = Template.format(self.config['Station']['OutdoorID'],TimeStart,TimeEnd,self.config['Keys']['WeatherFlow'])
-		Data = requests.get(URL).json()['obs']
+		Data = requests.get(URL)
 
-		# Extract pressure from three hours ago
-		Pres3h = [Data[0][1],'mb']
+		# Extract pressure observation from three hours ago. Return NaN if API
+		# call has failed
+		if VerifyWeatherFlowJSON(Data,'obs'):
+			Data = Data.json()['obs']
+			Pres3h = [Data[0][1],'mb']
+		else:
+			Pres3h = [NaN,'mb']
 
 		# Calculate pressure trend
 		Trend = (Pres0h[0] - Pres3h[0])/3
@@ -791,7 +903,9 @@ class wfpiconsole(App):
 			Trend = abs(Trend)
 
 		# Define pressure trend text
-		if Trend >= 1/3:
+		if math.isnan(Trend):
+			TrendTxt = '-'
+		elif Trend >= 1/3:
 			TrendTxt = '[color=ff8837ff]Rising[/color]'
 		elif Trend <= -1/3:
 			TrendTxt = '[color=00a4b4ff]Falling[/color]'
@@ -824,14 +938,18 @@ class wfpiconsole(App):
 			Now = Tz.localize(datetime.now())
 			Now_UTC = int(Now.timestamp())
 
-			# Download rainfall data for current month
+			# Download rainfall data for current day
 			Template = ('https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&api_key={}')
 			URL = Template.format(self.config['Station']['SkyID'],Midnight_UTC,Now_UTC,self.config['Keys']['WeatherFlow'])
-			Data = requests.get(URL).json()['obs']
-			Rain = [[item[3],'mm'] if item[3] != None else NaN for item in Data]
+			Data = requests.get(URL)
 
-			# Calculate daily rain accumulation
-			TodayRain = [sum([x for x,y in Rain]),'mm',sum([x for x,y in Rain]),Now]
+			# Calculate daily rainfall total. Return NaN if API call has failed
+			if VerifyWeatherFlowJSON(Data,'obs'):
+				Data = Data.json()['obs']
+				Rain = [[item[3],'mm'] if item[3] != None else NaN for item in Data]
+				TodayRain = [sum([x for x,y in Rain]),'mm',sum([x for x,y in Rain]),Now]
+			else:
+				TodayRain = [NaN,'mm',NaN,Now]
 
 		# Code initialising. Download all data for yesterday using Weatherflow
 		# API. Calculate total daily rainfall
@@ -850,11 +968,16 @@ class wfpiconsole(App):
 			# Download rainfall data for current month
 			Template = ('https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&api_key={}')
 			URL = Template.format(self.config['Station']['SkyID'],Midnight_UTC,End_UTC,self.config['Keys']['WeatherFlow'])
-			Data = requests.get(URL).json()['obs']
-			Rain = [[item[3],'mm'] if item[3] != None else NaN for item in Data]
+			Data = requests.get(URL)
 
-			# Calculate daily rain accumulation
-			YesterdayRain = [sum([x for x,y in Rain]),'mm',sum([x for x,y in Rain]),Now]
+			# Calculate yesterday rainfall total. Return NaN if API call has
+			# failed
+			if VerifyWeatherFlowJSON(Data,'obs'):
+				Data = Data.json()['obs']
+				Rain = [[item[3],'mm'] if item[3] != None else NaN for item in Data]
+				YesterdayRain = [sum([x for x,y in Rain]),'mm',sum([x for x,y in Rain]),Now]
+			else:
+				YesterdayRain = [NaN,'mm',NaN,Now]
 
 		# Code initialising. Download all data for current month using
 		# Weatherflow API. Calculate total monthly rainfall
@@ -867,14 +990,19 @@ class wfpiconsole(App):
 			TimeStart = int(UNIX.mktime(TimeStart.timetuple()))
 			TimeEnd = self.Sky['Obs'][0]
 
-			# Download rainfall data for current month
+			# Download rainfall data for current month.
 			Template = ('https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&api_key={}')
 			URL = Template.format(self.config['Station']['SkyID'],TimeStart,TimeEnd,self.config['Keys']['WeatherFlow'])
-			Data = requests.get(URL).json()['obs']
-			Rain = [[item[3],'mm'] if item[3] != None else NaN for item in Data]
+			Data = requests.get(URL)
 
-			# Calculate monthly rain accumulation
-			MonthRain = [sum([x for x,y in Rain]),'mm',sum([x for x,y in Rain]),Now]
+			# Calculate monthly rainfall total. Return NaN if API call has
+			# failed
+			if VerifyWeatherFlowJSON(Data,'obs'):
+				Data = Data.json()['obs']
+				Rain = [[item[3],'mm'] if item[3] != None else NaN for item in Data]
+				MonthRain = [sum([x for x,y in Rain]),'mm',sum([x for x,y in Rain]),Now]
+			else:
+				MonthRain = [NaN,'mm',NaN,Now]
 
 		# Code initialising. Download all data for current year using
 		# Weatherflow API. Calculate total yearly rainfall
@@ -890,11 +1018,15 @@ class wfpiconsole(App):
 			# Download rainfall data for current year
 			Template = ('https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&api_key={}')
 			URL = Template.format(self.config['Station']['SkyID'],TimeStart,TimeEnd,self.config['Keys']['WeatherFlow'])
-			Data = requests.get(URL).json()['obs']
-			Rain = [[item[3],'mm'] if item[3] != None else NaN for item in Data]
+			Data = requests.get(URL)
 
-			# Calculate yearly rain accumulation
-			YearRain = [sum([x for x,y in Rain]),'mm',sum([x for x,y in Rain]),Now]
+			# Calculate yearly rainfall total. Return NaN if API call has failed
+			if VerifyWeatherFlowJSON(Data,'obs'):
+				Data = Data.json()['obs']
+				Rain = [[item[3],'mm'] if item[3] != None else NaN for item in Data]
+				YearRain = [sum([x for x,y in Rain]),'mm',sum([x for x,y in Rain]),Now]
+			else:
+				YearRain = [NaN,'mm',NaN,Now]
 
 			# Return Daily, Monthly, and Yearly rainfall accumulation totals
 			return TodayRain,YesterdayRain,MonthRain,YearRain
@@ -964,7 +1096,7 @@ class wfpiconsole(App):
 		Now = datetime.now(pytz.utc).astimezone(Tz)
 
 		# CODE INITIALISING. DOWNLOAD DATA FOR CURRENT DAY USING WEATHERFLOW API
-		if self.Sky['AvgWind'] == '--':
+		if self.Sky['AvgWind'][0] == '-':
 
 			# Convert midnight today in Station timezone to midnight today in
 			# UTC. Convert UTC time into UNIX timestamp
@@ -981,13 +1113,18 @@ class wfpiconsole(App):
 			# wind speed and wind gust data
 			Template = ('https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&api_key={}')
 			URL = Template.format(self.config['Station']['SkyID'],Midnight_UTC,Now_UTC,self.config['Keys']['WeatherFlow'])
-			Data = requests.get(URL).json()['obs']
-			WindSpd = [[item[5],'mps'] if item[5] != None else [NaN,'mps'] for item in Data]
+			Data = requests.get(URL)
 
-			# Calculate daily averaged wind speed
-			Sum = sum([x for x,y in WindSpd])
-			Length = len(WindSpd)
-			AvgWind = [Sum/Length,'mps',Sum/Length,Length,Now]
+			# Calculate daily averaged wind speed. Return NaN if API call has
+			# failed
+			if VerifyWeatherFlowJSON(Data,'obs'):
+				Data = Data.json()['obs']
+				WindSpd = [[item[5],'mps'] if item[5] != None else [NaN,'mps'] for item in Data]
+				Sum = sum([x for x,y in WindSpd])
+				Length = len(WindSpd)
+				AvgWind = [Sum/Length,'mps',Sum/Length,Length,Now]
+			else:
+				AvgWind = [NaN,'mps',NaN,NaN,Now]
 
 			# Return daily averaged wind speed
 			return AvgWind
@@ -1019,7 +1156,7 @@ class wfpiconsole(App):
 		Now = datetime.now(pytz.utc).astimezone(Tz)
 
 		# CODE INITIALISING. DOWNLOAD DATA FOR CURRENT DAY USING WEATHERFLOW API
-		if self.Air['MaxTemp'] == '---':
+		if self.Air['MaxTemp'][0] == '-':
 
 			# Convert midnight today in Station timezone to midnight today in
 			# UTC. Convert UTC time into UNIX timestamp
@@ -1036,21 +1173,35 @@ class wfpiconsole(App):
 			# temperature, pressure and time data
 			Template = ('https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&api_key={}')
 			URL = Template.format(self.config['Station']['OutdoorID'],Midnight_UTC,Now_UTC,self.config['Keys']['WeatherFlow'])
-			Data = requests.get(URL).json()['obs']
-			Time = [[item[0],'s'] if item[0] != None else NaN for item in Data]
-			Temp = [[item[2],'c'] if item[2] != None else [NaN,'c'] for item in Data]
-			Pres = [[item[1],'mb'] if item[1] != None else [NaN,'mb'] for item in Data]
+			Data = requests.get(URL)
 
-			# Calculate sea level pressure
-			SLP = [self.SeaLevelPressure(P) for P in Pres]
+			# Calculate maximum and minimum temperature and pressure. Return NaN
+			# if API call has failed
+			if VerifyWeatherFlowJSON(Data,'obs'):
 
-			# Define maximum and minimum temperature and time
-			MaxTemp = [max(Temp)[0],max(Temp)[1],datetime.fromtimestamp(Time[Temp.index(max(Temp))][0],Tz).strftime('%H:%M'),max(Temp)[0],Now]
-			MinTemp = [min(Temp)[0],min(Temp)[1],datetime.fromtimestamp(Time[Temp.index(min(Temp))][0],Tz).strftime('%H:%M'),min(Temp)[0],Now]
+				# Extract data from API call
+				Data = Data.json()['obs']
+				Time = [[item[0],'s'] if item[0] != None else NaN for item in Data]
+				Temp = [[item[2],'c'] if item[2] != None else [NaN,'c'] for item in Data]
+				Pres = [[item[1],'mb'] if item[1] != None else [NaN,'mb'] for item in Data]
 
-			# Define maximum and minimum pressure
-			MaxPres = [max(SLP)[0],max(SLP)[1],max(SLP)[0],Now]
-			MinPres = [min(SLP)[0],min(SLP)[1],min(SLP)[0],Now]
+				# Calculate sea level pressure
+				SLP = [self.SeaLevelPressure(P) for P in Pres]
+
+				# Define maximum and minimum temperature and time
+				MaxTemp = [max(Temp)[0],'c',datetime.fromtimestamp(Time[Temp.index(max(Temp))][0],Tz).strftime('%H:%M'),max(Temp)[0],Now]
+				MinTemp = [min(Temp)[0],'c',datetime.fromtimestamp(Time[Temp.index(min(Temp))][0],Tz).strftime('%H:%M'),min(Temp)[0],Now]
+
+				# Define maximum and minimum pressure
+				MaxPres = [max(SLP)[0],'mb',max(SLP)[0],Now]
+				MinPres = [min(SLP)[0],'mb',min(SLP)[0],Now]
+
+			# API call has failed. Return NaN
+			else:
+				MaxTemp = [NaN,'c','-',NaN,Now]
+				MinTemp = [NaN,'c','-',NaN,Now]
+				MaxPres = [NaN,'mb',NaN,Now]
+				MinPres = [NaN,'mb',NaN,Now]
 
 			# Return required variables
 			return MaxTemp,MinTemp,MaxPres,MinPres
@@ -1109,97 +1260,62 @@ class wfpiconsole(App):
 	# CALCULATE MAXIMUM OBSERVED WIND SPEED AND GUST STRENGTH
 	# --------------------------------------------------------------------------
 	def SkyObsMaxMin(self,WindSpd,WindGust):
-
+		
 		# Define current time in station timezone
 		Tz = pytz.timezone(self.config['Station']['Timezone'])
 		Now = datetime.now(pytz.utc).astimezone(Tz)
-
+		
 		# CODE INITIALISING. DOWNLOAD DATA FOR CURRENT DAY USING WEATHERFLOW API
 		if self.Sky['MaxGust'] == '--':
-
-			# Convert midnight today in Station timezone to midnight today in
+		
+			# Convert midnight today in Station timezone to midnight today in 
 			# UTC. Convert UTC time into UNIX timestamp
-			Date = date.today()
+			Date = date.today()																
 			Midnight = Tz.localize(datetime.combine(Date,time()))
 			Midnight_UTC = int(Midnight.timestamp())
-
-			# Convert current time in Station timezone to current time in UTC.
+			
+			# Convert current time in Station timezone to current time in UTC. 
 			# Convert current time time into UNIX timestamp
 			Now = Tz.localize(datetime.now())
-			Now_UTC = int(Now.timestamp())
+			Now_UTC = int(Now.timestamp())													
 
-			# Download data from current day using Weatherflow API and extract
+			# Download data from current day using Weatherflow API and extract 
 			# wind speed and wind gust data
-			Template = ('https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&api_key={}')
+			Template = ('https://swd.weatherflow.com/swd/rest/observations/?device_id={}&time_start={}&time_end={}&api_key={}')
 			URL = Template.format(self.config['Station']['SkyID'],Midnight_UTC,Now_UTC,self.config['Keys']['WeatherFlow'])
-			Data = requests.get(URL).json()['obs']
-			WindGust = [[item[6],'mps'] if item[6] != None else [NaN,'mps'] for item in Data]
-
-			# Define maximum wind gust
-			MaxGust = [max([x for x,y in WindGust]),'mps',max([x for x,y in WindGust]),Now]
+			Data = requests.get(URL)
+			
+			# Calculate daily maximum wind gust. Return NaN if API call has 
+			# failed
+			if VerifyWeatherFlowJSON(Data,'obs'):
+				Data = Data.json()['obs']
+				WindGust = [[item[6],'mps'] if item[6] != None else [NaN,'mps'] for item in Data]
+				MaxGust = [max([x for x,y in WindGust]),'mps',max([x for x,y in WindGust]),Now]
+			else:
+				TodayRain = [NaN,'mps',NaN,Now]
 
 			# Return maximum wind gust
 			return MaxGust
 
-		# AT MIDNIGHT RESET MAXIMUM RECORDED WIND GUST
+		# AT MIDNIGHT RESET MAXIMUM RECORDED WIND GUST	
 		if Now.date() > self.Sky['MaxGust'][3].date():
 			MaxGust = [WindGust[0],'mps',WindGust[0],Now]
-
+			
 			# Return maximum wind gust
-			return MaxGust
-
-		# Current gust speed is greater than maximum recorded gust speed. Update
-		# maximum gust speed
+			return MaxGust	
+			
+		# Current gust speed is greater than maximum recorded gust speed. Update 
+		# maximum gust speed 
 		if WindGust[0] > self.Sky['MaxGust'][2]:
-			MaxGust = [WindGust[0],'mps',WindGust[0],Now]
-
+			MaxGust = [WindGust[0],'mps',WindGust[0],Now]	
+				
 		# Maximum gust speed is unchanged. Return existing value
 		else:
-			MaxGust = [self.Sky['MaxGust'][2],'mps',self.Sky['MaxGust'][2],Now]
-
+			MaxGust = [self.Sky['MaxGust'][2],'mps',self.Sky['MaxGust'][2],Now]	
+			
 		# Return maximum wind speed and gust
-		return MaxGust
-
-	# SET THE COMFORT LEVEL TEXT STRING AND ICON
-	# --------------------------------------------------------------------------
-	def ComfortLevel(self,FeelsLike):
-
-		# Skip during initialisation
-		if math.isnan(FeelsLike[0]):
-			return ['-','-']
-
-		# Define comfort level text and icon
-		if FeelsLike[0] < -4:
-			Description = 'Feeling extremely cold'
-			Icon = 'ExtremelyCold'
-		elif FeelsLike[0] < 0:
-			Description = 'Feeling freezing cold'
-			Icon = 'FreezingCold'
-		elif FeelsLike[0] < 4:
-			Description = 'Feeling very cold'
-			Icon = 'VeryCold'
-		elif FeelsLike[0] < 9:
-			Description = 'Feeling cold'
-			Icon = 'Cold'
-		elif FeelsLike[0] < 14:
-			Description = 'Feeling mild'
-			Icon = 'Mild'
-		elif FeelsLike[0] < 18:
-			Description = 'Feeling warm'
-			Icon = 'Warm'
-		elif FeelsLike[0] < 23:
-			Description = 'Feeling hot'
-			Icon = 'Hot'
-		elif FeelsLike[0] < 28:
-			Description = 'Feeling very hot'
-			Icon = 'VeryHot'
-		elif FeelsLike[0] >= 28:
-			Description = 'Feeling extremely hot'
-			Icon = 'ExtremelyHot'
-
-		# Return comfort level text string and icon
-		return [Description,Icon]
-
+		return MaxGust	
+		
 	# CALCULATE CARDINAL WIND DIRECTION FROM WIND DIRECTION IN DEGREES
 	# --------------------------------------------------------------------------
 	def CardinalWindDirection(self,Dir,Spd=[1,'mps']):
@@ -1585,7 +1701,11 @@ class wfpiconsole(App):
 		if self.config['Station']['Country'] == 'GB':
 			Template = 'http://datapoint.metoffice.gov.uk/public/data/val/wxfcs/all/json/{}?res=3hourly&key={}'
 			URL = Template.format(self.config['Station']['MetOfficeID'],self.config['Keys']['MetOffice'])
-			self.MetDict = requests.get(URL).json()
+			try:
+				self.MetDict = requests.get(URL).json()
+			except:
+				if not hasattr(self, 'MetDict'):
+					self.MetDict = {}
 			self.ExtractMetOfficeForecast()
 
 		# If station is located outside of Great Britain, download the latest
@@ -1593,7 +1713,11 @@ class wfpiconsole(App):
 		else:
 			Template = 'https://api.darksky.net/forecast/{}/{},{}?exclude=currently,minutely,alerts,flags&units=uk2'
 			URL = Template.format(self.config['Keys']['DarkSky'],self.config['Station']['Latitude'],self.config['Station']['Longitude'])
-			self.MetDict = requests.get(URL).json()
+			try:
+				self.MetDict = requests.get(URL).json()
+			except:
+				if not hasattr(self, 'MetDict'):
+					self.MetDict = {}
 			self.ExtractDarkSkyForecast()
 
 	# EXTRACT THE LATEST THREE-HOURLY METOFFICE FORECAST FOR THE STATION
@@ -1892,7 +2016,7 @@ class wfpiconsole(App):
 	# UPDATE 'WeatherFlowPiConsole' METHODS AT REQUIRED INTERVALS
 	# --------------------------------------------------------------------------
 	def UpdateMethods(self,dt):
-
+			
 		# Get current time in station timezone
 		Tz = pytz.timezone(self.config['Station']['Timezone'])
 		Now = datetime.now(pytz.utc).astimezone(Tz)
@@ -1906,7 +2030,7 @@ class wfpiconsole(App):
 		# At the top of each hour update the on-screen forecast for the Station
 		# location
 		if Now.hour > self.MetData['Time'].hour or Now.date() > self.MetData['Time'].date():
-			if self.config['System']['Country'] == 'GB':
+			if self.config['Station']['Country'] == 'GB':
 				self.ExtractMetOfficeForecast()
 			else:
 				self.ExtractDarkSkyForecast()
@@ -1962,8 +2086,7 @@ class wfpiconsole(App):
 class CurrentConditions(Screen):
 
 	# Define Kivy properties required by 'CurrentConditions'
-	Screen = DictProperty([('Clock','--'),('SunMoon','Sun'),
-						   ('MetSager','Met'),
+	Screen = DictProperty([('Clock','--'),('SunMoon','Sun'),('MetSager','Met'),
 						   ('xRainAnim',471),('yRainAnim',11)])
 
 	# INITIALISE 'CurrentConditions' SCREEN CLASS
@@ -1976,28 +2099,25 @@ class CurrentConditions(Screen):
 	# DEFINE DATE AND TIME FOR CLOCK IN STATION TIMEZONE
 	# --------------------------------------------------------------------------
 	def Clock(self,dt):
-	
-		# Get config file
-		config = App.get_running_app().config
-	
+
 		# Define time and date format based on user settings
-		if config['Settings']['TimeFormat'] in ['12 hr']:
+		if App.get_running_app().TimeFormat == '12 hr':
 			TimeFormat = '%I:%M:%S %p'
 		else:
 			TimeFormat = '%H:%M:%S'
-		if 	config['Settings']['DateFormat'] in ['Mon, Jan 01 0000']:
+		if 	App.get_running_app().DateFormat == 'Mon, Jan 01 0000':
 			DateFormat = '%a, %b %d %Y'
-		elif config['Settings']['DateFormat'] in ['Monday, 01 Jan 0000']:	
+		elif App.get_running_app().DateFormat == 'Monday, 01 Jan 0000':
 			DateFormat = '%A, %d %b %Y'
-		elif config['Settings']['DateFormat'] in ['Monday, Jan 01 0000']:
+		elif App.get_running_app().DateFormat == 'Monday, Jan 01 0000':
 			DateFormat = '%A, %b %d %Y'
 		else:
 			DateFormat = '%a, %d %b %Y'
-		
+
 		# Get current time in station time zone
 		Tz = pytz.timezone(App.get_running_app().config['Station']['Timezone'])
 		Now = datetime.now(pytz.utc).astimezone(Tz)
-		
+
 		# Format current time
 		self.Screen['Clock'] = Now.strftime(DateFormat + '\n' + TimeFormat)
 
@@ -2071,28 +2191,27 @@ class Credits(Popup):
 class Version(Popup):
 	pass
 
-
+# ==============================================================================
+# DEFINE 'SettingScrollOptions' SETTINGS CLASS
+# ==============================================================================
 class SettingScrollOptions(SettingOptions):
 
 	def _create_popup(self,instance):
 
 		# Create the popup and scrollview
-		content         = BoxLayout(orientation='vertical', padding=[12,12,12,12])
+		content         = BoxLayout(orientation='vertical', spacing='5dp')
 		scrollview      = ScrollView(do_scroll_x=False, bar_inactive_color=[.7, .7, .7, 0.9], bar_width=4)
-		scrollcontent   = BoxLayout(orientation='vertical', spacing=dp(5))
-		popup_width  	= min(0.25 * Window.width, dp(500))
-		popup_height    = 25 + min(len(self.options)+1,7) * 55
-		self.popup 		= ModalView(size_hint=(None,None), size=(popup_width,popup_height), auto_dismiss=False)
-
-		# Add parent GridLayout to popup
-		self.popup.add_widget(content)
+		scrollcontent   = GridLayout(cols=1, spacing='5dp', size_hint=(0.95, None))
+		self.popup   	= Popup(content=content, title=self.title, size_hint=(0.25, 0.8),
+								auto_dismiss=False, separator_color=[1,1,1,1])
 
 		# Add all the options to the ScrollView
 		scrollcontent.bind(minimum_height=scrollcontent.setter('height'))
+		content.add_widget(Widget(size_hint_y=None, height=dp(1)))
 		uid = str(self.uid)
 		for option in self.options:
 			state = 'down' if option == self.value else 'normal'
-			btn = ToggleButton(text=option, state=state, group=uid)
+			btn = ToggleButton(text=option, state=state, group=uid, height=dp(58), size_hint=(0.9, None))
 			btn.bind(on_release=self._set_option)
 			scrollcontent.add_widget(btn)
 
@@ -2100,44 +2219,109 @@ class SettingScrollOptions(SettingOptions):
 		scrollview.add_widget(scrollcontent)
 		content.add_widget(scrollview)
 		content.add_widget(SettingSpacer())
-		btn = Button(text='Cancel', size_hint=(1,None), height=dp(50))
+		btn = Button(text='Cancel', height=dp(58), size_hint=(1, None))
 		btn.bind(on_release=self.popup.dismiss)
 		content.add_widget(btn)
 		self.popup.open()
-		
+
+# ==============================================================================
+# DEFINE 'SettingFixedOptions' SETTINGS CLASS
+# ==============================================================================
 class SettingFixedOptions(SettingOptions):
 
 	def _create_popup(self, instance):
-	
-		# create the popup
-		content = BoxLayout(orientation='vertical', spacing='5dp')
-		popup_width = min(0.25 * Window.width, dp(500))
-		self.popup = popup = Popup(
-			content=content, title=self.title, size_hint=(None, None),
-			size=(popup_width, '400dp'))
-		popup.height = 25 + min(len(self.options)+1,5) * 70
 
-		# add all the options
+		# Create the popup
+		content 	= BoxLayout(orientation='vertical', spacing='5dp')
+		self.popup 	= Popup(content=content, title=self.title, size_hint=(0.25, None),
+							auto_dismiss=False, separator_color=[1,1,1,1], height=129+min(len(self.options),4) * 63)
+
+		# Add all the options to the Popup
 		content.add_widget(Widget(size_hint_y=None, height=1))
 		uid = str(self.uid)
 		for option in self.options:
 			state = 'down' if option == self.value else 'normal'
-			btn = ToggleButton(text=option, state=state, group=uid)
+			btn = ToggleButton(text=option, state=state, group=uid, height=dp(58), size_hint=(1, None))
 			btn.bind(on_release=self._set_option)
 			content.add_widget(btn)
 
-		# finally, add a cancel button to return on the previous panel
+		# Add a cancel button to return on the previous panel
 		content.add_widget(SettingSpacer())
-		btn = Button(text='Cancel', size_hint=(1,None), height=dp(50))
-		btn.bind(on_release=popup.dismiss)
+		btn = Button(text='Cancel', height=dp(58), size_hint=(1, None))
+		btn.bind(on_release=self.popup.dismiss)
 		content.add_widget(btn)
+		self.popup.open()
 
-		# and open the popup !
-		popup.open()
+# ==============================================================================
+# DEFINE 'SettingToggleTemperature' SETTINGS CLASS
+# ==============================================================================
+class SettingToggleTemperature(SettingString):
 
+	def _create_popup(self, instance):
+	
+		# Get temperature units from config file
+		config = App.get_running_app().config
+		Units = '[sup]o[/sup]' + config['Units']['Temp'].upper()
 
+		# Create Popup layout
+		content 	= BoxLayout(orientation='vertical', spacing='5dp')
+		self.popup 	= Popup(content=content, title=self.title, size_hint=(0.25, None),
+							auto_dismiss=False, separator_color=[1,1,1,0], height='234dp')
+		content.add_widget(SettingSpacer())
+
+		# Create the label to show the numeric value
+		self.Label = Label(text=self.value+Units, markup=True, font_size='24sp', size_hint_y=None, height='50dp', halign='left')
+		content.add_widget(self.Label)
+
+		# Add a plus and minus increment button to change the value by +/- one
+		btnlayout = BoxLayout(size_hint_y=None, height='50dp', spacing='5dp')
+		btn = Button(text='-')
+		btn.bind(on_press=self.minus)
+		btnlayout.add_widget(btn)
+		btn = Button(text='+')
+		btn.bind(on_press=self.plus)
+		btnlayout.add_widget(btn)
+		content.add_widget(btnlayout)
+		content.add_widget(SettingSpacer())
+
+		# Add an OK button to set the value, and a cancel button to return to
+		# the previous panel
+		btnlayout = BoxLayout(size_hint_y=None, height='50dp', spacing='5dp')
+		btn = Button(text='Ok')
+		btn.bind(on_release=self._set_value)
+		btnlayout.add_widget(btn)
+		btn = Button(text='Cancel')
+		btn.bind(on_release=self.popup.dismiss)
+		btnlayout.add_widget(btn)
+		content.add_widget(btnlayout)
+
+		# Open the popup
+		self.popup.open()
+
+	def _set_value(self,instance):
+		if '[sup]o[/sup]C' in self.Label.text:
+			Units = '[sup]o[/sup]C'
+		else:
+			Units = '[sup]o[/sup]F'
+		self.value = self.Label.text.replace(Units,'')
+		self.popup.dismiss()
+
+	def minus(self,instance):
+		if '[sup]o[/sup]C' in self.Label.text:
+			Units = '[sup]o[/sup]C'
+		else:
+			Units = '[sup]o[/sup]F'
+		Value = int(self.Label.text.replace(Units,'')) - 1
+		self.Label.text =str(Value) + Units
+
+	def plus(self,instance):
+		if '[sup]o[/sup]C' in self.Label.text:
+			Units = '[sup]o[/sup]C'
+		else:
+			Units = '[sup]o[/sup]F'
+		Value = int(self.Label.text.replace(Units,'')) + 1
+		self.Label.text =str(Value) + Units
 		
-
 # ==============================================================================
 # RUN APP
 # ==============================================================================

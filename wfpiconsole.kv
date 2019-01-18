@@ -328,14 +328,14 @@ ScreenManager:
 
 		## COMFORT LEVEL
 		Image:
-			source: 'Icons/FeelsLike/' + app.Air['Comfort'][1] + '.png'
+			source: 'Icons/FeelsLike/' + app.Air['FeelsLike'][3] + '.png'
 			size_hint: (None,None)
 			keep_ratio: 0
 			allow_stretch: 1
 			size: (38,31)
 			pos: (276,266)
 		Label:
-			text: app.Air['Comfort'][0]
+			text: app.Air['FeelsLike'][2]
 			font_name: 'Fonts/Helvetica.ttf'
 			font_size: '15sp'
 			text_size: self.size
@@ -1129,11 +1129,12 @@ ScreenManager:
 			background_down: 'Buttons/SunMoon_Pressed.png'
 			on_press: root.SwitchPanel(self,'SunMoon')
 		Button:
-			text: 'settings'
 			size_hint: (None,None)
-			on_press: app.open_settings()
-			size: (81,30)
-			pos: (300,0)
+			size: (88,30)
+			pos: (350,0)
+			background_normal: 'Buttons/Settings.png'
+			background_down: 'Buttons/Settings_Pressed.png'
+			on_release: app.open_settings()
 		Button:
 			size_hint: (None,None)
 			size: (81,30)
@@ -1231,10 +1232,12 @@ ScreenManager:
     height: self.minimum_height
 <-SettingSpacer>:
     size_hint_y: None
-    height: 11
+    height: 2
     canvas.after:
         Color:
             rgb: 1,1,1,1
         Rectangle:
             pos: self.x, self.center_y
             size: self.width, 2
+	
+		
