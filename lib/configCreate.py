@@ -14,7 +14,7 @@ from pathlib import Path
 from geopy import distance as geopy
 
 # Define wfpiconsole version number
-Version = 'v1.28'
+Version = 'v1.99'
 
 # Define required variables
 stationWF = None
@@ -312,47 +312,57 @@ def default_ini():
 	console for Weather Flow Smart Home Weather Stations.
 	"""
 
-	# DEFINE DEFAULT CONFIGURATION SECTIONS, KEY NAMES, AND KEY DETAILS
+	# DEFINE DEFAULT CONFIGURATION SECTIONS, KEY NAMES, AND KEY DETAILS AS 
+	# ORDERED DICTS
 	# --------------------------------------------------------------------------
-	Default = collections.OrderedDict()
-	Default['Keys'] =  	   {'GeoNames': 	{'Type': 'userInput', 'State': 'required', 'Format': str, 'Desc': 'GeoNames API key'},
-							'MetOffice': 	{'Type': 'userInput', 'State': 'optional', 'Format': str, 'Desc': 'UK MetOffice API key'},
-							'DarkSky': 		{'Type': 'userInput', 'State': 'optional', 'Format': str, 'Desc': 'DarkSky API key',},
-							'CheckWX': 		{'Type': 'userInput', 'State': 'required', 'Format': str, 'Desc': 'CheckWX API key',},
-							'WeatherFlow': 	{'Type': 'fixed', 'Value': '146e4f2c-adec-4244-b711-1aeca8f46a48', 'Desc': 'WeatherFlow API key'}}
-	Default['Station'] =   {'StationID': 	{'Type': 'userInput', 'State': 'required', 'Format': int, 'Desc': 'Station ID'},
-							'OutdoorID': 	{'Type': 'userInput', 'State': 'required', 'Format': int, 'Desc': 'Outdoor module ID'},
-							'IndoorID': 	{'Type': 'userInput', 'State': 'optional', 'Format': int, 'Desc': 'Indoor module ID'},
-							'SkyID': 		{'Type': 'userInput', 'State': 'required', 'Format': int, 'Desc': 'Sky module ID'},
-							'OutdoorHeight':{'Type': 'request', 'Source': 'stationWF', 'Desc': 'height of Outdoor module'},
-							'SkyHeight': 	{'Type': 'request', 'Source': 'stationWF', 'Desc': 'height of Sky module'},
-							'Latitude': 	{'Type': 'request', 'Source': 'stationWF', 'Desc': 'station latitude'},
-							'Longitude': 	{'Type': 'request', 'Source': 'stationWF', 'Desc': 'station longitude'},
-							'Elevation': 	{'Type': 'request', 'Source': 'stationWF', 'Desc': 'station elevation'},
-							'Timezone': 	{'Type': 'request', 'Source': 'stationWF', 'Desc': 'station timezone'},
-							'Country': 		{'Type': 'request', 'Source': 'GeoNames',  'Desc': 'station country'},
-							'ForecastLocn': {'Type': 'request', 'Source': 'MetOffice', 'Desc': 'station forecast location'},
-							'MetOfficeID': 	{'Type': 'request', 'Source': 'MetOffice', 'Desc': 'station forecast ID'}}
-	Default['Units'] = 	   {'Temp':			{'Type':'request',  'Source': 'observationWF', 'Desc': 'station temperature units'},
-							'Pressure':		{'Type': 'request', 'Source': 'observationWF', 'Desc': 'station pressure units'},
-							'Wind':			{'Type': 'request', 'Source': 'observationWF', 'Desc': 'station wind units'},
-							'Direction':	{'Type': 'request', 'Source': 'observationWF', 'Desc': 'station direction units'},
-							'Precip':		{'Type': 'request', 'Source': 'observationWF', 'Desc': 'station precipitation units'},
-							'Distance':		{'Type': 'request', 'Source': 'observationWF', 'Desc': 'station distance units'},
-							'Other':		{'Type': 'request', 'Source': 'observationWF', 'Desc': 'station other units'}}
-	Default['Settings'] =  {'TimeFormat':	{'Type': 'default', 'Value': '24 hr', 'Desc': 'time format'},
-							'DateFormat':	{'Type': 'default', 'Value': 'Mon, 01 Jan 0000', 'Desc': 'date format'}}
-	Default['FeelsLike'] = {'ExtremelyCold':{'Type': 'default', 'Value': '-4', 'Desc': '"Feels extremely" cold cut-off temperature'},
-							'FreezingCold':	{'Type': 'default', 'Value': '0',  'Desc': '"Feels freezing" cold cut-off temperature'},
-							'VeryCold':		{'Type': 'default', 'Value': '4',  'Desc': '"Feels very cold" cut-off temperature'},
-							'Cold':			{'Type': 'default', 'Value': '9',  'Desc': '"Feels cold" cut-off temperature'},
-							'Mild':			{'Type': 'default', 'Value': '14', 'Desc': '"Feels mild" cut-off temperature'},
-							'Warm':			{'Type': 'default', 'Value': '18', 'Desc': '"Feels warm" cut-off temperature'},
-							'Hot':			{'Type': 'default', 'Value': '23', 'Desc': '"Feels hot" cut-off temperature'},
-							'VeryHot':		{'Type': 'default', 'Value': '28', 'Desc': '"Feels very hot" cut-off temperature'}}
-	Default['System'] =    {'BarometerMax':	{'Type': 'dependent', 'Desc': 'maximum barometer pressure'},
-							'BarometerMin':	{'Type': 'dependent', 'Desc': 'minimum barometer pressure'},
-							'Version': 		{'Type': 'default', 'Value': Version, 'Desc': 'Version number'}}
+	Default = 	collections.OrderedDict()
+	Keys =  	collections.OrderedDict([('GeoNames',		{'Type': 'userInput', 'State': 'required', 'Format': str, 'Desc': 'GeoNames API key'}),
+										 ('MetOffice', 		{'Type': 'userInput', 'State': 'optional', 'Format': str, 'Desc': 'UK MetOffice API key'}),
+										 ('DarkSky', 		{'Type': 'userInput', 'State': 'optional', 'Format': str, 'Desc': 'DarkSky API key',}),
+										 ('CheckWX', 		{'Type': 'userInput', 'State': 'required', 'Format': str, 'Desc': 'CheckWX API key',}),
+										 ('WeatherFlow',	{'Type': 'fixed', 'Value': '146e4f2c-adec-4244-b711-1aeca8f46a48', 'Desc': 'WeatherFlow API key'})])
+	Station =   collections.OrderedDict([('StationID',		{'Type': 'userInput', 'State': 'required', 'Format': int, 'Desc': 'Station ID'}),
+										 ('OutdoorID', 		{'Type': 'userInput', 'State': 'required', 'Format': int, 'Desc': 'Outdoor module ID'}),
+										 ('IndoorID', 		{'Type': 'userInput', 'State': 'optional', 'Format': int, 'Desc': 'Indoor module ID'}),
+										 ('SkyID', 			{'Type': 'userInput', 'State': 'required', 'Format': int, 'Desc': 'Sky module ID'}),
+										 ('OutdoorHeight',	{'Type': 'request', 'Source': 'stationWF', 'Desc': 'height of Outdoor module'}),
+										 ('SkyHeight', 		{'Type': 'request', 'Source': 'stationWF', 'Desc': 'height of Sky module'}),
+									 	 ('Latitude',		{'Type': 'request', 'Source': 'stationWF', 'Desc': 'station latitude'}),
+										 ('Longitude', 		{'Type': 'request', 'Source': 'stationWF', 'Desc': 'station longitude'}),
+										 ('Elevation', 		{'Type': 'request', 'Source': 'stationWF', 'Desc': 'station elevation'}),
+										 ('Timezone', 		{'Type': 'request', 'Source': 'stationWF', 'Desc': 'station timezone'}),
+										 ('Country', 		{'Type': 'request', 'Source': 'GeoNames',  'Desc': 'station country'}),
+										 ('ForecastLocn', 	{'Type': 'request', 'Source': 'MetOffice', 'Desc': 'station forecast location'}),
+										 ('MetOfficeID', 	{'Type': 'request', 'Source': 'MetOffice', 'Desc': 'station forecast ID'})])
+	Units = 	collections.OrderedDict([('Temp',			{'Type':'request',  'Source': 'observationWF', 'Desc': 'station temperature units'}),
+										 ('Pressure',		{'Type': 'request', 'Source': 'observationWF', 'Desc': 'station pressure units'}),
+										 ('Wind',			{'Type': 'request', 'Source': 'observationWF', 'Desc': 'station wind units'}),
+										 ('Direction',		{'Type': 'request', 'Source': 'observationWF', 'Desc': 'station direction units'}),
+										 ('Precip',			{'Type': 'request', 'Source': 'observationWF', 'Desc': 'station precipitation units'}),
+										 ('Distance',		{'Type': 'request', 'Source': 'observationWF', 'Desc': 'station distance units'}),
+										 ('Other',			{'Type': 'request', 'Source': 'observationWF', 'Desc': 'station other units'})])
+	Settings =  collections.OrderedDict([('TimeFormat',		{'Type': 'default', 'Value': '24 hr', 'Desc': 'time format'}),
+										 ('DateFormat',		{'Type': 'default', 'Value': 'Mon, 01 Jan 0000', 'Desc': 'date format'})])
+	FeelsLike = collections.OrderedDict([('ExtremelyCold',	{'Type': 'default', 'Value': '-4', 'Desc': '"Feels extremely" cold cut-off temperature'}),
+										 ('FreezingCold',	{'Type': 'default', 'Value': '0',  'Desc': '"Feels freezing" cold cut-off temperature'}),
+										 ('VeryCold',		{'Type': 'default', 'Value': '4',  'Desc': '"Feels very cold" cut-off temperature'}),
+										 ('Cold',			{'Type': 'default', 'Value': '9',  'Desc': '"Feels cold" cut-off temperature'}),
+										 ('Mild',			{'Type': 'default', 'Value': '14', 'Desc': '"Feels mild" cut-off temperature'}),
+										 ('Warm',			{'Type': 'default', 'Value': '18', 'Desc': '"Feels warm" cut-off temperature'}),
+										 ('Hot',			{'Type': 'default', 'Value': '23', 'Desc': '"Feels hot" cut-off temperature'}),
+										 ('VeryHot',		{'Type': 'default', 'Value': '28', 'Desc': '"Feels very hot" cut-off temperature'})])
+	System =    collections.OrderedDict([('BarometerMax',	{'Type': 'dependent', 'Desc': 'maximum barometer pressure'}),
+										 ('BarometerMin',	{'Type': 'dependent', 'Desc': 'minimum barometer pressure'}),
+										 ('Version',		{'Type': 'default', 'Value': Version, 'Desc': 'Version number'})])
+										 
+	# COMBINE SECTIONS INTO SINGLE ORDERED DICTIONARY
+	# --------------------------------------------------------------------------
+	Default['Keys'] = Keys
+	Default['Station'] = Station
+	Default['Units'] = Units
+	Default['Settings'] = Settings
+	Default['FeelsLike'] = FeelsLike
+	Default['System'] = System
 	return Default
 
 def settings_json(Section):
