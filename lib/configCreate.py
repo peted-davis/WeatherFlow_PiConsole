@@ -8,6 +8,7 @@ import json
 import math
 import configparser
 import requests
+import collections
 from packaging import version
 from pathlib import Path
 from geopy import distance as geopy
@@ -313,7 +314,7 @@ def default_ini():
 
 	# DEFINE DEFAULT CONFIGURATION SECTIONS, KEY NAMES, AND KEY DETAILS
 	# --------------------------------------------------------------------------
-	Default = {}
+	Default = collections.OrderedDict()
 	Default['Keys'] =  	   {'GeoNames': 	{'Type': 'userInput', 'State': 'required', 'Format': str, 'Desc': 'GeoNames API key'},
 							'MetOffice': 	{'Type': 'userInput', 'State': 'optional', 'Format': str, 'Desc': 'UK MetOffice API key'},
 							'DarkSky': 		{'Type': 'userInput', 'State': 'optional', 'Format': str, 'Desc': 'DarkSky API key',},
