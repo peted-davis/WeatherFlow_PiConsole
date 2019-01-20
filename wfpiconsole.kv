@@ -1225,11 +1225,15 @@ ScreenManager:
         height: max(50, self.texture_size[1] + dp(20))
         pos: root.x + dp(10), root.y + dp(10)
         font_size: '15sp'
+			
 <-SettingsPanel>:
     spacing: 5
     padding: 5
     size_hint_y: None
     height: self.minimum_height
+	
+<-SettingTitle>
+
 <-SettingSpacer>:
     size_hint_y: None
     height: 2

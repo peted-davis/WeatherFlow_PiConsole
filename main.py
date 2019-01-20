@@ -100,7 +100,7 @@ from kivy.animation import Animation
 from kivy.config import ConfigParser
 from kivy.metrics import dp
 from kivy.compat import text_type
-from kivy.properties import DictProperty,NumericProperty,ConfigParserProperty, ObjectProperty, StringProperty	##
+from kivy.properties import DictProperty,NumericProperty,ConfigParserProperty
 
 # ==============================================================================
 # IMPORT REQUIRED SYSTEM MODULES
@@ -149,9 +149,9 @@ def CircularMean(angles):
 	r = np.nanmean(np.exp(1j*angles))
 	return np.angle(r, deg=True) % 360
 
-# VERIFY IF DATA IS VALID WEATHERFLOW JSON STRING, AND FIELD IS NOT NONE
+# VERIFY IF DATA IS VALID JSON STRING, AND FIELD IS NOT NONE
 # ------------------------------------------------------------------------------
-def VerifyWeatherFlowJSON(Data,Field):
+def VerifyJSON(Data,Type,Field):
 	if not Data.ok:
 		return False
 	try:
@@ -160,11 +160,17 @@ def VerifyWeatherFlowJSON(Data,Field):
 		return False
 	else:
 		Data = Data.json()
-		if 'SUCCESS' in Data['status']['status_message'] and Field in Data and Data[Field] is not None:
-			return True
-		else:
-			return False
-
+		if Type == 'WeatherFlow':
+			if 'SUCCESS' in Data['status']['status_message'] and Field in Data and Data[Field] is not None:
+				return True
+			else:
+				return False
+		elif Type == 'CheckWX':
+			if Field in Data and Data[Field] is not None:
+				return True
+			else:
+				return False
+			
 # ==============================================================================
 # DEFINE 'WeatherFlowPiConsole' APP CLASS
 # ==============================================================================
@@ -201,8 +207,8 @@ class wfpiconsole(App):
 	BarometerMax = ConfigParserProperty('-','System','BarometerMax','wfpiconsole')
 	BarometerMin = ConfigParserProperty('-','System','BarometerMin','wfpiconsole')
 	ForecastLocn = ConfigParserProperty('-','Station','ForecastLocn','wfpiconsole')
-	TimeFormat = ConfigParserProperty('-','Settings','TimeFormat','wfpiconsole')
-	DateFormat = ConfigParserProperty('-','Settings','DateFormat','wfpiconsole')
+	TimeFormat = ConfigParserProperty('-','Display','TimeFormat','wfpiconsole')
+	DateFormat = ConfigParserProperty('-','Display','DateFormat','wfpiconsole')
 	Version = ConfigParserProperty('-','System','Version','wfpiconsole')
 	
 	# Define required Kivy numeric properties
@@ -230,7 +236,7 @@ class wfpiconsole(App):
 		self.DownloadForecast()
 
 		# Initialise Sager Weathercaster forecast, and check for latest version
-		#Clock.schedule_once(self.SagerForecast)
+		Clock.schedule_once(self.SagerForecast)
 		#Clock.schedule_once(self.CheckVersion)
 
 		# Initialise websocket connection
@@ -252,9 +258,9 @@ class wfpiconsole(App):
 		settings.register_type('ToggleTemperature',SettingToggleTemperature)
 		
 		# Add required panels to setting screen. Remove Kivy settings panel
+		settings.add_json_panel('Display',self.config,data=configCreate.settings_json('Display'))
 		settings.add_json_panel('Units',self.config,data=configCreate.settings_json('Units'))
 		settings.add_json_panel('Feels Like',self.config,data=configCreate.settings_json('FeelsLike'))
-		settings.add_json_panel('Time & Date',self.config,data=configCreate.settings_json('Display'))
 		self.use_kivy_settings  =  False
 
 	# OVERLOAD 'on_config_change' TO MAKE NECESSARY CHANGES TO CONFIG VALUES 
@@ -323,7 +329,6 @@ class wfpiconsole(App):
 
 		# Initialise data streaming upon connection of websocket
 		if Type == 'connection_opened':
-			pass
 			self.WebsocketSendMessage('{"type":"listen_start",' +
 			                           ' "device_id":' + self.config['Station']['SkyID'] + ',' +
 									   ' "id":"Sky"}')
@@ -889,7 +894,7 @@ class wfpiconsole(App):
 
 		# Extract pressure observation from three hours ago. Return NaN if API
 		# call has failed
-		if VerifyWeatherFlowJSON(Data,'obs'):
+		if VerifyJSON(Data,'WeatherFlow','obs'):
 			Data = Data.json()['obs']
 			Pres3h = [Data[0][1],'mb']
 		else:
@@ -944,7 +949,7 @@ class wfpiconsole(App):
 			Data = requests.get(URL)
 
 			# Calculate daily rainfall total. Return NaN if API call has failed
-			if VerifyWeatherFlowJSON(Data,'obs'):
+			if VerifyJSON(Data,'WeatherFlow','obs'):
 				Data = Data.json()['obs']
 				Rain = [[item[3],'mm'] if item[3] != None else NaN for item in Data]
 				TodayRain = [sum([x for x,y in Rain]),'mm',sum([x for x,y in Rain]),Now]
@@ -972,7 +977,7 @@ class wfpiconsole(App):
 
 			# Calculate yesterday rainfall total. Return NaN if API call has
 			# failed
-			if VerifyWeatherFlowJSON(Data,'obs'):
+			if VerifyJSON(Data,'WeatherFlow','obs'):
 				Data = Data.json()['obs']
 				Rain = [[item[3],'mm'] if item[3] != None else NaN for item in Data]
 				YesterdayRain = [sum([x for x,y in Rain]),'mm',sum([x for x,y in Rain]),Now]
@@ -997,7 +1002,7 @@ class wfpiconsole(App):
 
 			# Calculate monthly rainfall total. Return NaN if API call has
 			# failed
-			if VerifyWeatherFlowJSON(Data,'obs'):
+			if VerifyJSON(Data,'WeatherFlow','obs'):
 				Data = Data.json()['obs']
 				Rain = [[item[3],'mm'] if item[3] != None else NaN for item in Data]
 				MonthRain = [sum([x for x,y in Rain]),'mm',sum([x for x,y in Rain]),Now]
@@ -1021,7 +1026,7 @@ class wfpiconsole(App):
 			Data = requests.get(URL)
 
 			# Calculate yearly rainfall total. Return NaN if API call has failed
-			if VerifyWeatherFlowJSON(Data,'obs'):
+			if VerifyJSON(Data,'WeatherFlow','obs'):
 				Data = Data.json()['obs']
 				Rain = [[item[3],'mm'] if item[3] != None else NaN for item in Data]
 				YearRain = [sum([x for x,y in Rain]),'mm',sum([x for x,y in Rain]),Now]
@@ -1117,7 +1122,7 @@ class wfpiconsole(App):
 
 			# Calculate daily averaged wind speed. Return NaN if API call has
 			# failed
-			if VerifyWeatherFlowJSON(Data,'obs'):
+			if VerifyJSON(Data,'WeatherFlow','obs'):
 				Data = Data.json()['obs']
 				WindSpd = [[item[5],'mps'] if item[5] != None else [NaN,'mps'] for item in Data]
 				Sum = sum([x for x,y in WindSpd])
@@ -1177,7 +1182,7 @@ class wfpiconsole(App):
 
 			# Calculate maximum and minimum temperature and pressure. Return NaN
 			# if API call has failed
-			if VerifyWeatherFlowJSON(Data,'obs'):
+			if VerifyJSON(Data,'WeatherFlow','obs'):
 
 				# Extract data from API call
 				Data = Data.json()['obs']
@@ -1287,7 +1292,7 @@ class wfpiconsole(App):
 			
 			# Calculate daily maximum wind gust. Return NaN if API call has 
 			# failed
-			if VerifyWeatherFlowJSON(Data,'obs'):
+			if VerifyJSON(Data,'WeatherFlow','obs'):
 				Data = Data.json()['obs']
 				WindGust = [[item[6],'mps'] if item[6] != None else [NaN,'mps'] for item in Data]
 				MaxGust = [max([x for x,y in WindGust]),'mps',max([x for x,y in WindGust]),Now]
@@ -1880,34 +1885,51 @@ class wfpiconsole(App):
 		Hours_6 = (6*60*60)+60
 
 		# Download Sky data from last 6 hours using Weatherflow API
-		# and extract observation times, wind speed, wind direction,
-		# and rainfall
 		Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&api_key={}'
 		URL = Template.format(self.config['Station']['SkyID'],Now-Hours_6,Now,self.config['Keys']['WeatherFlow'])
+		Data = requests.get(URL)
 		Sky = {}
-		Sky['obs'] = requests.get(URL).json()['obs']
-		Sky['Time'] = [item[0] if item[0] != None else NaN for item in Sky['obs']]
-		Sky['WindSpd'] = [item[5]*2.23694 if item[5] != None else NaN for item in Sky['obs']]
-		Sky['WindDir'] = [item[7] if item[7] != None else NaN for item in Sky['obs']]
-		Sky['Rain'] = [item[3] if item[3] != None else NaN for item in Sky['obs']]
-
-		# Convert data lists to Numpy arrays
+		
+		# Extract observation times, wind speed, wind direction, and rainfall. 
+		# If API call has failed, return blank Sager Forecast
+		if VerifyJSON(Data,'WeatherFlow','obs'):
+			Sky['obs'] = Data.json()['obs']
+			Sky['Time'] = [item[0] if item[0] != None else NaN for item in Sky['obs']]
+			Sky['WindSpd'] = [item[5]*2.23694 if item[5] != None else NaN for item in Sky['obs']]
+			Sky['WindDir'] = [item[7] if item[7] != None else NaN for item in Sky['obs']]
+			Sky['Rain'] = [item[3] if item[3] != None else NaN for item in Sky['obs']]
+		else:
+			self.Sager['Forecast'] = '-'
+			self.Sager['Issued'] = Now.strftime('%H:%M')
+			Clock.schedule_once(self.SagerForecast,3600)
+			return
+		
+		# Convert SKY data to Numpy arrays
 		Sky['Time'] = np.array(Sky['Time'],dtype=np.int64)
 		Sky['WindSpd'] = np.array(Sky['WindSpd'],dtype=np.float64)
 		Sky['WindDir'] = np.array(Sky['WindDir'],dtype=np.float64)
 		Sky['Rain'] = np.array(Sky['Rain'],dtype=np.float64)
 
-		# Download AIR data from current day using Weatherflow API
-		# and extract observation times, pressure and temperature
+		# Download AIR data from from last 6 hours using Weatherflow API
 		Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&api_key={}'
 		URL = Template.format(self.config['Station']['OutdoorID'],Now-Hours_6,Now,self.config['Keys']['WeatherFlow'])
+		Data = requests.get(URL)
 		Air = {}
-		Air['obs'] = requests.get(URL).json()['obs']
-		Air['Time'] = [item[0] if item[0] != None else NaN for item in Air['obs']]
-		Air['Pres'] = [item[1] if item[1] != None else NaN for item in Air['obs']]
-		Air['Temp'] = [item[2] if item[2] != None else NaN for item in Air['obs']]
+		
+		# Extract observation times, pressure and temperature. If API call has 
+		# failed, return blank Sager Forecast
+		if VerifyJSON(Data,'WeatherFlow','obs'):
+			Air['obs'] = Data.json()['obs']
+			Air['Time'] = [item[0] if item[0] != None else NaN for item in Air['obs']]
+			Air['Pres'] = [item[1] if item[1] != None else NaN for item in Air['obs']]
+			Air['Temp'] = [item[2] if item[2] != None else NaN for item in Air['obs']]
+		else:
+			self.Sager['Forecast'] = '-'
+			self.Sager['Issued'] = Now.strftime('%H:%M')
+			Clock.schedule_once(self.SagerForecast,3600)
+			return
 
-		# Convert data lists to Numpy arrays
+		# Convert AIR data to Numpy arrays
 		Air['Time'] = np.array(Air['Time'],dtype=np.int64)
 		Air['Pres'] = np.array(Air['Pres'],dtype=np.float64)
 		Air['Temp'] = np.array(Air['Temp'],dtype=np.float64)
@@ -1955,9 +1977,12 @@ class wfpiconsole(App):
 		Template = 'https://api.checkwx.com/metar/lat/{}/lon/{}/decoded'
 		URL = Template.format(self.config['Station']['Latitude'],self.config['Station']['Longitude'])
 		Data = requests.get(URL,headers=header)
-		if VerifyJSON(Data) and 'data' in Data.json():
+		if VerifyJSON(Data,'CheckWX','data'):
 			self.Sager['METAR'] = Data.json()['data'][0]
 		else:
+			self.Sager['Forecast'] = '-'
+			self.Sager['Issued'] = Now.strftime('%H:%M')
+			Clock.schedule_once(self.SagerForecast,3600)
 			return
 
 		# Calculate Sager Weathercaster Forecast

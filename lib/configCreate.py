@@ -14,7 +14,7 @@ from pathlib import Path
 from geopy import distance as geopy
 
 # Define wfpiconsole version number
-Version = 'v1.99'
+Version = 'v1.110'
 
 # Define required variables
 stationWF = None
@@ -61,51 +61,38 @@ def update_ini():
 
 	# LOAD EXISTING USER CONFIGURATION FILE
 	# --------------------------------------------------------------------------
-	User = configparser.ConfigParser(allow_no_value=True)
-	User.optionxform = str
-	User.read('wfpiconsole.ini')
-	User_version = User['System']['Version']
-
-	# COMPARE EXISTING USER CONFIGURATION AGAINST DEFAULT CONFIGURATION AND ADD
-	# ALL NEW KEYS
+	Exist = configparser.ConfigParser(allow_no_value=True)
+	Exist.optionxform = str
+	Exist.read('wfpiconsole.ini')
+	Exist_version = Exist['System']['Version']
+	
+	# CREATE NEW CONFIG PARSER OBJECT TO HOLD UPDATED USER CONFIGURATION FILE
 	# --------------------------------------------------------------------------
-	if version.parse(User_version) < version.parse(Default_version):
-		print('New version detected. Updating user configuration file..... ')
-		Changes = False
-		for section in Default:
-			if not User.has_section(section):
-				User.add_section(section)
-				Changes = True
-			for key in Default[section]:
-				if not User.has_option(section,key):
-					write_keyValue(User,section,key,Default[section][key])
-					Changes = True
-				elif Default[section][key]['Type'] in ['fixed']:
-					User.set(section,key,Default[section][key]['Value'])
-				elif key == 'Version':
-					User.set(section,key,Default_version)
-					print('    Updating version number to: ' + Default_version)
+	New = configparser.ConfigParser(allow_no_value=True)
+	New.optionxform = str
 
-		# COMPARE DEFAULT CONFIGURATION AGAINST EXISTING USER CONFIGURATION AND
-		# REMOVE ALL UNNECESSARY KEYS
-		# ----------------------------------------------------------------------
-		del_sections = []
-		for section in User:
-			if not section in Default:
-				del_sections.append(section)
-		for section in del_sections:
-			User.remove_section(section)
-		for section in User:
-			for key in User[section]:
-				if not key in Default[section]:
-					User.remove_option(section,key)
-		if not Changes:
-			print('    No further changes required')
+	# COMPARE EXISTING USER CONFIGURATION AGAINST DEFAULT CONFIGURATION. ADD NEW
+	# KEYS WHERE REQUIRED
+	# --------------------------------------------------------------------------
+	if version.parse(Exist_version) < version.parse(Default_version):
+		print('New version detected. Updating user configuration file..... ')
+		for section in Default:
+			New.add_section(section)
+			for key in Default[section]:
+				if Default[section][key]['Type'] in ['fixed']:
+					New.set(section,key,Default[section][key]['Value'])
+				if Exist.has_option(section,key):
+					New.set(section,key,Exist[section][key])
+				if not Exist.has_option(section,key,):
+					write_keyValue(New,section,key,Default[section][key])
+				elif key == 'Version':
+					New.set(section,key,Default_version)
+					print('    Updating version number to: ' + Default_version)
 
 		# WRITE UPDATED USER .INI FILE TO DISK
 		# ----------------------------------------------------------------------
 		with open('wfpiconsole.ini','w') as configfile:
-			User.write(configfile)
+			New.write(configfile)
 
 
 def write_keyValue(config,section,key,keyDetails):
@@ -140,15 +127,14 @@ def write_keyValue(config,section,key,keyDetails):
 	elif keyDetails['Type'] in ['dependent']:
 	
 		# Get dependent key value
-		if section in ['System']:
-			if key in ['BarometerMax']:
-				Units = ['mb','hpa','inhg','mmhg']
-				Max = ['1050','1050','31.0','788']
-				Value = Max[Units.index(config['Units']['Pressure'])]
-			elif key in ['BarometerMin']:
-				Units = ['mb','hpa','inhg','mmhg']
-				Min = ['950','950','28.0','713']
-				Value = Min[Units.index(config['Units']['Pressure'])]
+		if key in ['BarometerMax']:
+			Units = ['mb','hpa','inhg','mmhg']
+			Max = ['1050','1050','31.0','788']
+			Value = Max[Units.index(config['Units']['Pressure'])]
+		elif key in ['BarometerMin']:
+			Units = ['mb','hpa','inhg','mmhg']
+			Min = ['950','950','28.0','713']
+			Value = Min[Units.index(config['Units']['Pressure'])]
 		print('    Adding ' + keyDetails['Desc'] + ' (' + keyDetails['Type'] + '): ' + Value)
 
 		# Write dependent key value pair to configuration file
@@ -315,54 +301,44 @@ def default_ini():
 	# DEFINE DEFAULT CONFIGURATION SECTIONS, KEY NAMES, AND KEY DETAILS AS 
 	# ORDERED DICTS
 	# --------------------------------------------------------------------------
-	Default = 	collections.OrderedDict()
-	Keys =  	collections.OrderedDict([('GeoNames',		{'Type': 'userInput', 'State': 'required', 'Format': str, 'Desc': 'GeoNames API key'}),
-										 ('MetOffice', 		{'Type': 'userInput', 'State': 'optional', 'Format': str, 'Desc': 'UK MetOffice API key'}),
-										 ('DarkSky', 		{'Type': 'userInput', 'State': 'optional', 'Format': str, 'Desc': 'DarkSky API key',}),
-										 ('CheckWX', 		{'Type': 'userInput', 'State': 'required', 'Format': str, 'Desc': 'CheckWX API key',}),
-										 ('WeatherFlow',	{'Type': 'fixed', 'Value': '146e4f2c-adec-4244-b711-1aeca8f46a48', 'Desc': 'WeatherFlow API key'})])
-	Station =   collections.OrderedDict([('StationID',		{'Type': 'userInput', 'State': 'required', 'Format': int, 'Desc': 'Station ID'}),
-										 ('OutdoorID', 		{'Type': 'userInput', 'State': 'required', 'Format': int, 'Desc': 'Outdoor module ID'}),
-										 ('IndoorID', 		{'Type': 'userInput', 'State': 'optional', 'Format': int, 'Desc': 'Indoor module ID'}),
-										 ('SkyID', 			{'Type': 'userInput', 'State': 'required', 'Format': int, 'Desc': 'Sky module ID'}),
-										 ('OutdoorHeight',	{'Type': 'request', 'Source': 'stationWF', 'Desc': 'height of Outdoor module'}),
-										 ('SkyHeight', 		{'Type': 'request', 'Source': 'stationWF', 'Desc': 'height of Sky module'}),
-									 	 ('Latitude',		{'Type': 'request', 'Source': 'stationWF', 'Desc': 'station latitude'}),
-										 ('Longitude', 		{'Type': 'request', 'Source': 'stationWF', 'Desc': 'station longitude'}),
-										 ('Elevation', 		{'Type': 'request', 'Source': 'stationWF', 'Desc': 'station elevation'}),
-										 ('Timezone', 		{'Type': 'request', 'Source': 'stationWF', 'Desc': 'station timezone'}),
-										 ('Country', 		{'Type': 'request', 'Source': 'GeoNames',  'Desc': 'station country'}),
-										 ('ForecastLocn', 	{'Type': 'request', 'Source': 'MetOffice', 'Desc': 'station forecast location'}),
-										 ('MetOfficeID', 	{'Type': 'request', 'Source': 'MetOffice', 'Desc': 'station forecast ID'})])
-	Units = 	collections.OrderedDict([('Temp',			{'Type':'request',  'Source': 'observationWF', 'Desc': 'station temperature units'}),
-										 ('Pressure',		{'Type': 'request', 'Source': 'observationWF', 'Desc': 'station pressure units'}),
-										 ('Wind',			{'Type': 'request', 'Source': 'observationWF', 'Desc': 'station wind units'}),
-										 ('Direction',		{'Type': 'request', 'Source': 'observationWF', 'Desc': 'station direction units'}),
-										 ('Precip',			{'Type': 'request', 'Source': 'observationWF', 'Desc': 'station precipitation units'}),
-										 ('Distance',		{'Type': 'request', 'Source': 'observationWF', 'Desc': 'station distance units'}),
-										 ('Other',			{'Type': 'request', 'Source': 'observationWF', 'Desc': 'station other units'})])
-	Settings =  collections.OrderedDict([('TimeFormat',		{'Type': 'default', 'Value': '24 hr', 'Desc': 'time format'}),
-										 ('DateFormat',		{'Type': 'default', 'Value': 'Mon, 01 Jan 0000', 'Desc': 'date format'})])
-	FeelsLike = collections.OrderedDict([('ExtremelyCold',	{'Type': 'default', 'Value': '-4', 'Desc': '"Feels extremely" cold cut-off temperature'}),
-										 ('FreezingCold',	{'Type': 'default', 'Value': '0',  'Desc': '"Feels freezing" cold cut-off temperature'}),
-										 ('VeryCold',		{'Type': 'default', 'Value': '4',  'Desc': '"Feels very cold" cut-off temperature'}),
-										 ('Cold',			{'Type': 'default', 'Value': '9',  'Desc': '"Feels cold" cut-off temperature'}),
-										 ('Mild',			{'Type': 'default', 'Value': '14', 'Desc': '"Feels mild" cut-off temperature'}),
-										 ('Warm',			{'Type': 'default', 'Value': '18', 'Desc': '"Feels warm" cut-off temperature'}),
-										 ('Hot',			{'Type': 'default', 'Value': '23', 'Desc': '"Feels hot" cut-off temperature'}),
-										 ('VeryHot',		{'Type': 'default', 'Value': '28', 'Desc': '"Feels very hot" cut-off temperature'})])
-	System =    collections.OrderedDict([('BarometerMax',	{'Type': 'dependent', 'Desc': 'maximum barometer pressure'}),
-										 ('BarometerMin',	{'Type': 'dependent', 'Desc': 'minimum barometer pressure'}),
-										 ('Version',		{'Type': 'default', 'Value': Version, 'Desc': 'Version number'})])
-										 
-	# COMBINE SECTIONS INTO SINGLE ORDERED DICTIONARY
-	# --------------------------------------------------------------------------
-	Default['Keys'] = Keys
-	Default['Station'] = Station
-	Default['Units'] = Units
-	Default['Settings'] = Settings
-	Default['FeelsLike'] = FeelsLike
-	Default['System'] = System
+	Default = 				collections.OrderedDict()
+	Default['Keys'] =  		collections.OrderedDict([('GeoNames',		{'Type': 'userInput', 'State': 'required', 'Format': str, 'Desc': 'GeoNames API key'}),
+													 ('MetOffice', 		{'Type': 'userInput', 'State': 'optional', 'Format': str, 'Desc': 'UK MetOffice API key'}),
+													 ('DarkSky', 		{'Type': 'userInput', 'State': 'optional', 'Format': str, 'Desc': 'DarkSky API key',}),
+													 ('CheckWX', 		{'Type': 'userInput', 'State': 'required', 'Format': str, 'Desc': 'CheckWX API key',}),
+													 ('WeatherFlow',	{'Type': 'fixed', 'Value': '146e4f2c-adec-4244-b711-1aeca8f46a48', 'Desc': 'WeatherFlow API key'})])
+	Default['Station'] =   	collections.OrderedDict([('StationID',		{'Type': 'userInput', 'State': 'required', 'Format': int, 'Desc': 'Station ID'}),
+													 ('OutdoorID', 		{'Type': 'userInput', 'State': 'required', 'Format': int, 'Desc': 'outdoor Air module ID'}),
+													 ('SkyID', 			{'Type': 'userInput', 'State': 'required', 'Format': int, 'Desc': 'outdoor Sky module ID'}),
+													 ('OutdoorHeight',	{'Type': 'request', 'Source': 'stationWF', 'Desc': 'height of outdoor Air module'}),
+													 ('SkyHeight', 		{'Type': 'request', 'Source': 'stationWF', 'Desc': 'height of outdoor Sky module'}),
+													 ('Latitude',		{'Type': 'request', 'Source': 'stationWF', 'Desc': 'station latitude'}),
+													 ('Longitude', 		{'Type': 'request', 'Source': 'stationWF', 'Desc': 'station longitude'}),
+													 ('Elevation', 		{'Type': 'request', 'Source': 'stationWF', 'Desc': 'station elevation'}),
+													 ('Timezone', 		{'Type': 'request', 'Source': 'stationWF', 'Desc': 'station timezone'}),
+													 ('Country', 		{'Type': 'request', 'Source': 'GeoNames',  'Desc': 'station country'}),
+													 ('ForecastLocn', 	{'Type': 'request', 'Source': 'MetOffice', 'Desc': 'station forecast location'}),
+													 ('MetOfficeID', 	{'Type': 'request', 'Source': 'MetOffice', 'Desc': 'station forecast ID'})])
+	Default['Units'] = 		collections.OrderedDict([('Temp',			{'Type':'request',  'Source': 'observationWF', 'Desc': 'station temperature units'}),
+													 ('Pressure',		{'Type': 'request', 'Source': 'observationWF', 'Desc': 'station pressure units'}),
+													 ('Wind',			{'Type': 'request', 'Source': 'observationWF', 'Desc': 'station wind units'}),
+													 ('Direction',		{'Type': 'request', 'Source': 'observationWF', 'Desc': 'station direction units'}),
+													 ('Precip',			{'Type': 'request', 'Source': 'observationWF', 'Desc': 'station precipitation units'}),
+													 ('Distance',		{'Type': 'request', 'Source': 'observationWF', 'Desc': 'station distance units'}),
+													 ('Other',			{'Type': 'request', 'Source': 'observationWF', 'Desc': 'station other units'})])
+	Default['Display'] =  	collections.OrderedDict([('TimeFormat',		{'Type': 'default', 'Value': '24 hr', 'Desc': 'time format'}),
+													 ('DateFormat',		{'Type': 'default', 'Value': 'Mon, 01 Jan 0000', 'Desc': 'date format'})])
+	Default['FeelsLike'] = 	collections.OrderedDict([('ExtremelyCold',	{'Type': 'default', 'Value': '-4', 'Desc': '"Feels extremely" cold cut-off temperature'}),
+													 ('FreezingCold',	{'Type': 'default', 'Value': '0',  'Desc': '"Feels freezing" cold cut-off temperature'}),
+													 ('VeryCold',		{'Type': 'default', 'Value': '4',  'Desc': '"Feels very cold" cut-off temperature'}),
+													 ('Cold',			{'Type': 'default', 'Value': '9',  'Desc': '"Feels cold" cut-off temperature'}),
+													 ('Mild',			{'Type': 'default', 'Value': '14', 'Desc': '"Feels mild" cut-off temperature'}),
+													 ('Warm',			{'Type': 'default', 'Value': '18', 'Desc': '"Feels warm" cut-off temperature'}),
+													 ('Hot',			{'Type': 'default', 'Value': '23', 'Desc': '"Feels hot" cut-off temperature'}),
+													 ('VeryHot',		{'Type': 'default', 'Value': '28', 'Desc': '"Feels very hot" cut-off temperature'})])
+	Default['System'] =    	collections.OrderedDict([('BarometerMax',	{'Type': 'dependent', 'Desc': 'maximum barometer pressure'}),
+													 ('BarometerMin',	{'Type': 'dependent', 'Desc': 'minimum barometer pressure'}),
+													 ('Version',		{'Type': 'default',   'Value': Version, 'Desc': 'Version number'})])								 
 	return Default
 
 def settings_json(Section):
@@ -371,9 +347,9 @@ def settings_json(Section):
 		Data = 	[
 				 {'type':'title', 'title':'Time and Date'},
 				 {'type':'FixedOptions', 'options':['24 hr','12 hr'],
-				  'title':'Time format', 'desc':'Set time to display in 12 hr or 24 hr format', 'section':'Settings', 'key':'TimeFormat'},
+				  'title':'Time format', 'desc':'Set time to display in 12 hr or 24 hr format', 'section':'Display', 'key':'TimeFormat'},
 				 {'type':'FixedOptions', 'options':['Mon, 01 Jan 0000','Mon, Jan 01 0000','Monday, 01 Jan 0000','Monday, Jan 01 0000'],
-				  'title':'Date format', 'desc':'Set date format', 'section':'Settings', 'key':'DateFormat'}]
+				  'title':'Date format', 'desc':'Set date format', 'section':'Display', 'key':'DateFormat'}]
 				  
 	elif 'Units' in Section:
 		Data = 	[
@@ -388,7 +364,7 @@ def settings_json(Section):
 				  'desc':'Set console wind direction units', 'section':'Units', 'key':'Direction'},	
 				 {'type':'FixedOptions', 'options':['in','cm','mm'],'title':'Rainfall', 
 				  'desc':'Set console rainfall units', 'section':'Units', 'key':'Precip'},
-				 {'type':'FixedOptions', 'options':['metric','imperial'],'title':'Distance', 
+				 {'type':'FixedOptions', 'options':['km','mi'],'title':'Distance', 
 				  'desc':'Set console distance units', 'section':'Units', 'key':'Distance'},
 				 {'type':'FixedOptions', 'options':['metric','imperial'],'title':'Other', 
 				  'desc':'Set console other units', 'section':'Units', 'key':'Other'}
