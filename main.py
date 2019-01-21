@@ -852,7 +852,10 @@ class wfpiconsole(App):
 					'Hot', 'VeryHot', 'ExtremelyHot']
 		
 			# Extract required 'FeelsLike' description and icon
-			Ind = bisect.bisect(Cutoff,FeelsLike[0])
+			if self.config['Units']['Temp'] == 'f':
+				Ind = bisect.bisect(Cutoff,FeelsLike[0]* 9/5 + 32)
+			else:
+				Ind = bisect.bisect(Cutoff,FeelsLike[0])
 			FeelsLike = [FeelsLike[0],FeelsLike[1],Description[Ind],Icon[Ind]]
 		
 		# Return 'Feels Like' temperature
