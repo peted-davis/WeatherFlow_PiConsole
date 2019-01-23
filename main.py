@@ -237,7 +237,7 @@ class wfpiconsole(App):
 
 		# Initialise Sager Weathercaster forecast, and check for latest version
 		Clock.schedule_once(self.SagerForecast)
-		#Clock.schedule_once(self.CheckVersion)
+		Clock.schedule_once(self.CheckVersion)
 
 		# Initialise websocket connection
 		self.WebsocketConnect()
