@@ -21,6 +21,7 @@ stationWF = None
 observationWF = None
 GeoNames = None
 MetOffice = None
+NaN = float('NaN')
 
 def create_ini():
 
@@ -345,7 +346,6 @@ def settings_json(Section):
 
 	if 'Display' in Section:
 		Data = 	[
-				 {'type':'title', 'title':'Time and Date'},
 				 {'type':'FixedOptions', 'options':['24 hr','12 hr'],
 				  'title':'Time format', 'desc':'Set time to display in 12 hr or 24 hr format', 'section':'Display', 'key':'TimeFormat'},
 				 {'type':'FixedOptions', 'options':['Mon, 01 Jan 0000','Mon, Jan 01 0000','Monday, 01 Jan 0000','Monday, Jan 01 0000'],
@@ -353,12 +353,11 @@ def settings_json(Section):
 				  
 	elif 'Units' in Section:
 		Data = 	[
-				 {'type':'title', 'title':'Units'},
 				 {'type':'FixedOptions', 'options':['c','f'],'title':'Temperature', 
 				  'desc':'Set console temperature units', 'section':'Units', 'key':'Temp'},
 				 {'type':'FixedOptions', 'options':['inhg','mmhg','hpa','mb'],'title':'Pressure', 
 				  'desc':'Set console pressure units', 'section':'Units', 'key':'Pressure'}, 
-				 {'type':'ScrollOptions', 'options':['mph','lfm','kts','kph','bft','mps'],'title':'Wind speed', 
+				 {'type':'ScrollOptions', 'options':['mph','kph','kts','bft','mps','lfm'],'title':'Wind speed', 
 				  'desc':'Set console wind speed units', 'section':'Units', 'key':'Wind'},
 				 {'type':'FixedOptions', 'options':['degrees','cardinal'],'title':'Wind direction', 
 				  'desc':'Set console wind direction units', 'section':'Units', 'key':'Direction'},	
@@ -372,24 +371,22 @@ def settings_json(Section):
 
 	elif 'FeelsLike' in Section:
 		Data = 	[
-				 {'type':'title',
-				  'title':'Feels Like temperature'},
 				 {'type':'ToggleTemperature', 'title':'Extremely Cold',
-				  'desc':'Set the cut-off temperature for "Feeling extremely cold"', 'section':'FeelsLike', 'key':'ExtremelyCold'},
+				  'desc':'Set the maximum cut-off temperature for "Feeling extremely cold"', 'section':'FeelsLike', 'key':'ExtremelyCold'},
 				 {'type':'ToggleTemperature', 'title':'Freezing Cold',
-				  'desc':'Set the cut-off temperature for "Feeling freezing cold"', 'section':'FeelsLike', 'key':'FreezingCold'},
+				  'desc':'Set the maximum cut-off temperature for "Feeling freezing cold"', 'section':'FeelsLike', 'key':'FreezingCold'},
 				 {'type':'ToggleTemperature', 'title':'Very Cold',
-				  'desc':'Set the cut-off temperature for "Feeling very cold"', 'section':'FeelsLike', 'key':'VeryCold'},
+				  'desc':'Set the maximum cut-off temperature for "Feeling very cold"', 'section':'FeelsLike', 'key':'VeryCold'},
 				 {'type':'ToggleTemperature', 'title':'Cold',
-				  'desc':'Set the cut-off temperature for "Feeling cold"', 'section':'FeelsLike', 'key':'Cold'},
+				  'desc':'Set the maximum cut-off temperature for "Feeling cold"', 'section':'FeelsLike', 'key':'Cold'},
 				 {'type':'ToggleTemperature', 'title':'Mild',
-				  'desc':'Set the cut-off temperature for "Feeling mild"', 'section':'FeelsLike', 'key':'Mild'},
+				  'desc':'Set the maximum cut-off temperature for "Feeling mild"', 'section':'FeelsLike', 'key':'Mild'},
 				 {'type':'ToggleTemperature', 'title':'Warm',
-				  'desc':'Set the cut-off temperature for "Feeling warm"', 'section':'FeelsLike', 'key':'Warm'},
+				  'desc':'Set the maximum cut-off temperature for "Feeling warm"', 'section':'FeelsLike', 'key':'Warm'},
 				 {'type':'ToggleTemperature', 'title':'Hot',
-				  'desc':'Set the cut-off temperature for "Feeling hot"', 'section':'FeelsLike', 'key':'Hot'},
+				  'desc':'Set the maximum cut-off temperature for "Feeling hot"', 'section':'FeelsLike', 'key':'Hot'},
 				 {'type':'ToggleTemperature', 'title':'Very Hot',
-				  'desc':'Set the cut-off temperature for "Feeling very hot"', 'section':'FeelsLike', 'key':'VeryHot'}
+				  'desc':'Set the maximum cut-off temperature for "Feeling very hot"', 'section':'FeelsLike', 'key':'VeryHot'}
 				]
 
 	return json.dumps(Data)
