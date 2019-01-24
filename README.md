@@ -7,7 +7,7 @@ to the console, including the 3-second rapid fire wind updates.
 
 Many of the graphical elements in the console are based on the Weather34 Home
 Weather Station Template (https://www.weather34.com/homeweatherstation/) copyright
-2015-2018 Brian Underdown. The Weather34 Home Weather Station Template is licensed
+2015-2019 Brian Underdown. The Weather34 Home Weather Station Template is licensed
 under a Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International 
 License.
 
@@ -21,15 +21,7 @@ PiConsole. These instructions assume you have installed the PiConsole in the
 default directory (~/wfpiconsole/). If you have installed the PiConsole in a 
 different location, I assume you know what you are doing!
 
-**!!WARNING!!** - Updating the code will overwrite/delete all files in the 
-existing version, including the WeatherFlow_PiConsole.ini configuration file. 
-This is expected behaviour as I am likely to update the .ini file from time to 
-time, as well as delete files that are no longer needed. Before running the 
-update, I suggest you make a backup of your existing WeatherFlow_PiConsole.ini 
-file, as well as any local modifications you may have made.
-
 ```
-rm -rf ~/wfpiconsole/*
 cd ~/wfpiconsole/
 wget https://api.github.com/repos/peted-davis/WeatherFlow_PiConsole/tarball -O PiConsole.tar.gz
 tar -xvf PiConsole.tar.gz --strip 1
@@ -183,64 +175,46 @@ tar -xvf PiConsole.tar.gz --strip 1
 rm PiConsole.tar.gz
 ```
 
-### Step 9: Configure WeatherFlow PiConsole
+### Step 9: Configure and Run WeatherFlow PiConsole
 
-To get the WeatherFlow PiConsole up and running, you need to specify your 
-station number in the configuration file, as well as one API key needed to
-determine the the station location (country) from its latitude/longitude, one 
-needed to download an apppropriate weather forecast, and one needed to download 
-the closest METAR information to your station location.
+To get the WeatherFlow PiConsole up and running, you need to register for a 
+number of API keys. One API key is needed determine the the station location 
+(country) from its latitude/longitude, one needed to download an apppropriate 
+weather forecast, and one needed to download the closest METAR information to 
+your station location.  
 
-First, open the PiConsole .ini file:
-
-```
-nano WeatherFlowPiConsole.ini
-```
-	
-Then, go to http://www.geonames.org/login and register for a new account. Once
+First, go to http://www.geonames.org/login and register for a new account. Once
 you have registered, go to your account (http://www.geonames.org/manageaccount)
-and activate "Free Web Services". Once this is done, type your username into the
-'GeoNamesKey' variable in WeatherFlowPiConsole.ini. Do not enclose your username
-in quotation marks!
+and activate "Free Web Services". Once this is done, your username will be your
+'GeoNames' API key.
 
-Second, if you live in the UK go to the UK MetOffice DataPoint homepage
-(https://www.metoffice.gov.uk/datapoint), and register for a new account. Copy
-your API key into the 'MetOfficeKey' variable in WeatherFlowPiConsole.ini. Again
-no quotation marks.
+Next, if you live in the UK go to the UK MetOffice DataPoint homepage
+(https://www.metoffice.gov.uk/datapoint), and register for a new account. You'll
+be given an API key that will be you 'MetOffice' API key.
 
-If you live outside the UK, leave the 'MetOfficeKey' variable blank and register
-instead for a DarkSky API account (https://darksky.net/dev/register). Copy your
-API key into the 'DarkSkyKey' variable.
+If you live outside the UK, register instead for a DarkSky API account 
+(https://darksky.net/dev/register). This will be your 'DarkSky' API key. The 
+console requires you to enter either a MetOffice API key or a DarkSky API key.
 
-Finally go to CheckWX Aviation Weather and register for a free API key that will
-enable access to the closest METAR information to you station location.
-(https://www.checkwx.com/signup). Copy your API key into the 'CheckWXKey' 
-variable.  
+Finally go to CheckWX Aviation Weather and register to enable access to the 
+closest METAR information to you station location. 
+(https://www.checkwx.com/signup). This will be your 'CheckWX' key.
 
-You should now have a username in the 'GeoNamesKey' variable, an API key in
-either the 'MetOfficeKey' variable if you live in the UK, or in the 'DarkSkyKey' 
-variable if you live elsewhere, and an API key in the 'CheckWXKey' variable.
-Next type your station ID into the 'StationID' variable. 
-
-The console is designed to display data from the first Air and Sky module
-it finds associated with your station. If you have multiple modules, write the 
-names of the modules you wish to display in the 'AirName' and 'SkyName' 
-variables. 
-
-Leave the 'WFlowKey' as-is.
-
-Save your changes in nano:
-
-```
-ctrl-x
-y (confirms you want to save changes)
-[press enter]
-```
-	
-### Step 10: Run WeatherFlow PiConsole
-
-Time to run the WeatherFlow PiConsole:
+Once you have registered for the required API keys, go ahead and run the console
+for the first time using:
 
 ```
 python3 main.py
 ```
+
+As this is the first run, you'll be asked to enter the API keys you have just
+signed-up for above, as well as information about your station. This includes 
+your station ID and device ID for your outdoor Air and Sky modules. To find this 
+information either open the WeatherFlow app or view your station page in a web
+browser. Click on the gear icon -> Stations -> [Station name] -> Status.
+
+If all goes smoothly the console should automatically add the extra information 
+it needs to your configuration file and then start running.
+
+Congratulations, you have installed the Raspberry Pi Python console for the 
+Weather Flow Smart Home Weather Station.
