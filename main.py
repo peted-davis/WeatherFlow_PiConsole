@@ -268,13 +268,16 @@ class wfpiconsole(App):
 	# --------------------------------------------------------------------------
 	def on_config_change(self, config, section, key, value):
 		
-		# Update current weather forecast when temperature or wind speed units 
-		# are changed
+		# Update current weather forecast and Sager Weathercaster forecast when 
+		# temperature or wind speed units are changed
 		if section == 'Units' and key in ['Temp','Wind']:
 			if self.config['Station']['Country'] == 'GB':
 				self.ExtractMetOfficeForecast()
 			else:
 				self.ExtractDarkSkyForecast()
+			if key == 'Wind':
+				self.Sager['Dial']['Units'] = value
+				self.Sager['Forecast'] = sager.Forecast(self.Sager['Dial'])
 			
 		# Update "Feels Like" temperature cutoffs in wfpiconsole.ini and the 
 		# settings screen when temperature units are changed
@@ -1886,6 +1889,9 @@ class wfpiconsole(App):
 		# Get current UNIX timestamp in UTC
 		Now = int(UNIX.time())
 		Hours_6 = (6*60*60)+60
+		
+		# Get station timezone
+		Tz = pytz.timezone(self.config['Station']['Timezone'])
 
 		# Download Sky data from last 6 hours using Weatherflow API
 		Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&api_key={}'
@@ -1903,7 +1909,7 @@ class wfpiconsole(App):
 			Sky['Rain'] = [item[3] if item[3] != None else NaN for item in Sky['obs']]
 		else:
 			self.Sager['Forecast'] = '-'
-			self.Sager['Issued'] = Now.strftime('%H:%M')
+			self.Sager['Issued'] = datetime.now(pytz.utc).astimezone(Tz).strftime('%H:%M')
 			Clock.schedule_once(self.SagerForecast,3600)
 			return
 		
@@ -1928,7 +1934,7 @@ class wfpiconsole(App):
 			Air['Temp'] = [item[2] if item[2] != None else NaN for item in Air['obs']]
 		else:
 			self.Sager['Forecast'] = '-'
-			self.Sager['Issued'] = Now.strftime('%H:%M')
+			self.Sager['Issued'] = datetime.now(pytz.utc).astimezone(Tz).strftime('%H:%M')
 			Clock.schedule_once(self.SagerForecast,3600)
 			return
 
@@ -1937,31 +1943,30 @@ class wfpiconsole(App):
 		Air['Pres'] = np.array(Air['Pres'],dtype=np.float64)
 		Air['Temp'] = np.array(Air['Temp'],dtype=np.float64)
 
-		# Define required station variables for the Sager
-		# Weathercaster Forecast
+		# Define required station variables for the Sager Weathercaster Forecast
 		self.Sager['Lat'] = float(self.config['Station']['Latitude'])
+		self.Sager['Units'] = self.config['Units']['Wind']
 
-		# Define required wind direction variables for the Sager
-		# Weathercaster Forecast
+		# Define required wind direction variables for the Sager Weathercaster 
+		# Forecast
 		self.Sager['WindDir6'] = CircularMean(Sky['WindDir'][:15])
 		self.Sager['WindDir'] = CircularMean(Sky['WindDir'][-15:])
 
-		# Define required wind speed variables for the Sager
-		# Weathercaster Forecast
+		# Define required wind speed variables for the Sager Weathercaster 
+		# Forecast
 		self.Sager['WindSpd6'] = np.nanmean(Sky['WindSpd'][:15])
 		self.Sager['WindSpd'] = np.nanmean(Sky['WindSpd'][-15:])
 
-		# Define required pressure variables for the Sager
-		# Weathercaster Forecast
+		# Define required pressure variables for the Sager Weathercaster 
+		# Forecast
 		self.Sager['Pres'] = np.nanmean(Air['Pres'][-15:])
 		self.Sager['Pres6'] = np.nanmean(Air['Pres'][:15])
 
 		# Get current time in station time zone
-		Tz = pytz.timezone(self.config['Station']['Timezone'])
 		Now = datetime.now(pytz.utc).astimezone(Tz)
 
-		# Define required present weather variables for the Sager
-		# Weathercaster Forecast
+		# Define required present weather variables for the Sager Weathercaster 
+		# Forecast
 		LastRain = np.where(Sky['Rain'] > 0)[0]
 		if LastRain.size == 0:
 			self.Sager['LastRain'] = math.inf
@@ -1971,8 +1976,8 @@ class wfpiconsole(App):
 			LastRain = Now - LastRain
 			self.Sager['LastRain'] = LastRain.total_seconds()/60
 
-		# Define required temperature variables for the Sager
-		# Weathercaster Forecast
+		# Define required temperature variables for the Sager Weathercaster 
+		# Forecast
 		self.Sager['Temp'] = np.nanmean(Air['Temp'][-15:])
 
 		# Download closet METAR information to station location
@@ -2019,22 +2024,32 @@ class wfpiconsole(App):
 		Tz = pytz.timezone(self.config['Station']['Timezone'])
 		Now = datetime.now(pytz.utc).astimezone(Tz)
 
-		# Check latest AIR observation time is less than 5 minutes old
+		# Check latest AIR observation time is less than 5 minutes old and 
+		# battery voltage is greater than 1.9 v
 		if 'Obs' in self.Air:
 			AirTime = datetime.fromtimestamp(self.Air['Obs'][0],Tz)
 			AirDiff = (Now - AirTime).total_seconds()
-			if AirDiff < 300:
+			if self.Air['Battery'][0] != '-':
+				AirVoltage = float(self.Air['Battery'][0])
+			else:
+				AirVoltage = 0;
+			if AirDiff < 300 and AirVoltage > 1.9:
 				self.Air['StatusIcon'] = 'OK'
 
 			# Latest AIR observation time is greater than 5 minutes old
 			else:
 				self.Air['StatusIcon'] = 'Error'
 
-		# Check latest Sky observation time is less than 5 minutes old
+		# Check latest Sky observation time is less than 5 minutes old and 
+		# battery voltage is greater than 2.0 v
 		if 'Obs' in self.Sky:
 			SkyTime = datetime.fromtimestamp(self.Sky['Obs'][0],Tz)
 			SkyDiff = (Now - SkyTime).total_seconds()
-			if SkyDiff < 300:
+			if self.Sky['Battery'][0] != '-':
+				SkyVoltage = float(self.Sky['Battery'][0])
+			else:
+				SkyVoltage = 0;
+			if SkyDiff < 300 and SkyVoltage > 2.0:
 				self.Sky['StatusIcon'] = 'OK'
 
 			# Latest Sky observation time is greater than 5 minutes old

@@ -283,7 +283,7 @@ def write_keyValue(config,section,key,keyDetails):
 					if key in ['ForecastLocn']:
 						Locns = [Item['name'] for Item in GeoNames['geonames']]
 						Len = [len(Item) for Item in Locns]
-						Ind = next((Item for Item in Len if Item<=11),NaN)
+						Ind = next((Item for Item in Len if Item<=20),NaN)
 						if Ind != NaN:
 							Value = Locns[Len.index(Ind)]
 						else:

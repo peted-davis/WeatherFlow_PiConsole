@@ -32,6 +32,7 @@ def DialSetting(Met):
 	
 	# Extract input location/meteorological variables
 	Lat = Met['Lat']							# Weather station latitude
+	Units = Met['Units']						# Weather station wind speed units
 	wd6 = Met['WindDir6']						# Average wind direction 6 hours ago in degrees
 	wd = Met['WindDir']							# Current average wind direction in degrees
 	ws6 = Met['WindSpd6']						# Average wind speed 6 hours ago in mph
@@ -493,6 +494,7 @@ def DialSetting(Met):
 	Sager['DialSet'] = d1 + d2 + d3 + d4
 	Sager['Temp'] = t
 	Sager['Lat'] = Lat
+	Sager['Units'] = Units
 	return Sager
 	
 def Forecast(Sager):
@@ -549,18 +551,56 @@ def Forecast(Sager):
 	Expected[19] = "Unsettled followed by fair; ";
 	Expected[20] = "Unsettled followed by fair early in period (within 6 hours) and becoming cooler; ";
 	
-	# Define Wind Velocities as listed in The Sager Weathercaster with
-	# modifications based on Beaufort Scale terminology
+	# Define Wind Velocities as listed in The Sager Weathercaster with 
+	# modifications based on Beaufort Scale terminology and users choice of wind
+	# speed units
 	Wind = [None]*8
-	Wind[0] = "Wind probably increasing. "
-	Wind[1] = "Wind moderate to fresh (13-24 mph). " 																	# Changed from "Moderate to fresh". 
-	Wind[2] = "Wind strong to near gale (25-38 mph). "																	# Changed from "Strong".
-	Wind[3] = "Wind gale to strong gale (39-54 mph). "																	# Changed from "Gale".
-	Wind[4] = "Wind storm to violent storm (55-73 mph). "																# Changed from "Dangerous gale (whole gale)".
-	Wind[5] = "Wind hurricane (74+ mph). "
-	Wind[6] = "Wind diminishing, or moderating somewhat if current winds are of fresh to strong velocity. "
-	Wind[7] = "Wind unchanged. Some tendency for slight increase during day, diminishing in evening. "
-	
+	if Sager['Units'] in ['mph','lfm']:
+		Wind[0] = "Wind probably increasing. "
+		Wind[1] = "Wind moderate to fresh (13-24 mph). " 																	# Changed from "Moderate to fresh". 
+		Wind[2] = "Wind strong to near gale (25-38 mph). "																	# Changed from "Strong".
+		Wind[3] = "Wind gale to strong gale (39-54 mph). "																	# Changed from "Gale".
+		Wind[4] = "Wind storm to violent storm (55-73 mph). "																# Changed from "Dangerous gale (whole gale)".
+		Wind[5] = "Wind hurricane (74+ mph). "
+		Wind[6] = "Wind diminishing, or moderating somewhat if current winds are of fresh to strong velocity. "
+		Wind[7] = "Wind unchanged. Some tendency for slight increase during day, diminishing in evening. "
+	elif Sager['Units'] == 'kph':	
+		Wind[0] = "Wind probably increasing. "
+		Wind[1] = "Wind moderate to fresh (20-39 km/h). " 																	
+		Wind[2] = "Wind strong to near gale (40-61 km/h). "																	
+		Wind[3] = "Wind gale to strong gale (62-88 km/h). "																	
+		Wind[4] = "Wind storm to violent storm (89-117 km/h). "																
+		Wind[5] = "Wind hurricane (118+ km/h). "
+		Wind[6] = "Wind diminishing, or moderating somewhat if current winds are of fresh to strong velocity. "
+		Wind[7] = "Wind unchanged. Some tendency for slight increase during day, diminishing in evening. "	
+	elif Sager['Units'] == 'kts':	
+		Wind[0] = "Wind probably increasing. "
+		Wind[1] = "Wind moderate to fresh (11-21 kts). " 																	
+		Wind[2] = "Wind strong to near gale (22-33 kts). "																	
+		Wind[3] = "Wind gale to strong gale (34-47 kts). "																	
+		Wind[4] = "Wind storm to violent storm (47-63 kts). "																
+		Wind[5] = "Wind hurricane (64+ kts). "
+		Wind[6] = "Wind diminishing, or moderating somewhat if current winds are of fresh to strong velocity. "
+		Wind[7] = "Wind unchanged. Some tendency for slight increase during day, diminishing in evening. "	
+	elif Sager['Units'] == 'bft':	
+		Wind[0] = "Wind probably increasing. "
+		Wind[1] = "Wind moderate to fresh (4-5 bft). " 																		
+		Wind[2] = "Wind strong to near gale (6-7 bft). "																	
+		Wind[3] = "Wind gale to strong gale (8-9 bft). "																	
+		Wind[4] = "Wind storm to violent storm (10-11 bft). "																
+		Wind[5] = "Wind hurricane (12+ bft). "
+		Wind[6] = "Wind diminishing, or moderating somewhat if current winds are of fresh to strong velocity. "
+		Wind[7] = "Wind unchanged. Some tendency for slight increase during day, diminishing in evening. "		
+	elif Sager['Units'] == 'mps':	
+		Wind[0] = "Wind probably increasing. "
+		Wind[1] = "Wind moderate to fresh (5.5-10.7 m/s). " 																		
+		Wind[2] = "Wind strong to near gale (10.8-17.1 m/s). "																	
+		Wind[3] = "Wind gale to strong gale (17.2-24.4 m/s). "																	
+		Wind[4] = "Wind storm to violent storm (24.5-32.6 m/s). "																
+		Wind[5] = "Wind hurricane (32.7+ m/s). "
+		Wind[6] = "Wind diminishing, or moderating somewhat if current winds are of fresh to strong velocity. "
+		Wind[7] = "Wind unchanged. Some tendency for slight increase during day, diminishing in evening. "	
+
 	# Define Wind Direction as listed in The Sager Weathercaster with
 	# modifications based on latitude of station
 	# Northern Hemisphere: Polar & Tropical Zone

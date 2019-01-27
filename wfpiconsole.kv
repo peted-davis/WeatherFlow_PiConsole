@@ -40,7 +40,7 @@ ScreenManager:
 	FloatLayout:
 		Label:
 			text: root.Screen['Clock']
-			font_name: 'Fonts/SystemSanFranciscoDisplayRegular.ttf'
+			font_name: 'fonts/SystemSanFranciscoDisplayRegular.ttf'
 			halign: 'center'
 			valign: 'center'
 			font_size: '20sp'
@@ -77,7 +77,7 @@ ScreenManager:
 		## FORECAST TEMPERATURE
 		Label:
 			text:  app.MetData['Temp'][0] + app.MetData['Temp'][1]
-			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
+			font_name: 'fonts/SystemSanFranciscoDisplayThin.ttf'
 			font_size: '30sp'
 			text_size: self.size
 			markup: 1
@@ -91,7 +91,7 @@ ScreenManager:
 		## FORECAST PRECIPITATION
 		Label:
 			text: app.MetData['Precip'] + ' %'
-			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
+			font_name: 'fonts/SystemSanFranciscoDisplayThin.ttf'
 			font_size: '30sp'
 			text_size: self.size
 			halign: 'left'
@@ -104,7 +104,7 @@ ScreenManager:
 		## FORECAST WINDSPEED
 		Label:
 			text: app.MetData['WindSpd'][0] + ' ' + app.MetData['WindSpd'][1] + ' ' + app.MetData['WindDir']
-			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
+			font_name: 'fonts/SystemSanFranciscoDisplayThin.ttf'
 			font_size: '30sp'
 			text_size: self.size
 			halign: 'left'
@@ -116,8 +116,8 @@ ScreenManager:
 
 		## FORECAST LOCATION, VALID, AND ISSUED TIME
 		Label:
-			text: 'Forecast issued: ' + app.MetData['Issued'] + '; Valid until ' + app.MetData['Valid']
-			font_name: 'Fonts/Helvetica.ttf'
+			text: app.ForecastLocn + '; Valid until ' + app.MetData['Valid']
+			font_name: 'fonts/Helvetica.ttf'
 			font_size: '13sp'
 			text_size: self.size
 			halign: 'right'
@@ -126,17 +126,17 @@ ScreenManager:
 			size: (252,16)
 			pos: (8,264)
 			color: [0.84,0.84,0.84,1]
-		Label:
-			text: app.ForecastLocn
-			font_name: 'Fonts/Helvetica.ttf'
-			font_size: '13sp'
-			text_size: self.size
-			halign: 'right'
-			valign: 'center'
-			size_hint: (None,None)
-			size: (252,16)
-			pos: (8,280)
-			color: [0.84,0.84,0.84,1]
+##		Label:
+##			text: app.ForecastLocn
+##			font_name: 'fonts/Helvetica.ttf'
+##			font_size: '13sp'
+##			text_size: self.size
+##			halign: 'right'
+##			valign: 'center'
+##			size_hint: (None,None)
+##			size: (252,16)
+##			pos: (8,280)
+##			color: [0.84,0.84,0.84,1]
 
 	## ----------------------------------------------------------
 	## CURRENT SAGER WEATHERCASTER FORECAST
@@ -148,7 +148,7 @@ ScreenManager:
 		## SAGER WEATHERCASTER FORECAST
 		Label:
 			text:  app.Sager['Forecast']
-			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
+			font_name: 'fonts/SystemSanFranciscoDisplayThin.ttf'
 			font_size: '20sp'
 			text_size: self.size
 			markup: 1
@@ -160,7 +160,7 @@ ScreenManager:
 			color: [0.84,0.84,0.84,1]
 		Label:
 			text: 'Forecast issued: ' + app.Sager['Issued']
-			font_name: 'Fonts/Helvetica.ttf'
+			font_name: 'fonts/Helvetica.ttf'
 			font_size: '13sp'
 			text_size: self.size
 			halign: 'right'
@@ -179,7 +179,7 @@ ScreenManager:
 		## INDOOR TEMPERATURE
 		Label:
 			text: app.Breathe['Temp'][0] + app.Breathe['Temp'][1]
-			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
+			font_name: 'fonts/SystemSanFranciscoDisplayThin.ttf'
 			font_size: '30sp'
 			text_size: self.size
 			markup: 1
@@ -193,7 +193,7 @@ ScreenManager:
 		## OUTDOOR TEMPERATURE
 		Label:
 			text: app.Air['Temp'][0] + app.Air['Temp'][1]
-			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
+			font_name: 'fonts/SystemSanFranciscoDisplayThin.ttf'
 			font_size: '30sp'
 			text_size: self.size
 			markup: 1
@@ -207,7 +207,7 @@ ScreenManager:
 		## INDOOR TEMPERATURE MINIMUM
 		Label:
 			text: '[color=00a4b4ff]' + app.Breathe['MinTemp'][0] + '[size=15sp]' + app.Breathe['MinTemp'][1] + '[/color][/size]'
-			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
+			font_name: 'fonts/SystemSanFranciscoDisplayThin.ttf'
 			font_size: '20sp'
 			text_size: self.size
 			markup: 1
@@ -221,7 +221,7 @@ ScreenManager:
 		## INDOOR TEMPERATURE MAXIMUM
 		Label:
 			text: '[color=f05e40ff]' + app.Breathe['MaxTemp'][0] + '[size=15sp]' + app.Breathe['MaxTemp'][1] + '[/color][/size]'
-			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
+			font_name: 'fonts/SystemSanFranciscoDisplayThin.ttf'
 			font_size: '20sp'
 			text_size: self.size
 			markup: 1
@@ -235,7 +235,7 @@ ScreenManager:
 		## OUTDOOR TEMPERATURE MINIMUM
 		Label:
 			text: '[color=00a4b4ff]' + app.Air['MinTemp'][0] + '[size=15sp]' + app.Air['MinTemp'][1] + '[/color][/size]'
-			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
+			font_name: 'fonts/SystemSanFranciscoDisplayThin.ttf'
 			font_size: '20sp'
 			text_size: self.size
 			markup: 1
@@ -247,7 +247,7 @@ ScreenManager:
 			color: [0.84,0.84,0.84,1]
 		Label:
 			text: app.Air['MinTemp'][2]
-			font_name: 'Fonts/Helvetica.ttf'
+			font_name: 'fonts/Helvetica.ttf'
 			font_size: '15sp'
 			text_size: self.size
 			markup: 1
@@ -261,7 +261,7 @@ ScreenManager:
 		## OUTDOOR TEMPERATURE MAXIMUM
 		Label:
 			text: '[color=f05e40ff]' + app.Air['MaxTemp'][0] + '[size=15sp]' + app.Air['MaxTemp'][1] + '[/color][/size]'
-			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
+			font_name: 'fonts/SystemSanFranciscoDisplayThin.ttf'
 			font_size: '20sp'
 			text_size: self.size
 			markup: 1
@@ -273,7 +273,7 @@ ScreenManager:
 			color: [0.84,0.84,0.84,1]
 		Label:
 			text: app.Air['MaxTemp'][2]
-			font_name: 'Fonts/Helvetica.ttf'
+			font_name: 'fonts/Helvetica.ttf'
 			font_size: '15sp'
 			text_size: self.size
 			markup: 1
@@ -287,7 +287,7 @@ ScreenManager:
 		## 'FEELS LIKE' TEMPERATURE
 		Label:
 			text: app.Air['FeelsLike'][0] + app.Air['FeelsLike'][1]
-			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
+			font_name: 'fonts/SystemSanFranciscoDisplayThin.ttf'
 			font_size: '20sp'
 			text_size: self.size
 			markup: 1
@@ -301,7 +301,7 @@ ScreenManager:
 		## HUMIDITY
 		Label:
 			text: app.Air['Humidity'][0] + app.Air['Humidity'][1]
-			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
+			font_name: 'fonts/SystemSanFranciscoDisplayThin.ttf'
 			font_size: '20sp'
 			text_size: self.size
 			markup: 1
@@ -315,7 +315,7 @@ ScreenManager:
 		## DEW POINT
 		Label:
 			text: app.Air['DewPoint'][0] + app.Air['DewPoint'][1]
-			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
+			font_name: 'fonts/SystemSanFranciscoDisplayThin.ttf'
 			font_size: '20sp'
 			text_size: self.size
 			markup: 1
@@ -336,7 +336,7 @@ ScreenManager:
 			pos: (276,266)
 		Label:
 			text: app.Air['FeelsLike'][2]
-			font_name: 'Fonts/Helvetica.ttf'
+			font_name: 'fonts/Helvetica.ttf'
 			font_size: '15sp'
 			text_size: self.size
 			markup: 1
@@ -355,7 +355,7 @@ ScreenManager:
 		## CURRENT AVERAGE WIND SPEED
 		Label:
 			text: app.Sky['WindSpd'][0]
-			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
+			font_name: 'fonts/SystemSanFranciscoDisplayThin.ttf'
 			font_size: '30sp'
 			text_size: self.size
 			markup: 1
@@ -367,7 +367,7 @@ ScreenManager:
 			color: [0.84,0.84,0.84,1]
 		Label:
 			text: app.Sky['WindSpd'][1]
-			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
+			font_name: 'fonts/SystemSanFranciscoDisplayThin.ttf'
 			font_size: '20sp'
 			text_size: self.size
 			markup: 1
@@ -381,7 +381,7 @@ ScreenManager:
 		## DAILY AVERAGED WIND SPEED
 		Label:
 			text: 'Avg [color=ff8837ff]' + app.Sky['AvgWind'][0] + '[/color] ' + app.Sky['AvgWind'][1]
-			font_name: 'Fonts/Helvetica.ttf'
+			font_name: 'fonts/Helvetica.ttf'
 			font_size: '15sp'
 			text_size: self.size
 			markup: 1
@@ -393,7 +393,7 @@ ScreenManager:
 			color: [0.84,0.84,0.84,1]
 		Label:
 			text: 'Wind'
-			font_name: 'Fonts/Helvetica.ttf'
+			font_name: 'fonts/Helvetica.ttf'
 			font_size: '15sp'
 			text_size: self.size
 			markup: 1
@@ -407,7 +407,7 @@ ScreenManager:
 		## CURRENT WIND GUST
 		Label:
 			text: app.Sky['WindGust'][0]
-			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
+			font_name: 'fonts/SystemSanFranciscoDisplayThin.ttf'
 			font_size: '30sp'
 			text_size: self.size
 			markup: 1
@@ -420,7 +420,7 @@ ScreenManager:
 			color: [0.84,0.84,0.84,1]
 		Label:
 			text: app.Sky['WindGust'][1]
-			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
+			font_name: 'fonts/SystemSanFranciscoDisplayThin.ttf'
 			font_size: '20sp'
 			text_size: self.size
 			markup: 1
@@ -435,7 +435,7 @@ ScreenManager:
 		## MAXIMUM WIND GUST
 		Label:
 			text: 'Max [color=ff8837ff]' + app.Sky['MaxGust'][0] + '[/color] ' + app.Sky['MaxGust'][1]
-			font_name: 'Fonts/Helvetica.ttf'
+			font_name: 'fonts/Helvetica.ttf'
 			font_size: '15sp'
 			text_size: self.size
 			markup: 1
@@ -447,7 +447,7 @@ ScreenManager:
 			color: [0.84,0.84,0.84,1]
 		Label:
 			text: 'Gust'
-			font_name: 'Fonts/Helvetica.ttf'
+			font_name: 'fonts/Helvetica.ttf'
 			font_size: '15sp'
 			text_size: self.size
 			markup: 1
@@ -468,7 +468,7 @@ ScreenManager:
 			pos: (752,290)
 		Label:
 			text: 'Direction: [color=9aba2fff]' + app.Sky['WindDir'][0] + app.Sky['WindDir'][1] + '[/color]'
-			font_name: 'Fonts/Helvetica.ttf'
+			font_name: 'fonts/Helvetica.ttf'
 			font_size: '15sp'
 			text_size: self.size
 			markup: 1
@@ -489,7 +489,7 @@ ScreenManager:
 			pos: (554,290)
 		Label:
 			text: app.Sky['WindSpd'][3]
-			font_name: 'Fonts/Helvetica.ttf'
+			font_name: 'fonts/Helvetica.ttf'
 			font_size: '15sp'
 			text_size: self.size
 			markup: 1
@@ -517,7 +517,7 @@ ScreenManager:
 		## WIND DIRECTION IN DEGREES
 		Label:
 			text: app.Rapid['Direc'][0] + app.Rapid['Direc'][1]
-			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
+			font_name: 'fonts/SystemSanFranciscoDisplayThin.ttf'
 			font_size: '20sp'
 			text_size: self.size
 			markup: 1
@@ -531,7 +531,7 @@ ScreenManager:
 		## WIND SPEED
 		Label:
 			text: app.Rapid['Speed'][0] + ' [size=15sp]' + app.Rapid['Speed'][1] + '[/size]'
-			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
+			font_name: 'fonts/SystemSanFranciscoDisplayThin.ttf'
 			font_size: '20sp'
 			text_size: self.size
 			markup: 1
@@ -545,7 +545,7 @@ ScreenManager:
 		## WIND DIRECTION TEXT
 		Label:
 			text: app.Rapid['Direc'][3]
-			font_name: 'Fonts/Helvetica.ttf'
+			font_name: 'fonts/Helvetica.ttf'
 			font_size: '15sp'
 			text_size: self.size
 			markup: 1
@@ -573,7 +573,7 @@ ScreenManager:
 		## SOLAR RADIATION
 		Label:
 			text: app.Sky['Radiation'][0] + app.Sky['Radiation'][1]
-			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
+			font_name: 'fonts/SystemSanFranciscoDisplayThin.ttf'
 			font_size: '20sp'
 			text_size: self.size
 			markup: 1
@@ -587,7 +587,7 @@ ScreenManager:
 		## UV INDEX
 		Label:
 			text: app.Sky['UV'][0]
-			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
+			font_name: 'fonts/SystemSanFranciscoDisplayThin.ttf'
 			font_size: '20sp'
 			text_size: self.size
 			markup: 1
@@ -608,7 +608,7 @@ ScreenManager:
 		## SUNRISE TIME
 		Label:
 			text: app.SunData['Sunrise'][1]
-			font_name: 'Fonts/Helvetica.ttf'
+			font_name: 'fonts/Helvetica.ttf'
 			font_size: '15sp'
 			text_size: self.size
 			markup: 1
@@ -623,7 +623,7 @@ ScreenManager:
 		## SUNSET TIME
 		Label:
 			text: app.SunData['Sunset'][1]
-			font_name: 'Fonts/Helvetica.ttf'
+			font_name: 'fonts/Helvetica.ttf'
 			font_size: '15sp'
 			text_size: self.size
 			markup: 1
@@ -647,7 +647,7 @@ ScreenManager:
 		## TIME REMAINING UNTIL SUNRISE OR SUNSET
 		Label:
 			text: app.SunData['Event'][1]
-			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
+			font_name: 'fonts/SystemSanFranciscoDisplayThin.ttf'
 			font_size: '30sp'
 			text_size: self.size
 			markup: 1
@@ -659,7 +659,7 @@ ScreenManager:
 			color: [0.84,0.84,0.84,1]
 		Label:
 			text: app.SunData['Event'][2]
-			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
+			font_name: 'fonts/SystemSanFranciscoDisplayThin.ttf'
 			font_size: '30sp'
 			text_size: self.size
 			markup: 1
@@ -671,7 +671,7 @@ ScreenManager:
 			color: [0.84,0.84,0.84,1]
 		Label:
 			text: app.SunData['Event'][0]
-			font_name: 'Fonts/Helvetica.ttf'
+			font_name: 'fonts/Helvetica.ttf'
 			font_size: '15sp'
 			text_size: self.size
 			markup: 1
@@ -699,7 +699,7 @@ ScreenManager:
 		## MOONRISE TIME
 		Label:
 			text: app.MoonData['Moonrise'][1]
-			font_name: 'Fonts/Helvetica.ttf'
+			font_name: 'fonts/Helvetica.ttf'
 			font_size: '15sp'
 			text_size: self.size
 			markup: 1
@@ -713,7 +713,7 @@ ScreenManager:
 		## MOONSET TIME
 		Label:
 			text: app.MoonData['Moonset'][1]
-			font_name: 'Fonts/Helvetica.ttf'
+			font_name: 'fonts/Helvetica.ttf'
 			font_size: '15sp'
 			text_size: self.size
 			markup: 1
@@ -727,7 +727,7 @@ ScreenManager:
 		## NEXT NEW MOON
 		Label:
 			text: app.MoonData['NewMoon'][0]
-			font_name: 'Fonts/Helvetica.ttf'
+			font_name: 'fonts/Helvetica.ttf'
 			font_size: '15sp'
 			text_size: self.size
 			markup: 1
@@ -741,7 +741,7 @@ ScreenManager:
 		## NEXT FULL MOON
 		Label:
 			text: app.MoonData['FullMoon'][0]
-			font_name: 'Fonts/Helvetica.ttf'
+			font_name: 'fonts/Helvetica.ttf'
 			font_size: '15sp'
 			text_size: self.size
 			markup: 1
@@ -765,7 +765,7 @@ ScreenManager:
 		## MOON PHASE TEXT
 		Label:
 			text: app.MoonData['Phase'][1]
-			font_name: 'Fonts/Helvetica.ttf'
+			font_name: 'fonts/Helvetica.ttf'
 			font_size: '15sp'
 			text_size: self.size
 			markup: 1
@@ -779,7 +779,7 @@ ScreenManager:
 		## MOON ILLUMINANCE TEXT
 		Label:
 			text: app.MoonData['Phase'][2] + '% Illumin.'
-			font_name: 'Fonts/Helvetica.ttf'
+			font_name: 'fonts/Helvetica.ttf'
 			font_size: '15sp'
 			text_size: self.size
 			markup: 1
@@ -798,7 +798,7 @@ ScreenManager:
 		## CURRENT RAIN RATE AND TEXT
 		Label:
 			text: app.Sky['RainRate'][0] + app.Sky['RainRate'][1]
-			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
+			font_name: 'fonts/SystemSanFranciscoDisplayThin.ttf'
 			font_size: '15sp'
 			text_size: self.size
 			markup: 1
@@ -810,7 +810,7 @@ ScreenManager:
 			color: [0.84,0.84,0.84,1]
 		Label:
 			text: app.Sky['RainRate'][2]
-			font_name: 'Fonts/Helvetica.ttf'
+			font_name: 'fonts/Helvetica.ttf'
 			font_size: '15sp'
 			text_size: self.size
 			markup: 1
@@ -837,7 +837,7 @@ ScreenManager:
 		## TOTAL DAILY RAINFALL
 		Label:
 			text: app.Sky['TodayRain'][0] + '[size=15sp]' + app.Sky['TodayRain'][1] + '[/size]'
-			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
+			font_name: 'fonts/SystemSanFranciscoDisplayThin.ttf'
 			font_size: '20sp'
 			text_size: self.size
 			markup: 1
@@ -851,7 +851,7 @@ ScreenManager:
 		## TOTAL YESTERDAY RAINFALL
 		Label:
 			text: app.Sky['YesterdayRain'][0] + '[size=15sp]' + app.Sky['YesterdayRain'][1] + '[/size]'
-			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
+			font_name: 'fonts/SystemSanFranciscoDisplayThin.ttf'
 			font_size: '20sp'
 			text_size: self.size
 			markup: 1
@@ -865,7 +865,7 @@ ScreenManager:
 		## TOTAL MONTHLY RAINFALL
 		Label:
 			text: app.Sky['MonthRain'][0] + '[size=15sp]' + app.Sky['MonthRain'][1] + '[/size]'
-			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
+			font_name: 'fonts/SystemSanFranciscoDisplayThin.ttf'
 			font_size: '20sp'
 			text_size: self.size
 			markup: 1
@@ -879,7 +879,7 @@ ScreenManager:
 		## TOTAL YEARLY RAINFALL
 		Label:
 			text: app.Sky['YearRain'][0] + '[size=15sp]' + app.Sky['YearRain'][1] + '[/size]'
-			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
+			font_name: 'fonts/SystemSanFranciscoDisplayThin.ttf'
 			font_size: '20sp'
 			text_size: self.size
 			markup: 1
@@ -906,8 +906,8 @@ ScreenManager:
 
 		## MAXIMUM AND MINIMUM PRESSURE ON PRESSURE DIAL
 		Label:
-			text: app.BarometerMax
-			font_name: 'Fonts/SystemSanFranciscoDisplayBold.ttf'
+			text: app.BarometerMin
+			font_name: 'fonts/SystemSanFranciscoDisplayBold.ttf'
 			font_size: '10pt'
 			text_size: self.size
 			font_hinting: None
@@ -919,8 +919,8 @@ ScreenManager:
 			pos: (565,78)
 			color: [0.84,0.84,0.84,1]
 		Label:
-			text: app.BarometerMin
-			font_name: 'Fonts/SystemSanFranciscoDisplayBold.ttf'
+			text: app.BarometerMax
+			font_name: 'fonts/SystemSanFranciscoDisplayBold.ttf'
 			font_size: '10pt'
 			text_size: self.size
 			font_hinting: None
@@ -935,7 +935,7 @@ ScreenManager:
 		## CURRENT PRESSURE
 		Label:
 			text: app.Air['Pres'][0]
-			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
+			font_name: 'fonts/SystemSanFranciscoDisplayThin.ttf'
 			font_size: '30sp'
 			text_size: self.size
 			markup: 1
@@ -948,7 +948,7 @@ ScreenManager:
 			color: [0.84,0.84,0.84,1]
 		Label:
 			text: app.Air['Pres'][1]
-			font_name: 'Fonts/SystemSanFranciscoDisplayThin.ttf'
+			font_name: 'fonts/SystemSanFranciscoDisplayThin.ttf'
 			font_size: '20sp'
 			text_size: self.size
 			markup: 1
@@ -963,7 +963,7 @@ ScreenManager:
 		## CURRENT PRESSURE TREND
 		Label:
 			text: 'Trend: ' + app.Air['PresTrend'][2]
-			font_name: 'Fonts/Helvetica.ttf'
+			font_name: 'fonts/Helvetica.ttf'
 			font_size: '15sp'
 			text_size: self.size
 			markup: 1
@@ -975,7 +975,7 @@ ScreenManager:
 			color: [0.84,0.84,0.84,1]
 		Label:
 			text: app.Air['PresTrend'][0] + app.Air['PresTrend'][1]
-			font_name: 'Fonts/Helvetica.ttf'
+			font_name: 'fonts/Helvetica.ttf'
 			font_size: '15sp'
 			text_size: self.size
 			markup: 1
@@ -989,7 +989,7 @@ ScreenManager:
 		## 24 HOUR PRESSURE LOW
 		Label:
 			text: app.Air['MinPres'][0]
-			font_name: 'Fonts/Helvetica.ttf'
+			font_name: 'fonts/Helvetica.ttf'
 			font_size: '15sp'
 			text_size: self.size
 			markup: 1
@@ -1003,7 +1003,7 @@ ScreenManager:
 		## 24 HOUR PRESSURE HIGH
 		Label:
 			text: app.Air['MaxPres'][0]
-			font_name: 'Fonts/Helvetica.ttf'
+			font_name: 'fonts/Helvetica.ttf'
 			font_size: '15sp'
 			text_size: self.size
 			markup: 1
@@ -1022,7 +1022,7 @@ ScreenManager:
 		## SKY
 		Label:
 			text: '[color=00a4b4ff]Sky: [/color]'
-			font_name: 'Fonts/Helvetica.ttf'
+			font_name: 'fonts/Helvetica.ttf'
 			font_size: '15sp'
 			text_size: self.size
 			markup: 1
@@ -1034,7 +1034,7 @@ ScreenManager:
 			color: [0.84,0.84,0.84,1]
 		Label:
 			text: app.Sky['Time']
-			font_name: 'Fonts/Helvetica.ttf'
+			font_name: 'fonts/Helvetica.ttf'
 			font_size: '15sp'
 			text_size: self.size
 			markup: 1
@@ -1054,7 +1054,7 @@ ScreenManager:
 			color: [0.84,0.84,0.84,1]
 		Label:
 			text: 'Voltage: ' + app.Sky['Battery'][0]
-			font_name: 'Fonts/Helvetica.ttf'
+			font_name: 'fonts/Helvetica.ttf'
 			font_size: '15sp'
 			text_size: self.size
 			markup: 1
@@ -1068,7 +1068,7 @@ ScreenManager:
 		## AIR
 		Label:
 			text: '[color=f05e40ff]Air: [/color]'
-			font_name: 'Fonts/Helvetica.ttf'
+			font_name: 'fonts/Helvetica.ttf'
 			font_size: '15sp'
 			text_size: self.size
 			markup: 1
@@ -1080,7 +1080,7 @@ ScreenManager:
 			color: [0.84,0.84,0.84,1]
 		Label:
 			text: app.Air['Time']
-			font_name: 'Fonts/Helvetica.ttf'
+			font_name: 'fonts/Helvetica.ttf'
 			font_size: '15sp'
 			text_size: self.size
 			markup: 1
@@ -1099,7 +1099,7 @@ ScreenManager:
 			pos: (658,6)
 		Label:
 			text: 'Voltage: ' + app.Air['Battery'][0]
-			font_name: 'Fonts/Helvetica.ttf'
+			font_name: 'fonts/Helvetica.ttf'
 			font_size: '15sp'
 			text_size: self.size
 			markup: 1
@@ -1169,7 +1169,7 @@ ScreenManager:
 	FloatLayout:
 		Label:
 			text: app.Version
-			font_name: 'Fonts/Helvetica.ttf'
+			font_name: 'fonts/Helvetica.ttf'
 			font_size: '15sp'
 			text_size: self.size
 			markup: 1
@@ -1180,7 +1180,7 @@ ScreenManager:
 			pos: (390,43)
 		Label:
 			text: app.System['LatestVer']
-			font_name: 'Fonts/Helvetica.ttf'
+			font_name: 'fonts/Helvetica.ttf'
 			font_size: '15sp'
 			text_size: self.size
 			markup: 1

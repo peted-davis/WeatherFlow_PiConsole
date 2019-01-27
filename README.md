@@ -1,15 +1,15 @@
 # WeatherFlow PiConsole
 Raspberry Pi Python console for the Weather Flow Smart Home Weather Station. The 
 console uses the WeatherFlow REST API and websocket to stream data from your 
-Weather Flow Smart Home Weather Station in real time via the internet. As soon as 
-the data from your station reaches the WeatherFlow servers, it is pushed immediately 
-to the console, including the 3-second rapid fire wind updates.   
+Weather Flow Smart Home Weather Station in real time via the internet. As soon 
+as the data from your station reaches the WeatherFlow servers, it is pushed 
+immediately to the console, including the 3-second rapid fire wind updates.   
 
 Many of the graphical elements in the console are based on the Weather34 Home
-Weather Station Template (https://www.weather34.com/homeweatherstation/) copyright
-2015-2019 Brian Underdown. The Weather34 Home Weather Station Template is licensed
-under a Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International 
-License.
+Weather Station Template (https://www.weather34.com/homeweatherstation/) 
+copyright 2015-2019 Brian Underdown. The Weather34 Home Weather Station Template 
+is licensed under a Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 
+International License.
 
 http://weatherflow.com/smart-home-weather-stations/  
 https://community.weatherflow.com/
@@ -39,30 +39,30 @@ sudo systemctl enable WeatherFlowPiConsole.service
 
 ## Auto-Run Instructions
 
-If you want to enable the console to auto-run when the Raspberry Pi powers up, copy the
-WeatherFlowPiConsole.service file into /etc/systemd/system/. These .service files assumes 
-you have installed the PiConsole in the default directory (~/wfpiconsole/) and are using
-the default 'Pi' username. If you have installed the PiConsole in a different location, or
-are using a different username, I assume you know what you are doing and can edit the
-.service file appropriately. 
+If you want to enable the console to auto-run when the Raspberry Pi powers up, 
+copy the wfpiconsole.service.service file into /etc/systemd/system/. This 
+.service file assumes you have installed the PiConsole in the default directory 
+(~/wfpiconsole/) and are using the default 'Pi' username. If you have installed 
+the PiConsole in a different location, or are using a different username, I 
+assume you know what you are doing and can edit the .service file appropriately. 
 
 ```
 cd ~/wfpiconsole/
-sudo cp WeatherFlowPiConsole.service /etc/systemd/system/
+sudo cp wfpiconsole.service /etc/systemd/system/
 ```
 
 Start the service using
 
 ```
-sudo systemctl start WeatherFlowPiConsole.service
+sudo systemctl start wfpiconsole.service
 ```
 
-If the console boots and everything is working, stop the console and set the service to 
-start automatically at reboot
+If the console boots and everything is working, stop the console and set the 
+service to start automatically at reboot
 
 ```
-sudo systemctl stop WeatherFlowPiConsole.service
-sudo systemctl enable WeatherFlowPiConsole.service
+sudo systemctl stop wfpiconsole.service
+sudo systemctl enable wfpiconsole.service
 ```
 
 Reboot your Raspberry Pi and the console should come up automatically
@@ -71,20 +71,21 @@ Reboot your Raspberry Pi and the console should come up automatically
 sudo reboot now
 ```
 
-If you are going to use the auto-start method, it is highly recommended that you can SSH
-into your Raspberry Pi, as the console can only be stopped using the stop command above
-and not ctrl-c on the keyboard.
+If you are going to use the auto-start method, it is highly recommended that you 
+can SSH into your Raspberry Pi, as the console can only be stopped using the 
+stop command above and not ctrl-c on the keyboard.
 
 ## Installation Instructions
 
-Follow these instructions to setup a new installation of the WeatherFlow PiConsole on your
-Raspberry Pi Official 7 inch touch screen. This initial installation should take ~1 hour.
+Follow these instructions to setup a new installation of the WeatherFlow 
+PiConsole on your Raspberry Pi Official 7 inch touch screen. This initial 
+installation should take ~1 hour.
 
 The instructions assume you have already sucesfully setup your Raspberry Pi and 
-installed Raspbian Stretch with Desktop, have attached the touch screen, and have 
-either a keyboard and mouse attached directly to the Pi, or you can access the Pi 
-through SSH/VNC. If you are starting from scratch, some of these links may help get 
-you started:
+installed Raspbian Stretch with Desktop, have attached the touch screen, and 
+have either a keyboard and mouse attached directly to the Pi, or you can access 
+the Pi through SSH/VNC. If you are starting from scratch, some of these links 
+may help get you started:
 
 * https://www.raspberrypi.org/downloads/raspbian/
 * https://www.raspberrypi.org/documentation/configuration/security.md
