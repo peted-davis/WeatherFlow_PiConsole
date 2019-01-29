@@ -652,6 +652,8 @@ class wfpiconsole(App):
 				if isinstance(T,str) and T.strip() in ['[sup]o[/sup]F','[sup]o[/sup]C']:
 					if math.isnan(cObs[ii-1]):
 						cObs[ii-1] = '-'
+					elif cObs[ii-1] == 0:
+						cObs[ii-1] = '{:.1f}'.format(abs(cObs[ii-1]))
 					else:
 						cObs[ii-1] = '{:.1f}'.format(cObs[ii-1])
 
