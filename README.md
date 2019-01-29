@@ -19,13 +19,17 @@ https://community.weatherflow.com/
 Follow these instructions to update an existing installation of the WeatherFlow 
 PiConsole. These instructions assume you have installed the PiConsole in the 
 default directory (~/wfpiconsole/). If you have installed the PiConsole in a 
-different location, I assume you know what you are doing!
+different location, I assume you know what you are doing! The update process 
+will delete all files associated with the currently installed version except the 
+.ini file, and will then download and install the updated version in its place.
 
 ```
 cd ~/wfpiconsole/
-wget https://api.github.com/repos/peted-davis/WeatherFlow_PiConsole/tarball -O PiConsole.tar.gz
-tar -xvf PiConsole.tar.gz --strip 1
-rm PiConsole.tar.gz
+rm -rf !("wfpiconsole.ini")
+wget https://api.github.com/repos/peted-davis/WeatherFlow_PiConsole/tarball -O wfpiconsole.tar.gz
+tar -xvf wfpiconsole.tar.gz --strip 1
+rm wfpiconsole.tar.gz
+python3 main.py
 ```
 
 If you are have the console setup to auto run using the .service file, copy the
