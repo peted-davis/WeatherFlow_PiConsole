@@ -36,9 +36,9 @@ If you are have the console setup to auto run using the .service file, copy the
 new .service file into /etc/systemd/system and renable:
 
 ```
-sudo cp WeatherFlowPiConsole.service /etc/systemd/system/
+sudo cp wfpiconsole.service /etc/systemd/system/
 sudo systemctl daemon-reload
-sudo systemctl enable WeatherFlowPiConsole.service
+sudo systemctl enable wfpiconsole.service
 ```
 
 ## Auto-Run Instructions
