@@ -26,7 +26,7 @@ from pathlib import Path
 from geopy import distance as geopy
 
 # Define wfpiconsole version number
-Version = 'v2.0'
+Version = 'v2.1'
 
 # Define required variables
 stationWF = None
