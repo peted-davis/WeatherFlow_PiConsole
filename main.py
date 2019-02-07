@@ -825,9 +825,9 @@ class wfpiconsole(App):
 			WindKPH = self.ObservationUnits(WindSpd,'kph')
 
 			# If temperature is less than 10 degrees celcius and wind speed is
-			# higher than 5 mph, calculate wind chill using the Joint Action Group
-			# for Temperature Indices formula
-			if TempC[0] <= 10 and WindMPH[0] > 5:
+			# higher than 3 mph, calculate wind chill using the Joint Action 
+			# Group for Temperature Indices formula
+			if TempC[0] <= 10 and WindMPH[0] > 3:
 
 				# Calculate wind chill
 				WindChill = 13.12 + 0.6215*TempC[0] - 11.37*(WindKPH[0])**0.16 + 0.3965*TempC[0]*(WindKPH[0])**0.16
