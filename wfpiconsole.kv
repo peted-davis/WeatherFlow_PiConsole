@@ -32,7 +32,7 @@ ScreenManager:
 	canvas.before:
 		Rectangle:
 			size: self.size
-			source: 'Background/CurrentConditions.png'
+			source: 'background/currentConditions.png'
 
 	## ----------------------------------------------------------
 	## CLOCK
@@ -58,7 +58,7 @@ ScreenManager:
 		id: MetOffice
 		opacity: 1
 		Image:
-			source: 'Background/MetOffice.png'
+			source: 'background/metOffice.png'
 			size_hint: (None,None)
 			keep_ratio: 0
 			allow_stretch: 1
@@ -67,7 +67,7 @@ ScreenManager:
 
 		## CURRENT WEATHER ICON
 		Image:
-			source: 'Icons/Weather/' + app.MetData['Weather'] + '.png'
+			source: 'icons/weather/' + app.MetData['Weather'] + '.png'
 			size_hint: (None,None)
 			keep_ratio: 0
 			allow_stretch: 1
@@ -317,7 +317,7 @@ ScreenManager:
 
 		## 'FEELS LIKE' ICON AND TEXT
 		Image:
-			source: 'Icons/FeelsLike/' + app.Air['FeelsLike'][3] + '.png'
+			source: 'icons/feelsLike/' + app.Air['FeelsLike'][3] + '.png'
 			size_hint: (None,None)
 			keep_ratio: 0
 			allow_stretch: 1
@@ -449,7 +449,7 @@ ScreenManager:
 
 		## CURRENT AVERAGE WIND DIRECTION
 		Image:
-			source: 'Icons/Wind/AvgWindDir/' + app.Sky['WindDir'][2] + '.png'
+			source: 'icons/windDir/' + app.Sky['WindDir'][2] + '.png'
 			size_hint: (None,None)
 			keep_ratio: 0
 			allow_stretch: 1
@@ -470,7 +470,7 @@ ScreenManager:
 
 		## CURRENT BEAUFORT SCALE TEXT AND ICON
 		Image:
-			source: 'Icons/Wind/WindSpeed/' + app.Sky['WindSpd'][2] + '.png'
+			source: 'icons/windSpeed/' + app.Sky['WindSpd'][2] + '.png'
 			size_hint: (None,None)
 			keep_ratio: 0
 			allow_stretch: 1
@@ -496,7 +496,7 @@ ScreenManager:
 
 		## WIND DIRECTION ARROW
 		Image:
-			source: 'Icons/Wind/WindRose/' + str(round(app.RapidIcon)) + '.png'
+			source: 'icons/windRose/' + str(round(app.RapidIcon)) + '.png'
 			size_hint: (None,None)
 			keep_ratio: 0
 			allow_stretch: 1
@@ -552,7 +552,7 @@ ScreenManager:
 		id: Sunrise
 		opacity: 1
 		Image:
-			source: 'Background/SunriseSunset.png'
+			source: 'background/sunriseSunset.png'
 			size_hint: (None,None)
 			keep_ratio: 0
 			allow_stretch: 1
@@ -587,7 +587,7 @@ ScreenManager:
 			pos: (161,176)
 			color: [0.84,0.84,0.84,1]
 		Image:
-			source: 'Icons/UVIndex/' + app.Sky['UV'][2] + '.png'
+			source: 'icons/uv/' + app.Sky['UV'][2] + '.png'
 			size_hint: (None,None)
 			keep_ratio: 0
 			allow_stretch: 1
@@ -626,7 +626,7 @@ ScreenManager:
 
 		## SUN TRANSIT ICON
 		Image:
-			source: 'Icons/Sun/' + app.SunData['SunAngle'] + '.png'
+			source: 'icons/sun/' + app.SunData['SunAngle'] + '.png'
 			size_hint: (None,None)
 			keep_ratio: 0
 			allow_stretch: 1
@@ -678,7 +678,7 @@ ScreenManager:
 		id: Moon
 		opacity: 0
 		Image:
-			source: 'Background/Moon.png'
+			source: 'background/moon.png'
 			size_hint: (None,None)
 			keep_ratio: 0
 			allow_stretch: 1
@@ -743,7 +743,7 @@ ScreenManager:
 
 		## MOON PHASE ICON
 		Image:
-			source: 'Icons/Moon/' + app.MoonData['Phase'][0] + '.png'
+			source: 'icons/moon/' + app.MoonData['Phase'][0] + '.png'
 			size_hint: (None,None)
 			keep_ratio: 0
 			allow_stretch: 1
@@ -816,7 +816,7 @@ ScreenManager:
 			size: (33,113)
 			pos: (471,124.5)
 			Image:
-				source: 'Icons/RainIntensity/Water.png'
+				source: 'icons/rainfall/Water.png'
 				size_hint: (None,None)
 				keep_ratio: 0
 				allow_stretch: 1
@@ -886,7 +886,7 @@ ScreenManager:
 
 		## CURRENT PRESSURE ARROW
 		Image:
-			source: 'Icons/Barometer/' + app.Air['Pres'][2] + '.png'
+			source: 'icons/barometer/' + app.Air['Pres'][2] + '.png'
 			size_hint: (None,None)
 			keep_ratio: 0
 			allow_stretch: 1
@@ -1034,7 +1034,7 @@ ScreenManager:
 			pos: (584,29)
 			color: [0.84,0.84,0.84,1]
 		Image:
-			source: 'Icons/Status/' + app.Sky['StatusIcon'] + '.png'
+			source: 'icons/status/' + app.Sky['StatusIcon'] + '.png'
 			size_hint: (None,None)
 			keep_ratio: 0
 			allow_stretch: 1
@@ -1080,7 +1080,7 @@ ScreenManager:
 			pos: (584,6)
 			color: [0.84,0.84,0.84,1]
 		Image:
-			source: 'Icons/Status/' + app.Air['StatusIcon'] + '.png'
+			source: 'icons/status/' + app.Air['StatusIcon'] + '.png'
 			size_hint: (None,None)
 			keep_ratio: 0
 			allow_stretch: 1
@@ -1107,29 +1107,29 @@ ScreenManager:
 			size_hint: (None,None)
 			size: (90,30)
 			pos: (2,0)
-			background_normal: 'Buttons/Forecast.png'
-			background_down: 'Buttons/Forecast_Pressed.png'
+			background_normal: 'buttons/forecast.png'
+			background_down: 'buttons/forecastPressed.png'
 			on_press: root.SwitchPanel(self,'MetSager')
 		Button:
 			size_hint: (None,None)
 			size: (100,30)
 			pos: (107,0)
-			background_normal: 'Buttons/SunMoon.png'
-			background_down: 'Buttons/SunMoon_Pressed.png'
+			background_normal: 'buttons/sunMoon.png'
+			background_down: 'buttons/sunMoonPressed.png'
 			on_press: root.SwitchPanel(self,'SunMoon')
 		Button:
 			size_hint: (None,None)
 			size: (88,30)
 			pos: (350,0)
-			background_normal: 'Buttons/Settings.png'
-			background_down: 'Buttons/Settings_Pressed.png'
+			background_normal: 'buttons/settings.png'
+			background_down: 'buttons/settingsPressed.png'
 			on_release: app.open_settings()
 		Button:
 			size_hint: (None,None)
 			size: (81,30)
 			pos: (453,0)
-			background_normal: 'Buttons/Credits.png'
-			background_down: 'Buttons/Credits_Pressed.png'
+			background_normal: 'buttons/credits.png'
+			background_down: 'buttons/creditsPressed.png'
 			on_press: Factory.Credits().open()
 
 ## =============================================================================
@@ -1138,7 +1138,7 @@ ScreenManager:
 <Credits>:
 	title: ''
 	separator_height: 0
-	background: 'Background/Credits.png'
+	background: 'background/credits.png'
 	background_color: [0,0,0,0]
     size_hint: (None,None)
     size: (500,400)
@@ -1149,7 +1149,7 @@ ScreenManager:
 <Version>:
 	title: ''
 	separator_height: 0
-	background: 'Background/UpdateNotification.png'
+	background: 'background/updateNotification.png'
 	background_color: [0,0,0,0]
 	auto_dismiss: False
 	pos_hint: {'x': 269/800, 'y':2/480}
@@ -1182,8 +1182,8 @@ ScreenManager:
 			size_hint: (None,None)
 			size: (20,20)
 			pos: (508,61)
-			background_normal: 'Buttons/Exit.png'
-			background_down: 'Buttons/Exit_Pressed.png'
+			background_normal: 'buttons/exit.png'
+			background_down: 'buttons/exitPressed.png'
 			on_release: root.dismiss()
 
 ## =============================================================================

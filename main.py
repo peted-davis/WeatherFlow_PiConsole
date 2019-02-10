@@ -20,7 +20,7 @@
 import platform
 import os
 if platform.system() == 'Linux' and 'arm' in platform.machine():
-	os.environ['KIVY_GL_BACKEND'] = 'gl'
+	os.environ['KIVY_GL_BACKEND'] = 'sdl2'
 elif platform.system() == 'Windows':
 	os.environ['KIVY_GL_BACKEND'] = 'glew'
 
@@ -218,9 +218,8 @@ class wfpiconsole(App):
 	# --------------------------------------------------------------------------
 	def build(self):
 
-		# Force window size if required
-		if 'arm' not in platform.machine():
-			Window.size = (800,480)
+		# Force window size
+		Window.size = (800,480)
 
 		# Load user configuration from wfpiconsole.ini and define Settings panel
 		# type
