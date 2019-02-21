@@ -20,7 +20,7 @@
 import platform
 import os
 if platform.system() == 'Linux' and 'arm' in platform.machine():
-	os.environ['KIVY_GL_BACKEND'] = 'sdl2'
+	os.environ['KIVY_GL_BACKEND'] = 'gl'
 elif platform.system() == 'Windows':
 	os.environ['KIVY_GL_BACKEND'] = 'glew'
 
@@ -170,7 +170,7 @@ def VerifyJSON(Data,Type,Field):
 				return True
 			else:
 				return False
-			
+
 # ==============================================================================
 # DEFINE 'WeatherFlowPiConsole' APP CLASS
 # ==============================================================================
@@ -210,7 +210,7 @@ class wfpiconsole(App):
 	TimeFormat = ConfigParserProperty('-','Display','TimeFormat','wfpiconsole')
 	DateFormat = ConfigParserProperty('-','Display','DateFormat','wfpiconsole')
 	Version = ConfigParserProperty('-','System','Version','wfpiconsole')
-	
+
 	# Define required Kivy numeric properties
 	RapidIcon = NumericProperty(0)
 
@@ -218,8 +218,9 @@ class wfpiconsole(App):
 	# --------------------------------------------------------------------------
 	def build(self):
 
-		# Force window size
-		Window.size = (800,480)
+		# Force window size if required
+		if 'arm' not in platform.machine():
+			Window.size = (800,480)
 
 		# Load user configuration from wfpiconsole.ini and define Settings panel
 		# type
@@ -250,24 +251,24 @@ class wfpiconsole(App):
 	# BUILD 'WeatherFlowPiConsole' APP CLASS SETTINGS
 	# --------------------------------------------------------------------------
 	def build_settings(self,settings):
-	
+
 		# Register setting types
 		settings.register_type('ScrollOptions',SettingScrollOptions)
 		settings.register_type('FixedOptions',SettingFixedOptions)
 		settings.register_type('ToggleTemperature',SettingToggleTemperature)
-		
+
 		# Add required panels to setting screen. Remove Kivy settings panel
 		settings.add_json_panel('Display',self.config,data=configCreate.settings_json('Display'))
 		settings.add_json_panel('Units',self.config,data=configCreate.settings_json('Units'))
 		settings.add_json_panel('Feels Like',self.config,data=configCreate.settings_json('FeelsLike'))
 		self.use_kivy_settings  =  False
 
-	# OVERLOAD 'on_config_change' TO MAKE NECESSARY CHANGES TO CONFIG VALUES 
+	# OVERLOAD 'on_config_change' TO MAKE NECESSARY CHANGES TO CONFIG VALUES
 	# WHEN REQUIRED
 	# --------------------------------------------------------------------------
 	def on_config_change(self, config, section, key, value):
-		
-		# Update current weather forecast and Sager Weathercaster forecast when 
+
+		# Update current weather forecast and Sager Weathercaster forecast when
 		# temperature or wind speed units are changed
 		if section == 'Units' and key in ['Temp','Wind']:
 			if self.config['Station']['Country'] == 'GB':
@@ -277,8 +278,8 @@ class wfpiconsole(App):
 			if key == 'Wind':
 				self.Sager['Dial']['Units'] = value
 				self.Sager['Forecast'] = sager.Forecast(self.Sager['Dial'])
-			
-		# Update "Feels Like" temperature cutoffs in wfpiconsole.ini and the 
+
+		# Update "Feels Like" temperature cutoffs in wfpiconsole.ini and the
 		# settings screen when temperature units are changed
 		if section == 'Units' and key == 'Temp':
 			for Field in self.config['FeelsLike']:
@@ -297,14 +298,14 @@ class wfpiconsole(App):
 							if isinstance(item,Factory.SettingToggleTemperature):
 								if item.title.replace(' ','') == Field:
 									item.value = self.config['FeelsLike'][Field]
-									
+
 		# Update barometer limits when pressure units are changed
 		if section == 'Units' and key == 'Pressure':
 			Units = ['mb','hpa','inhg','mmhg']
 			Max = ['1050','1050','31.0','788']
 			Min = ['950','950','28.0','713']
-			self.config.set('System','BarometerMax',Max[Units.index(value)])	
-			self.config.set('System','BarometerMin',Min[Units.index(value)])	
+			self.config.set('System','BarometerMax',Max[Units.index(value)])
+			self.config.set('System','BarometerMin',Min[Units.index(value)])
 
 	# CONNECT TO THE WEATHER FLOW WEBSOCKET SERVER
 	# --------------------------------------------------------------------------
@@ -816,15 +817,15 @@ class wfpiconsole(App):
 			FeelsLike = [NaN,'c','-','-']
 
 		# Calculate 'Feels Like' temperature
-		else: 
-		
+		else:
+
 			# Convert observation units as required
 			TempF = self.ObservationUnits(TempC,'f')
 			WindMPH = self.ObservationUnits(WindSpd,'mph')
 			WindKPH = self.ObservationUnits(WindSpd,'kph')
 
 			# If temperature is less than 10 degrees celcius and wind speed is
-			# higher than 3 mph, calculate wind chill using the Joint Action 
+			# higher than 3 mph, calculate wind chill using the Joint Action
 			# Group for Temperature Indices formula
 			if TempC[0] <= 10 and WindMPH[0] > 3:
 
@@ -843,25 +844,25 @@ class wfpiconsole(App):
 			# Else set 'Feels Like' temperature to observed temperature
 			else:
 				FeelsLike = TempC
-				
+
 			# Define 'FeelsLike' temperature cutoffs
 			Cutoff = list(self.config['FeelsLike'].values())
 			Cutoff = [float(item) for item in Cutoff]
-			
+
 			# Define 'FeelsLike temperature text and icon
 			Description = ['Feeling extremely cold', 'Feeling freezing cold', 'Feeling very cold',
 						   'Feeling cold', 'Feeling mild', 'Feeling warm', 'Feeling hot',
 						   'Feeling very hot', 'Feeling extremely hot']
 			Icon = ['ExtremelyCold', 'FreezingCold', 'VeryCold', 'Cold', 'Mild', 'Warm',
 					'Hot', 'VeryHot', 'ExtremelyHot']
-		
+
 			# Extract required 'FeelsLike' description and icon
 			if self.config['Units']['Temp'] == 'f':
 				Ind = bisect.bisect(Cutoff,FeelsLike[0]* 9/5 + 32)
 			else:
 				Ind = bisect.bisect(Cutoff,FeelsLike[0])
 			FeelsLike = [FeelsLike[0],FeelsLike[1],Description[Ind],Icon[Ind]]
-		
+
 		# Return 'Feels Like' temperature
 		return FeelsLike
 
@@ -1131,7 +1132,7 @@ class wfpiconsole(App):
 			# failed
 			if VerifyJSON(Data,'WeatherFlow','obs'):
 				Data = Data.json()['obs']
-				WindSpd = [[item[5],'mps'] if item[5] != None else [NaN,'mps'] for item in Data]
+				WindSpd = [[item[5],'mps'] for item in Data if item[5] != None]
 				Sum = sum([x for x,y in WindSpd])
 				Length = len(WindSpd)
 				AvgWind = [Sum/Length,'mps',Sum/Length,Length,Now]
@@ -1272,36 +1273,36 @@ class wfpiconsole(App):
 	# CALCULATE MAXIMUM OBSERVED WIND SPEED AND GUST STRENGTH
 	# --------------------------------------------------------------------------
 	def SkyObsMaxMin(self,WindSpd,WindGust):
-		
+
 		# Define current time in station timezone
 		Tz = pytz.timezone(self.config['Station']['Timezone'])
 		Now = datetime.now(pytz.utc).astimezone(Tz)
-		
+
 		# CODE INITIALISING. DOWNLOAD DATA FOR CURRENT DAY USING WEATHERFLOW API
 		if self.Sky['MaxGust'] == '--':
-		
-			# Convert midnight today in Station timezone to midnight today in 
+
+			# Convert midnight today in Station timezone to midnight today in
 			# UTC. Convert UTC time into UNIX timestamp
-			Date = date.today()																
+			Date = date.today()
 			Midnight = Tz.localize(datetime.combine(Date,time()))
 			Midnight_UTC = int(Midnight.timestamp())
-			
-			# Convert current time in Station timezone to current time in UTC. 
+
+			# Convert current time in Station timezone to current time in UTC.
 			# Convert current time time into UNIX timestamp
 			Now = Tz.localize(datetime.now())
-			Now_UTC = int(Now.timestamp())													
+			Now_UTC = int(Now.timestamp())
 
-			# Download data from current day using Weatherflow API and extract 
+			# Download data from current day using Weatherflow API and extract
 			# wind speed and wind gust data
 			Template = ('https://swd.weatherflow.com/swd/rest/observations/?device_id={}&time_start={}&time_end={}&api_key={}')
 			URL = Template.format(self.config['Station']['SkyID'],Midnight_UTC,Now_UTC,self.config['Keys']['WeatherFlow'])
 			Data = requests.get(URL)
-			
-			# Calculate daily maximum wind gust. Return NaN if API call has 
+
+			# Calculate daily maximum wind gust. Return NaN if API call has
 			# failed
 			if VerifyJSON(Data,'WeatherFlow','obs'):
 				Data = Data.json()['obs']
-				WindGust = [[item[6],'mps'] if item[6] != None else [NaN,'mps'] for item in Data]
+				WindGust = [[item[6],'mps'] for item in Data if item[6] != None]
 				MaxGust = [max([x for x,y in WindGust]),'mps',max([x for x,y in WindGust]),Now]
 			else:
 				TodayRain = [NaN,'mps',NaN,Now]
@@ -1309,25 +1310,25 @@ class wfpiconsole(App):
 			# Return maximum wind gust
 			return MaxGust
 
-		# AT MIDNIGHT RESET MAXIMUM RECORDED WIND GUST	
+		# AT MIDNIGHT RESET MAXIMUM RECORDED WIND GUST
 		if Now.date() > self.Sky['MaxGust'][3].date():
 			MaxGust = [WindGust[0],'mps',WindGust[0],Now]
-			
+
 			# Return maximum wind gust
-			return MaxGust	
-			
-		# Current gust speed is greater than maximum recorded gust speed. Update 
-		# maximum gust speed 
+			return MaxGust
+
+		# Current gust speed is greater than maximum recorded gust speed. Update
+		# maximum gust speed
 		if WindGust[0] > self.Sky['MaxGust'][2]:
-			MaxGust = [WindGust[0],'mps',WindGust[0],Now]	
-				
+			MaxGust = [WindGust[0],'mps',WindGust[0],Now]
+
 		# Maximum gust speed is unchanged. Return existing value
 		else:
-			MaxGust = [self.Sky['MaxGust'][2],'mps',self.Sky['MaxGust'][2],Now]	
-			
+			MaxGust = [self.Sky['MaxGust'][2],'mps',self.Sky['MaxGust'][2],Now]
+
 		# Return maximum wind speed and gust
-		return MaxGust	
-		
+		return MaxGust
+
 	# CALCULATE CARDINAL WIND DIRECTION FROM WIND DIRECTION IN DEGREES
 	# --------------------------------------------------------------------------
 	def CardinalWindDirection(self,Dir,Spd=[1,'mps']):
@@ -1890,7 +1891,7 @@ class wfpiconsole(App):
 		# Get current UNIX timestamp in UTC
 		Now = int(UNIX.time())
 		Hours_6 = (6*60*60)+60
-		
+
 		# Get station timezone
 		Tz = pytz.timezone(self.config['Station']['Timezone'])
 
@@ -1899,8 +1900,8 @@ class wfpiconsole(App):
 		URL = Template.format(self.config['Station']['SkyID'],Now-Hours_6,Now,self.config['Keys']['WeatherFlow'])
 		Data = requests.get(URL)
 		Sky = {}
-		
-		# Extract observation times, wind speed, wind direction, and rainfall. 
+
+		# Extract observation times, wind speed, wind direction, and rainfall.
 		# If API call has failed, return blank Sager Forecast
 		if VerifyJSON(Data,'WeatherFlow','obs'):
 			Sky['obs'] = Data.json()['obs']
@@ -1913,7 +1914,7 @@ class wfpiconsole(App):
 			self.Sager['Issued'] = datetime.now(pytz.utc).astimezone(Tz).strftime('%H:%M')
 			Clock.schedule_once(self.SagerForecast,3600)
 			return
-		
+
 		# Convert SKY data to Numpy arrays
 		Sky['Time'] = np.array(Sky['Time'],dtype=np.int64)
 		Sky['WindSpd'] = np.array(Sky['WindSpd'],dtype=np.float64)
@@ -1925,8 +1926,8 @@ class wfpiconsole(App):
 		URL = Template.format(self.config['Station']['OutdoorID'],Now-Hours_6,Now,self.config['Keys']['WeatherFlow'])
 		Data = requests.get(URL)
 		Air = {}
-		
-		# Extract observation times, pressure and temperature. If API call has 
+
+		# Extract observation times, pressure and temperature. If API call has
 		# failed, return blank Sager Forecast
 		if VerifyJSON(Data,'WeatherFlow','obs'):
 			Air['obs'] = Data.json()['obs']
@@ -1948,25 +1949,40 @@ class wfpiconsole(App):
 		self.Sager['Lat'] = float(self.config['Station']['Latitude'])
 		self.Sager['Units'] = self.config['Units']['Wind']
 
-		# Define required wind direction variables for the Sager Weathercaster 
+		# Define required wind direction variables for the Sager Weathercaster
 		# Forecast
-		self.Sager['WindDir6'] = CircularMean(Sky['WindDir'][:15])
-		self.Sager['WindDir'] = CircularMean(Sky['WindDir'][-15:])
+		WindDir6 = Sky['WindDir'][:15]
+		WindDir = Sky['WindDir'][-15:]
+		if not np.all(np.isnan(WindDir6)) or np.all(np.isnan(WindDir)):
+			self.Sager['WindDir6'] = CircularMean(WindDir6)
+			self.Sager['WindDir'] = CircularMean(WindDir)
+		else:
+			return
 
-		# Define required wind speed variables for the Sager Weathercaster 
+		# Define required wind speed variables for the Sager Weathercaster
 		# Forecast
-		self.Sager['WindSpd6'] = np.nanmean(Sky['WindSpd'][:15])
-		self.Sager['WindSpd'] = np.nanmean(Sky['WindSpd'][-15:])
+		WindSpd6 = Sky['WindSpd'][:15]
+		WindSpd = Sky['WindSpd'][-15:]
+		if not np.all(np.isnan(WindSpd6)) or np.all(np.isnan(WindSpd)):
+			self.Sager['WindSpd6'] = np.nanmean(WindSpd6)
+			self.Sager['WindSpd'] = np.nanmean(WindSpd)
+		else:
+			return
 
-		# Define required pressure variables for the Sager Weathercaster 
+		# Define required pressure variables for the Sager Weathercaster
 		# Forecast
-		self.Sager['Pres'] = np.nanmean(Air['Pres'][-15:])
-		self.Sager['Pres6'] = np.nanmean(Air['Pres'][:15])
+		Pres6 = np.nanmean(Air['Pres'][:15])
+		Pres = np.nanmean(Air['Pres'][-15:])
+		if not np.all(np.isnan(Pres6)) or np.all(np.isnan(Pres)):
+			self.Sager['Pres6'] = np.nanmean(Pres6)
+			self.Sager['Pres'] = np.nanmean(Pres)
+		else:
+			return
 
 		# Get current time in station time zone
 		Now = datetime.now(pytz.utc).astimezone(Tz)
 
-		# Define required present weather variables for the Sager Weathercaster 
+		# Define required present weather variables for the Sager Weathercaster
 		# Forecast
 		LastRain = np.where(Sky['Rain'] > 0)[0]
 		if LastRain.size == 0:
@@ -1977,9 +1993,13 @@ class wfpiconsole(App):
 			LastRain = Now - LastRain
 			self.Sager['LastRain'] = LastRain.total_seconds()/60
 
-		# Define required temperature variables for the Sager Weathercaster 
+		# Define required temperature variables for the Sager Weathercaster
 		# Forecast
-		self.Sager['Temp'] = np.nanmean(Air['Temp'][-15:])
+		Temp = Air['Temp'][-15:]
+		if not np.all(np.isnan(Temp)):
+			self.Sager['Temp'] = np.nanmean(Temp)
+		else:
+			return
 
 		# Download closet METAR information to station location
 		header = {'X-API-Key':self.config['Keys']['CheckWX']}
@@ -2025,7 +2045,7 @@ class wfpiconsole(App):
 		Tz = pytz.timezone(self.config['Station']['Timezone'])
 		Now = datetime.now(pytz.utc).astimezone(Tz)
 
-		# Check latest AIR observation time is less than 5 minutes old and 
+		# Check latest AIR observation time is less than 5 minutes old and
 		# battery voltage is greater than 1.9 v
 		if 'Obs' in self.Air:
 			AirTime = datetime.fromtimestamp(self.Air['Obs'][0],Tz)
@@ -2041,7 +2061,7 @@ class wfpiconsole(App):
 			else:
 				self.Air['StatusIcon'] = 'Error'
 
-		# Check latest Sky observation time is less than 5 minutes old and 
+		# Check latest Sky observation time is less than 5 minutes old and
 		# battery voltage is greater than 2.0 v
 		if 'Obs' in self.Sky:
 			SkyTime = datetime.fromtimestamp(self.Sky['Obs'][0],Tz)
@@ -2060,7 +2080,7 @@ class wfpiconsole(App):
 	# UPDATE 'WeatherFlowPiConsole' METHODS AT REQUIRED INTERVALS
 	# --------------------------------------------------------------------------
 	def UpdateMethods(self,dt):
-			
+
 		# Get current time in station timezone
 		Tz = pytz.timezone(self.config['Station']['Timezone'])
 		Now = datetime.now(pytz.utc).astimezone(Tz)
@@ -2302,7 +2322,7 @@ class SettingFixedOptions(SettingOptions):
 class SettingToggleTemperature(SettingString):
 
 	def _create_popup(self, instance):
-	
+
 		# Get temperature units from config file
 		config = App.get_running_app().config
 		Units = '[sup]o[/sup]' + config['Units']['Temp'].upper()
@@ -2365,7 +2385,7 @@ class SettingToggleTemperature(SettingString):
 			Units = '[sup]o[/sup]F'
 		Value = int(self.Label.text.replace(Units,'')) + 1
 		self.Label.text =str(Value) + Units
-		
+
 # ==============================================================================
 # RUN APP
 # ==============================================================================
