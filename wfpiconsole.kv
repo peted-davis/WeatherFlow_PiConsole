@@ -403,8 +403,8 @@ ScreenManager:
 			halign: 'center'
 			valign: 'center'
 			size_hint: (None,None)
-			width: 60
-			height: 34
+			width: dp(60)
+			height: dp(34)
 			pos: dp(737),dp(360)
 			color: [0.84,0.84,0.84,1]
 		Label:
@@ -416,8 +416,8 @@ ScreenManager:
 			halign: 'center'
 			valign: 'center'
 			size_hint: (None,None)
-			width: 60
-			height: 25
+			width: dp(60)
+			height: dp(25)
 			pos: dp(737),dp(340)
 			color: [0.84,0.84,0.84,1]
 
@@ -604,8 +604,8 @@ ScreenManager:
 			halign: 'center'
 			valign: 'center'
 			size_hint: (None,None)
-			width: 80
-			height: 19
+			width: dp(80)
+			height: dp(19)
 			pos: dp(9),dp(40)
 			color: [0.84,0.84,0.84,1]
 
@@ -619,8 +619,8 @@ ScreenManager:
 			halign: 'center'
 			valign: 'center'
 			size_hint: (None,None)
-			width: 80
-			height: 19
+			width: dp(80)
+			height: dp(19)
 			pos: dp(177),dp(40)
 			color: [0.84,0.84,0.84,1]
 
@@ -931,8 +931,8 @@ ScreenManager:
 			halign: 'center'
 			valign: 'center'
 			size_hint: (None,None)
-			width: 100
-			height: 30
+			width: dp(100)
+			height: dp(30)
 			pos: dp(616),dp(119)
 			color: [0.84,0.84,0.84,1]
 		Label:
@@ -944,8 +944,8 @@ ScreenManager:
 			halign: 'center'
 			valign: 'center'
 			size_hint: (None,None)
-			width: 100
-			height: 25
+			width: dp(100)
+			height: dp(25)
 			pos: dp(616),dp(92)
 			color: [0.84,0.84,0.84,1]
 
@@ -1109,35 +1109,35 @@ ScreenManager:
 			size_hint: (None,None)
 			size: dp(90),dp(30)
 			pos: dp(2),dp(0)
-			allow_stretch: False
-			keep_ratio: True
+			allow_stretch: True
+			keep_ratio: False
 			background_normal: 'buttons/forecast.png'
 			background_down: 'buttons/forecastPressed.png'
 			on_press: root.SwitchPanel(self,'MetSager')
 		Button:
 			size_hint: (None,None)
-			size: dp(100),dp(30)
-			pos: dp(107),dp(0)
-			allow_stretch: False
-			keep_ratio: True
+			size: dp(90),dp(30)
+			pos: dp(147),dp(0)
+			allow_stretch: True
+			keep_ratio: False
 			background_normal: 'buttons/sunMoon.png'
 			background_down: 'buttons/sunMoonPressed.png'
 			on_press: root.SwitchPanel(self,'SunMoon')
 		Button:
 			size_hint: (None,None)
-			size: dp(88),dp(30)
-			pos: dp(350),dp(0)
-			allow_stretch: False
-			keep_ratio: True
+			size: dp(90),dp(30)
+			pos: dp(292),dp(0)
+			allow_stretch: True
+			keep_ratio: False
 			background_normal: 'buttons/settings.png'
 			background_down: 'buttons/settingsPressed.png'
 			on_release: app.open_settings()
 		Button:
 			size_hint: (None,None)
-			size: dp(81),dp(30)
-			pos: dp(453),dp(0)
-			allow_stretch: False
-			keep_ratio: True
+			size: dp(90),dp(30)
+			pos: dp(437),dp(0)
+			allow_stretch: True
+			keep_ratio: False
 			background_normal: 'buttons/credits.png'
 			background_down: 'buttons/creditsPressed.png'
 			on_press: Factory.Credits().open()
@@ -1201,7 +1201,7 @@ ScreenManager:
 ## =============================================================================
 <-MenuSidebar>:
     size_hint_x: None
-    width: '150dp'
+    width: 150
     buttons_layout: menu
     close_button: button
     GridLayout:
@@ -1214,17 +1214,17 @@ ScreenManager:
             Color:
                 rgb: 1,1,1,1
             Rectangle:
-                pos: self.right - 1, self.y+5
+                pos: self.right - 1, self.y + 5
                 size: 1, self.height-10
     Button:
         text: 'Close'
         id: button
         size_hint: None, None
-        width: root.width - dp(20)
-        height: max(50, self.texture_size[1] + dp(20))
-        pos: dp(root.x) + dp(10), dp(root.y) + dp(10)
+        width: root.width-20
+        height: max(5, self.texture_size[1] + 20)
+        pos: root.x + 10, root.y + 10
         font_size: '15sp'
-			
+
 <-SettingsPanel>:
     spacing: 5
     padding: 5
@@ -1238,7 +1238,7 @@ ScreenManager:
         Color:
             rgb: 1,1,1,1
         Rectangle:
-            pos: dp(self.x), dp(self.center_y)
-            size: dp(self.width), dp(2)
+            pos: self.x, self.center_y
+            size: self.width, 2
 	
 		
