@@ -47,8 +47,8 @@ ScreenManager:
 			halign: 'center'
 			valign: 'center'
 			size_hint: (None,None)
-			size: (262,48)
-			pos: (269,36)
+			size: dp(262),dp(48)
+			pos: dp(269),dp(36)
 			color: [0.84,0.84,0.84,1]
 
 	## ----------------------------------------------------------
@@ -62,8 +62,8 @@ ScreenManager:
 			size_hint: (None,None)
 			keep_ratio: 0
 			allow_stretch: 1
-			size: (262,219)
-			pos: (2,259)
+			size: dp(262),dp(219)
+			pos: dp(2),dp(259)
 
 		## CURRENT WEATHER ICON
 		Image:
@@ -71,8 +71,8 @@ ScreenManager:
 			size_hint: (None,None)
 			keep_ratio: 0
 			allow_stretch: 1
-			size: (115,123)
-			pos: (125,322)
+			size: dp(115),dp(123)
+			pos: dp(125),dp(322)
 
 		## FORECAST TEMPERATURE
 		Label:
@@ -84,8 +84,8 @@ ScreenManager:
 			halign: 'left'
 			valign: 'center'
 			size_hint: (None,None)
-			size: (170,31)
-			pos: (8,405)
+			size: dp(170),dp(31)
+			pos: dp(8),dp(405)
 			color: [0.84,0.84,0.84,1]
 
 		## FORECAST PRECIPITATION
@@ -97,8 +97,8 @@ ScreenManager:
 			halign: 'left'
 			valign: 'center'
 			size_hint: (None,None)
-			size: (170,31)
-			pos: (8,344)
+			size: dp(170),dp(31)
+			pos: dp(8),dp(344)
 			color: [0.84,0.84,0.84,1]
 
 		## FORECAST WINDSPEED
@@ -110,8 +110,8 @@ ScreenManager:
 			halign: 'left'
 			valign: 'center'
 			size_hint: (None,None)
-			size: (200,31)
-			pos: (8,282)
+			size: dp(200),dp(31)
+			pos: dp(8),dp(282)
 			color: [0.84,0.84,0.84,1]
 
 		## FORECAST LOCATION, VALID, AND ISSUED TIME
@@ -123,8 +123,8 @@ ScreenManager:
 			halign: 'right'
 			valign: 'center'
 			size_hint: (None,None)
-			size: (252,16)
-			pos: (8,264)
+			size: dp(252),dp(16)
+			pos: dp(8),dp(264)
 			color: [0.84,0.84,0.84,1]
 
 	## ----------------------------------------------------------
@@ -144,8 +144,8 @@ ScreenManager:
 			halign: 'center'
 			valign: 'top'
 			size_hint: (None,None)
-			size: (252,170)
-			pos: (7,276)
+			size: dp(252),dp(170)
+			pos: dp(7),dp(276)
 			color: [0.84,0.84,0.84,1]
 		Label:
 			text: 'Forecast issued: ' + app.Sager['Issued']
@@ -155,8 +155,8 @@ ScreenManager:
 			halign: 'right'
 			valign: 'center'
 			size_hint: (None,None)
-			size: (252,16)
-			pos: (8,264)
+			size: dp(252),dp(16)
+			pos: dp(8),dp(264)
 			color: [0.84,0.84,0.84,1]
 
 	## ----------------------------------------------------------
@@ -175,8 +175,8 @@ ScreenManager:
 			halign: 'center'
 			valign: 'center'
 			size_hint: (None,None)
-			size: (131,41)
-			pos: (269,395)
+			size: dp(131),dp(41)
+			pos: dp(269),dp(395)
 			color: [0.84,0.84,0.84,1]
 
 		## OUTDOOR TEMPERATURE
@@ -189,8 +189,8 @@ ScreenManager:
 			halign: 'center'
 			valign: 'center'
 			size_hint: (None,None)
-			size: (131,41)
-			pos: (400,395)
+			size: dp(131),dp(41)
+			pos: dp(400),dp(395)
 			color: [0.84,0.84,0.84,1]
 
 		## INDOOR TEMPERATURE MINIMUM
@@ -203,8 +203,8 @@ ScreenManager:
 			halign: 'center'
 			valign: 'center'
 			size_hint: (None,None)
-			size: (65.5,25)
-			pos: (269,369)
+			size: dp(65.5),dp(25)
+			pos: dp(269),dp(369)
 			color: [0.84,0.84,0.84,1]
 
 		## INDOOR TEMPERATURE MAXIMUM
@@ -217,8 +217,8 @@ ScreenManager:
 			halign: 'center'
 			valign: 'center'
 			size_hint: (None,None)
-			size: (65.5,25)
-			pos: (334.5,369)
+			size: dp(65.5),dp(25)
+			pos: dp(334.5),dp(369)
 			color: [0.84,0.84,0.84,1]
 
 		## OUTDOOR TEMPERATURE MINIMUM
@@ -231,8 +231,8 @@ ScreenManager:
 			halign: 'center'
 			valign: 'center'
 			size_hint: (None,None)
-			size: (65.5,25)
-			pos: (400,372)
+			size: dp(65.5),dp(25)
+			pos: dp(400),dp(372)
 			color: [0.84,0.84,0.84,1]
 		Label:
 			text: app.Air['MinTemp'][2]
@@ -243,8 +243,8 @@ ScreenManager:
 			halign: 'center'
 			valign: 'center'
 			size_hint: (None,None)
-			size: (65.5,25)
-			pos: (400,348)
+			size: dp(65.5),dp(25)
+			pos: dp(400),dp(348)
 			color: [0.84,0.84,0.84,1]
 
 		## OUTDOOR TEMPERATURE MAXIMUM
@@ -257,8 +257,8 @@ ScreenManager:
 			halign: 'center'
 			valign: 'center'
 			size_hint: (None,None)
-			size: (65.5,25)
-			pos: (465.5,372)
+			size: dp(65.5),dp(25)
+			pos: dp(465.5),dp(372)
 			color: [0.84,0.84,0.84,1]
 		Label:
 			text: app.Air['MaxTemp'][2]
@@ -269,8 +269,8 @@ ScreenManager:
 			halign: 'center'
 			valign: 'center'
 			size_hint: (None,None)
-			size: (65.5,25)
-			pos: (465.5,348)
+			size: dp(65.5),dp(25)
+			pos: dp(465.5),dp(348)
 			color: [0.84,0.84,0.84,1]
 
 		## 'FEELS LIKE' TEMPERATURE
@@ -283,8 +283,8 @@ ScreenManager:
 			halign: 'center'
 			valign: 'center'
 			size_hint: (None,None)
-			size: (87.33,30)
-			pos: (269,297)
+			size: dp(87.33),dp(30)
+			pos: dp(269),dp(297)
 			color: [0.84,0.84,0.84,1]
 
 		## HUMIDITY
@@ -297,8 +297,8 @@ ScreenManager:
 			halign: 'center'
 			valign: 'center'
 			size_hint: (None,None)
-			size: (87.33,30)
-			pos: (356.33,297)
+			size: dp(87.33),dp(30)
+			pos: dp(356.33),dp(297)
 			color: [0.84,0.84,0.84,1]
 
 		## DEW POINT
@@ -311,8 +311,8 @@ ScreenManager:
 			halign: 'center'
 			valign: 'center'
 			size_hint: (None,None)
-			size: (87.33,30)
-			pos: (443.66,297)
+			size: dp(87.33),dp(30)
+			pos: dp(443.66),dp(297)
 			color: [0.84,0.84,0.84,1]
 
 		## 'FEELS LIKE' ICON AND TEXT
@@ -321,8 +321,8 @@ ScreenManager:
 			size_hint: (None,None)
 			keep_ratio: 0
 			allow_stretch: 1
-			size: (38,31)
-			pos: (276,266)
+			size: dp(38),dp(31)
+			pos: dp(276),dp(266)
 		Label:
 			text: app.Air['FeelsLike'][2]
 			font_name: 'fonts/Helvetica.ttf'
@@ -332,8 +332,8 @@ ScreenManager:
 			halign: 'left'
 			valign: 'center'
 			size_hint: (None,None)
-			size: (200,29)
-			pos: (318,263)
+			size: dp(200),dp(29)
+			pos: dp(318),dp(263)
 			color: [0.84,0.84,0.84,1]
 
 	## ----------------------------------------------------------
@@ -351,8 +351,8 @@ ScreenManager:
 			halign: 'center'
 			valign: 'center'
 			size_hint: (None,None)
-			size: (60,34)
-			pos: (539,360)
+			size: dp(60),dp(34)
+			pos: dp(539),dp(360)
 			color: [0.84,0.84,0.84,1]
 		Label:
 			text: app.Sky['WindSpd'][1]
@@ -363,8 +363,8 @@ ScreenManager:
 			halign: 'center'
 			valign: 'center'
 			size_hint: (None,None)
-			size: (60,25)
-			pos: (539,340)
+			size: dp(60),dp(25)
+			pos: dp(539),dp(340)
 			color: [0.84,0.84,0.84,1]
 
 		## DAILY AVERAGED WIND SPEED
@@ -377,8 +377,8 @@ ScreenManager:
 			halign: 'center'
 			valign: 'center'
 			size_hint: (None,None)
-			size: (101,18)
-			pos: (539,434)
+			size: dp(101),dp(18)
+			pos: dp(539),dp(434)
 			color: [0.84,0.84,0.84,1]
 		Label:
 			text: 'Wind'
@@ -389,8 +389,8 @@ ScreenManager:
 			halign: 'center'
 			valign: 'center'
 			size_hint: (None,None)
-			size: (101,18)
-			pos: (539,416)
+			size: dp(101),dp(18)
+			pos: dp(539),dp(416)
 			color: [0.84,0.84,0.84,1]
 
 		## CURRENT WIND GUST
@@ -405,7 +405,7 @@ ScreenManager:
 			size_hint: (None,None)
 			width: 60
 			height: 34
-			pos: (737,360)
+			pos: dp(737),dp(360)
 			color: [0.84,0.84,0.84,1]
 		Label:
 			text: app.Sky['WindGust'][1]
@@ -418,7 +418,7 @@ ScreenManager:
 			size_hint: (None,None)
 			width: 60
 			height: 25
-			pos: (737,340)
+			pos: dp(737),dp(340)
 			color: [0.84,0.84,0.84,1]
 
 		## MAXIMUM WIND GUST
@@ -431,8 +431,8 @@ ScreenManager:
 			halign: 'center'
 			valign: 'center'
 			size_hint: (None,None)
-			size: (101,18)
-			pos: (695,434)
+			size: dp(101),dp(18)
+			pos: dp(695),dp(434)
 			color: [0.84,0.84,0.84,1]
 		Label:
 			text: 'Gust'
@@ -443,8 +443,8 @@ ScreenManager:
 			halign: 'center'
 			valign: 'center'
 			size_hint: (None,None)
-			size: (101,18)
-			pos: (695,416)
+			size: dp(101),dp(18)
+			pos: dp(695),dp(416)
 			color: [0.84,0.84,0.84,1]
 
 		## CURRENT AVERAGE WIND DIRECTION
@@ -453,8 +453,8 @@ ScreenManager:
 			size_hint: (None,None)
 			keep_ratio: 0
 			allow_stretch: 1
-			size: (30,31)
-			pos: (752,290)
+			size: dp(30),dp(31)
+			pos: dp(752),dp(290)
 		Label:
 			text: 'Direction: [color=9aba2fff]' + app.Sky['WindDir'][0] + app.Sky['WindDir'][1] + '[/color]'
 			font_name: 'fonts/Helvetica.ttf'
@@ -464,8 +464,8 @@ ScreenManager:
 			halign: 'right'
 			valign: 'center'
 			size_hint: (None,None)
-			size: (135,18)
-			pos: (655,265)
+			size: dp(135),dp(18)
+			pos: dp(655),dp(265)
 			color: [0.84,0.84,0.84,1]
 
 		## CURRENT BEAUFORT SCALE TEXT AND ICON
@@ -474,8 +474,8 @@ ScreenManager:
 			size_hint: (None,None)
 			keep_ratio: 0
 			allow_stretch: 1
-			size: (30,31)
-			pos: (554,290)
+			size: dp(30),dp(31)
+			pos: dp(554),dp(290)
 		Label:
 			text: app.Sky['WindSpd'][3]
 			font_name: 'fonts/Helvetica.ttf'
@@ -485,8 +485,8 @@ ScreenManager:
 			halign: 'left'
 			valign: 'center'
 			size_hint: (None,None)
-			size: (126,18)
-			pos: (542,265)
+			size: dp(126),dp(18)
+			pos: dp(542),dp(265)
 			color: [0.84,0.84,0.84,1]
 
 	## ----------------------------------------------------------
@@ -500,8 +500,8 @@ ScreenManager:
 			size_hint: (None,None)
 			keep_ratio: 0
 			allow_stretch: 1
-			size: (134,146)
-			pos: (601,287)
+			size: dp(134),dp(146)
+			pos: dp(601),dp(287)
 
 		## WIND DIRECTION IN DEGREES
 		Label:
@@ -513,8 +513,8 @@ ScreenManager:
 			halign: 'center'
 			valign: 'center'
 			size_hint: (None,None)
-			size: (60,25)
-			pos: (638,380)
+			size: dp(60),dp(25)
+			pos: dp(638),dp(380)
 			color: [0.84,0.84,0.84,1]
 
 		## WIND SPEED
@@ -527,8 +527,8 @@ ScreenManager:
 			halign: 'center'
 			valign: 'center'
 			size_hint: (None,None)
-			size: (80,25)
-			pos: (628,352)
+			size: dp(80),dp(25)
+			pos: dp(628),dp(352)
 			color: [0.84,0.84,0.84,1]
 
 		## WIND DIRECTION TEXT
@@ -541,8 +541,8 @@ ScreenManager:
 			halign: 'center'
 			valign: 'center'
 			size_hint: (None,None)
-			size: (80,25)
-			pos: (628,324)
+			size: dp(80),dp(25)
+			pos: dp(628),dp(324)
 			color: [0.84,0.84,0.84,1]
 
 	## ----------------------------------------------------------
@@ -556,8 +556,8 @@ ScreenManager:
 			size_hint: (None,None)
 			keep_ratio: 0
 			allow_stretch: 1
-			size: (262,218)
-			pos: (2,37)
+			size: dp(262),dp(218)
+			pos: dp(2),dp(37)
 
 		## SOLAR RADIATION
 		Label:
@@ -569,8 +569,8 @@ ScreenManager:
 			halign: 'center'
 			valign: 'center'
 			size_hint: (None,None)
-			size: (105,34)
-			pos: (5,176)
+			size: dp(105),dp(34)
+			pos: dp(5),dp(176)
 			color: [0.84,0.84,0.84,1]
 
 		## UV INDEX
@@ -583,16 +583,16 @@ ScreenManager:
 			halign: 'center'
 			valign: 'center'
 			size_hint: (None,None)
-			size: (52.5,34)
-			pos: (161,176)
+			size: dp(52.5),dp(34)
+			pos: dp(161),dp(176)
 			color: [0.84,0.84,0.84,1]
 		Image:
 			source: 'icons/uv/' + app.Sky['UV'][2] + '.png'
 			size_hint: (None,None)
 			keep_ratio: 0
 			allow_stretch: 1
-			size: (41,36)
-			pos: (210,175)
+			size: dp(41),dp(36)
+			pos: dp(210),dp(175)
 
 		## SUNRISE TIME
 		Label:
@@ -606,7 +606,7 @@ ScreenManager:
 			size_hint: (None,None)
 			width: 80
 			height: 19
-			pos: (9,40)
+			pos: dp(9),dp(40)
 			color: [0.84,0.84,0.84,1]
 
 		## SUNSET TIME
@@ -621,7 +621,7 @@ ScreenManager:
 			size_hint: (None,None)
 			width: 80
 			height: 19
-			pos: (177,40)
+			pos: dp(177),dp(40)
 			color: [0.84,0.84,0.84,1]
 
 		## SUN TRANSIT ICON
@@ -630,8 +630,8 @@ ScreenManager:
 			size_hint: (None,None)
 			keep_ratio: 0
 			allow_stretch: 1
-			size: (182,106)
-			pos: (42,76)
+			size: dp(182),dp(106)
+			pos: dp(42),dp(76)
 
 		## TIME REMAINING UNTIL SUNRISE OR SUNSET
 		Label:
@@ -643,8 +643,8 @@ ScreenManager:
 			halign: 'center'
 			valign: 'center'
 			size_hint: (None,None)
-			size: (40,30)
-			pos: (93,92)
+			size: dp(40),dp(30)
+			pos: dp(93),dp(92)
 			color: [0.84,0.84,0.84,1]
 		Label:
 			text: app.SunData['Event'][2]
@@ -655,8 +655,8 @@ ScreenManager:
 			halign: 'center'
 			valign: 'center'
 			size_hint: (None,None)
-			size: (40,30)
-			pos: (133,92)
+			size: dp(40),dp(30)
+			pos: dp(133),dp(92)
 			color: [0.84,0.84,0.84,1]
 		Label:
 			text: app.SunData['Event'][0]
@@ -667,8 +667,8 @@ ScreenManager:
 			halign: 'center'
 			valign: 'center'
 			size_hint: (None,None)
-			size: (80,19)
-			pos: (93,73)
+			size: dp(80),dp(19)
+			pos: dp(93),dp(73)
 			color: [0.84,0.84,0.84,1]
 
 	## ----------------------------------------------------------
@@ -682,8 +682,8 @@ ScreenManager:
 			size_hint: (None,None)
 			keep_ratio: 0
 			allow_stretch: 1
-			size: (262,218)
-			pos: (2,37)
+			size: dp(262),dp(218)
+			pos: dp(2),dp(37)
 
 		## MOONRISE TIME
 		Label:
@@ -695,8 +695,8 @@ ScreenManager:
 			halign: 'center'
 			valign: 'center'
 			size_hint: (None,None)
-			size: (80,19)
-			pos: (7,40)
+			size: dp(80),dp(19)
+			pos: dp(7),dp(40)
 			color: [0.84,0.84,0.84,1]
 
 		## MOONSET TIME
@@ -709,8 +709,8 @@ ScreenManager:
 			halign: 'center'
 			valign: 'center'
 			size_hint: (None,None)
-			size: (80,19)
-			pos: (179,40)
+			size: dp(80),dp(19)
+			pos: dp(179),dp(40)
 			color: [0.84,0.84,0.84,1]
 
 		## NEXT NEW MOON
@@ -723,8 +723,8 @@ ScreenManager:
 			halign: 'center'
 			valign: 'center'
 			size_hint: (None,None)
-			size: (70,19)
-			pos: (8,184)
+			size: dp(70),dp(19)
+			pos: dp(8),dp(184)
 			color: [0.84,0.84,0.84,1]
 
 		## NEXT FULL MOON
@@ -737,8 +737,8 @@ ScreenManager:
 			halign: 'center'
 			valign: 'center'
 			size_hint: (None,None)
-			size: (70,19)
-			pos: (188,184)
+			size: dp(70),dp(19)
+			pos: dp(188),dp(184)
 			color: [0.84,0.84,0.84,1]
 
 		## MOON PHASE ICON
@@ -747,8 +747,8 @@ ScreenManager:
 			size_hint: (None,None)
 			keep_ratio: 0
 			allow_stretch: 1
-			size: (46,50)
-			pos: (110,136)
+			size: dp(46),dp(50)
+			pos: dp(110),dp(136)
 			color: [0.84,0.84,0.84,1]
 
 		## MOON PHASE TEXT
@@ -761,8 +761,8 @@ ScreenManager:
 			halign: 'center'
 			valign: 'center'
 			size_hint: (None,None)
-			size: (112,19)
-			pos: (77,111)
+			size: dp(112),dp(19)
+			pos: dp(77),dp(111)
 			color: [0.84,0.84,0.84,1]
 
 		## MOON ILLUMINANCE TEXT
@@ -775,8 +775,8 @@ ScreenManager:
 			halign: 'center'
 			valign: 'center'
 			size_hint: (None,None)
-			size: (90,19)
-			pos: (88,91)
+			size: dp(90),dp(19)
+			pos: dp(88),dp(91)
 			color: [0.84,0.84,0.84,1]
 
 	## ----------------------------------------------------------
@@ -794,8 +794,8 @@ ScreenManager:
 			halign: 'center'
 			valign: 'center'
 			size_hint: (None,None)
-			size: (86,21)
-			pos: (444,96)
+			size: dp(86),dp(21)
+			pos: dp(444),dp(96)
 			color: [0.84,0.84,0.84,1]
 		Label:
 			text: app.Sky['RainRate'][2]
@@ -806,21 +806,21 @@ ScreenManager:
 			halign: 'center'
 			valign: 'center'
 			size_hint: (None,None)
-			size: (175,21)
-			pos: (269,96)
+			size: dp(175),dp(21)
+			pos: dp(269),dp(96)
 			color: [0.84,0.84,0.84,1]
 
 		## RAINFALL INTENSITY ANIMATION
 		StencilView:
 			size_hint: (None,None)
-			size: (33,113)
-			pos: (471,124.5)
+			size: dp(33),dp(113)
+			pos: dp(471),dp(124.5)
 			Image:
 				source: 'icons/rainfall/Water.png'
 				size_hint: (None,None)
 				keep_ratio: 0
 				allow_stretch: 1
-				size: (264,113)
+				size: dp(264),dp(113)
 				pos: (root.Screen['xRainAnim'],root.Screen['yRainAnim'])
 
 		## TOTAL DAILY RAINFALL
@@ -833,8 +833,8 @@ ScreenManager:
 			halign: 'center'
 			valign: 'center'
 			size_hint: (None,None)
-			size: (88,35)
-			pos: (270,175)
+			size: dp(88),dp(35)
+			pos: dp(270),dp(175)
 			color: [0.84,0.84,0.84,1]
 
 		## TOTAL YESTERDAY RAINFALL
@@ -847,8 +847,8 @@ ScreenManager:
 			halign: 'center'
 			valign: 'center'
 			size_hint: (None,None)
-			size: (88,35)
-			pos: (357,175)
+			size: dp(88),dp(35)
+			pos: dp(357),dp(175)
 			color: [0.84,0.84,0.84,1]
 
 		## TOTAL MONTHLY RAINFALL
@@ -861,8 +861,8 @@ ScreenManager:
 			halign: 'center'
 			valign: 'center'
 			size_hint: (None,None)
-			size: (88,35)
-			pos: (270,115)
+			size: dp(88),dp(35)
+			pos: dp(270),dp(115)
 			color: [0.84,0.84,0.84,1]
 
 		## TOTAL YEARLY RAINFALL
@@ -875,8 +875,8 @@ ScreenManager:
 			halign: 'center'
 			valign: 'center'
 			size_hint: (None,None)
-			size: (88,35)
-			pos: (357,115)
+			size: dp(88),dp(35)
+			pos: dp(357),dp(115)
 			color: [0.84,0.84,0.84,1]
 
 	## ----------------------------------------------------------
@@ -890,8 +890,8 @@ ScreenManager:
 			size_hint: (None,None)
 			keep_ratio: 0
 			allow_stretch: 1
-			size: (168,91)
-			pos: (582,95)
+			size: dp(168),dp(91)
+			pos: dp(582),dp(95)
 
 		## MAXIMUM AND MINIMUM PRESSURE ON PRESSURE DIAL
 		Label:
@@ -904,8 +904,8 @@ ScreenManager:
 			halign: 'center'
 			valign: 'center'
 			size_hint: (None,None)
-			size: (40,20)
-			pos: (565,78)
+			size: dp(40),dp(20)
+			pos: dp(565),dp(78)
 			color: [0.84,0.84,0.84,1]
 		Label:
 			text: app.BarometerMax
@@ -917,8 +917,8 @@ ScreenManager:
 			halign: 'center'
 			valign: 'center'
 			size_hint: (None,None)
-			size: (40,20)
-			pos: (727,78)
+			size: dp(40),dp(20)
+			pos: dp(727),dp(78)
 			color: [0.84,0.84,0.84,1]
 
 		## CURRENT PRESSURE
@@ -933,7 +933,7 @@ ScreenManager:
 			size_hint: (None,None)
 			width: 100
 			height: 30
-			pos: (616,119)
+			pos: dp(616),dp(119)
 			color: [0.84,0.84,0.84,1]
 		Label:
 			text: app.Air['Pres'][1]
@@ -946,7 +946,7 @@ ScreenManager:
 			size_hint: (None,None)
 			width: 100
 			height: 25
-			pos: (616,92)
+			pos: dp(616),dp(92)
 			color: [0.84,0.84,0.84,1]
 
 		## CURRENT PRESSURE TREND
@@ -959,8 +959,8 @@ ScreenManager:
 			halign: 'center'
 			valign: 'center'
 			size_hint: (None,None)
-			size: (96,18)
-			pos: (691,213)
+			size: dp(96),dp(18)
+			pos: dp(691),dp(213)
 			color: [0.84,0.84,0.84,1]
 		Label:
 			text: app.Air['PresTrend'][0] + app.Air['PresTrend'][1]
@@ -971,8 +971,8 @@ ScreenManager:
 			halign: 'center'
 			valign: 'center'
 			size_hint: (None,None)
-			size: (96,18)
-			pos: (691,194)
+			size: dp(96),dp(18)
+			pos: dp(691),dp(194)
 			color: [0.84,0.84,0.84,1]
 
 		## 24 HOUR PRESSURE LOW
@@ -985,8 +985,8 @@ ScreenManager:
 			halign: 'center'
 			valign: 'center'
 			size_hint: (None,None)
-			size: (70,18)
-			pos: (539,194)
+			size: dp(70),dp(18)
+			pos: dp(539),dp(194)
 			color: [0.84,0.84,0.84,1]
 
 		## 24 HOUR PRESSURE HIGH
@@ -999,8 +999,8 @@ ScreenManager:
 			halign: 'center'
 			valign: 'center'
 			size_hint: (None,None)
-			size: (70,18)
-			pos: (609,194)
+			size: dp(70),dp(18)
+			pos: dp(609),dp(194)
 			color: [0.84,0.84,0.84,1]
 
 	## ----------------------------------------------------------
@@ -1018,8 +1018,8 @@ ScreenManager:
 			halign: 'right'
 			valign: 'center'
 			size_hint: (None,None)
-			size: (30,18)
-			pos: (555,29)
+			size: dp(30),dp(18)
+			pos: dp(555),dp(29)
 			color: [0.84,0.84,0.84,1]
 		Label:
 			text: app.Sky['Time']
@@ -1030,16 +1030,16 @@ ScreenManager:
 			halign: 'center'
 			valign: 'center'
 			size_hint: (None,None)
-			size: (75,18)
-			pos: (584,29)
+			size: dp(75),dp(18)
+			pos: dp(584),dp(29)
 			color: [0.84,0.84,0.84,1]
 		Image:
 			source: 'icons/status/' + app.Sky['StatusIcon'] + '.png'
 			size_hint: (None,None)
 			keep_ratio: 0
 			allow_stretch: 1
-			size: (18,20)
-			pos: (658,29)
+			size: dp(18),dp(20)
+			pos: dp(658),dp(29)
 			color: [0.84,0.84,0.84,1]
 		Label:
 			text: 'Voltage: ' + app.Sky['Battery'][0]
@@ -1050,8 +1050,8 @@ ScreenManager:
 			halign: 'center'
 			valign: 'center'
 			size_hint: (None,None)
-			size: (103,18)
-			pos: (676,29)
+			size: dp(103),dp(18)
+			pos: dp(676),dp(29)
 			color: [0.84,0.84,0.84,1]
 
 		## AIR
@@ -1064,8 +1064,8 @@ ScreenManager:
 			halign: 'right'
 			valign: 'center'
 			size_hint: (None,None)
-			size: (30,18)
-			pos: (555,6)
+			size: dp(30),dp(18)
+			pos: dp(555),dp(6)
 			color: [0.84,0.84,0.84,1]
 		Label:
 			text: app.Air['Time']
@@ -1076,16 +1076,16 @@ ScreenManager:
 			halign: 'center'
 			valign: 'center'
 			size_hint: (None,None)
-			size: (75,18)
-			pos: (584,6)
+			size: dp(75),dp(18)
+			pos: dp(584),dp(6)
 			color: [0.84,0.84,0.84,1]
 		Image:
 			source: 'icons/status/' + app.Air['StatusIcon'] + '.png'
 			size_hint: (None,None)
 			keep_ratio: 0
 			allow_stretch: 1
-			size: (18,20)
-			pos: (658,6)
+			size: dp(18),dp(20)
+			pos: dp(658),dp(6)
 		Label:
 			text: 'Voltage: ' + app.Air['Battery'][0]
 			font_name: 'fonts/Helvetica.ttf'
@@ -1095,39 +1095,49 @@ ScreenManager:
 			halign: 'center'
 			valign: 'center'
 			size_hint: (None,None)
-			size: (103,18)
-			pos: (676,6)
+			size: dp(103),dp(18)
+			pos: dp(676),dp(6)
 			color: [0.84,0.84,0.84,1]
 
 	## ----------------------------------------------------------
 	## BOTTOM MENU BAR
 	## ----------------------------------------------------------
 	FloatLayout:
+        allow_stretch: False
+        keep_ratio: True
 		Button:
 			size_hint: (None,None)
-			size: (90,30)
-			pos: (2,0)
+			size: dp(90),dp(30)
+			pos: dp(2),dp(0)
+			allow_stretch: False
+			keep_ratio: True
 			background_normal: 'buttons/forecast.png'
 			background_down: 'buttons/forecastPressed.png'
 			on_press: root.SwitchPanel(self,'MetSager')
 		Button:
 			size_hint: (None,None)
-			size: (100,30)
-			pos: (107,0)
+			size: dp(100),dp(30)
+			pos: dp(107),dp(0)
+			allow_stretch: False
+			keep_ratio: True
 			background_normal: 'buttons/sunMoon.png'
 			background_down: 'buttons/sunMoonPressed.png'
 			on_press: root.SwitchPanel(self,'SunMoon')
 		Button:
 			size_hint: (None,None)
-			size: (88,30)
-			pos: (350,0)
+			size: dp(88),dp(30)
+			pos: dp(350),dp(0)
+			allow_stretch: False
+			keep_ratio: True
 			background_normal: 'buttons/settings.png'
 			background_down: 'buttons/settingsPressed.png'
 			on_release: app.open_settings()
 		Button:
 			size_hint: (None,None)
-			size: (81,30)
-			pos: (453,0)
+			size: dp(81),dp(30)
+			pos: dp(453),dp(0)
+			allow_stretch: False
+			keep_ratio: True
 			background_normal: 'buttons/credits.png'
 			background_down: 'buttons/creditsPressed.png'
 			on_press: Factory.Credits().open()
@@ -1141,7 +1151,7 @@ ScreenManager:
 	background: 'background/credits.png'
 	background_color: [0,0,0,0]
     size_hint: (None,None)
-    size: (500,400)
+    size: dp(500),dp(400)
 
 ## =============================================================================
 ## NEW VERSION AVAILABLE POPUP
@@ -1154,7 +1164,7 @@ ScreenManager:
 	auto_dismiss: False
 	pos_hint: {'x': 269/800, 'y':2/480}
     size_hint: (None,None)
-    size: (262,82)
+    size: dp(262),dp(82)
 	FloatLayout:
 		Label:
 			text: app.Version
@@ -1165,8 +1175,8 @@ ScreenManager:
 			halign: 'left'
 			valign: 'center'
 			size_hint: (None,None)
-			size: (90,20)
-			pos: (390,43)
+			size: dp(90),dp(20)
+			pos: dp(390),dp(43)
 		Label:
 			text: app.System['LatestVer']
 			font_name: 'fonts/Helvetica.ttf'
@@ -1176,12 +1186,12 @@ ScreenManager:
 			halign: 'left'
 			valign: 'center'
 			size_hint: (None,None)
-			size: (90,20)
-			pos: (390,23)
+			size: dp(90),dp(20)
+			pos: dp(390),dp(23)
 		Button:
 			size_hint: (None,None)
-			size: (20,20)
-			pos: (508,61)
+			size: dp(20),dp(20)
+			pos: dp(508),dp(61)
 			background_normal: 'buttons/exit.png'
 			background_down: 'buttons/exitPressed.png'
 			on_release: root.dismiss()
@@ -1212,7 +1222,7 @@ ScreenManager:
         size_hint: None, None
         width: root.width - dp(20)
         height: max(50, self.texture_size[1] + dp(20))
-        pos: root.x + dp(10), root.y + dp(10)
+        pos: dp(root.x) + dp(10), dp(root.y) + dp(10)
         font_size: '15sp'
 			
 <-SettingsPanel>:
@@ -1228,7 +1238,7 @@ ScreenManager:
         Color:
             rgb: 1,1,1,1
         Rectangle:
-            pos: self.x, self.center_y
-            size: self.width, 2
+            pos: dp(self.x), dp(self.center_y)
+            size: dp(self.width), dp(2)
 	
 		
