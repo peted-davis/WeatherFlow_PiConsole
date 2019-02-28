@@ -45,6 +45,9 @@ from twisted.internet.protocol import ReconnectingClientFactory
 from twisted.protocols.policies import TimeoutMixin
 from autobahn.twisted.websocket import WebSocketClientProtocol,WebSocketClientFactory
 
+from lib.ecobee import get_ecobee_temperature
+
+
 # Specifies behaviour of Websocket Client
 class WeatherFlowClientProtocol(WebSocketClientProtocol,TimeoutMixin):
 
@@ -98,9 +101,10 @@ from kivy.core.window import Window
 from kivy.clock import Clock
 from kivy.animation import Animation
 from kivy.config import ConfigParser
-from kivy.metrics import dp
+from kivy.metrics import dp, sp
 from kivy.compat import text_type
 from kivy.properties import DictProperty,NumericProperty,ConfigParserProperty
+
 
 # ==============================================================================
 # IMPORT REQUIRED SYSTEM MODULES
@@ -188,7 +192,8 @@ class wfpiconsole(App):
 								('FeelsLike','----'),('Time','-'),('Battery','--'),
 								('StatusIcon','Error')])
 	Rapid = DictProperty		([('Time','-'),('Speed','--'),('Direc','----')])
-	Breathe = DictProperty		([('Temp','--'),('MinTemp','---'),('MaxTemp','---')])
+	Indoor = DictProperty       ([('Temp','--'),('MinTemp','---'),('MaxTemp','---'),('Humidity','--'),('Heat','--'),
+								  ('Cool','--')])
 	SunData = DictProperty		([('Sunrise',['-','-']),('Sunset',['-','-']),('SunAngle','-'),
 								('Event',['-','-','-']),('ValidDate','--')])
 	MoonData = DictProperty		([('Moonrise',['-','-']),('Moonset',['-','-']),('NewMoon','--'),
@@ -247,6 +252,9 @@ class wfpiconsole(App):
 		Clock.schedule_interval(self.UpdateMethods,1.0)
 		Clock.schedule_interval(self.SunTransit,1.0)
 		Clock.schedule_interval(self.MoonPhase,1.0)
+
+		if self.config['Keys']['Ecobee'] in ['y','Y']:
+			Clock.schedule_once(self.EcobeeTemp)
 
 	# BUILD 'WeatherFlowPiConsole' APP CLASS SETTINGS
 	# --------------------------------------------------------------------------
@@ -550,6 +558,14 @@ class wfpiconsole(App):
 					else:
 						cObs[ii-1] = Obs[ii-1]
 						cObs[ii] = ' [sup]o[/sup]C'
+				elif T == 'f':
+					if Unit == 'c':
+						cObs[ii-1] = (Obs[ii-1]-32) * 5/9
+						cObs[ii] = '[sup]o[/sup]C'
+					else:
+						cObs[ii-1] = Obs[ii-1]
+						cObs[ii] = ' [sup]o[/sup]F'
+
 
 		# Convert pressure and pressure trend observations
 		elif Unit in ['inhg','mmhg','hpa','mb']:
@@ -1705,7 +1721,67 @@ class wfpiconsole(App):
 		# Define Kivy Label binds
 		self.MoonData['Phase'] = [PhaseIcon,PhaseTxt,Illumination]
 
-	# DOWNLOAD THE LATEST FORECAST FOR STATION LOCATION
+	# DOWNLOAD THE CURRENT TEMPERATURE AND HUMIDITY FROM THE ECOBEE THERMOSTAT
+	# --------------------------------------------------------------------------
+	def EcobeeTemp(self,dt):
+		tokens = self.config['Keys']['EcobeeTokens'].split('-')
+
+		temp, _ = get_ecobee_temperature(self.config)
+		temperature = temp['thermostatList'][0]['runtime']['actualTemperature'] / 10
+		humidity = temp['thermostatList'][0]['runtime']['actualHumidity']
+		desired_heat = temp['thermostatList'][0]['runtime']['desiredHeat'] / 10
+		desired_cool = temp['thermostatList'][0]['runtime']['desiredCool'] / 10
+
+		temperature = self.ObservationUnits([temperature, 'f'],self.config['Units']['Temp'])
+		desired_heat = self.ObservationUnits([desired_heat, 'f'],self.config['Units']['Temp'])
+		desired_cool = self.ObservationUnits([desired_cool, 'f'],self.config['Units']['Temp'])
+
+		# If heating is on, display temperature as orange. If cooling is on, display as light blue,
+		# otherwise, display as white
+
+		status = temp['thermostatList'][0]['equipmentStatus']
+		if 'heat' in status or 'Heat' in status:
+			prefix = '[color=ff8837ff]'
+			suffix = '[/color]'
+		elif 'cool' in status:
+			prefix = '[color=00a4b4ff]'
+			suffix = '[/color]'
+		else:
+			prefix = suffix = ''
+
+		self.Indoor['Temp'] = self.ObservationFormat(temperature,'Temp')
+		self.Indoor['Temp'][0] = prefix + self.Indoor['Temp'][0]
+		self.Indoor['Temp'][1] = self.Indoor['Temp'][1] + suffix
+		self.Indoor['Humidity'] = self.ObservationFormat([humidity, ' %'],'Humidity')
+		self.Indoor['MaxTemp'] = self.ObservationFormat(desired_cool,'Temp')
+		self.Indoor['MinTemp'] = self.ObservationFormat(desired_heat,'Temp')
+
+		Clock.schedule_once(self.EcobeeTemp, 5)
+
+
+	def indoor_temp(self, key):
+		print('indoor_temp called')
+		if not self.config.has_section('Keys'):
+			return '--'
+
+		result = '' if key == 'Temp' else '[color=f05e40ff]'
+
+		if self.config['Keys']['Ecobee'] in ['y','Y']:
+			temp = self.Ecobee[key][0]
+			unit = self.Ecobee[key][1]
+		else:
+			temp = self.Breathe[key][0]
+			unit = self.Breathe[key][1]
+
+		result += temp
+		result += '' if key == 'Temp' else '[size=15sp]'
+		result += unit
+		result += '' if key == 'Temp' else '[/color][/size]'
+
+		return result
+
+
+# DOWNLOAD THE LATEST FORECAST FOR STATION LOCATION
 	# --------------------------------------------------------------------------
 	def DownloadForecast(self):
 

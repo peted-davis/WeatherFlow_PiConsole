@@ -1,0 +1,5 @@
+**/.idea/**
+**/__pycache__/**
+*.iml
+wfpiconsole.ini
+.DS_Store

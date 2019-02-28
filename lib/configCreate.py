@@ -22,8 +22,8 @@ import configparser
 import requests
 import collections
 from packaging import version
-from pathlib import Path
 from geopy import distance as geopy
+from lib.ecobee import get_ecobee_access_token
 
 # Define wfpiconsole version number
 Version = 'v2.2'
@@ -33,6 +33,7 @@ stationWF = None
 observationWF = None
 GeoNames = None
 MetOffice = None
+ecobeeTokens = None
 NaN = float('NaN')
 
 def create_ini():
@@ -138,7 +139,8 @@ def write_keyValue(config,section,key,keyDetails):
 	# GET VALUE OF dependent KEY TYPE
 	# --------------------------------------------------------------------------
 	elif keyDetails['Type'] in ['dependent']:
-	
+		global ecobeeTokens
+
 		# Get dependent key value
 		if key in ['BarometerMax']:
 			Units = ['mb','hpa','inhg','mmhg']
@@ -148,6 +150,12 @@ def write_keyValue(config,section,key,keyDetails):
 			Units = ['mb','hpa','inhg','mmhg']
 			Min = ['950','950','28.0','713']
 			Value = Min[Units.index(config['Units']['Pressure'])]
+		elif key in ['EcobeeTokens']:
+			if ecobeeTokens is None and config['Keys']['Ecobee'] in ['y','Y']:
+				Value = ecobeeTokens = get_ecobee_access_token(config['Keys']['EcobeeAPI'])
+			else:
+				Value = ''
+
 		print('    Adding ' + keyDetails['Desc'] + ' (' + keyDetails['Type'] + '): ' + Value)
 
 		# Write dependent key value pair to configuration file
@@ -180,8 +188,9 @@ def write_keyValue(config,section,key,keyDetails):
 		global GeoNames
 		global MetOffice
 
+
 		# Ensure all necessary API keys have been provided
-		if 'Country' in config['Station']:
+		if section not in ['Keys'] and 'Country' in config['Station']:
 			if not config['Keys']['MetOffice'] and not config['Keys']['DarkSky']:
 				print('      MetOffice and DarkSky API keys cannot both be empty')
 				if config['Station']['Country'] in ['GB']:
@@ -305,6 +314,9 @@ def write_keyValue(config,section,key,keyDetails):
 		print('    Adding ' + keyDetails['Desc'] + ' (API request): ' + str(Value))
 		config.set(section,key,str(Value))
 
+
+
+
 def default_ini():
 
 	""" Generates the default configuration required by the Raspberry Pi Python
@@ -319,7 +331,10 @@ def default_ini():
 													 ('MetOffice', 		{'Type': 'userInput', 'State': 'optional', 'Format': str, 'Desc': 'UK MetOffice API key'}),
 													 ('DarkSky', 		{'Type': 'userInput', 'State': 'optional', 'Format': str, 'Desc': 'DarkSky API key',}),
 													 ('CheckWX', 		{'Type': 'userInput', 'State': 'required', 'Format': str, 'Desc': 'CheckWX API key',}),
-													 ('WeatherFlow',	{'Type': 'fixed', 'Value': '146e4f2c-adec-4244-b711-1aeca8f46a48', 'Desc': 'WeatherFlow API key'})])
+													 ('WeatherFlow',	{'Type': 'fixed', 'Value': '146e4f2c-adec-4244-b711-1aeca8f46a48', 'Desc': 'WeatherFlow API key'}),
+													 ('Ecobee',         {'Type': 'userInput', 'State': 'required', 'Format': str, 'Desc': 'Use Ecobee Thermostat Data'}),
+													 ('EcobeeAPI',      {'Type': 'fixed', 'Value': 'AtV99KTEiTe1Ao64ZO8qP1xD2AF7tole', 'Desc': 'Ecobee API key'}),
+													 ('EcobeeTokens',   {'Type': 'dependent', 'Source': 'ecobee', 'Desc': 'Ecobee Access Tokens'})])
 	Default['Station'] =   	collections.OrderedDict([('StationID',		{'Type': 'userInput', 'State': 'required', 'Format': int, 'Desc': 'Station ID'}),
 													 ('OutdoorID', 		{'Type': 'userInput', 'State': 'required', 'Format': int, 'Desc': 'outdoor Air module ID'}),
 													 ('SkyID', 			{'Type': 'userInput', 'State': 'required', 'Format': int, 'Desc': 'outdoor Sky module ID'}),

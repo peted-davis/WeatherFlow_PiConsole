@@ -167,7 +167,7 @@ ScreenManager:
 
 		## INDOOR TEMPERATURE
 		Label:
-			text: app.Breathe['Temp'][0] + app.Breathe['Temp'][1]
+			text: app.Indoor['Temp'][0] + app.Indoor['Temp'][1]
 			font_name: 'fonts/SystemSanFranciscoDisplayThin.ttf'
 			font_size: '30sp'
 			text_size: self.size
@@ -195,7 +195,7 @@ ScreenManager:
 
 		## INDOOR TEMPERATURE MINIMUM
 		Label:
-			text: '[color=00a4b4ff]' + app.Breathe['MinTemp'][0] + '[size=15sp]' + app.Breathe['MinTemp'][1] + '[/color][/size]'
+			text: '[color=00a4b4ff]' + app.Indoor['MinTemp'][0] + '[size=15sp]' + app.Indoor['MinTemp'][1] + '[/color][/size]'
 			font_name: 'fonts/SystemSanFranciscoDisplayThin.ttf'
 			font_size: '20sp'
 			text_size: self.size
@@ -206,10 +206,22 @@ ScreenManager:
 			size: dp(65.5),dp(25)
 			pos: dp(269),dp(369)
 			color: [0.84,0.84,0.84,1]
+		Label:
+			text: app.Indoor['Humidity'][0] + app.Indoor['Humidity'][1]
+			font_name: 'fonts/SystemSanFranciscoDisplayThin.ttf'
+			font_size: '20sp'
+			text_size: self.size
+			markup: 1
+			halign: 'center'
+			valign: 'center'
+			size_hint: (None,None)
+			size: dp(87.33),dp(30)
+			pos: dp(295),dp(345)
+			color: [0.84,0.84,0.84,1]
 
 		## INDOOR TEMPERATURE MAXIMUM
 		Label:
-			text: '[color=f05e40ff]' + app.Breathe['MaxTemp'][0] + '[size=15sp]' + app.Breathe['MaxTemp'][1] + '[/color][/size]'
+			text: '[color=f05e40ff]' + app.Indoor['MaxTemp'][0] + '[size=15sp]' + app.Indoor['MaxTemp'][1] + '[/color][/size]'
 			font_name: 'fonts/SystemSanFranciscoDisplayThin.ttf'
 			font_size: '20sp'
 			text_size: self.size
@@ -287,7 +299,7 @@ ScreenManager:
 			pos: dp(269),dp(297)
 			color: [0.84,0.84,0.84,1]
 
-		## HUMIDITY
+		## OUTDOOR HUMIDITY
 		Label:
 			text: app.Air['Humidity'][0] + app.Air['Humidity'][1]
 			font_name: 'fonts/SystemSanFranciscoDisplayThin.ttf'
