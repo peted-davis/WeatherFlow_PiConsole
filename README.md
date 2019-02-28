@@ -218,6 +218,14 @@ your station ID and device ID for your outdoor Air and Sky modules. To find this
 information either open the WeatherFlow app or view your station page in a web
 browser. Click on the gear icon -> Stations -> [Station name] -> Status.
 
+If you want to integrate with an Ecobee thermostat such as the Ecobee 4, enter "y"
+at the prompt that asks you *Please enter your Use Ecobee Thermostat Data (required)*.
+Follow the instructions to add an appliction to your Ecobee Thermostat, and then
+press ENTER as instructed.
+
+If you do not want to integrate with an Ecobee Thermostat, then simply answer "n"
+at the prompt, press ENTER and continue as before. 
+
 If all goes smoothly the console should automatically add the extra information 
 it needs to your configuration file and then start running.
 
