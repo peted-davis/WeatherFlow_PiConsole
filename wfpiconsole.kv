@@ -1103,20 +1103,18 @@ ScreenManager:
 	## BOTTOM MENU BAR
 	## ----------------------------------------------------------
 	FloatLayout:
-        allow_stretch: False
-        keep_ratio: True
 		Button:
 			size_hint: (None,None)
-			size: dp(90),dp(30)
+			size: dp(90), dp(30)
 			pos: dp(2),dp(0)
-			allow_stretch: True
+			allow_stretch: False
 			keep_ratio: False
 			background_normal: 'buttons/forecast.png'
 			background_down: 'buttons/forecastPressed.png'
 			on_press: root.SwitchPanel(self,'MetSager')
 		Button:
 			size_hint: (None,None)
-			size: dp(90),dp(30)
+			size: dp(90), dp(30)
 			pos: dp(147),dp(0)
 			allow_stretch: True
 			keep_ratio: False
@@ -1125,7 +1123,7 @@ ScreenManager:
 			on_press: root.SwitchPanel(self,'SunMoon')
 		Button:
 			size_hint: (None,None)
-			size: dp(90),dp(30)
+			size: dp(90), dp(30)
 			pos: dp(292),dp(0)
 			allow_stretch: True
 			keep_ratio: False
@@ -1134,7 +1132,7 @@ ScreenManager:
 			on_release: app.open_settings()
 		Button:
 			size_hint: (None,None)
-			size: dp(90),dp(30)
+			size: dp(90), dp(30)
 			pos: dp(437),dp(0)
 			allow_stretch: True
 			keep_ratio: False
