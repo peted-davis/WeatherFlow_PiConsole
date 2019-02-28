@@ -26,7 +26,7 @@ from geopy import distance as geopy
 from lib.ecobee import get_ecobee_access_token
 
 # Define wfpiconsole version number
-Version = 'v2.2'
+Version = 'v2.3'
 
 # Define required variables
 stationWF = None
