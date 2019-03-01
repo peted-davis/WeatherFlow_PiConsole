@@ -2,7 +2,8 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util import Retry
 import json
-
+import logging
+import sys
 
 def get_ecobee_pin(api_key):
     params = {'response_type': 'ecobeePin',
@@ -52,6 +53,8 @@ def refresh_ecobee_token(config):
     if response.status_code == 200:
         config.set('Keys','EcobeeTokens', response.json()['access_token'] + '-' + response.json()['refresh_token'])
         config.write()
+    else:
+        logging.error("Failed to refresh ecobee token. Status code: %d, message: %s", response.status_code, response.json())
     return response.json()
 
 
@@ -73,6 +76,10 @@ def get_ecobee_temperature(config):
     api_key = config['Keys']['EcobeeAPI']
     response = get_ecobee_temp(tokens[0])
     if response.status_code != 200:
-        new_tokens = refresh_ecobee_token(config)
-        response = get_ecobee_temp(new_tokens['access_token'])
+        try:
+            new_tokens = refresh_ecobee_token(config)
+            response = get_ecobee_temp(new_tokens['access_token'])
+        except:
+            logging.exception("Failure to get ecobee temperature")
+            return None, None
     return response.json(), response.status_code

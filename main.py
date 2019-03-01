@@ -19,6 +19,7 @@
 # ==============================================================================
 import platform
 import os
+import logging
 if platform.system() == 'Linux' and 'arm' in platform.machine():
 	os.environ['KIVY_GL_BACKEND'] = 'gl'
 elif platform.system() == 'Windows':
@@ -1727,6 +1728,10 @@ class wfpiconsole(App):
 		tokens = self.config['Keys']['EcobeeTokens'].split('-')
 
 		temp, _ = get_ecobee_temperature(self.config)
+		if temp is None:
+			logging.warning("No temperature returned from Ecobee Thermostat. Will retry later...")
+			return
+
 		temperature = temp['thermostatList'][0]['runtime']['actualTemperature'] / 10
 		humidity = temp['thermostatList'][0]['runtime']['actualHumidity']
 		desired_heat = temp['thermostatList'][0]['runtime']['desiredHeat'] / 10
@@ -1760,7 +1765,6 @@ class wfpiconsole(App):
 
 
 	def indoor_temp(self, key):
-		print('indoor_temp called')
 		if not self.config.has_section('Keys'):
 			return '--'
 
