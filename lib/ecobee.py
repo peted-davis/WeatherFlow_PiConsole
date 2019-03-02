@@ -68,7 +68,11 @@ def get_ecobee_temp(access_token):
     headers = {'Content-Type': 'application/json',
                'Authorization': 'Bearer ' + access_token
                }
-    return requests.get('https://api.ecobee.com/1/thermostat', headers=headers, params=params)
+    try:
+        return requests.get('https://api.ecobee.com/1/thermostat', headers=headers, params=params)
+    except:
+        logging.warning("Failed to retrieve Ecobee Temperature. Will retry later...")
+        return None
 
 
 def get_ecobee_temperature(config):
