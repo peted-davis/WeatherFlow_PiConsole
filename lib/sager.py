@@ -47,7 +47,7 @@ def DialSetting(Met):
 	try:
 		ccode = METAR['clouds'][0]['code'] if METAR.get('clouds') else None
 	except:
-		ccode = None
+		return
 			
 	# Searches METAR information for Precipitation Codes
 	Ind = {}
