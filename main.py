@@ -1761,7 +1761,7 @@ class wfpiconsole(App):
 		self.Indoor['MaxTemp'] = self.ObservationFormat(desired_cool,'Temp')
 		self.Indoor['MinTemp'] = self.ObservationFormat(desired_heat,'Temp')
 
-		Clock.schedule_once(self.EcobeeTemp, 5)
+		Clock.schedule_once(self.EcobeeTemp, 60)
 
 
 	def indoor_temp(self, key):
