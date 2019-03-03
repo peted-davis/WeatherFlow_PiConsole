@@ -2097,7 +2097,7 @@ class wfpiconsole(App):
 				URL = Template.format(self.config['Station']['Latitude'],self.config['Station']['Longitude'])
 				Data = requests.get(URL,headers=header)
 				if VerifyJSON(Data,'CheckWX','data'):
-					if Data.json()['data'][0] == 'Invalid Station ICAO':
+					if 'Invalid Station ICAO' in Data.json()['data'][0]:
 						self.Sager['METAR'] = Data.json()['data'][1]
 					else:
 						self.Sager['METAR'] = Data.json()['data'][0]
