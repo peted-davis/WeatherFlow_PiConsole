@@ -2088,6 +2088,19 @@ class wfpiconsole(App):
 		Data = requests.get(URL,headers=header)
 		if VerifyJSON(Data,'CheckWX','data'):
 			self.Sager['METAR'] = Data.json()['data'][0]
+			if 'Invalid Station ICAO' in self.Sager['METAR']:
+				# Try a radius search to get the nearest within 100 miles and then pick the 1st METAR because
+				# that looks like it will be the closest. Note that the 1st METAR will be at index 1 because
+				# index 0 contains 'Invalid Station ICAO'
+				logging.warning("Falling back to a station radius search due to 'Invalid Station ICAO'")
+				Template = 'https://api.checkwx.com/metar/lat/{}/lon/{}/radius/100/decoded'
+				URL = Template.format(self.config['Station']['Latitude'],self.config['Station']['Longitude'])
+				Data = requests.get(URL,headers=header)
+				if VerifyJSON(Data,'CheckWX','data'):
+					if Data.json()['data'][0] == 'Invalid Station ICAO':
+						self.Sager['METAR'] = Data.json()['data'][1]
+					else:
+						self.Sager['METAR'] = Data.json()['data'][0]
 		else:
 			self.Sager['Forecast'] = '-'
 			self.Sager['Issued'] = Now.strftime('%H:%M')
