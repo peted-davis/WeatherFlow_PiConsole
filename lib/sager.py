@@ -43,17 +43,27 @@ def DialSetting(Met):
 	t = Met['Temp']								# Current temperature
 	METAR = Met['METAR']						# Closet METAR information to station location
 	
-	# Extacts Cloud Code from METAR information
-	ccode = METAR['clouds'][0]['code']
-			
-	# Searches METAR information for Precipitation Codes
+	# Define required variables
 	Ind = {}
+	pcode = {}
 	pcodes = list(['FZDZ','FZRA','SHGR','SHGS','SHPL','SHRA','SHSN','TSGR','TSGS','TSPL','TSRA',
 				   'TSSN','VCSH','VCTS','DZ','GR','GS','IC','PL','RA','SG','SN','UP'])
-	for count,pcode in enumerate(pcodes):
-		if METAR['raw_text'].find(pcode) != -1:
-			Ind[count] = METAR['raw_text'].find(pcode)
-	pcode = {}
+	
+	# Extacts Cloud Code from METAR information
+	try:
+		ccode = METAR['clouds'][0]['code']
+	except:
+		Sager = None
+		return Sager
+			
+	# Searches METAR information for Precipitation Codes
+	try:		   
+		for count,pcode in enumerate(pcodes):
+			if METAR['raw_text'].find(pcode) != -1:
+				Ind[count] = METAR['raw_text'].find(pcode)
+	except:
+		Sager = None
+		return Sager			
 	if len(Ind) != 0:		
 		pcode = pcodes[min(Ind,key=Ind.get)]
 			

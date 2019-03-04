@@ -201,7 +201,7 @@ def write_keyValue(config,section,key,keyDetails):
 						break
 					config.set('Keys','DarkSky',str(Value))
 
-		# Make Required Api Requests
+		# Make Required API Requests
 		if keyDetails['Source'] == 'stationWF' and stationWF is None:
 			Template = 'https://swd.weatherflow.com/swd/rest/stations/{}?api_key={}'
 			URL = Template.format(config['Station']['StationID'],config['Keys']['WeatherFlow'])

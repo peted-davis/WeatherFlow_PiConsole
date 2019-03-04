@@ -1910,7 +1910,7 @@ class wfpiconsole(App):
 			Sky['WindDir'] = [item[7] if item[7] != None else NaN for item in Sky['obs']]
 			Sky['Rain'] = [item[3] if item[3] != None else NaN for item in Sky['obs']]
 		else:
-			self.Sager['Forecast'] = '-'
+			self.Sager['Forecast'] = '[color=f05e40ff]ERROR:[/color] Missing Sky data. Forecast will be regenerated in 60 minutes'
 			self.Sager['Issued'] = datetime.now(pytz.utc).astimezone(Tz).strftime('%H:%M')
 			Clock.schedule_once(self.SagerForecast,3600)
 			return
@@ -1935,7 +1935,7 @@ class wfpiconsole(App):
 			Air['Pres'] = [item[1] if item[1] != None else NaN for item in Air['obs']]
 			Air['Temp'] = [item[2] if item[2] != None else NaN for item in Air['obs']]
 		else:
-			self.Sager['Forecast'] = '-'
+			self.Sager['Forecast'] = '[color=f05e40ff]ERROR:[/color] Missing Air data. Forecast will be regenerated in 60 minutes'
 			self.Sager['Issued'] = datetime.now(pytz.utc).astimezone(Tz).strftime('%H:%M')
 			Clock.schedule_once(self.SagerForecast,3600)
 			return
@@ -1957,6 +1957,9 @@ class wfpiconsole(App):
 			self.Sager['WindDir6'] = CircularMean(WindDir6)
 			self.Sager['WindDir'] = CircularMean(WindDir)
 		else:
+			self.Sager['Forecast'] = '[color=f05e40ff]ERROR:[/color] Missing wind direction data. Forecast will be regenerated in 60 minutes'
+			self.Sager['Issued'] = datetime.now(pytz.utc).astimezone(Tz).strftime('%H:%M')
+			Clock.schedule_once(self.SagerForecast,3600)
 			return
 
 		# Define required wind speed variables for the Sager Weathercaster
@@ -1967,6 +1970,9 @@ class wfpiconsole(App):
 			self.Sager['WindSpd6'] = np.nanmean(WindSpd6)
 			self.Sager['WindSpd'] = np.nanmean(WindSpd)
 		else:
+			self.Sager['Forecast'] = '[color=f05e40ff]ERROR:[/color] Missing wind speed data. Forecast will be regenerated in 60 minutes'
+			self.Sager['Issued'] = datetime.now(pytz.utc).astimezone(Tz).strftime('%H:%M')
+			Clock.schedule_once(self.SagerForecast,3600)
 			return
 
 		# Define required pressure variables for the Sager Weathercaster
@@ -1977,13 +1983,25 @@ class wfpiconsole(App):
 			self.Sager['Pres6'] = np.nanmean(Pres6)
 			self.Sager['Pres'] = np.nanmean(Pres)
 		else:
+			self.Sager['Forecast'] = '[color=f05e40ff]ERROR:[/color] Missing pressure data. Forecast will be regenerated in 60 minutes'
+			self.Sager['Issued'] = datetime.now(pytz.utc).astimezone(Tz).strftime('%H:%M')
+			Clock.schedule_once(self.SagerForecast,3600)
 			return
-
-		# Get current time in station time zone
-		Now = datetime.now(pytz.utc).astimezone(Tz)
+			
+		# Define required temperature variables for the Sager Weathercaster
+		# Forecast
+		Temp = Air['Temp'][-15:]
+		if not np.all(np.isnan(Temp)):
+			self.Sager['Temp'] = np.nanmean(Temp)
+		else:
+			self.Sager['Forecast'] = '[color=f05e40ff]ERROR:[/color] Missing temperature data. Forecast will be regenerated in 60 minutes'
+			self.Sager['Issued'] = datetime.now(pytz.utc).astimezone(Tz).strftime('%H:%M')
+			Clock.schedule_once(self.SagerForecast,3600)
+			return	
 
 		# Define required present weather variables for the Sager Weathercaster
 		# Forecast
+		Now = datetime.now(pytz.utc).astimezone(Tz)
 		LastRain = np.where(Sky['Rain'] > 0)[0]
 		if LastRain.size == 0:
 			self.Sager['LastRain'] = math.inf
@@ -1993,14 +2011,6 @@ class wfpiconsole(App):
 			LastRain = Now - LastRain
 			self.Sager['LastRain'] = LastRain.total_seconds()/60
 
-		# Define required temperature variables for the Sager Weathercaster
-		# Forecast
-		Temp = Air['Temp'][-15:]
-		if not np.all(np.isnan(Temp)):
-			self.Sager['Temp'] = np.nanmean(Temp)
-		else:
-			return
-
 		# Download closet METAR information to station location
 		header = {'X-API-Key':self.config['Keys']['CheckWX']}
 		Template = 'https://api.checkwx.com/metar/lat/{}/lon/{}/decoded'
@@ -2009,32 +2019,36 @@ class wfpiconsole(App):
 		if VerifyJSON(Data,'CheckWX','data'):
 			self.Sager['METAR'] = Data.json()['data'][0]
 		else:
-			self.Sager['Forecast'] = '-'
+			self.Sager['Forecast'] = '[color=f05e40ff]ERROR:[/color] Missing METAR information. Forecast will be regenerated in 60 minutes'
 			self.Sager['Issued'] = Now.strftime('%H:%M')
 			Clock.schedule_once(self.SagerForecast,3600)
 			return
 
 		# Calculate Sager Weathercaster Forecast
 		self.Sager['Dial'] = sager.DialSetting(self.Sager)
-		self.Sager['Forecast'] = sager.Forecast(self.Sager['Dial'])
-		self.Sager['Issued'] = Now.strftime('%H:%M')
+		if self.Sager['Dial'] is not None:
+			self.Sager['Forecast'] = sager.Forecast(self.Sager['Dial'])
+			self.Sager['Issued'] = Now.strftime('%H:%M')
+		else:
+			self.Sager['Forecast'] = '[color=f05e40ff]ERROR:[/color] Missing METAR information. Forecast will be regenerated in 60 minutes'
+			self.Sager['Issued'] = Now.strftime('%H:%M')
+			Clock.schedule_once(self.SagerForecast,3600)
+			return
 
-		# Determine time until generation of next Sager Weathercaster forecast
+		# Schedule generation of next Sager Weathercaster forecast
 		if Now.hour < 6:
 			Date = Now.date()
 			Time = time(6,0,0)
-			Forecast = Tz.localize(datetime.combine(Date,Time))
+			ForecastTime = Tz.localize(datetime.combine(Date,Time))
 		elif Now.hour < 18:
 			Date = Now.date()
 			Time = time(18,0,0)
-			Forecast = Tz.localize(datetime.combine(Date,Time))
+			ForecastTime = Tz.localize(datetime.combine(Date,Time))
 		else:
 			Date = Now.date() + timedelta(days=1)
 			Time = time(6,0,0)
-			Forecast = Tz.localize(datetime.combine(Date,Time))
-
-		# Schedule generation of next Sager Weathercaster forecast
-		Seconds = (Forecast - Now).total_seconds()
+			ForecastTime = Tz.localize(datetime.combine(Date,Time))
+		Seconds = (ForecastTime - Now).total_seconds()
 		Clock.schedule_once(self.SagerForecast,Seconds)
 
 	# CHECK STATUS OF SKY AND AIR MODULES
