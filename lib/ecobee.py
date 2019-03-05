@@ -79,7 +79,7 @@ def get_ecobee_temperature(config):
     tokens = config['Keys']['EcobeeTokens'].split('-')
     api_key = config['Keys']['EcobeeAPI']
     response = get_ecobee_temp(tokens[0])
-    if response is NoneType or response.status_code != 200:
+    if response is None or response.status_code != 200:
         try:
             new_tokens = refresh_ecobee_token(config)
             response = get_ecobee_temp(new_tokens['access_token'])
