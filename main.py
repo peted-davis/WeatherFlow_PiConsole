@@ -1730,6 +1730,7 @@ class wfpiconsole(App):
 		temp, _ = get_ecobee_temperature(self.config)
 		if temp is None:
 			logging.warning("No temperature returned from Ecobee Thermostat. Will retry later...")
+			Clock.schedule_once(self.EcobeeTemp, 120)
 			return
 
 		temperature = temp['thermostatList'][0]['runtime']['actualTemperature'] / 10
