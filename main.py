@@ -1732,37 +1732,37 @@ class wfpiconsole(App):
 			logging.warning("No temperature returned from Ecobee Thermostat. Will retry later...")
 			Clock.schedule_once(self.EcobeeTemp, 120)
 			return
-
-		temperature = temp['thermostatList'][0]['runtime']['actualTemperature'] / 10
-		humidity = temp['thermostatList'][0]['runtime']['actualHumidity']
-		desired_heat = temp['thermostatList'][0]['runtime']['desiredHeat'] / 10
-		desired_cool = temp['thermostatList'][0]['runtime']['desiredCool'] / 10
-
-		temperature = self.ObservationUnits([temperature, 'f'],self.config['Units']['Temp'])
-		desired_heat = self.ObservationUnits([desired_heat, 'f'],self.config['Units']['Temp'])
-		desired_cool = self.ObservationUnits([desired_cool, 'f'],self.config['Units']['Temp'])
-
-		# If heating is on, display temperature as orange. If cooling is on, display as light blue,
-		# otherwise, display as white
-
-		status = temp['thermostatList'][0]['equipmentStatus']
-		if 'heat' in status or 'Heat' in status:
-			prefix = '[color=ff8837ff]'
-			suffix = '[/color]'
-		elif 'cool' in status:
-			prefix = '[color=00a4b4ff]'
-			suffix = '[/color]'
 		else:
-			prefix = suffix = ''
+			temperature = temp['thermostatList'][0]['runtime']['actualTemperature'] / 10
+			humidity = temp['thermostatList'][0]['runtime']['actualHumidity']
+			desired_heat = temp['thermostatList'][0]['runtime']['desiredHeat'] / 10
+			desired_cool = temp['thermostatList'][0]['runtime']['desiredCool'] / 10
 
-		self.Indoor['Temp'] = self.ObservationFormat(temperature,'Temp')
-		self.Indoor['Temp'][0] = prefix + self.Indoor['Temp'][0]
-		self.Indoor['Temp'][1] = self.Indoor['Temp'][1] + suffix
-		self.Indoor['Humidity'] = self.ObservationFormat([humidity, ' %'],'Humidity')
-		self.Indoor['MaxTemp'] = self.ObservationFormat(desired_cool,'Temp')
-		self.Indoor['MinTemp'] = self.ObservationFormat(desired_heat,'Temp')
+			temperature = self.ObservationUnits([temperature, 'f'],self.config['Units']['Temp'])
+			desired_heat = self.ObservationUnits([desired_heat, 'f'],self.config['Units']['Temp'])
+			desired_cool = self.ObservationUnits([desired_cool, 'f'],self.config['Units']['Temp'])
 
-		Clock.schedule_once(self.EcobeeTemp, 60)
+			# If heating is on, display temperature as orange. If cooling is on, display as light blue,
+			# otherwise, display as white
+
+			status = temp['thermostatList'][0]['equipmentStatus']
+			if 'heat' in status or 'Heat' in status:
+				prefix = '[color=ff8837ff]'
+				suffix = '[/color]'
+			elif 'cool' in status:
+				prefix = '[color=00a4b4ff]'
+				suffix = '[/color]'
+			else:
+				prefix = suffix = ''
+
+			self.Indoor['Temp'] = self.ObservationFormat(temperature,'Temp')
+			self.Indoor['Temp'][0] = prefix + self.Indoor['Temp'][0]
+			self.Indoor['Temp'][1] = self.Indoor['Temp'][1] + suffix
+			self.Indoor['Humidity'] = self.ObservationFormat([humidity, ' %'],'Humidity')
+			self.Indoor['MaxTemp'] = self.ObservationFormat(desired_cool,'Temp')
+			self.Indoor['MinTemp'] = self.ObservationFormat(desired_heat,'Temp')
+
+			Clock.schedule_once(self.EcobeeTemp, 60)
 
 
 	def indoor_temp(self, key):
