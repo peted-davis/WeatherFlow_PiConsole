@@ -1,4 +1,4 @@
-# WeatherFlow PiConsole: Raspberry Pi Python console for Weather Flow 
+# WeatherFlow PiConsole: Raspberry Pi Python console for Weather Flow
 # Smart Home Weather Station. Copyright (C) 2018-2019  Peter Davis
 
 # This program is free software: you can redistribute it and/or modify
@@ -16,15 +16,16 @@
 
 [Unit]
 Description=WeatherFlow PiConsole
-After=network.target
+Wants=network-online.target
+After=network-online.target
 
 [Service]
 ExecStart=/usr/bin/python3 -u main.py
-WorkingDirectory=/home/pi/wfpiconsole
+WorkingDirectory=
 StandardOutput=inherit
 StandardError=inherit
 Restart=no
-User=pi
+User=
 
 [Install]
 WantedBy=multi-user.target

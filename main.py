@@ -133,7 +133,7 @@ from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.textinput import TextInput
 from kivy.uix.settings import SettingsWithSidebar, SettingOptions
-from kivy.uix.settings import SettingString, SettingSpacer, SettingItem		##
+from kivy.uix.settings import SettingString, SettingSpacer, SettingItem
 from kivy.uix.screenmanager import ScreenManager,Screen
 
 # ==============================================================================
@@ -1987,7 +1987,7 @@ class wfpiconsole(App):
 			self.Sager['Issued'] = datetime.now(pytz.utc).astimezone(Tz).strftime('%H:%M')
 			Clock.schedule_once(self.SagerForecast,3600)
 			return
-			
+
 		# Define required temperature variables for the Sager Weathercaster
 		# Forecast
 		Temp = Air['Temp'][-15:]
@@ -1997,7 +1997,7 @@ class wfpiconsole(App):
 			self.Sager['Forecast'] = '[color=f05e40ff]ERROR:[/color] Missing temperature data. Forecast will be regenerated in 60 minutes'
 			self.Sager['Issued'] = datetime.now(pytz.utc).astimezone(Tz).strftime('%H:%M')
 			Clock.schedule_once(self.SagerForecast,3600)
-			return	
+			return
 
 		# Define required present weather variables for the Sager Weathercaster
 		# Forecast
