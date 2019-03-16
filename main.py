@@ -201,7 +201,7 @@ class wfpiconsole(App):
 								('Pres','--'),('Pres6','--'),('LastRain','--'),
 								('Temp','--'),('Dial','--'),('Forecast','--'),
 								('Issued','--')])
-	System = DictProperty([])
+	System = DictProperty([('LatestVer','--')])
 
 	# Define required Kivy configParser properties
 	BarometerMax = ConfigParserProperty('-','System','BarometerMax','wfpiconsole')

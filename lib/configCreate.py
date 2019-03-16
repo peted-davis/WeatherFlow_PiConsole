@@ -203,9 +203,16 @@ def write_keyValue(config,section,key,keyDetails):
 
 		# Make Required API Requests
 		if keyDetails['Source'] == 'stationWF' and stationWF is None:
-			Template = 'https://swd.weatherflow.com/swd/rest/stations/{}?api_key={}'
-			URL = Template.format(config['Station']['StationID'],config['Keys']['WeatherFlow'])
-			stationWF = requests.get(URL).json()
+			while True:
+				Template = 'https://swd.weatherflow.com/swd/rest/stations/{}?api_key={}'
+				URL = Template.format(config['Station']['StationID'],config['Keys']['WeatherFlow'])
+				stationWF = requests.get(URL).json()
+				if 'NOT FOUND' in stationWF['status']['status_message']:
+					Value = input('      Station ID not recognised. Please re-enter your Station ID (required): ')
+					config.set('Station','StationID',str(Value))
+					continue
+				elif 'SUCCESS' in stationWF['status']['status_message']:
+					break
 		elif keyDetails['Source'] == 'observationWF' and observationWF is None:
 			Template = 'https://swd.weatherflow.com/swd/rest/observations/station/{}?api_key={}'
 			URL = Template.format(config['Station']['StationID'],config['Keys']['WeatherFlow'])
@@ -230,7 +237,7 @@ def write_keyValue(config,section,key,keyDetails):
 								Value = Dev['device_meta']['agl']
 					if Value is None:
 						while True:
-							ID = input('      Outdoor module ID not found in station. Please re-enter: ')
+							ID = input('      Outdoor module ID not found. Please re-enter your Outdoor module ID: ')
 							if not ID:
 								print('      Outdoor module ID cannot be empty. Please try again..... ')
 								continue
@@ -251,7 +258,7 @@ def write_keyValue(config,section,key,keyDetails):
 								Value = Dev['device_meta']['agl']
 					if Value is None:
 						while True:
-							ID = input('      Sky module ID not found in station. Please re-enter: ')
+							ID = input('      Sky module ID not found. Please re-enter your Sky module ID: ')
 							if not ID:
 								print('      Sky module ID cannot be empty. Please try again..... ')
 								continue
