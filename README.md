@@ -23,74 +23,70 @@ https://community.weatherflow.com/
 ## Installation Instructions
 
 The installation of the WeatherFlow PiConsole is fully automated, and can
-be started from the terminal with a single command. The initial installation 
+be started from the terminal with a single command. The automated installation 
 should take ~1 hour.
 
 The automated installer assumes you have already sucesfully setup your Raspberry 
-Pi and have installed Raspbian Stretch with Desktop. You should have also attached 
-the touch screen, and have either a keyboard and mouse attached directly to the Pi, 
-or have accessesd the Pi remotely through SSH/VNC. If you are starting from 
-scratch, some of these links may help get you started:
+Pi and have installed Raspbian Stretch with Desktop. You should have also 
+attached the touch screen, and have either a keyboard and mouse attached 
+directly to the Pi, or have accessesd the Pi remotely through SSH/VNC. If you 
+are starting from scratch, the Raspberry Pi documentation should help get you
+started:
 
-* https://www.raspberrypi.org/downloads/raspbian/
-* https://www.raspberrypi.org/documentation/configuration/security.md
-* https://www.raspberrypi.org/documentation/remote-access/ssh/
-* https://www.raspberrypi.org/documentation/remote-access/vnc/
+* https://www.raspberrypi.org/documentation/
 
 ### One-Step Automated Install
 
-The WeatherFlow PiConsole can be installed quickly and conveniently with the following 
-command:
+The WeatherFlow PiConsole can be installed quickly and conveniently with the 
+following command:
 ```
 curl -sSL https://peted-davis.github.io/wfpiconsole | bash
 ```
-Piping a command directly to ```bash``` is controversial, as it prevents you from 
-reading code that is about to run on your system. If you are worried about the contents
-of the installer, please examine the [first](https://raw.githubusercontent.com/peted-davis/peted-davis.github.io/master/wfpiconsole) 
+Piping a command directly to ```bash``` is controversial, as it prevents the 
+user from reading code that is about to run on their system. If you are worried 
+about the contents of the installer, please examine the [first](https://raw.githubusercontent.com/peted-davis/peted-davis.github.io/master/wfpiconsole) 
 and [second](https://raw.githubusercontent.com/peted-davis/WeatherFlow_PiConsole/master/wfpiconsole.sh) 
 install files in the Git repository before running the install command.
 
 ### Configure and Run WeatherFlow PiConsole
 
-As this will be the first time you have run the console, you'll be asked to enter 
-a number of API keys required by the console to run. One API key is needed 
-determine the the station location (country) from its latitude/longitude, 
-one needed to download an apppropriate weather forecast for your location, 
-and one needed to download the closest METAR information for your location.  
+When the console is run for the first time, you'll be required to enter a number 
+of API keys for essential web services. One API key is needed determine the the 
+station location (country) from its latitude/longitude, one needed to download 
+an apppropriate weather forecast for your location, and one needed to download 
+the closest METAR information for your location. Follow the steps below to
+register for the required API keys: 
 
-First, go to http://www.geonames.org/login and register for a new account. Once
+1. First, go to http://www.geonames.org/login and register for a new account. Once
 you have registered, go to your account (http://www.geonames.org/manageaccount)
 and activate "Free Web Services". Once this is done, your username will be your
 'GeoNames' API key.
 
-Next, if you live in the UK go to the UK MetOffice DataPoint homepage
+2. Next, if you live in the UK go to the UK MetOffice DataPoint homepage
 (https://www.metoffice.gov.uk/datapoint), and register for a new account. You'll
-be given an API key that will be you 'MetOffice' API key.
+be given an API key that will be you 'MetOffice' API key. If you live outside 
+the UK, register instead for a DarkSky API account (https://darksky.net/dev/register). 
+This will be your 'DarkSky' API key. The console requires you to enter either a 
+MetOffice API key or a DarkSky API key.
 
-If you live outside the UK, register instead for a DarkSky API account 
-(https://darksky.net/dev/register). This will be your 'DarkSky' API key. The 
-console requires you to enter either a MetOffice API key or a DarkSky API key.
-
-Finally go to CheckWX Aviation Weather and register to enable access to the 
+3. Finally go to CheckWX Aviation Weather and register to enable access to the 
 closest METAR information to you station location. 
 (https://www.checkwx.com/signup). This will be your 'CheckWX' key.
 
-Once you have registered for the required API keys, go ahead and run the console
-for the first time using:
-
+Once you have followed the above steps and registered for the required API keys, 
+go ahead and run the console for the first time using:
 ```
 wfpiconsole start
 ```
-
 You'll be asked to enter the API keys you have just signed-up for above, as well 
 as information about your station. This includes your station ID and device ID 
 for your outdoor Air and Sky modules. To find this information either open the 
-WeatherFlow app or view your station page in a web browser. Click on the gear icon 
--> Stations -> [Station name] -> Status.
+WeatherFlow app or view your station page in a web browser. Click on the gear 
+icon -> Stations -> [Station name] -> Status.
 
 If all goes smoothly the console should automatically add the extra information 
 it needs to your configuration file and then start running. You should not need 
-to enter this information again.
+to enter this configuration information again.
 
 Congratulations, you have installed the Raspberry Pi Python console for the 
 Weather Flow Smart Home Weather Station.
@@ -104,7 +100,7 @@ wfpiconsole update
 ```
 The update process will retain your existing user settings, but may prompt for
 input from time to time in order to add new functionality. Once the update has 
-finished, restart the console using
+finished, restart the console using:
 ```
 wfpiconsole start
 ```
@@ -122,8 +118,8 @@ wfpiconsole autostart-disable
 ```
 If you are going to use the auto-start method, it is highly recommended that you 
 can SSH into your Raspberry Pi, as the console can only be stopped using the 
-stop command
+stop command or a hard shutdown:
 ```
 wfpiconsole stop
 ```
-or by a hard power down
+

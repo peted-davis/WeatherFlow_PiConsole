@@ -614,6 +614,8 @@ update() {
 	updatePackages
 	# Check if any new dependencies are required
 	installDependentPackages WFPICONSOLE_DEPS[@]
+	# Check if any new Python modules are required
+	installDependentModules WFPICONSOLE_MODS[@]
 	# Update outdated dependent Python modules
 	#updateModules WFPICONSOLE_MODS[@]
 	# Get the latest version of the WeatherFlow PiConsole and install
