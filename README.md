@@ -47,7 +47,8 @@ curl -sSL https://peted-davis.github.io/wfpiconsole | bash
 Piping a command directly to ```bash``` is controversial, as it prevents you from 
 reading code that is about to run on your system. If you are worried about the contents
 of the installer, please examine the [first](https://raw.githubusercontent.com/peted-davis/peted-davis.github.io/master/wfpiconsole) 
-and second install files in the Git repository before running the install command.
+and [second](https://raw.githubusercontent.com/peted-davis/WeatherFlow_PiConsole/master/wfpiconsole.sh) 
+install files in the Git repository before running the install command.
 
 ### Configure and Run WeatherFlow PiConsole
 
