@@ -20,39 +20,6 @@ https://community.weatherflow.com/
 **[Update Instructions](#update-instructions)**<br>
 **[Auto-Start Instructions](#auto-start-instructions)**<br>
 
-## Update Instructions
-
-The WeatherFlow PiConsole can be updated quickly and easily with the following 
-command:
-```
-wfpiconsole update
-```
-The update process will retain your existing user settings, but may prompt for
-input from time to time in order to add new functionality. Once the update has 
-finished, restart the console using
-```
-wfpiconsole start
-```
-
-## Auto-Start Instructions
-
-The WeatherFlow PiConsole can be configured to run automatically when the
-Raspberry Pi powers up. To enable the console to start automatically, run
-```
-wfpiconsole autostart-enable
-```
-To stop the WeatherFlow PiConsole from starting automatically, run
-```
-wfpiconsole autostart-disable
-```
-If you are going to use the auto-start method, it is highly recommended that you 
-can SSH into your Raspberry Pi, as the console can only be stopped using the 
-stop command
-```
-wfpiconsole stop
-```
-or by a hard power down
-
 ## Installation Instructions
 
 The installation of the WeatherFlow PiConsole is fully automated, and can
@@ -126,3 +93,36 @@ to enter this information again.
 
 Congratulations, you have installed the Raspberry Pi Python console for the 
 Weather Flow Smart Home Weather Station.
+
+## Update Instructions
+
+The WeatherFlow PiConsole can be updated quickly and easily with the following 
+command:
+```
+wfpiconsole update
+```
+The update process will retain your existing user settings, but may prompt for
+input from time to time in order to add new functionality. Once the update has 
+finished, restart the console using
+```
+wfpiconsole start
+```
+
+## Auto-Start Instructions
+
+The WeatherFlow PiConsole can be configured to run automatically when the
+Raspberry Pi powers up. To enable the console to start automatically, run
+```
+wfpiconsole autostart-enable
+```
+To stop the WeatherFlow PiConsole from starting automatically, run
+```
+wfpiconsole autostart-disable
+```
+If you are going to use the auto-start method, it is highly recommended that you 
+can SSH into your Raspberry Pi, as the console can only be stopped using the 
+stop command
+```
+wfpiconsole stop
+```
+or by a hard power down
