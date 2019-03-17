@@ -359,8 +359,7 @@ getLatestVersion() {
 	# number using Python JSON tools
 	gitInfo=$(curl -s 'https://api.github.com/repos/peted-davis/WeatherFlow_PiConsole/releases/latest' -H 'Accept:application/vnd.github.v3+json')
 	latestVer=$(echo "$gitInfo" | python3 -c "import sys, json; print(json.load(sys.stdin)['tag_name'])")
-	#tarballLoc=$(echo "$gitInfo" | python3 -c "import sys, json; print(json.load(sys.stdin)['tarball_url'])")
-	tarballLoc="https://api.github.com/repos/peted-davis/WeatherFlow_PiConsole/tarball/development"
+	tarballLoc=$(echo "$gitInfo" | python3 -c "import sys, json; print(json.load(sys.stdin)['tarball_url'])")
 
 	# If the WeatherFlow PiConsole is already installed, get the current
 	# installed version from wfpiconsole.ini file.
@@ -538,31 +537,31 @@ processComplete() {
 			printf "  \\n"
 			printf "  ============================================ \\n"
 			printf "  WeatherFlow PiConsole installation complete! \\n"
-			printf "  Start the console with: wfpiconsole start    \\n"
+			printf "  Start the console with: 'wfpiconsole start'  \\n"
 			printf "  ============================================ \\n\\n"
 			;;
 	# Display update complete dialogue	
 		update)
 			printf "  \\n"
-			printf "  =========================================== \\n"
-			printf "  WeatherFlow PiConsole update complete!      \\n"
-			printf "  Restart the console with: wfpiconsole start \\n"
-			printf "  =========================================== \\n\\n"
+			printf "  ============================================= \\n"
+			printf "  WeatherFlow PiConsole update complete!        \\n"
+			printf "  Restart the console with: 'wfpiconsole start' \\n"
+			printf "  ============================================= \\n\\n"
 			;;
 	# Display autostart-enable complete dialogue
 		autostart-enable)
 			printf "  ==================================================== \\n"
-			printf "  WeatherFlow PiConsole Autostart sucesfully enabled   \\n"
+			printf "  WeatherFlow PiConsole autostart sucesfully enabled   \\n"
 			printf "  Console will now start automatically at boot up      \\n"
 			printf "  Starting console for current session. Please wait... \\n"
 			printf "  ==================================================== \\n\\n"
 			;;
 	# Display autostart-disable complete dialogue		
 		autostart-disable)
-			printf "  ============================================== \\n"
-			printf "  Autostart sucesfully disabled                  \\n"
-			printf "  Use 'wfpiconsole stop' to halt current session \\n"
-			printf "  ============================================== \\n\\n"
+			printf "  =================================================== \\n"
+			printf "  WeatherFlow PiConsole autostart sucesfully disabled \\n"
+			printf "  Use 'wfpiconsole stop' to halt current session      \\n"
+			printf "  =================================================== \\n\\n"
 	esac
 }
 
@@ -598,7 +597,7 @@ install() {
 	updateKivyConfig
 	# Get the latest version of the WeatherFlow PiConsole and install
 	getLatestVersion
-	# Clean up after installation
+	# Clean up after update
 	cleanUp
 	# Display installation complete dialogue
 	processComplete ${FUNCNAME[0]}
@@ -634,6 +633,8 @@ autostart-enable () {
 	installServiceFile	
 	# Enable wfpiconsole service
 	enableServiceFile
+	# Clean up after enabling autostart
+	cleanUp
 	# Display autostart-enable complete dialogue
 	processComplete ${FUNCNAME[0]}
 }	
@@ -646,6 +647,8 @@ autostart-disable () {
 	processStarting ${FUNCNAME[0]}	
 	# Disable wfpiconsole service
 	disableServiceFile
+	# Clean up after disabling autostart
+	cleanUp
 	# Display autostart-disable complete dialogue
 	processComplete ${FUNCNAME[0]}
 }
@@ -657,12 +660,12 @@ helpFunc() {
 Example: 'wfpiconsole update'
 
 Options:
-  - start                 Start the WeatherFlow PiConsole
-  - stop                  Stop the WeatherFlow PiConsole
-  - install               Install the WeatherFlow PiConsoleroot
-  - update                Update the WeatherFlow PiConsole
-  - autostart-enable      Set the WeatherFlow PiConsole	to autostart at boot
-  - autostart-disable     Stop the WeatherFlow PiConsole autostarting at boot"
+  start                 : Start the WeatherFlow PiConsole
+  stop                  : Stop the WeatherFlow PiConsole
+  install               : Install the WeatherFlow PiConsoleroot
+  update                : Update the WeatherFlow PiConsole
+  autostart-enable      : Set the WeatherFlow PiConsole to autostart at boot
+  autostart-disable     : Stop the WeatherFlow PiConsole autostarting at boot"
   exit 0
 }
 
