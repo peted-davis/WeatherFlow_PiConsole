@@ -359,7 +359,8 @@ getLatestVersion() {
 	# number using Python JSON tools
 	gitInfo=$(curl -s 'https://api.github.com/repos/peted-davis/WeatherFlow_PiConsole/releases/latest' -H 'Accept:application/vnd.github.v3+json')
 	latestVer=$(echo "$gitInfo" | python3 -c "import sys, json; print(json.load(sys.stdin)['tag_name'])")
-	tarballLoc=$(echo "$gitInfo" | python3 -c "import sys, json; print(json.load(sys.stdin)['tarball_url'])")
+	#tarballLoc=$(echo "$gitInfo" | python3 -c "import sys, json; print(json.load(sys.stdin)['tarball_url'])")
+	tarballLoc="https://api.github.com/repos/peted-davis/WeatherFlow_PiConsole/tarball/development"
 
 	# If the WeatherFlow PiConsole is already installed, get the current
 	# installed version from wfpiconsole.ini file.
