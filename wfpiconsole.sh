@@ -415,7 +415,7 @@ installLatestVersion() {
 
 	# Make sure wfpiconsole.sh file is executable and create symlink to
 	# usr/bin/local so function can be called directly from the command line
-	chmod $CONSOLEDIR/wfpiconsole.sh
+	chmod 744 $CONSOLEDIR/wfpiconsole.sh
 	ln -s $CONSOLEDIR/wfpiconsole.sh /usr/local/bin/wfpiconsole
 }
 
