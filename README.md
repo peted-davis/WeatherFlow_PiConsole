@@ -14,6 +14,45 @@ International License.
 http://weatherflow.com/smart-home-weather-stations/  
 https://community.weatherflow.com/
 
+## Contents
+
+**[Installation Instructions](#installation-instructions)**<br>
+**[Update Instructions](#update-instructions)**<br>
+**[Auto-Start Instructions](#auto-start-instructions)**<br>
+
+## Update Instructions
+
+The WeatherFlow PiConsole can be updated quickly and easily with the following 
+command:
+```
+wfpiconsole update
+```
+The update process will retain your existing user settings, but may prompt for
+input from time to time in order to add new functionality. Once the update has 
+finished, restart the console using
+```
+wfpiconsole start
+```
+
+## Auto-Start Instructions
+
+The WeatherFlow PiConsole can be configured to run automatically when the
+Raspberry Pi powers up. To enable the console to start automatically, run
+```
+wfpiconsole autostart-enable
+```
+To stop the WeatherFlow PiConsole from starting automatically, run
+```
+wfpiconsole autostart-disable
+```
+If you are going to use the auto-start method, it is highly recommended that you 
+can SSH into your Raspberry Pi, as the console can only be stopped using the 
+stop command
+```
+wfpiconsole stop
+```
+or by a hard power down
+
 ## Installation Instructions
 
 The installation of the WeatherFlow PiConsole is fully automated, and can
@@ -40,8 +79,8 @@ curl -sSL https://peted-davis.github.io/wfpiconsole | bash
 ```
 Piping a command directly to ```bash``` is controversial, as it prevents you from 
 reading code that is about to run on your system. If you are worried about the contents
-of the installer, please examine the install file in the Git repository before running 
-the install command.
+of the installer, please examine the [first](https://raw.githubusercontent.com/peted-davis/peted-davis.github.io/master/wfpiconsole) 
+and second install files in the Git repository before running the install command.
 
 ### Configure and Run WeatherFlow PiConsole
 
@@ -87,36 +126,3 @@ to enter this information again.
 
 Congratulations, you have installed the Raspberry Pi Python console for the 
 Weather Flow Smart Home Weather Station.
-
-## Update Instructions
-
-The WeatherFlow PiConsole can be updated quickly and easily with the following 
-command:
-```
-wfpiconsole update
-```
-The update process will retain your existing user settings, but may prompt for
-input from time to time in order to add new functionality. Once the update has 
-finished, restart the console using
-```
-wfpiconsole start
-```
-
-## Auto-Start Instructions
-
-The WeatherFlow PiConsole can be configured to run automatically when the
-Raspberry Pi powers up. To enable the console to start automatically, run
-```
-wfpiconsole autostart-enable
-```
-To stop the WeatherFlow PiConsole from starting automatically, run
-```
-wfpiconsole autostart-disable
-```
-If you are going to use the auto-start method, it is highly recommended that you 
-can SSH into your Raspberry Pi, as the console can only be stopped using the 
-stop command
-```
-wfpiconsole stop
-```
-or by a hard power down
