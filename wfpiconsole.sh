@@ -29,14 +29,13 @@ fi
 # ------------------------------------------------------------------------------
 CONSOLEDIR=/home/${USER}/wfpiconsole/
 DLDIR=${CONSOLEDIR}/temp/
-USAGE="Usage: ./wfpiconsole.sh <install|update>"
 PKG_MANAGER="apt-get"
 PKG_UPDATE_CACHE="${PKG_MANAGER} update"
-PKG_UPDATE_INSTALL="${PKG_MANAGER} upgrade -y"
+PKG_UPDATE_INSTALL="${PKG_MANAGER} dist-upgrade -y"
 PKG_UPDATE_COUNT="${PKG_MANAGER} -s -o Debug::NoLocking=true upgrade | grep -c ^Inst || true"
 PKG_NEW_INSTALL=(${PKG_MANAGER} --yes install)
 WFPICONSOLE_DEPS=(libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev
-				  pkg-config libgl1-mesa-dev libgles2-mesa-dev python-setuptools
+				  pkg-config libgl1-mesa-dev libgles2-mesa-dev python-setuptools rng-tools
 				  libgstreamer1.0-dev git-core gstreamer1.0-plugins-{bad,base,good,ugly}
 				  python-dev libmtdev-dev xclip xsel libatlas-base-dev gstreamer1.0-{omx,alsa})
 WFPICONSOLE_MODS=(autobahn[twisted] pytz pyasn1-modules service_identity geopy ephem Cython numpy packaging)
@@ -613,6 +612,8 @@ update() {
 	hardwareCheck
 	# Check for and ask user if they wish to install any updated local packages
 	updatePackages
+	# Check if any new dependencies are required
+	installDependentPackages WFPICONSOLE_DEPS[@]
 	# Update outdated dependent Python modules
 	#updateModules WFPICONSOLE_MODS[@]
 	# Get the latest version of the WeatherFlow PiConsole and install
