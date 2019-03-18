@@ -39,7 +39,7 @@ WFPICONSOLE_DEPS=(libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-de
 				  libgstreamer1.0-dev git-core gstreamer1.0-plugins-{bad,base,good,ugly}
 				  python-dev libmtdev-dev xclip xsel libatlas-base-dev gstreamer1.0-{omx,alsa})
 WFPICONSOLE_MODS=(autobahn[twisted] pytz pyasn1-modules service_identity geopy ephem Cython numpy packaging)
-MASTERBRANCH="https://raw.githubusercontent.com/peted-davis/WeatherFlow_PiConsole/development/wfpiconsole.sh"
+MASTERBRANCH="https://raw.githubusercontent.com/peted-davis/WeatherFlow_PiConsole/master/wfpiconsole.sh"
 
 # DEFINE INSTALLER PREAMBLE
 # ------------------------------------------------------------------------------
