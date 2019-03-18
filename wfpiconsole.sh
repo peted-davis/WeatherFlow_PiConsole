@@ -39,6 +39,7 @@ WFPICONSOLE_DEPS=(libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-de
 				  libgstreamer1.0-dev git-core gstreamer1.0-plugins-{bad,base,good,ugly}
 				  python-dev libmtdev-dev xclip xsel libatlas-base-dev gstreamer1.0-{omx,alsa})
 WFPICONSOLE_MODS=(autobahn[twisted] pytz pyasn1-modules service_identity geopy ephem Cython numpy packaging)
+MASTERBRANCH="https://raw.githubusercontent.com/peted-davis/WeatherFlow_PiConsole/development/wfpiconsole.sh"
 
 # DEFINE INSTALLER PREAMBLE
 # ------------------------------------------------------------------------------
@@ -90,7 +91,16 @@ isCommand() {
 # CLEAN UP AFTER COMPLETED OR FAILED INSTALLATION
 # ------------------------------------------------------------------------------
 cleanUp() {
-	rm -f pythonCommand errorLog
+	rm -f pythonCommand errorLog updateRunning
+}
+
+# INITIALISE THE UPDATE PROCESS BY FETCHING THE LATEST VERSION OF THE UPDATE 
+# CODE DIRECTLY FROM THE MASTER GITHUB BRANCH
+# ------------------------------------------------------------------------------
+initialiseUpdate() {
+	if [ ! -f updateRunning ]; then
+		touch updateRunning && curl -sSL $MASTERBRANCH | bash -s update
+	fi
 }
 
 # CHECK COMPATABILITY OF SYSTEM FOR RUNNING THE WEATHERFLOW PICONSOLE
@@ -606,6 +616,9 @@ install() {
 # ------------------------------------------------------------------------------
 update() {
 
+	# Fetch the latest update code directly from the master Github branch. This 
+	# ensures that changes in dependencies are addressed during this update
+	initialiseUpdate
 	# Display update sarting dialogue
 	processStarting ${FUNCNAME[0]}
 	# Check that the update command is being run on a Raspberry Pi
