@@ -2156,7 +2156,7 @@ class wfpiconsole(App):
 
 		# Schedule next Version Check
 		Next = Tz.localize(datetime.combine(date.today()+timedelta(days=1),time(0,0,0)))
-		Clock.schedule_once(self.CheckVersion,(Next - Now).total_seconds())
+		Clock.schedule_once(self.CheckVersion,(Next-Now).total_seconds())
 
 # ==============================================================================
 # DEFINE 'CurrentConditions' SCREEN
