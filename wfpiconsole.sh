@@ -375,7 +375,7 @@ getLatestVersion() {
 	if [ -f $CONSOLEDIR/wfpiconsole.ini ]; then
 		currentVer=$(python3 -c "import configparser; c=configparser.ConfigParser(); c.read('$CONSOLEDIR/wfpiconsole.ini'); print(c['System']['Version'])")
 		printf "\\n  %b Latest version of the WeatherFlow PiConsole: %s" "${INFO}" "${latestVer}"
-		printf "\\n  %b Installed version of the WeatherFlow PiConsole: %s" "${INFO}" "${latestVer}"
+		printf "\\n  %b Installed version of the WeatherFlow PiConsole: %s" "${INFO}" "${currentVer}"
 
 		# Compare current version with latest version. If verions match, there
 		# is no need to get the latest version
