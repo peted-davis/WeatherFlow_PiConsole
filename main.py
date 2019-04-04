@@ -21,8 +21,6 @@ import platform
 import os
 if platform.system() == 'Linux' and 'arm' in platform.machine():
 	os.environ['KIVY_GL_BACKEND'] = 'gl'
-elif platform.system() == 'Windows':
-	os.environ['KIVY_GL_BACKEND'] = 'glew'
 
 # ==============================================================================
 # CREATE OR UPDATE wfpiconsole.ini FILE
