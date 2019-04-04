@@ -19,6 +19,7 @@ https://community.weatherflow.com/
 **[Installation Instructions](#installation-instructions)**<br>
 **[Update Instructions](#update-instructions)**<br>
 **[Auto-Start Instructions](#auto-start-instructions)**<br>
+**[Advanced Installation: Windows](#advanced-installation-windows)**<br>
 
 ## Installation Instructions
 
@@ -35,7 +36,7 @@ started:
 
 * https://www.raspberrypi.org/documentation/
 
-### One-Step Automated Install
+### Install WeatherFlow PiConsole
 
 The WeatherFlow PiConsole can be installed quickly and conveniently with the 
 following command:
@@ -123,3 +124,38 @@ stop command or a hard shutdown:
 wfpiconsole stop
 ```
 
+## Advanced Installation: Windows
+
+Although not officially supported, use the following step-by-step instructions
+to install and run the WeatherFlow PiConsole on Windows.
+
+1. Download and install the Python 3.7 version of Miniconda for Windows (a lightweight Python
+interpreter): https://conda.io/miniconda.html
+
+2. Once Miniconda is installed open the ‘Anaconda Prompt’ program.
+
+3. In the Anaconda prompt, run:
+```
+python -m pip install --upgrade pip
+```
+
+4. Once that process has finished, run:
+```
+python -m pip install autobahn[twisted] pytz pyasn1-modules service_identity geopy ephem Cython numpy packaging
+```
+
+5. Once that has finished, follow the 3 steps under the “Installation Instructions” here to install Kivy: https://kivy.org/doc/stable/installation/installation-windows.html
+This is the GUI library that drives the console. 
+
+6. Once Kivy is installed, run the following commands in order in the Anaconda Prompt. This will install the
+WeatherFlow PiConsole.
+```
+cd && mkdir wfpiconsole && cd wfpiconsole
+curl -sL https://api.github.com/repos/peted-davis/WeatherFlow_PiConsole/tarball -o PiConsole.tar.gz
+tar -xvf PiConsole.tar.gz --strip 1
+del /f PiConsole.tar.gz
+```
+
+7. You’re almost there now! You can start the console using ```python main.py```. As this is the first time 
+you have run the console, you’ll be asked for some API keys. Details of what you need can be found under 
+"Configure and Run WeatherFlow PiConsole" in the **[Installation Instructions](#installation-instructions)**.
