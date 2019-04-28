@@ -14,17 +14,17 @@
 ## You should have received a copy of the GNU General Public License
 ## along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-## ==============================================================
+## =============================================================================
 ## SCREEN MANAGER
-## ==============================================================
+## =============================================================================
 #:import NoTransition kivy.uix.screenmanager.NoTransition
 ScreenManager:
 	transition: NoTransition()
     CurrentConditions:
 
-## ==============================================================
+## =============================================================================
 ## CURRENT CONDITIONS SCREEN
-## ==============================================================
+## =============================================================================
 #:import Factory kivy.factory.Factory
 <CurrentConditions>:
 	name: 'CurrentConditions'
@@ -34,9 +34,9 @@ ScreenManager:
 			size: self.size
 			source: 'background/currentConditions.png'
 
-	## ----------------------------------------------------------
+	## -------------------------------------------------------------------------
 	## CLOCK
-	## ----------------------------------------------------------
+	## -------------------------------------------------------------------------
 	FloatLayout:
 		Label:
 			text: root.Screen['Clock']
@@ -51,9 +51,9 @@ ScreenManager:
 			pos: dp(269),dp(36)
 			color: [0.84,0.84,0.84,1]
 
-	## ----------------------------------------------------------
+	## -------------------------------------------------------------------------
 	## CURRENT WEATHER FORECAST FROM UK METOFFICE
-	## ----------------------------------------------------------
+	## -------------------------------------------------------------------------
 	FloatLayout:
 		id: MetOffice
 		opacity: 1
@@ -127,9 +127,9 @@ ScreenManager:
 			pos: dp(8),dp(264)
 			color: [0.84,0.84,0.84,1]
 
-	## ----------------------------------------------------------
+	## -------------------------------------------------------------------------
 	## CURRENT SAGER WEATHERCASTER FORECAST
-	## ----------------------------------------------------------
+	## -------------------------------------------------------------------------
 	FloatLayout:
 		id: Sager
 		opacity: 0
@@ -159,9 +159,9 @@ ScreenManager:
 			pos: dp(8),dp(264)
 			color: [0.84,0.84,0.84,1]
 
-	## ----------------------------------------------------------
+	## -------------------------------------------------------------------------
 	## INDOOR/OUTDOOR TEMPERATURE DATA FROM BREATH/AIR MODULES
-	## ----------------------------------------------------------
+	## -------------------------------------------------------------------------
 	FloatLayout:
 		id: Temperature
 
@@ -336,9 +336,9 @@ ScreenManager:
 			pos: dp(318),dp(263)
 			color: [0.84,0.84,0.84,1]
 
-	## ----------------------------------------------------------
+	## -------------------------------------------------------------------------
 	## WIND DIRECTION AND SPEED FROM SKY MODULE
-	## ----------------------------------------------------------
+	## -------------------------------------------------------------------------
 	FloatLayout:
 
 		## CURRENT AVERAGE WIND SPEED
@@ -487,9 +487,9 @@ ScreenManager:
 			pos: dp(542),dp(265)
 			color: [0.84,0.84,0.84,1]
 
-	## ----------------------------------------------------------
+	## -------------------------------------------------------------------------
 	## WIND ROSE FROM SKY MODULE
-	## ----------------------------------------------------------
+	## -------------------------------------------------------------------------
 	FloatLayout:
 
 		## WIND DIRECTION ARROW
@@ -543,9 +543,9 @@ ScreenManager:
 			pos: dp(628),dp(324)
 			color: [0.84,0.84,0.84,1]
 
-	## ----------------------------------------------------------
+	## -------------------------------------------------------------------------
 	## SUNRISE/SUNSET DATA FROM PyEphem MODULE
-	## ----------------------------------------------------------
+	## -------------------------------------------------------------------------
 	FloatLayout:
 		id: Sunrise
 		opacity: 1
@@ -631,7 +631,7 @@ ScreenManager:
 
 		## TIME REMAINING UNTIL SUNRISE OR SUNSET
 		Label:
-			text: app.SunData['Event'][1]
+			text: app.SunData['Event'][1] + ':' + app.SunData['Event'][2]
 			font_name: 'fonts/SystemSanFranciscoDisplayThin.ttf'
 			font_size: '30sp'
 			text_size: self.size
@@ -639,21 +639,9 @@ ScreenManager:
 			halign: 'center'
 			valign: 'center'
 			size_hint: (None,None)
-			size: dp(40),dp(30)
+			size: dp(80),dp(30)
 			pos: dp(93),dp(92)
-			color: [0.84,0.84,0.84,1]
-		Label:
-			text: app.SunData['Event'][2]
-			font_name: 'fonts/SystemSanFranciscoDisplayThin.ttf'
-			font_size: '30sp'
-			text_size: self.size
-			markup: 1
-			halign: 'center'
-			valign: 'center'
-			size_hint: (None,None)
-			size: dp(40),dp(30)
-			pos: dp(133),dp(92)
-			color: [0.84,0.84,0.84,1]
+			color: [0.84,0.84,0.84,1]	
 		Label:
 			text: app.SunData['Event'][0]
 			font_name: 'fonts/Helvetica.ttf'
@@ -667,9 +655,9 @@ ScreenManager:
 			pos: dp(93),dp(73)
 			color: [0.84,0.84,0.84,1]
 
-	## ----------------------------------------------------------
+	## -------------------------------------------------------------------------
 	## MOONRISE/MOONSET DATA FROM PyEphem MODULE
-	## ----------------------------------------------------------
+	## -------------------------------------------------------------------------
 	FloatLayout:
 		id: Moon
 		opacity: 0
@@ -775,9 +763,9 @@ ScreenManager:
 			pos: dp(88),dp(91)
 			color: [0.84,0.84,0.84,1]
 
-	## ----------------------------------------------------------
+	## -------------------------------------------------------------------------
 	## RAINFALL FROM SKY MODULE
-	## ----------------------------------------------------------
+	## -------------------------------------------------------------------------
 	FloatLayout:
 
 		## CURRENT RAIN RATE AND TEXT
@@ -874,10 +862,186 @@ ScreenManager:
 			size: dp(88),dp(35)
 			pos: dp(357),dp(115)
 			color: [0.84,0.84,0.84,1]
+			
+	## -------------------------------------------------------------------------
+	## LIGHTNING FROM AIR MODULE
+	## -------------------------------------------------------------------------
+	FloatLayout:
+		id: Lightning
+		opacity: 0
+		Image:
+			id: LightningBackground
+			source: 'background/lightning.png'
+			size_hint: (None,None)
+			keep_ratio: 0
+			allow_stretch: 1
+			size: dp(262),dp(166)
+			pos: dp(269),dp(89)
+			
+		## LAST STRIKE TIME
+		Label:
+			text: app.Air['StrikeDeltaT'][0]
+			font_name: 'fonts/SystemSanFranciscoDisplayThin.ttf'
+			font_size: '30sp'
+			text_size: self.size
+			markup: 1
+			halign: 'center'
+			valign: 'center'
+			size_hint: (None,None)
+			size: dp(80) if app.Air['StrikeDeltaT'][2] == '-' else dp(40),dp(30)
+			pos: dp(362),dp(183)
+			color: [0.84,0.84,0.84,1]	
+		Label:
+			text: app.Air['StrikeDeltaT'][1]
+			font_name: 'fonts/SystemSanFranciscoDisplayBold.ttf'
+			font_size: '9pt'
+			text_size: self.size
+			font_hinting: None
+			markup: 1
+			halign: 'center'
+			valign: 'center'
+			size_hint: (None,None)
+			size: dp(80) if app.Air['StrikeDeltaT'][2] == '-' else dp(40),dp(25)
+			pos: dp(362),dp(164)
+			color: [0.84,0.84,0.84,1]	
+		Label:
+			text: app.Air['StrikeDeltaT'][2]
+			font_name: 'fonts/SystemSanFranciscoDisplayThin.ttf'
+			font_size: '30sp'
+			text_size: self.size
+			markup: 1
+			halign: 'center'
+			valign: 'center'
+			opacity: 0 if app.Air['StrikeDeltaT'][2] == '-' else 1
+			size_hint: (None,None)
+			size: dp(40),dp(30)
+			pos: dp(402),dp(183)
+			color: [0.84,0.84,0.84,1]	
+		Label:
+			text: app.Air['StrikeDeltaT'][3]
+			font_name: 'fonts/SystemSanFranciscoDisplayBold.ttf'
+			font_size: '9pt'
+			text_size: self.size
+			font_hinting: None
+			markup: 1
+			halign: 'center'
+			valign: 'center'
+			opacity: 0 if app.Air['StrikeDeltaT'][2] == '-' else 1
+			size_hint: (None,None)
+			size: dp(40),dp(25)
+			pos: dp(402),dp(164)
+			color: [0.84,0.84,0.84,1]			
+		Label:
+			text: '[color=f05e40ff]ago[/color]'
+			font_name: 'fonts/Helvetica.ttf'
+			font_size: '15sp'
+			text_size: self.size
+			markup: 1
+			halign: 'center'
+			valign: 'center'
+			size_hint: (None,None)
+			size: dp(80),dp(19)
+			pos: dp(362),dp(149)
+			color: [0.84,0.84,0.84,1]	
+		
+		## LAST STRIKE DISTANCE
+		Label:
+			text: '\u2264 ' + app.Air['StrikeDist'][0]
+			font_name: 'fonts/SystemSanFranciscoDisplayThin.ttf'
+			font_size: '30sp'
+			text_size: self.size
+			markup: 1
+			halign: 'center'
+			valign: 'center'
+			size_hint: (None,None)
+			size: dp(60),dp(30)
+			pos: dp(458),dp(183)
+			color: [0.84,0.84,0.84,1]
+		Label:
+			text: app.Air['StrikeDist'][1]
+			font_name: 'fonts/SystemSanFranciscoDisplayBold.ttf'
+			font_size: '9pt'
+			text_size: self.size
+			font_hinting: None
+			markup: 1
+			halign: 'center'
+			valign: 'center'
+			size_hint: (None,None)
+			size: dp(60),dp(25)
+			pos: dp(458),dp(164)
+			color: [0.84,0.84,0.84,1]	
+		Label:
+			text: '[color=f05e40ff]away[/color]'
+			font_name: 'fonts/Helvetica.ttf'
+			font_size: '15sp'
+			text_size: self.size
+			markup: 1
+			halign: 'center'
+			valign: 'center'
+			size_hint: (None,None)
+			size: dp(60),dp(19)
+			pos: dp(458),dp(149)
+			color: [0.84,0.84,0.84,1]	
+			
+		## LAST THREE HOUR LIGHTNING STRIKES		
+		Label:
+			text: app.Air['Strikes3hr'][0]
+			font_name: 'fonts/SystemSanFranciscoDisplayThin.ttf'
+			font_size: '20sp'
+			text_size: self.size
+			markup: 1
+			halign: 'center'
+			valign: 'center'
+			size_hint: (None,None)
+			size: dp(60),dp(26)
+			pos: dp(274),dp(93)
+			color: [0.84,0.84,0.84,1]	
+		
+		## TOTAL DAILY LIGHTNING STRIKES		
+		Label:
+			text: app.Air['StrikesToday'][0]
+			font_name: 'fonts/SystemSanFranciscoDisplayThin.ttf'
+			font_size: '20sp'
+			text_size: self.size
+			markup: 1
+			halign: 'center'
+			valign: 'center'
+			size_hint: (None,None)
+			size: dp(60),dp(26)
+			pos: dp(338),dp(93)
+			color: [0.84,0.84,0.84,1]	
+			
+		## TOTAL MONTHLY LIGHTNING STRIKES		
+		Label:
+			text: app.Air['StrikesMonth'][0]
+			font_name: 'fonts/SystemSanFranciscoDisplayThin.ttf'
+			font_size: '20sp'
+			text_size: self.size
+			markup: 1
+			halign: 'center'
+			valign: 'center'
+			size_hint: (None,None)
+			size: dp(60),dp(26)
+			pos: dp(402),dp(93)
+			color: [0.84,0.84,0.84,1]	
 
-	## ----------------------------------------------------------
+		## TOTAL YEARLY LIGHTNING STRIKES		
+		Label:
+			text: app.Air['StrikesYear'][0]
+			font_name: 'fonts/SystemSanFranciscoDisplayThin.ttf'
+			font_size: '20sp'
+			text_size: self.size
+			markup: 1
+			halign: 'center'
+			valign: 'center'
+			size_hint: (None,None)
+			size: dp(60),dp(26)
+			pos: dp(466),dp(93)
+			color: [0.84,0.84,0.84,1]	
+
+	## -------------------------------------------------------------------------
 	## BAROMETER FROM AIR MODULE
-	## ----------------------------------------------------------
+	## -------------------------------------------------------------------------
 	FloatLayout:
 
 		## CURRENT PRESSURE ARROW
@@ -997,9 +1161,9 @@ ScreenManager:
 			pos: dp(609),dp(194)
 			color: [0.84,0.84,0.84,1]
 
-	## ----------------------------------------------------------
+	## -------------------------------------------------------------------------
 	## STATUS INDICATORS FOR AIR/SKY MODULES
-	## ----------------------------------------------------------
+	## -------------------------------------------------------------------------
 	FloatLayout:
 
 		## SKY
@@ -1093,9 +1257,9 @@ ScreenManager:
 			pos: dp(676),dp(6)
 			color: [0.84,0.84,0.84,1]
 
-	## ----------------------------------------------------------
+	## -------------------------------------------------------------------------
 	## BOTTOM MENU BAR
-	## ----------------------------------------------------------
+	## -------------------------------------------------------------------------
 	FloatLayout:
 		Button:
 			size_hint: (None,None)
@@ -1103,14 +1267,22 @@ ScreenManager:
 			pos: dp(2),dp(0)
 			background_normal: 'buttons/forecast.png'
 			background_down: 'buttons/forecastPressed.png'
-			on_press: root.SwitchPanel(self,'MetSager')
+			on_release: root.SwitchPanel(self,'MetSager')
 		Button:
 			size_hint: (None,None)
 			size: dp(100),dp(30)
 			pos: dp(107),dp(0)
 			background_normal: 'buttons/sunMoon.png'
 			background_down: 'buttons/sunMoonPressed.png'
-			on_press: root.SwitchPanel(self,'SunMoon')
+			on_release: root.SwitchPanel(self,'SunMoon')
+		Button:
+			id: RainLightning
+			size_hint: (None,None)
+			size: dp(90),dp(30)
+			pos: dp(220),dp(0)
+			background_normal: 'buttons/lightning.png'
+			background_down: 'buttons/lightningPressed.png'
+			on_release: root.SwitchPanel(self,'RainLightning')
 		Button:
 			size_hint: (None,None)
 			size: dp(88),dp(30)
@@ -1124,7 +1296,7 @@ ScreenManager:
 			pos: dp(453),dp(0)
 			background_normal: 'buttons/credits.png'
 			background_down: 'buttons/creditsPressed.png'
-			on_press: Factory.Credits().open()
+			on_release: Factory.Credits().open()
 
 ## =============================================================================
 ## CREDITS POPUP

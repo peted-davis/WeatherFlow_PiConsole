@@ -97,8 +97,7 @@ from kivy.clock import Clock
 from kivy.animation import Animation
 from kivy.config import ConfigParser
 from kivy.metrics import dp
-from kivy.compat import text_type
-from kivy.properties import DictProperty,NumericProperty,ConfigParserProperty
+from kivy.properties import DictProperty, NumericProperty, ConfigParserProperty
 
 # ==============================================================================
 # IMPORT REQUIRED SYSTEM MODULES
@@ -176,30 +175,27 @@ class wfpiconsole(App):
 
 	# Define required Kivy dictionary properties
 	Sky = DictProperty			([('WindSpd','----'),('WindGust','--'),('WindDir','---'),
-								('AvgWind','--'),('MaxGust','--'),('RainRate','---'),
-								('TodayRain','--'),('YesterdayRain','--'),('MonthRain','--'),
-								('YearRain','--'),('Radiation','----'),('UV','---'),
-								('Time','-'),('Battery','--'),('StatusIcon','Error')])
+								  ('AvgWind','--'),('MaxGust','--'),('RainRate','---'),
+								  ('TodayRain','--'),('YesterdayRain','--'),('MonthRain','--'),
+								  ('YearRain','--'),('Radiation','----'),('UV','---'),
+								  ('Time','-'),('Battery','--'),('StatusIcon','Error')])
 	Air = DictProperty			([('Temp','--'),('MinTemp','---'),('MaxTemp','---'),
-								('Humidity','--'),('DewPoint','--'),('Pres','---'),
-								('MaxPres','--'),('MinPres','--'),('PresTrend','---'),
-								('FeelsLike','----'),('Time','-'),('Battery','--'),
-								('StatusIcon','Error')])
+								  ('Humidity','--'),('DewPoint','--'),('Pres','---'),
+								  ('MaxPres','--'),('MinPres','--'),('PresTrend','---'),
+								  ('FeelsLike','----'),('StrikeDeltaT','----'),('StrikeDist','--'),
+								  ('Strikes3hr','-'),('StrikesToday','-'),('StrikesMonth','-'),
+								  ('StrikesYear','-'),('Time','-'),('Battery','--'),
+								  ('StatusIcon','Error')])
 	Rapid = DictProperty		([('Time','-'),('Speed','--'),('Direc','----')])
 	Breathe = DictProperty		([('Temp','--'),('MinTemp','---'),('MaxTemp','---')])
 	SunData = DictProperty		([('Sunrise',['-','-']),('Sunset',['-','-']),('SunAngle','-'),
-								('Event',['-','-','-']),('ValidDate','--')])
+								  ('Event',['-','-','-']),('ValidDate','--')])
 	MoonData = DictProperty		([('Moonrise',['-','-']),('Moonset',['-','-']),('NewMoon','--'),
-								('FullMoon','--'),('Phase','---')])
+								  ('FullMoon','--'),('Phase','---')])
 	MetData = DictProperty		([('Temp','--'),('Precip','--'),('WindSpd','--'),
-								('WindDir','--'),('Weather','Building'),('Valid','--'),
-								('Issued','--')])
-	Sager = DictProperty		([('Lat','--'),('MetarKey','--'),('WindDir6','--'),
-								('WindDir','--'),('WindSpd6','--'),('WindSpd','--'),
-								('Pres','--'),('Pres6','--'),('LastRain','--'),
-								('Temp','--'),('Dial','--'),('Forecast','--'),
-								('Issued','--')])
-	System = DictProperty([('LatestVer','--')])
+								  ('WindDir','--'),('Weather','Building'),('Valid','--')])
+	Sager = DictProperty		([('Forecast','--'),('Issued','--')])
+	System = DictProperty       ([('LatestVer','--')])
 
 	# Define required Kivy configParser properties
 	BarometerMax = ConfigParserProperty('-','System','BarometerMax','wfpiconsole')
@@ -340,17 +336,23 @@ class wfpiconsole(App):
 			                           ' "device_id":' + self.config['Station']['OutdoorID'] + ',' +
 									   ' "id":"Outdoor"}')
 
-		# Extract observations from obs_Sky websocket message
+		# Extract observations from obs_sky websocket message
 		elif Type == 'obs_sky':
 			self.WebsocketObsSky(Msg)
 
-		# Extract observations from obs_Air websocket message
+		# Extract observations from obs_air websocket message
 		elif Type == 'obs_air':
 			self.WebsocketObsAir(Msg)
 
-		# Extract observations from Rapid_Wind websocket message
+		# Extract observations from rapid_wind websocket message
 		elif Type == 'rapid_wind':
 			self.WebsocketRapidWind(Msg)
+
+		# Extract observations from evt_strike websocket message
+		elif Type == 'evt_strike':
+			self.WebsocketEvtStrike(Msg)
+			print('LIGHTNING STRIKE')
+			print(Msg)
 
 	# EXTRACT OBSERVATIONS FROM OBS_SKY WEBSOCKET JSON MESSAGE
 	# --------------------------------------------------------------------------
@@ -433,8 +435,10 @@ class wfpiconsole(App):
 	# --------------------------------------------------------------------------
 	def WebsocketObsAir(self,Msg):
 
-		# Replace missing observations in latest AIR Websocket JSON with NaN
+		# Replace missing observations in latest AIR Websocket JSON with NaN 
+		# and extract summary values
 		Obs = [x if x != None else NaN for x in Msg['obs'][0]]
+		Summary = Msg['summary']
 
 		# Extract required observations from latest AIR Websocket JSON
 		Time = [Obs[0],'s']
@@ -442,6 +446,9 @@ class wfpiconsole(App):
 		Temp = [Obs[2],'c']
 		Humidity = [Obs[3],' %']
 		Battery = [Obs[6],' v']
+		StrikeTime = [Summary['strike_last_epoch'],'s']
+		StrikeDist = [Summary['strike_last_dist'],'km']
+		Strikes3hr = [Summary['strike_count_3h'],'count']
 
 		# Store latest AIR Websocket JSON
 		self.Air['Obs'] = Obs
@@ -451,13 +458,18 @@ class wfpiconsole(App):
 			WindSpd = [self.Sky['Obs'][5],'mps']
 		else:
 			WindSpd = None
+			
+		# Get last three hours of AIR data using WeatherFlow API
+		Data3h = self.GetData3h('Air',Obs)
 
 		# Calculate derived variables from AIR observations
 		DewPoint = self.DewPoint(Temp,Humidity)
 		FeelsLike = self.FeelsLike(Temp,Humidity,WindSpd)
 		SLP = self.SeaLevelPressure(Pres)
-		PresTrend = self.PressureTrend(Pres)
+		PresTrend = self.PressureTrend(Pres,Data3h)
 		MaxTemp,MinTemp,MaxPres,MinPres = self.AirObsMaxMin(Time,Temp,Pres)
+		StrikeDeltaT = self.LightningStrikeDeltaT(StrikeTime)
+		StrikesToday,StrikesMonth,StrikesYear = self.LightningStrikeCount()
 
 		# Convert observation units as required
 		Temp = self.ObservationUnits(Temp,self.config['Units']['Temp'])
@@ -469,6 +481,7 @@ class wfpiconsole(App):
 		MaxPres = self.ObservationUnits(MaxPres,self.config['Units']['Pressure'])
 		MinPres = self.ObservationUnits(MinPres,self.config['Units']['Pressure'])
 		PresTrend = self.ObservationUnits(PresTrend,self.config['Units']['Pressure'])
+		StrikeDist = self.ObservationUnits(StrikeDist,self.config['Units']['Distance'])
 
 		# Define station timezone
 		Tz = pytz.timezone(self.config['Station']['Timezone'])
@@ -484,6 +497,12 @@ class wfpiconsole(App):
 		self.Air['MaxPres'] = self.ObservationFormat(MaxPres,'Pressure')
 		self.Air['MinPres'] = self.ObservationFormat(MinPres,'Pressure')
 		self.Air['PresTrend'] = self.ObservationFormat(PresTrend,'Pressure')
+		self.Air['StrikeDeltaT'] = self.ObservationFormat(StrikeDeltaT,'TimeDelta')
+		self.Air['StrikeDist'] = self.ObservationFormat(StrikeDist,'Distance')
+		self.Air['Strikes3hr'] = self.ObservationFormat(Strikes3hr,'Lightning')
+		self.Air['StrikesToday'] = self.ObservationFormat(StrikesToday,'Lightning')
+		self.Air['StrikesMonth'] = self.ObservationFormat(StrikesMonth,'Lightning')
+		self.Air['StrikesYear'] = self.ObservationFormat(StrikesYear,'Lightning')
 		self.Air['Humidity'] = self.ObservationFormat(Humidity,'Humidity')
 		self.Air['Battery'] = self.ObservationFormat(Battery,'Battery')
 
@@ -533,6 +552,52 @@ class wfpiconsole(App):
 		# Animate wind rose arrow
 		self.WindRoseAnimation(WindDir[0],WindDirOld[0])
 
+	# EXTRACT OBSERVATIONS FROM EVT_STRIKE WEBSOCKET JSON MESSAGE
+	# --------------------------------------------------------------------------
+	def WebsocketEvtStrike(self,Msg):
+				
+		# Extract required observations from latest evt_strike Websocket JSON
+		StrikeTime = [Msg['evt'][0],'s']
+		StrikeDist = [Msg['evt'][1],'km']
+		
+		# Calculate derived variables from evt_strike observations
+		StrikeDeltaT = self.LightningStrikeDeltaT()
+		
+		# Convert observation units as required
+		StrikeDist = self.ObservationUnits(StrikeDist,self.config['Units']['Distance'])
+
+		# Define AIR Kivy label binds
+		self.Air['StrikeDeltaT'] = self.ObservationFormat(StrikeDeltaT,'TimeDelta')
+		self.Air['StrikeDist'] = self.ObservationFormat(StrikeDist,'Distance')
+		
+		# Switch Lightning panel background to show recent strike detected
+		Background = self.root.children[0].ids.LightningBackground
+		Background.source = 'background/lightningDetected.png'
+		
+		# Open lightning panel if required
+		Panel = self.root.children[0].ids.Lightning
+		Panel.opacity = 1
+
+
+	# GET LAST THREE HOURS OF DATA FROM WEATHERLOW API
+	# --------------------------------------------------------------------------
+	def GetData3h(self,Device,Obs):
+	
+		# Get last three hours of data from AIR module
+		if Device == 'Air':
+			
+			# Calculate timestamp three hours past
+			TimeStart = Obs[0] - int((3600*3+59))
+			TimeEnd = Obs[0]
+
+			# Download data for last three hours
+			Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&api_key={}'
+			URL = Template.format(self.config['Station']['OutdoorID'],TimeStart,TimeEnd,self.config['Keys']['WeatherFlow'])
+			Data = requests.get(URL)
+			
+			# Return observations from last three hours
+			return Data
+		
 	# CONVERT STATION OBSERVATIONS INTO REQUIRED UNITS
     # --------------------------------------------------------------------------
 	def ObservationUnits(self,Obs,Unit):
@@ -635,6 +700,14 @@ class wfpiconsole(App):
 							cObs[ii] = ' mm'
 						else:
 							cObs[ii] = ' mm/hr'
+		
+		# Convert distance observations
+		elif Unit in ['km','mi']:
+			for ii,Dist in enumerate(Obs):
+				if Dist == 'km':
+					if Unit == 'mi':
+						cObs[ii-1] = Obs[ii-1] * 0.62137
+						cObs[ii] = 'miles'
 
 		# Return converted observations
 		return cObs
@@ -758,6 +831,62 @@ class wfpiconsole(App):
 						cObs[ii-1] = '-'
 					else:
 						cObs[ii-1] = '{:.2f}'.format(cObs[ii-1])
+
+		# Format lightning observations
+		elif Type == 'Lightning':
+			for ii,L in enumerate(Obs):
+				if isinstance(L,str) and L.strip() == 'count':
+					if math.isnan(cObs[ii-1]):
+						cObs[ii-1] = '-'
+					else:
+						cObs[ii-1] = '{:.0f}'.format(cObs[ii-1])
+						
+		# Format distance observations
+		elif Type == 'Distance':
+			for ii,Dist in enumerate(Obs):
+				if isinstance(Dist,str) and Dist.strip() in ['miles','km']:
+					if math.isnan(cObs[ii-1]):
+						cObs[ii-1] = '-'
+					else:
+						cObs[ii-1] = '{:.0f}'.format(cObs[ii-1])	
+
+		# Format time difference observations
+		elif Type == 'TimeDelta':
+			for ii,Delta in enumerate(Obs):
+				if isinstance(Delta,str) and Delta.strip() in ['s']:
+					if math.isnan(cObs[ii-1]):
+						cObs[ii-1] = '-'
+					else:
+						days,remainder = divmod(cObs[ii-1],86400)
+						hours,remainder = divmod(remainder,3600)
+						minutes,seconds = divmod(remainder,60)
+						if days == 1:
+							if hours == 1:
+								cObs = ['{:02.0f}'.format(days),'day','{:02.0f}'.format(hours),'hour',cObs[2]]
+							else:
+								cObs = ['{:02.0f}'.format(days),'day','{:02.0f}'.format(hours),'hours',cObs[2]]
+						elif days > 1:
+							if hours == 1:
+								cObs = ['{:02.0f}'.format(days),'days','{:02.0f}'.format(hours),'hour',cObs[2]]
+							else:
+								cObs = ['{:02.0f}'.format(days),'days','{:02.0f}'.format(hours),'hours',cObs[2]]
+						elif hours == 1:
+							if minutes == 1:
+								cObs = ['{:02.0f}'.format(hours),'hour','{:02.0f}'.format(minutes),'min',cObs[2]]
+							else:
+								cObs = ['{:02.0f}'.format(hours),'hour','{:02.0f}'.format(minutes),'mins',cObs[2]]
+						elif hours > 1:
+							if minutes == 1:
+								cObs = ['{:02.0f}'.format(hours),'hours','{:02.0f}'.format(minutes),'min',cObs[2]]
+							else:
+								cObs = ['{:02.0f}'.format(hours),'hours','{:02.0f}'.format(minutes),'mins',cObs[2]]
+						else:
+							if minutes == 0:
+								cObs = ['< 1','minute','-','-',cObs[2]]
+							elif minutes == 1:
+								cObs = ['{:.0f}'.format(minutes),'minute','-','-',cObs[2]]
+							else:
+								cObs = ['{:.0f}'.format(minutes),'minutes','-','-',cObs[2]]
 
 		# Return formatted observations
 		return cObs
@@ -887,26 +1016,17 @@ class wfpiconsole(App):
 
 	# CALCULATE THE PRESSURE TREND AND SET THE PRESSURE TREND TEXT
     # --------------------------------------------------------------------------
-	def PressureTrend(self,Pres0h):
+	def PressureTrend(self,Pres0h,Data3h):
 
-		# Calculate timestamp three hours past
-		TimeStart = self.Air['Obs'][0] - int((3600*3+59))
-		TimeEnd = self.Air['Obs'][0] - int((3600*2.9))
-
-		# Download pressure data for last three hours
-		Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&api_key={}'
-		URL = Template.format(self.config['Station']['OutdoorID'],TimeStart,TimeEnd,self.config['Keys']['WeatherFlow'])
-		Data = requests.get(URL)
-
-		# Extract pressure observation from three hours ago. Return NaN if API
-		# call has failed
-		if VerifyJSON(Data,'WeatherFlow','obs'):
-			Data = Data.json()['obs']
-			Pres3h = [Data[0][1],'mb']
+		# Extract pressure observation from three hours ago. Return NaN for 
+		# pressure trend if API call has failed
+		if VerifyJSON(Data3h,'WeatherFlow','obs'):
+			Data3h = Data3h.json()['obs']
+			Pres3h = [Data3h[0][1],'mb']
 		else:
 			Pres3h = [NaN,'mb']
 
-		# Calculate pressure trend
+		# Calculate pressure trend	
 		Trend = (Pres0h[0] - Pres3h[0])/3
 
 		# Remove sign from pressure trend if it rounds to 0.0
@@ -926,7 +1046,7 @@ class wfpiconsole(App):
 		# Return pressure trend
 		return [Trend,'mb/hr',TrendTxt]
 
-	# CALCULATE DAILY RAIN ACCUMULATION LEVELS
+	# CALCULATE RAIN ACCUMULATION LEVELS FOR TODAY/YESTERDAY/MONTH/YEAR
     # --------------------------------------------------------------------------
 	def RainAccumulation(self,Rain):
 
@@ -939,19 +1059,17 @@ class wfpiconsole(App):
 		if self.Sky['TodayRain'][0] == '-':
 
 			# Convert midnight today in Station timezone to midnight today in
-			# UTC. Convert UTC time into UNIX timestamp
+			# UTC. Convert UTC time into UNIX timestamp.
 			Date = date.today()
-			Midnight = Tz.localize(datetime.combine(Date,time()))
-			Midnight_UTC = int(Midnight.timestamp())
+			Start = int(Tz.localize(datetime(Date.year,Date.month,Date.day)).timestamp())
 
 			# Convert current time in Station timezone to current time in  UTC.
-			# Convert current time time into UNIX timestamp
-			Now = Tz.localize(datetime.now())
-			Now_UTC = int(Now.timestamp())
+			# Convert current time into UNIX timestamp
+			End = int(Tz.localize(datetime.now()).timestamp())
 
 			# Download rainfall data for current day
 			Template = ('https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&api_key={}')
-			URL = Template.format(self.config['Station']['SkyID'],Midnight_UTC,Now_UTC,self.config['Keys']['WeatherFlow'])
+			URL = Template.format(self.config['Station']['SkyID'],Start,End,self.config['Keys']['WeatherFlow'])
 			Data = requests.get(URL)
 
 			# Calculate daily rainfall total. Return NaN if API call has failed
@@ -969,16 +1087,15 @@ class wfpiconsole(App):
 			# Convert midnight yesterday in Station timezone to midnight
 			# yesterday in UTC. Convert UTC time into UNIX timestamp
 			Date = date.today()	- timedelta(days=1)
-			Midnight = Tz.localize(datetime.combine(Date,time()))
-			Midnight_UTC = int(Midnight.timestamp())
+			Start = int(Tz.localize(datetime.combine(Date,time())).timestamp())
 
-			# Convert current time in Station timezone to current time in  UTC.
-			# Convert current time time into UNIX timestamp
-			End_UTC = Midnight_UTC + (60*60*24)-1
+			# Convert midnight today in Station timezone to midnight
+			# yesterday in UTC. Convert UTC time into UNIX timestamp
+			End = Start + (60*60*24)-1
 
 			# Download rainfall data for current month
 			Template = ('https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&api_key={}')
-			URL = Template.format(self.config['Station']['SkyID'],Midnight_UTC,End_UTC,self.config['Keys']['WeatherFlow'])
+			URL = Template.format(self.config['Station']['SkyID'],Start,End,self.config['Keys']['WeatherFlow'])
 			Data = requests.get(URL)
 
 			# Calculate yesterday rainfall total. Return NaN if API call has
@@ -994,16 +1111,18 @@ class wfpiconsole(App):
 		# Weatherflow API. Calculate total monthly rainfall
 		if self.Sky['MonthRain'][0] == '-':
 
-			# Calculate timestamps for current month
-			Time = datetime.utcfromtimestamp(self.Sky['Obs'][0])
-			TimeStart = datetime(Time.year,Time.month,1)
-			TimeStart = pytz.utc.localize(TimeStart)
-			TimeStart = int(UNIX.mktime(TimeStart.timetuple()))
-			TimeEnd = self.Sky['Obs'][0]
+			# Convert start of current month in Station timezone to start of
+			# current month in UTC. Convert UTC time into UNIX timestamp
+			Date = date.today()
+			Start = int(Tz.localize(datetime(Date.year,Date.month,1)).timestamp())
+
+			# Convert current time in Station timezone to current time in  UTC.
+			# Convert current time into UNIX timestamp
+			End = int(Tz.localize(datetime.now()).timestamp())
 
 			# Download rainfall data for current month.
 			Template = ('https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&api_key={}')
-			URL = Template.format(self.config['Station']['SkyID'],TimeStart,TimeEnd,self.config['Keys']['WeatherFlow'])
+			URL = Template.format(self.config['Station']['SkyID'],Start,End,self.config['Keys']['WeatherFlow'])
 			Data = requests.get(URL)
 
 			# Calculate monthly rainfall total. Return NaN if API call has
@@ -1019,16 +1138,18 @@ class wfpiconsole(App):
 		# Weatherflow API. Calculate total yearly rainfall
 		if self.Sky['YearRain'][0] == '-':
 
-			# Calculate timestamps for current year
-			Time = datetime.utcfromtimestamp(self.Sky['Obs'][0])
-			TimeStart = datetime(Time.year,1,1)
-			TimeStart = pytz.utc.localize(TimeStart)
-			TimeStart = int(UNIX.mktime(TimeStart.timetuple()))
-			TimeEnd = self.Sky['Obs'][0]
+			# Convert start of current year in Station timezone to start of
+			# current year in UTC. Convert UTC time into UNIX timestamp
+			Date = date.today()
+			Start = int(Tz.localize(datetime(Date.year,1,1)).timestamp())
+
+			# Convert current time in Station timezone to current time in  UTC.
+			# Convert current time into UNIX timestamp
+			End = int(Tz.localize(datetime.now()).timestamp())
 
 			# Download rainfall data for current year
 			Template = ('https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&api_key={}')
-			URL = Template.format(self.config['Station']['SkyID'],TimeStart,TimeEnd,self.config['Keys']['WeatherFlow'])
+			URL = Template.format(self.config['Station']['SkyID'],Start,End,self.config['Keys']['WeatherFlow'])
 			Data = requests.get(URL)
 
 			# Calculate yearly rainfall total. Return NaN if API call has failed
@@ -1098,6 +1219,136 @@ class wfpiconsole(App):
 		# Return instantaneous rain rate and text
 		return [RainRate,'mm/hr',RainRateTxt]
 
+	# CALCULATE TIME SINCE LAST LIGHTNING STRIKE
+	# --------------------------------------------------------------------------
+	def LightningStrikeDeltaT(self,StrikeTime):
+		
+		# Calculate time since last lightning strike
+		Now = int(UNIX.time())
+		deltaT = Now - StrikeTime[0]
+		StrikeDeltaT = [deltaT,'s',deltaT]
+		
+		# Return time since and distance to last lightning strike
+		return StrikeDeltaT
+
+	# CALCULATE NUMBER OF LIGHTNING STRIKES FOR LAST 3 HOURS/TODAY/MONTH/YEAR
+	# --------------------------------------------------------------------------
+	def LightningStrikeCount(self):
+
+		# Define current time in station timezone
+		Tz = pytz.timezone(self.config['Station']['Timezone'])
+		Now = datetime.now(pytz.utc).astimezone(Tz)
+		
+		# Code initialising. Download all data for current day using Weatherflow
+		# API. Calculate total daily lightning strikes
+		if self.Air['StrikesToday'][0] == '-':
+
+			# Convert midnight today in Station timezone to midnight today in
+			# UTC. Convert UTC time into UNIX timestamp
+			Date = date.today()
+			Start = int(Tz.localize(datetime(Date.year,Date.month,Date.day)).timestamp())
+
+			# Convert current time in Station timezone to current time in  UTC.
+			# Convert current time into UNIX timestamp
+			End = int(Tz.localize(datetime.now()).timestamp())
+
+			# Download lightning strike data for current day
+			Template = ('https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&api_key={}')
+			URL = Template.format(self.config['Station']['OutdoorID'],Start,End,self.config['Keys']['WeatherFlow'])
+			Data = requests.get(URL)
+
+			# Calculate daily lightning strike total. Return NaN if API call has
+			# failed
+			if VerifyJSON(Data,'WeatherFlow','obs'):
+				Data = Data.json()['obs']
+				Strikes = [item[4] if item[4] != None else NaN for item in Data]
+				StrikesToday = [sum(x for x in Strikes),'count',sum(x for x in Strikes),Now]
+			else:
+				StrikesToday = [NaN,'count',NaN,Now]
+
+		# Code initialising. Download all data for current month using
+		# Weatherflow API. Calculate total monthly lightning strikes
+		if self.Air['StrikesMonth'][0] == '-':
+
+			# Convert start of current month in Station timezone to start of
+			# current month in UTC. Convert UTC time into UNIX timestamp
+			Date = date.today()
+			Start = int(Tz.localize(datetime(Date.year,Date.month,1)).timestamp())
+
+			# Convert current time in Station timezone to current time in  UTC.
+			# Convert current time into UNIX timestamp
+			End = int(Tz.localize(datetime.now()).timestamp())
+
+			# Download lightning strike data for current month.
+			Template = ('https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&api_key={}')
+			URL = Template.format(self.config['Station']['OutdoorID'],Start,End,self.config['Keys']['WeatherFlow'])
+			Data = requests.get(URL)
+
+			# Calculate monthly lightning strike total. Return NaN if API call
+			# has failed
+			if VerifyJSON(Data,'WeatherFlow','obs'):
+				Data = Data.json()['obs']
+				Strikes = [item[4] if item[4] != None else NaN for item in Data]
+				StrikesMonth = [sum(x for x in Strikes),'count',sum(x for x in Strikes),Now]
+			else:
+				StrikesMonth = [NaN,'count',NaN,Now]
+
+		# Code initialising. Download all data for current year using
+		# Weatherflow API. Calculate total yearly lightning strikes
+		if self.Air['StrikesYear'][0] == '-':
+
+			# Convert start of current year in Station timezone to start of
+			# current year in UTC. Convert UTC time into UNIX timestamp
+			Date = date.today()
+			Start = int(Tz.localize(datetime(Date.year,1,1)).timestamp())
+
+			# Convert current time in Station timezone to current time in  UTC.
+			# Convert current time into UNIX timestamp
+			End = int(Tz.localize(datetime.now()).timestamp())
+
+			# Download lightning strike data for current year
+			Template = ('https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&api_key={}')
+			URL = Template.format(self.config['Station']['OutdoorID'],Start,End,self.config['Keys']['WeatherFlow'])
+			Data = requests.get(URL)
+
+			# Calculate yearly lightning strikes total. Return NaN if API call
+			# has failed
+			if VerifyJSON(Data,'WeatherFlow','obs'):
+				Data = Data.json()['obs']
+				Strikes = [item[4] if item[4] != None else NaN for item in Data]
+				StrikesYear = [sum(x for x in Strikes),'count',sum(x for x in Strikes),Now]
+			else:
+				StrikesYear = [NaN,'count',NaN,Now]
+
+			# Return Daily, Monthly, and Yearly lightning strike counts
+			return StrikesToday,StrikesMonth,StrikesYear
+
+		# At midnight, reset daily lightning strike count to zero, else return
+		# current daily lightning strike count.
+		if Now.date() > self.Air['StrikesToday'][3].date():
+			StrikesToday = [0,'count',Now]
+		else:
+			StrikesToday = [self.Air['StrikesToday'][2],'count',self.Air['StrikesToday'][2],Now]
+
+		# At end of month, reset monthly lightning strike count to zero, else
+		# return current monthly lightning strike count
+		if Now.month > self.Air['StrikesMonth'][3].month:
+			StrikesMonth = [0,'count',Now]
+		else:
+			StrikesMonth = [self.Air['StrikesMonth'][2],'count',self.Air['StrikesMonth'][2],Now]
+
+		# At end of year, reset monthly and yearly lightning strike counts to
+		# zero, else return current monthly and yearly lightning strike count
+		if Now.year > self.Air['StrikesYear'][3].year:
+			StrikesMonth = [0,'count',Now]
+			StrikesYear = [0,'count',Now]
+		else:
+			StrikesMonth = [self.Air['StrikesMonth'][2],'count',self.Air['StrikesMonth'][2],Now]
+			StrikesYear = [self.Air['StrikesYear'][2],'count',self.Air['StrikesYear'][2],Now]
+
+		# Return Daily, Monthly, and Yearly lightning strike accumulation totals
+		return StrikesToday,StrikesMonth,StrikesYear
+
 	# CALCULATE DAILY AVERAGED WIND SPEED
 	# --------------------------------------------------------------------------
 	def MeanWindSpeed(self,WindSpd):
@@ -1155,7 +1406,7 @@ class wfpiconsole(App):
 		# Return daily averaged wind speed
 		return AvgWind
 
-	# CALCULATE MAXIMUM AND MINIMUM OBSERVED TEMPERATURE AND PRESSURE
+	# CALCULATE MAXIMUM AND MINIMUM OBSERVED OUTDOOR TEMPERATURE AND PRESSURE
 	# --------------------------------------------------------------------------
 	def AirObsMaxMin(self,Time,Temp,Pres):
 
@@ -2163,7 +2414,7 @@ class CurrentConditions(Screen):
 
 	# Define Kivy properties required by 'CurrentConditions'
 	Screen = DictProperty([('Clock','--'),('SunMoon','Sun'),('MetSager','Met'),
-						   ('xRainAnim',471),('yRainAnim',11)])
+						   ('RainLightning','Rain'),('xRainAnim',471),('yRainAnim',11)])
 
 	# INITIALISE 'CurrentConditions' SCREEN CLASS
 	# --------------------------------------------------------------------------
@@ -2233,27 +2484,34 @@ class CurrentConditions(Screen):
 	# --------------------------------------------------------------------------
 	def SwitchPanel(self,Instance,Panel):
 
-		# Switch between Sunrise/Sunset and Moonrise/Moonset panels
-		if Panel == 'SunMoon':
-			if self.Screen['SunMoon'] == 'Sun':
-				self.ids.Sunrise.opacity = 0
-				self.ids.Moon.opacity = 1
-				self.Screen['SunMoon'] = 'Moon'
-			else:
-				self.ids.Sunrise.opacity = 1
-				self.ids.Moon.opacity = 0
-				self.Screen['SunMoon'] = 'Sun'
-
 		# Switch between MetOffice and Sager Forecast panels
-		elif Panel == 'MetSager':
-			if self.Screen['MetSager'] == 'Met':
+		if Panel == 'MetSager':
+			if self.ids.Sager.opacity == 0:
 				self.ids.MetOffice.opacity = 0
 				self.ids.Sager.opacity = 1
-				self.Screen['MetSager'] = 'Sager'
 			else:
 				self.ids.MetOffice.opacity = 1
 				self.ids.Sager.opacity = 0
-				self.Screen['MetSager'] = 'Met'
+
+		# Switch between Sunrise/Sunset and Moonrise/Moonset panels
+		elif Panel == 'SunMoon':
+			if self.ids.Moon.opacity == 0:
+				self.ids.Sunrise.opacity = 0
+				self.ids.Moon.opacity = 1
+			else:
+				self.ids.Sunrise.opacity = 1
+				self.ids.Moon.opacity = 0
+
+		# Switch between Rainfall and Lightning panels
+		elif Panel == 'RainLightning':
+			if self.ids.Lightning.opacity == 0:
+				self.ids.Lightning.opacity = 1
+				self.ids.RainLightning.background_normal = 'buttons/rainfall.png'
+				self.ids.RainLightning.background_down = 'buttons/rainfallPressed.png'
+			else:
+				self.ids.Lightning.opacity = 0
+				self.ids.RainLightning.background_normal = 'buttons/lightning.png'
+				self.ids.RainLightning.background_down = 'buttons/lightningPressed.png'
 
 # ==============================================================================
 # DEFINE CREDITS POPUP
