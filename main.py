@@ -157,16 +157,19 @@ def VerifyJSON(Data,Type,Field):
 		return False
 	else:
 		Data = Data.json()
-		if Type == 'WeatherFlow':
-			if 'SUCCESS' in Data['status']['status_message'] and Field in Data and Data[Field] is not None:
-				return True
-			else:
-				return False
-		elif Type == 'CheckWX':
-			if Field in Data and Data[Field] is not None:
-				return True
-			else:
-				return False
+		if isinstance(Data,dict):
+			if Type == 'WeatherFlow':
+				if 'SUCCESS' in Data['status']['status_message'] and Field in Data and Data[Field] is not None:
+					return True
+				else:
+					return False
+			elif Type == 'CheckWX':
+				if Field in Data and Data[Field] is not None:
+					return True
+				else:
+					return False
+		else:
+			return False
 
 # ==============================================================================
 # DEFINE 'WeatherFlowPiConsole' APP CLASS
@@ -343,6 +346,9 @@ class wfpiconsole(App):
 		# Extract observations from obs_air websocket message
 		elif Type == 'obs_air':
 			self.WebsocketObsAir(Msg)
+			
+			Msg = {"type":"evt_strike", "device_id":1110, "evt":[int(UNIX.time()),33,3848]}
+			self.WebsocketEvtStrike(Msg)
 
 		# Extract observations from rapid_wind websocket message
 		elif Type == 'rapid_wind':
@@ -351,8 +357,6 @@ class wfpiconsole(App):
 		# Extract observations from evt_strike websocket message
 		elif Type == 'evt_strike':
 			self.WebsocketEvtStrike(Msg)
-			print('LIGHTNING STRIKE')
-			print(Msg)
 
 	# EXTRACT OBSERVATIONS FROM OBS_SKY WEBSOCKET JSON MESSAGE
 	# --------------------------------------------------------------------------
@@ -435,10 +439,8 @@ class wfpiconsole(App):
 	# --------------------------------------------------------------------------
 	def WebsocketObsAir(self,Msg):
 
-		# Replace missing observations in latest AIR Websocket JSON with NaN 
-		# and extract summary values
+		# Replace missing observations in latest AIR Websocket JSON with NaN
 		Obs = [x if x != None else NaN for x in Msg['obs'][0]]
-		Summary = Msg['summary']
 
 		# Extract required observations from latest AIR Websocket JSON
 		Time = [Obs[0],'s']
@@ -446,9 +448,10 @@ class wfpiconsole(App):
 		Temp = [Obs[2],'c']
 		Humidity = [Obs[3],' %']
 		Battery = [Obs[6],' v']
-		StrikeTime = [Summary['strike_last_epoch'],'s']
-		StrikeDist = [Summary['strike_last_dist'],'km']
-		Strikes3hr = [Summary['strike_count_3h'],'count']
+		StrikeCount = [Obs[4],'count']
+		StrikeTime = [Msg['summary']['strike_last_epoch'],'s']
+		StrikeDist = [Msg['summary']['strike_last_dist'],'km']
+		Strikes3hr = [Msg['summary']['strike_count_3h'],'count']
 
 		# Store latest AIR Websocket JSON
 		self.Air['Obs'] = Obs
@@ -469,7 +472,7 @@ class wfpiconsole(App):
 		PresTrend = self.PressureTrend(Pres,Data3h)
 		MaxTemp,MinTemp,MaxPres,MinPres = self.AirObsMaxMin(Time,Temp,Pres)
 		StrikeDeltaT = self.LightningStrikeDeltaT(StrikeTime)
-		StrikesToday,StrikesMonth,StrikesYear = self.LightningStrikeCount()
+		StrikesToday,StrikesMonth,StrikesYear = self.LightningStrikeCount(StrikeCount)
 
 		# Convert observation units as required
 		Temp = self.ObservationUnits(Temp,self.config['Units']['Temp'])
@@ -555,13 +558,14 @@ class wfpiconsole(App):
 	# EXTRACT OBSERVATIONS FROM EVT_STRIKE WEBSOCKET JSON MESSAGE
 	# --------------------------------------------------------------------------
 	def WebsocketEvtStrike(self,Msg):
-				
+		print(Msg)
+		print(self.config['Display']['LightningPanel'])
 		# Extract required observations from latest evt_strike Websocket JSON
 		StrikeTime = [Msg['evt'][0],'s']
 		StrikeDist = [Msg['evt'][1],'km']
 		
 		# Calculate derived variables from evt_strike observations
-		StrikeDeltaT = self.LightningStrikeDeltaT()
+		StrikeDeltaT = self.LightningStrikeDeltaT(StrikeTime)
 		
 		# Convert observation units as required
 		StrikeDist = self.ObservationUnits(StrikeDist,self.config['Units']['Distance'])
@@ -570,14 +574,13 @@ class wfpiconsole(App):
 		self.Air['StrikeDeltaT'] = self.ObservationFormat(StrikeDeltaT,'TimeDelta')
 		self.Air['StrikeDist'] = self.ObservationFormat(StrikeDist,'Distance')
 		
-		# Switch Lightning panel background to show recent strike detected
-		Background = self.root.children[0].ids.LightningBackground
-		Background.source = 'background/lightningDetected.png'
-		
-		# Open lightning panel if required
-		Panel = self.root.children[0].ids.Lightning
-		Panel.opacity = 1
-
+		# Switch Lightning panel background to show recent strike detected and 
+		# open lightning panel if required based on config settings
+		self.root.children[0].ids.LightningPanelBackground.source = 'background/lightningDetected.png'
+		if self.config['Display']['LightningPanel'] == '1':
+			self.root.children[0].ids.LightningPanel.opacity = 1
+			self.root.children[0].ids.RainLightning.background_normal = 'buttons/rainfall.png'
+			self.root.children[0].ids.RainLightning.background_down = 'buttons/rainfallPressed.png'
 
 	# GET LAST THREE HOURS OF DATA FROM WEATHERLOW API
 	# --------------------------------------------------------------------------
@@ -860,26 +863,30 @@ class wfpiconsole(App):
 						days,remainder = divmod(cObs[ii-1],86400)
 						hours,remainder = divmod(remainder,3600)
 						minutes,seconds = divmod(remainder,60)
-						if days == 1:
+						if days >= 1:
+							if days == 1:
+								if hours == 1:
+									cObs = ['{:.0f}'.format(days),'day','{:.0f}'.format(hours),'hour',cObs[2]]
+								else:
+									cObs = ['{:.0f}'.format(days),'day','{:.0f}'.format(hours),'hours',cObs[2]]
+							elif days <= 99:
+								if hours == 1:
+									cObs = ['{:.0f}'.format(days),'days','{:.0f}'.format(hours),'hour',cObs[2]]
+								else:
+									cObs = ['{:.0f}'.format(days),'days','{:.0f}'.format(hours),'hours',cObs[2]]
+							elif days >= 100:
+									cObs = ['{:.0f}'.format(days),'days','-','-',cObs[2]]
+						if hours >= 1:			
 							if hours == 1:
-								cObs = ['{:02.0f}'.format(days),'day','{:02.0f}'.format(hours),'hour',cObs[2]]
-							else:
-								cObs = ['{:02.0f}'.format(days),'day','{:02.0f}'.format(hours),'hours',cObs[2]]
-						elif days > 1:
-							if hours == 1:
-								cObs = ['{:02.0f}'.format(days),'days','{:02.0f}'.format(hours),'hour',cObs[2]]
-							else:
-								cObs = ['{:02.0f}'.format(days),'days','{:02.0f}'.format(hours),'hours',cObs[2]]
-						elif hours == 1:
-							if minutes == 1:
-								cObs = ['{:02.0f}'.format(hours),'hour','{:02.0f}'.format(minutes),'min',cObs[2]]
-							else:
-								cObs = ['{:02.0f}'.format(hours),'hour','{:02.0f}'.format(minutes),'mins',cObs[2]]
-						elif hours > 1:
-							if minutes == 1:
-								cObs = ['{:02.0f}'.format(hours),'hours','{:02.0f}'.format(minutes),'min',cObs[2]]
-							else:
-								cObs = ['{:02.0f}'.format(hours),'hours','{:02.0f}'.format(minutes),'mins',cObs[2]]
+								if minutes == 1:
+									cObs = ['{:.0f}'.format(hours),'hour','{:.0f}'.format(minutes),'min',cObs[2]]
+								else:
+									cObs = ['{:.0f}'.format(hours),'hour','{:.0f}'.format(minutes),'mins',cObs[2]]
+							elif hours > 1:
+								if minutes == 1:
+									cObs = ['{:.0f}'.format(hours),'hours','{:.0f}'.format(minutes),'min',cObs[2]]
+								else:
+									cObs = ['{:.0f}'.format(hours),'hours','{:.0f}'.format(minutes),'mins',cObs[2]]
 						else:
 							if minutes == 0:
 								cObs = ['< 1','minute','-','-',cObs[2]]
@@ -1233,7 +1240,7 @@ class wfpiconsole(App):
 
 	# CALCULATE NUMBER OF LIGHTNING STRIKES FOR LAST 3 HOURS/TODAY/MONTH/YEAR
 	# --------------------------------------------------------------------------
-	def LightningStrikeCount(self):
+	def LightningStrikeCount(self,Count):
 
 		# Define current time in station timezone
 		Tz = pytz.timezone(self.config['Station']['Timezone'])
@@ -1328,14 +1335,16 @@ class wfpiconsole(App):
 		if Now.date() > self.Air['StrikesToday'][3].date():
 			StrikesToday = [0,'count',Now]
 		else:
-			StrikesToday = [self.Air['StrikesToday'][2],'count',self.Air['StrikesToday'][2],Now]
+			StrikeCount = self.Air['StrikesToday'][2]+Count[0]
+			StrikesToday = [StrikeCount,'count',StrikeCount,Now]
 
 		# At end of month, reset monthly lightning strike count to zero, else
 		# return current monthly lightning strike count
 		if Now.month > self.Air['StrikesMonth'][3].month:
 			StrikesMonth = [0,'count',Now]
 		else:
-			StrikesMonth = [self.Air['StrikesMonth'][2],'count',self.Air['StrikesMonth'][2],Now]
+			StrikeCount = self.Air['StrikesMonth'][2]+Count[0]
+			StrikesMonth = [StrikeCount,'count',StrikeCount,Now]
 
 		# At end of year, reset monthly and yearly lightning strike counts to
 		# zero, else return current monthly and yearly lightning strike count
@@ -1343,8 +1352,8 @@ class wfpiconsole(App):
 			StrikesMonth = [0,'count',Now]
 			StrikesYear = [0,'count',Now]
 		else:
-			StrikesMonth = [self.Air['StrikesMonth'][2],'count',self.Air['StrikesMonth'][2],Now]
-			StrikesYear = [self.Air['StrikesYear'][2],'count',self.Air['StrikesYear'][2],Now]
+			StrikeCount = self.Air['StrikesYear'][2]+Count[0]
+			StrikesYear = [StrikeCount,'count',StrikeCount,Now]
 
 		# Return Daily, Monthly, and Yearly lightning strike accumulation totals
 		return StrikesToday,StrikesMonth,StrikesYear
@@ -2504,12 +2513,12 @@ class CurrentConditions(Screen):
 
 		# Switch between Rainfall and Lightning panels
 		elif Panel == 'RainLightning':
-			if self.ids.Lightning.opacity == 0:
-				self.ids.Lightning.opacity = 1
+			if self.ids.LightningPanel.opacity == 0:
+				self.ids.LightningPanel.opacity = 1
 				self.ids.RainLightning.background_normal = 'buttons/rainfall.png'
 				self.ids.RainLightning.background_down = 'buttons/rainfallPressed.png'
 			else:
-				self.ids.Lightning.opacity = 0
+				self.ids.LightningPanel.opacity = 0
 				self.ids.RainLightning.background_normal = 'buttons/lightning.png'
 				self.ids.RainLightning.background_down = 'buttons/lightningPressed.png'
 

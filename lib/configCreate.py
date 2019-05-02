@@ -347,7 +347,8 @@ def default_ini():
 													 ('Distance',		{'Type': 'request', 'Source': 'observationWF', 'Desc': 'station distance units'}),
 													 ('Other',			{'Type': 'request', 'Source': 'observationWF', 'Desc': 'station other units'})])
 	Default['Display'] =  	collections.OrderedDict([('TimeFormat',		{'Type': 'default', 'Value': '24 hr', 'Desc': 'time format'}),
-													 ('DateFormat',		{'Type': 'default', 'Value': 'Mon, 01 Jan 0000', 'Desc': 'date format'})])
+													 ('DateFormat',		{'Type': 'default', 'Value': 'Mon, 01 Jan 0000', 'Desc': 'date format'}),
+													 ('LightningPanel',	{'Type': 'default', 'Value': '1', 'Desc': 'lightning panel'})])
 	Default['FeelsLike'] = 	collections.OrderedDict([('ExtremelyCold',	{'Type': 'default', 'Value': '-4', 'Desc': '"Feels extremely" cold cut-off temperature'}),
 													 ('FreezingCold',	{'Type': 'default', 'Value': '0',  'Desc': '"Feels freezing" cold cut-off temperature'}),
 													 ('VeryCold',		{'Type': 'default', 'Value': '4',  'Desc': '"Feels very cold" cut-off temperature'}),
@@ -368,8 +369,9 @@ def settings_json(Section):
 				 {'type':'FixedOptions', 'options':['24 hr','12 hr'],
 				  'title':'Time format', 'desc':'Set time to display in 12 hr or 24 hr format', 'section':'Display', 'key':'TimeFormat'},
 				 {'type':'FixedOptions', 'options':['Mon, 01 Jan 0000','Mon, Jan 01 0000','Monday, 01 Jan 0000','Monday, Jan 01 0000'],
-				  'title':'Date format', 'desc':'Set date format', 'section':'Display', 'key':'DateFormat'}]
-				  
+				  'title':'Date format', 'desc':'Set date format', 'section':'Display', 'key':'DateFormat'},
+				 {'type': 'bool', 'desc': 'Open the lightning panel automatically when a strike is detected', 
+				  'title': 'Lightning panel','section': 'Display', 'key': 'LightningPanel'}]
 	elif 'Units' in Section:
 		Data = 	[
 				 {'type':'FixedOptions', 'options':['c','f'],'title':'Temperature', 
