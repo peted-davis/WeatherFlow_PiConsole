@@ -347,9 +347,6 @@ class wfpiconsole(App):
 		elif Type == 'obs_air':
 			self.WebsocketObsAir(Msg)
 			
-			Msg = {"type":"evt_strike", "device_id":1110, "evt":[int(UNIX.time()),33,3848]}
-			self.WebsocketEvtStrike(Msg)
-
 		# Extract observations from rapid_wind websocket message
 		elif Type == 'rapid_wind':
 			self.WebsocketRapidWind(Msg)
@@ -558,8 +555,7 @@ class wfpiconsole(App):
 	# EXTRACT OBSERVATIONS FROM EVT_STRIKE WEBSOCKET JSON MESSAGE
 	# --------------------------------------------------------------------------
 	def WebsocketEvtStrike(self,Msg):
-		print(Msg)
-		print(self.config['Display']['LightningPanel'])
+
 		# Extract required observations from latest evt_strike Websocket JSON
 		StrikeTime = [Msg['evt'][0],'s']
 		StrikeDist = [Msg['evt'][1],'km']
@@ -876,7 +872,7 @@ class wfpiconsole(App):
 									cObs = ['{:.0f}'.format(days),'days','{:.0f}'.format(hours),'hours',cObs[2]]
 							elif days >= 100:
 									cObs = ['{:.0f}'.format(days),'days','-','-',cObs[2]]
-						if hours >= 1:			
+						elif hours >= 1:			
 							if hours == 1:
 								if minutes == 1:
 									cObs = ['{:.0f}'.format(hours),'hour','{:.0f}'.format(minutes),'min',cObs[2]]
@@ -1234,6 +1230,10 @@ class wfpiconsole(App):
 		Now = int(UNIX.time())
 		deltaT = Now - StrikeTime[0]
 		StrikeDeltaT = [deltaT,'s',deltaT]
+		
+		# Switch Lightning Panel background if deltaT is greater than 5 minutes
+		if deltaT > 360:
+			self.root.children[0].ids.LightningPanelBackground.source = 'background/lightning.png'
 		
 		# Return time since and distance to last lightning strike
 		return StrikeDeltaT
