@@ -326,7 +326,6 @@ class wfpiconsole(App):
 
 		# Extract type of received message
 		Type = Msg['type']
-		print(Type)
 
 		# Initialise data streaming upon connection of websocket
 		if Type == 'connection_opened':
@@ -354,7 +353,6 @@ class wfpiconsole(App):
 
 		# Extract observations from evt_strike websocket message
 		elif Type == 'evt_strike':
-			print('STRIKE')
 			self.WebsocketEvtStrike(Msg)
 
 	# EXTRACT OBSERVATIONS FROM OBS_SKY WEBSOCKET JSON MESSAGE
