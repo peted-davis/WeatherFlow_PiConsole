@@ -326,6 +326,7 @@ class wfpiconsole(App):
 
 		# Extract type of received message
 		Type = Msg['type']
+		print(Type)
 
 		# Initialise data streaming upon connection of websocket
 		if Type == 'connection_opened':
@@ -353,6 +354,7 @@ class wfpiconsole(App):
 
 		# Extract observations from evt_strike websocket message
 		elif Type == 'evt_strike':
+			print('STRIKE')
 			self.WebsocketEvtStrike(Msg)
 
 	# EXTRACT OBSERVATIONS FROM OBS_SKY WEBSOCKET JSON MESSAGE
@@ -1333,7 +1335,7 @@ class wfpiconsole(App):
 		# At midnight, reset daily lightning strike count to zero, else return
 		# current daily lightning strike count.
 		if Now.date() > self.Air['StrikesToday'][3].date():
-			StrikesToday = [0,'count',Now]
+			StrikesToday = [0,'count',0,Now]
 		else:
 			StrikeCount = self.Air['StrikesToday'][2]+Count[0]
 			StrikesToday = [StrikeCount,'count',StrikeCount,Now]
@@ -1341,7 +1343,7 @@ class wfpiconsole(App):
 		# At end of month, reset monthly lightning strike count to zero, else
 		# return current monthly lightning strike count
 		if Now.month > self.Air['StrikesMonth'][3].month:
-			StrikesMonth = [0,'count',Now]
+			StrikesMonth = [0,'count',0,Now]
 		else:
 			StrikeCount = self.Air['StrikesMonth'][2]+Count[0]
 			StrikesMonth = [StrikeCount,'count',StrikeCount,Now]
@@ -1349,8 +1351,8 @@ class wfpiconsole(App):
 		# At end of year, reset monthly and yearly lightning strike counts to
 		# zero, else return current monthly and yearly lightning strike count
 		if Now.year > self.Air['StrikesYear'][3].year:
-			StrikesMonth = [0,'count',Now]
-			StrikesYear = [0,'count',Now]
+			StrikesMonth = [0,'count',0,Now]
+			StrikesYear = [0,'count',0,Now]
 		else:
 			StrikeCount = self.Air['StrikesYear'][2]+Count[0]
 			StrikesYear = [StrikeCount,'count',StrikeCount,Now]
