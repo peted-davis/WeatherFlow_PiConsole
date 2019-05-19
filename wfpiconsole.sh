@@ -138,9 +138,9 @@ updatePackages() {
 			backtitle="Installing updated packages"
 			title="Updated packages available to install"
 			if [ "$updatesToInstall" -eq "1" ]; then
-				msg="There is $updatesToInstall updated package to install. Do you wish to install it (recommended)?"
+				msg="OPTIONAL: There is $updatesToInstall updated package to install. Do you wish to install it? This step is not required, but is highly recommended to keep your Raspberry Pi up-to-date and secure"
 			else
-				msg="There are $updatesToInstall updated packages to install. Do you wish to install them (recommended)?"
+				msg="OPTIONAL: There are $updatesToInstall updated packages to install. Do you wish to install them? This step is not required, but is highly recommended to keep your Raspberry Pi up-to-date and secure"
 			fi
 			if (whiptail --backtitle "$backtitle" --title "$title" --yesno "$msg" ${r} ${c}); then
 

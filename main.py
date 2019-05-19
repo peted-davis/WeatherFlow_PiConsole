@@ -498,11 +498,11 @@ class wfpiconsole(App):
 		self.Air['MinPres'] = self.ObservationFormat(MinPres,'Pressure')
 		self.Air['PresTrend'] = self.ObservationFormat(PresTrend,'Pressure')
 		self.Air['StrikeDeltaT'] = self.ObservationFormat(StrikeDeltaT,'TimeDelta')
-		self.Air['StrikeDist'] = self.ObservationFormat(StrikeDist,'Distance')
-		self.Air['Strikes3hr'] = self.ObservationFormat(Strikes3hr,'Lightning')
-		self.Air['StrikesToday'] = self.ObservationFormat(StrikesToday,'Lightning')
-		self.Air['StrikesMonth'] = self.ObservationFormat(StrikesMonth,'Lightning')
-		self.Air['StrikesYear'] = self.ObservationFormat(StrikesYear,'Lightning')
+		self.Air['StrikeDist'] = self.ObservationFormat(StrikeDist,'StrikeDistance')
+		self.Air['Strikes3hr'] = self.ObservationFormat(Strikes3hr,'StrikeCount')
+		self.Air['StrikesToday'] = self.ObservationFormat(StrikesToday,'StrikeCount')
+		self.Air['StrikesMonth'] = self.ObservationFormat(StrikesMonth,'StrikeCount')
+		self.Air['StrikesYear'] = self.ObservationFormat(StrikesYear,'StrikeCount')
 		self.Air['Humidity'] = self.ObservationFormat(Humidity,'Humidity')
 		self.Air['Battery'] = self.ObservationFormat(Battery,'Battery')
 
@@ -831,23 +831,35 @@ class wfpiconsole(App):
 					else:
 						cObs[ii-1] = '{:.2f}'.format(cObs[ii-1])
 
-		# Format lightning observations
-		elif Type == 'Lightning':
+		# Format lightning strike count observations
+		elif Type == 'StrikeCount':
 			for ii,L in enumerate(Obs):
 				if isinstance(L,str) and L.strip() == 'count':
 					if math.isnan(cObs[ii-1]):
 						cObs[ii-1] = '-'
-					else:
+					elif cObs[ii-1] < 1000:
 						cObs[ii-1] = '{:.0f}'.format(cObs[ii-1])
-						
-		# Format distance observations
-		elif Type == 'Distance':
-			for ii,Dist in enumerate(Obs):
-				if isinstance(Dist,str) and Dist.strip() in ['miles','km']:
-					if math.isnan(cObs[ii-1]):
-						cObs[ii-1] = '-'
 					else:
-						cObs[ii-1] = '{:.0f}'.format(cObs[ii-1])	
+						cObs[ii-1] = '{:.1f}'.format(cObs[ii-1]/1000) + ' k'
+						
+		# Format lightning strike distance observations
+		elif Type == 'StrikeDistance':
+			for ii,StrikeDist in enumerate(Obs):
+				if isinstance(StrikeDist,str):
+					if StrikeDist.strip() in ['km']:
+						if math.isnan(cObs[ii-1]):
+							cObs[ii-1] = '-'
+						else:
+							DistBins = [5,10,20,35,50]
+							Dist = DistBins[bisect.bisect_right(DistBins,cObs[ii-1])] 
+							cObs[ii-1] = '{:.0f}'.format(Dist)
+					elif StrikeDist.strip() in ['miles']:
+						if math.isnan(cObs[ii-1]):
+							cObs[ii-1] = '-'
+						else:
+							DistBins = [3,6,12,22,32]
+							Dist = DistBins[bisect.bisect_right(DistBins,cObs[ii-1])] 
+							cObs[ii-1] = '{:.0f}'.format(Dist)
 
 		# Format time difference observations
 		elif Type == 'TimeDelta':
