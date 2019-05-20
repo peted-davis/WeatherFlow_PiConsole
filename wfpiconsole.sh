@@ -617,6 +617,7 @@ update() {
 	# Fetch the latest update code directly from the master Github branch. This 
 	# ensures that changes in dependencies are addressed during this update
 	fetchUpdateCode
+}	
 	
 # RUN THE UPDATE PROCESS
 # ------------------------------------------------------------------------------
