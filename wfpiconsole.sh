@@ -509,7 +509,7 @@ processStarting() {
 			printf "  ================================\\n\\n"
 			;;
 	# Display update starting dialogue
-		update)
+		runUpdate)
 			printf "\\n  %b Root user check passed\\n" "${TICK}"
 			printf "\\n"
 			printf "  ==============================\\n"
@@ -548,7 +548,7 @@ processComplete() {
 			printf "  ============================================ \\n\\n"
 			;;
 	# Display update complete dialogue	
-		update)
+		runUpdate)
 			printf "  \\n"
 			printf "  ============================================= \\n"
 			printf "  WeatherFlow PiConsole update complete!        \\n"
