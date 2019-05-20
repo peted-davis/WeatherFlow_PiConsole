@@ -721,6 +721,7 @@ case "${1}" in
 	"stop"             	  ) stop;;
 	"install"		   	  ) install;;
 	"update"           	  ) update;;
+	"runUpdate"			  ) runUpdate;;
 	"autostart-enable"    ) autostart-enable;;
 	"autostart-disable"   ) autostart-disable;;
 	*                  	  ) printf "Unrecognised usage\\n" && helpFunc;;
