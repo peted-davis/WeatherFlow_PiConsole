@@ -91,16 +91,14 @@ isCommand() {
 # CLEAN UP AFTER COMPLETED OR FAILED INSTALLATION
 # ------------------------------------------------------------------------------
 cleanUp() {
-	rm -f pythonCommand errorLog updateRunning
+	rm -f pythonCommand errorLog
 }
 
 # INITIALISE THE UPDATE PROCESS BY FETCHING THE LATEST VERSION OF THE UPDATE 
 # CODE DIRECTLY FROM THE MASTER GITHUB BRANCH
 # ------------------------------------------------------------------------------
-initialiseUpdate() {
-	if [ ! -f updateRunning ]; then
-		touch updateRunning && curl -sSL $MASTERBRANCH | bash -s update
-	fi
+fetchUpdateCode() {
+	curl -sSL $MASTERBRANCH | bash -s runUpdate
 }
 
 # CHECK COMPATABILITY OF SYSTEM FOR RUNNING THE WEATHERFLOW PICONSOLE
@@ -618,7 +616,12 @@ update() {
 
 	# Fetch the latest update code directly from the master Github branch. This 
 	# ensures that changes in dependencies are addressed during this update
-	initialiseUpdate
+	fetchUpdateCode
+	
+# RUN THE UPDATE PROCESS
+# ------------------------------------------------------------------------------
+runUpdate() {	
+	
 	# Display update sarting dialogue
 	processStarting ${FUNCNAME[0]}
 	# Check that the update command is being run on a Raspberry Pi
