@@ -231,10 +231,11 @@ def write_keyValue(config,section,key,keyDetails):
 			if key in ['OutdoorHeight']:
 				Value = None
 				while True:
-					for Dev in stationWF['stations'][0]['devices']:
-						if 'device_type' in Dev:
-							if str(Dev['device_id']) == config['Station']['OutdoorID']:
-								Value = Dev['device_meta']['agl']
+					for Device in stationWF['stations'][0]['devices']:
+						if 'device_type' in Device:
+							if str(Device['device_id']) == config['Station']['OutdoorID']:
+								if Device['device_type'] == 'AR':
+									Value = Device['device_meta']['agl']
 					if Value is None:
 						while True:
 							ID = input('      Outdoor module ID not found. Please re-enter your Outdoor module ID: ')
@@ -252,10 +253,11 @@ def write_keyValue(config,section,key,keyDetails):
 			elif key in ['SkyHeight']:
 				Value = None
 				while True:
-					for Dev in stationWF['stations'][0]['devices']:
-						if 'device_type' in Dev:
-							if str(Dev['device_id']) == config['Station']['SkyID']:
-								Value = Dev['device_meta']['agl']
+					for Device in stationWF['stations'][0]['devices']:
+						if 'device_type' in Device:
+							if str(Device['device_id']) == config['Station']['SkyID']:
+								if Device['device_type'] == 'SK':
+									Value = Device['device_meta']['agl']
 					if Value is None:
 						while True:
 							ID = input('      Sky module ID not found. Please re-enter your Sky module ID: ')

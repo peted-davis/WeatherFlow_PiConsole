@@ -449,9 +449,9 @@ installServiceFile () {
 	fi
 }
 
-# ENABLE THE wfpiconsole.service FILE 
+# ENABLE THE wfpiconsole.service 
 # ------------------------------------------------------------------------------
-enableServiceFile () {
+enableService () {
 
 	# Enable wfpiconsole.service file
 	local str="Enabling the WeatherFlow PiConsole service file"
@@ -475,9 +475,9 @@ enableServiceFile () {
 	fi
 }
 
-# DISABLE THE wfpiconsole.service FILE 
+# DISABLE THE wfpiconsole.service 
 # ------------------------------------------------------------------------------
-disableServiceFile () {
+disableService () {
 
 	# Disable the wfpiconsole service
 	local str="Disabling the WeatherFlow PiConsole service file"
@@ -652,7 +652,7 @@ autostart-enable () {
 	# Edit and install wfpiconsole.service file	
 	installServiceFile	
 	# Enable wfpiconsole service
-	enableServiceFile
+	enableService
 	# Clean up after enabling autostart
 	cleanUp
 	# Display autostart-enable complete dialogue
@@ -666,7 +666,7 @@ autostart-disable () {
 	# Display autostart-disable starting dialogue
 	processStarting ${FUNCNAME[0]}	
 	# Disable wfpiconsole service
-	disableServiceFile
+	disableService
 	# Clean up after disabling autostart
 	cleanUp
 	# Display autostart-disable complete dialogue

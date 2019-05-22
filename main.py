@@ -346,7 +346,7 @@ class wfpiconsole(App):
 		# Extract observations from obs_air websocket message
 		elif Type == 'obs_air':
 			self.WebsocketObsAir(Msg)
-			
+
 		# Extract observations from rapid_wind websocket message
 		elif Type == 'rapid_wind':
 			self.WebsocketRapidWind(Msg)
@@ -458,7 +458,7 @@ class wfpiconsole(App):
 			WindSpd = [self.Sky['Obs'][5],'mps']
 		else:
 			WindSpd = None
-			
+
 		# Get last three hours of AIR data using WeatherFlow API
 		Data3h = self.GetData3h('Air',Obs)
 
@@ -559,18 +559,18 @@ class wfpiconsole(App):
 		# Extract required observations from latest evt_strike Websocket JSON
 		StrikeTime = [Msg['evt'][0],'s']
 		StrikeDist = [Msg['evt'][1],'km']
-		
+
 		# Calculate derived variables from evt_strike observations
 		StrikeDeltaT = self.LightningStrikeDeltaT(StrikeTime)
-		
+
 		# Convert observation units as required
 		StrikeDist = self.ObservationUnits(StrikeDist,self.config['Units']['Distance'])
 
 		# Define AIR Kivy label binds
 		self.Air['StrikeDeltaT'] = self.ObservationFormat(StrikeDeltaT,'TimeDelta')
-		self.Air['StrikeDist'] = self.ObservationFormat(StrikeDist,'Distance')
-		
-		# Switch Lightning panel background to show recent strike detected and 
+		self.Air['StrikeDist'] = self.ObservationFormat(StrikeDist,'StrikeDistance')
+
+		# Switch Lightning panel background to show recent strike detected and
 		# open lightning panel if required based on config settings
 		self.root.children[0].ids.LightningPanelBackground.source = 'background/lightningDetected.png'
 		if self.config['Display']['LightningPanel'] == '1':
@@ -581,10 +581,10 @@ class wfpiconsole(App):
 	# GET LAST THREE HOURS OF DATA FROM WEATHERLOW API
 	# --------------------------------------------------------------------------
 	def GetData3h(self,Device,Obs):
-	
+
 		# Get last three hours of data from AIR module
 		if Device == 'Air':
-			
+
 			# Calculate timestamp three hours past
 			TimeStart = Obs[0] - int((3600*3+59))
 			TimeEnd = Obs[0]
@@ -593,10 +593,10 @@ class wfpiconsole(App):
 			Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&api_key={}'
 			URL = Template.format(self.config['Station']['OutdoorID'],TimeStart,TimeEnd,self.config['Keys']['WeatherFlow'])
 			Data = requests.get(URL)
-			
+
 			# Return observations from last three hours
 			return Data
-		
+
 	# CONVERT STATION OBSERVATIONS INTO REQUIRED UNITS
     # --------------------------------------------------------------------------
 	def ObservationUnits(self,Obs,Unit):
@@ -699,7 +699,7 @@ class wfpiconsole(App):
 							cObs[ii] = ' mm'
 						else:
 							cObs[ii] = ' mm/hr'
-		
+
 		# Convert distance observations
 		elif Unit in ['km','mi']:
 			for ii,Dist in enumerate(Obs):
@@ -841,7 +841,7 @@ class wfpiconsole(App):
 						cObs[ii-1] = '{:.0f}'.format(cObs[ii-1])
 					else:
 						cObs[ii-1] = '{:.1f}'.format(cObs[ii-1]/1000) + ' k'
-						
+
 		# Format lightning strike distance observations
 		elif Type == 'StrikeDistance':
 			for ii,StrikeDist in enumerate(Obs):
@@ -851,14 +851,14 @@ class wfpiconsole(App):
 							cObs[ii-1] = '-'
 						else:
 							DistBins = [5,10,20,35,50]
-							Dist = DistBins[bisect.bisect_right(DistBins,cObs[ii-1])] 
+							Dist = DistBins[bisect.bisect_right(DistBins,cObs[ii-1])]
 							cObs[ii-1] = '{:.0f}'.format(Dist)
 					elif StrikeDist.strip() in ['miles']:
 						if math.isnan(cObs[ii-1]):
 							cObs[ii-1] = '-'
 						else:
 							DistBins = [3,6,12,22,32]
-							Dist = DistBins[bisect.bisect_right(DistBins,cObs[ii-1])] 
+							Dist = DistBins[bisect.bisect_right(DistBins,cObs[ii-1])]
 							cObs[ii-1] = '{:.0f}'.format(Dist)
 
 		# Format time difference observations
@@ -884,7 +884,7 @@ class wfpiconsole(App):
 									cObs = ['{:.0f}'.format(days),'days','{:.0f}'.format(hours),'hours',cObs[2]]
 							elif days >= 100:
 									cObs = ['{:.0f}'.format(days),'days','-','-',cObs[2]]
-						elif hours >= 1:			
+						elif hours >= 1:
 							if hours == 1:
 								if minutes == 1:
 									cObs = ['{:.0f}'.format(hours),'hour','{:.0f}'.format(minutes),'min',cObs[2]]
@@ -1033,7 +1033,7 @@ class wfpiconsole(App):
     # --------------------------------------------------------------------------
 	def PressureTrend(self,Pres0h,Data3h):
 
-		# Extract pressure observation from three hours ago. Return NaN for 
+		# Extract pressure observation from three hours ago. Return NaN for
 		# pressure trend if API call has failed
 		if VerifyJSON(Data3h,'WeatherFlow','obs'):
 			Data3h = Data3h.json()['obs']
@@ -1041,7 +1041,7 @@ class wfpiconsole(App):
 		else:
 			Pres3h = [NaN,'mb']
 
-		# Calculate pressure trend	
+		# Calculate pressure trend
 		Trend = (Pres0h[0] - Pres3h[0])/3
 
 		# Remove sign from pressure trend if it rounds to 0.0
@@ -1237,16 +1237,16 @@ class wfpiconsole(App):
 	# CALCULATE TIME SINCE LAST LIGHTNING STRIKE
 	# --------------------------------------------------------------------------
 	def LightningStrikeDeltaT(self,StrikeTime):
-		
+
 		# Calculate time since last lightning strike
 		Now = int(UNIX.time())
 		deltaT = Now - StrikeTime[0]
 		StrikeDeltaT = [deltaT,'s',deltaT]
-		
+
 		# Switch Lightning Panel background if deltaT is greater than 5 minutes
 		if deltaT > 360:
 			self.root.children[0].ids.LightningPanelBackground.source = 'background/lightning.png'
-		
+
 		# Return time since and distance to last lightning strike
 		return StrikeDeltaT
 
@@ -1257,7 +1257,7 @@ class wfpiconsole(App):
 		# Define current time in station timezone
 		Tz = pytz.timezone(self.config['Station']['Timezone'])
 		Now = datetime.now(pytz.utc).astimezone(Tz)
-		
+
 		# Code initialising. Download all data for current day using Weatherflow
 		# API. Calculate total daily lightning strikes
 		if self.Air['StrikesToday'][0] == '-':
