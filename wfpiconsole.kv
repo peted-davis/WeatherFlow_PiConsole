@@ -494,7 +494,7 @@ ScreenManager:
 
 		## WIND DIRECTION ARROW
 		Image:
-			source: 'icons/windRose/' + str(round(app.RapidIcon)) + '.png'
+			source: 'icons/windRose/' + str(round(root.WindRoseDir)) + '.png'
 			size_hint: (None,None)
 			keep_ratio: 0
 			allow_stretch: 1
@@ -641,7 +641,7 @@ ScreenManager:
 			size_hint: (None,None)
 			size: dp(80),dp(30)
 			pos: dp(93),dp(92)
-			color: [0.84,0.84,0.84,1]	
+			color: [0.84,0.84,0.84,1]
 		Label:
 			text: app.SunData['Event'][0]
 			font_name: 'fonts/Helvetica.ttf'
@@ -862,7 +862,7 @@ ScreenManager:
 			size: dp(88),dp(35)
 			pos: dp(357),dp(115)
 			color: [0.84,0.84,0.84,1]
-			
+
 	## -------------------------------------------------------------------------
 	## LIGHTNING FROM AIR MODULE
 	## -------------------------------------------------------------------------
@@ -877,7 +877,7 @@ ScreenManager:
 			allow_stretch: 1
 			size: dp(262),dp(166)
 			pos: dp(269),dp(89)
-			
+
 		## LAST STRIKE TIME
 		Label:
 			text: app.Air['StrikeDeltaT'][0]
@@ -890,7 +890,7 @@ ScreenManager:
 			size_hint: (None,None)
 			size: dp(80) if app.Air['StrikeDeltaT'][2] == '-' else dp(40),dp(30)
 			pos: dp(362),dp(183)
-			color: [0.84,0.84,0.84,1]	
+			color: [0.84,0.84,0.84,1]
 		Label:
 			text: app.Air['StrikeDeltaT'][1]
 			font_name: 'fonts/SystemSanFranciscoDisplayBold.ttf'
@@ -903,7 +903,7 @@ ScreenManager:
 			size_hint: (None,None)
 			size: dp(80) if app.Air['StrikeDeltaT'][2] == '-' else dp(40),dp(25)
 			pos: dp(362),dp(164)
-			color: [0.84,0.84,0.84,1]	
+			color: [0.84,0.84,0.84,1]
 		Label:
 			text: app.Air['StrikeDeltaT'][2]
 			font_name: 'fonts/SystemSanFranciscoDisplayThin.ttf'
@@ -916,7 +916,7 @@ ScreenManager:
 			size_hint: (None,None)
 			size: dp(40),dp(30)
 			pos: dp(402),dp(183)
-			color: [0.84,0.84,0.84,1]	
+			color: [0.84,0.84,0.84,1]
 		Label:
 			text: app.Air['StrikeDeltaT'][3]
 			font_name: 'fonts/SystemSanFranciscoDisplayBold.ttf'
@@ -930,7 +930,7 @@ ScreenManager:
 			size_hint: (None,None)
 			size: dp(40),dp(25)
 			pos: dp(402),dp(164)
-			color: [0.84,0.84,0.84,1]			
+			color: [0.84,0.84,0.84,1]
 		Label:
 			text: '[color=f05e40ff]ago[/color]'
 			font_name: 'fonts/Helvetica.ttf'
@@ -942,8 +942,8 @@ ScreenManager:
 			size_hint: (None,None)
 			size: dp(80),dp(19)
 			pos: dp(362),dp(149)
-			color: [0.84,0.84,0.84,1]	
-		
+			color: [0.84,0.84,0.84,1]
+
 		## LAST STRIKE DISTANCE
 		Label:
 			text: '\u2264 ' + app.Air['StrikeDist'][0]
@@ -969,7 +969,7 @@ ScreenManager:
 			size_hint: (None,None)
 			size: dp(60),dp(25)
 			pos: dp(458),dp(164)
-			color: [0.84,0.84,0.84,1]	
+			color: [0.84,0.84,0.84,1]
 		Label:
 			text: '[color=f05e40ff]away[/color]'
 			font_name: 'fonts/Helvetica.ttf'
@@ -981,9 +981,9 @@ ScreenManager:
 			size_hint: (None,None)
 			size: dp(60),dp(19)
 			pos: dp(458),dp(149)
-			color: [0.84,0.84,0.84,1]	
-			
-		## LAST THREE HOUR LIGHTNING STRIKES		
+			color: [0.84,0.84,0.84,1]
+
+		## LAST THREE HOUR LIGHTNING STRIKES
 		Label:
 			text: app.Air['Strikes3hr'][0]
 			font_name: 'fonts/SystemSanFranciscoDisplayThin.ttf'
@@ -995,9 +995,9 @@ ScreenManager:
 			size_hint: (None,None)
 			size: dp(60),dp(26)
 			pos: dp(274),dp(93)
-			color: [0.84,0.84,0.84,1]	
-		
-		## TOTAL DAILY LIGHTNING STRIKES		
+			color: [0.84,0.84,0.84,1]
+
+		## TOTAL DAILY LIGHTNING STRIKES
 		Label:
 			text: app.Air['StrikesToday'][0]
 			font_name: 'fonts/SystemSanFranciscoDisplayThin.ttf'
@@ -1009,9 +1009,9 @@ ScreenManager:
 			size_hint: (None,None)
 			size: dp(60),dp(26)
 			pos: dp(338),dp(93)
-			color: [0.84,0.84,0.84,1]	
-			
-		## TOTAL MONTHLY LIGHTNING STRIKES		
+			color: [0.84,0.84,0.84,1]
+
+		## TOTAL MONTHLY LIGHTNING STRIKES
 		Label:
 			text: app.Air['StrikesMonth'][0]
 			font_name: 'fonts/SystemSanFranciscoDisplayThin.ttf'
@@ -1023,9 +1023,9 @@ ScreenManager:
 			size_hint: (None,None)
 			size: dp(60),dp(26)
 			pos: dp(402),dp(93)
-			color: [0.84,0.84,0.84,1]	
+			color: [0.84,0.84,0.84,1]
 
-		## TOTAL YEARLY LIGHTNING STRIKES		
+		## TOTAL YEARLY LIGHTNING STRIKES
 		Label:
 			text: app.Air['StrikesYear'][0]
 			font_name: 'fonts/SystemSanFranciscoDisplayThin.ttf'
@@ -1037,7 +1037,25 @@ ScreenManager:
 			size_hint: (None,None)
 			size: dp(60),dp(26)
 			pos: dp(466),dp(93)
-			color: [0.84,0.84,0.84,1]	
+			color: [0.84,0.84,0.84,1]
+
+		## LIGHTNING ICON
+		FloatLayout:
+			canvas.before:
+				PushMatrix
+				Translate:
+					x: root.xLightningBolt
+			canvas.after:
+				PopMatrix
+			Image:
+				id: LightningPanelIcon
+				source: 'icons/lightning/lightningBolt.png'
+				size_hint: (None,None)
+				keep_ratio: 0
+				allow_stretch: 1
+				size_hint: (None,None)
+				size: dp(65),dp(73)
+				pos: dp(282),dp(165)
 
 	## -------------------------------------------------------------------------
 	## BAROMETER FROM AIR MODULE
@@ -1051,7 +1069,7 @@ ScreenManager:
 			keep_ratio: 0
 			allow_stretch: 1
 			size: dp(168),dp(91)
-			pos: dp(582),dp(95)
+			pos: dp(582),dp(56)
 
 		## MAXIMUM AND MINIMUM PRESSURE ON PRESSURE DIAL
 		Label:
@@ -1065,7 +1083,7 @@ ScreenManager:
 			valign: 'center'
 			size_hint: (None,None)
 			size: dp(40),dp(20)
-			pos: dp(565),dp(78)
+			pos: dp(565),dp(39)
 			color: [0.84,0.84,0.84,1]
 		Label:
 			text: app.BarometerMax
@@ -1078,10 +1096,23 @@ ScreenManager:
 			valign: 'center'
 			size_hint: (None,None)
 			size: dp(40),dp(20)
-			pos: dp(727),dp(78)
+			pos: dp(727),dp(39)
 			color: [0.84,0.84,0.84,1]
 
 		## CURRENT PRESSURE
+		Label:
+			text:  '[color=c8c8c8ff]SLP[/color]'
+			font_name: 'fonts/SystemSanFranciscoDisplayBold.ttf'
+			font_size: '11pt'
+			text_size: self.size
+			font_hinting: None
+			markup: 1
+			halign: 'center'
+			valign: 'center'
+			size_hint: (None,None)
+			size: dp(100),dp(30)
+			pos: dp(616),dp(98)
+			color: [0.84,0.84,0.84,1]
 		Label:
 			text: app.Air['Pres'][0]
 			font_name: 'fonts/SystemSanFranciscoDisplayThin.ttf'
@@ -1092,24 +1123,25 @@ ScreenManager:
 			valign: 'center'
 			size_hint: (None,None)
 			size: dp(100),dp(30)
-			pos: dp(616),dp(119)
+			pos: dp(616),dp(73)
 			color: [0.84,0.84,0.84,1]
 		Label:
 			text: app.Air['Pres'][1]
 			font_name: 'fonts/SystemSanFranciscoDisplayThin.ttf'
-			font_size: '20sp'
+			font_size: '15pt'
 			text_size: self.size
+			font_hinting: None
 			markup: 1
 			halign: 'center'
 			valign: 'center'
 			size_hint: (None,None)
 			size: dp(100),dp(25)
-			pos: dp(616),dp(92)
+			pos: dp(616),dp(52)
 			color: [0.84,0.84,0.84,1]
 
 		## CURRENT PRESSURE TREND
 		Label:
-			text: 'Trend: ' + app.Air['PresTrend'][2]
+			text: app.Air['PresTrend'][2]
 			font_name: 'fonts/Helvetica.ttf'
 			font_size: '15sp'
 			text_size: self.size
@@ -1118,8 +1150,8 @@ ScreenManager:
 			valign: 'center'
 			size_hint: (None,None)
 			size: dp(96),dp(18)
-			pos: dp(691),dp(213)
-			color: [0.84,0.84,0.84,1]
+			pos: dp(691),dp(194)
+			color: [0.84,0.84,0.84,1]	
 		Label:
 			text: app.Air['PresTrend'][0] + app.Air['PresTrend'][1]
 			font_name: 'fonts/Helvetica.ttf'
@@ -1130,8 +1162,22 @@ ScreenManager:
 			valign: 'center'
 			size_hint: (None,None)
 			size: dp(96),dp(18)
-			pos: dp(691),dp(194)
+			pos: dp(691),dp(177)
 			color: [0.84,0.84,0.84,1]
+			
+		## ## WEATHER TENDENCY
+		Label:
+			text: app.Air['PresTrend'][3]
+			font_name: 'fonts/Helvetica.ttf'
+			font_size: '15sp'
+			text_size: self.size
+			markup: 1
+			halign: 'center'
+			valign: 'center'
+			size_hint: (None,None)
+			size: dp(220),dp(18)
+			pos: dp(557),dp(153)
+			color: [0.84,0.84,0.84,1]			
 
 		## 24 HOUR PRESSURE LOW
 		Label:
@@ -1144,7 +1190,7 @@ ScreenManager:
 			valign: 'center'
 			size_hint: (None,None)
 			size: dp(70),dp(18)
-			pos: dp(539),dp(194)
+			pos: dp(539),dp(185)
 			color: [0.84,0.84,0.84,1]
 
 		## 24 HOUR PRESSURE HIGH
@@ -1158,104 +1204,104 @@ ScreenManager:
 			valign: 'center'
 			size_hint: (None,None)
 			size: dp(70),dp(18)
-			pos: dp(609),dp(194)
+			pos: dp(609),dp(185)
 			color: [0.84,0.84,0.84,1]
 
 	## -------------------------------------------------------------------------
 	## STATUS INDICATORS FOR AIR/SKY MODULES
 	## -------------------------------------------------------------------------
-	FloatLayout:
+	## FloatLayout:
 
-		## SKY
-		Label:
-			text: '[color=00a4b4ff]Sky: [/color]'
-			font_name: 'fonts/Helvetica.ttf'
-			font_size: '15sp'
-			text_size: self.size
-			markup: 1
-			halign: 'right'
-			valign: 'center'
-			size_hint: (None,None)
-			size: dp(30),dp(18)
-			pos: dp(555),dp(29)
-			color: [0.84,0.84,0.84,1]
-		Label:
-			text: app.Sky['Time']
-			font_name: 'fonts/Helvetica.ttf'
-			font_size: '15sp'
-			text_size: self.size
-			markup: 1
-			halign: 'center'
-			valign: 'center'
-			size_hint: (None,None)
-			size: dp(75),dp(18)
-			pos: dp(584),dp(29)
-			color: [0.84,0.84,0.84,1]
-		Image:
-			source: 'icons/status/' + app.Sky['StatusIcon'] + '.png'
-			size_hint: (None,None)
-			keep_ratio: 0
-			allow_stretch: 1
-			size: dp(18),dp(20)
-			pos: dp(658),dp(29)
-			color: [0.84,0.84,0.84,1]
-		Label:
-			text: 'Voltage: ' + app.Sky['Battery'][0]
-			font_name: 'fonts/Helvetica.ttf'
-			font_size: '15sp'
-			text_size: self.size
-			markup: 1
-			halign: 'center'
-			valign: 'center'
-			size_hint: (None,None)
-			size: dp(103),dp(18)
-			pos: dp(676),dp(29)
-			color: [0.84,0.84,0.84,1]
+		## ## SKY
+		## Label:
+			## text: '[color=00a4b4ff]Sky: [/color]'
+			## font_name: 'fonts/Helvetica.ttf'
+			## font_size: '15sp'
+			## text_size: self.size
+			## markup: 1
+			## halign: 'right'
+			## valign: 'center'
+			## size_hint: (None,None)
+			## size: dp(30),dp(18)
+			## pos: dp(555),dp(29)
+			## color: [0.84,0.84,0.84,1]
+		## Label:
+			## text: app.Sky['Time']
+			## font_name: 'fonts/Helvetica.ttf'
+			## font_size: '15sp'
+			## text_size: self.size
+			## markup: 1
+			## halign: 'center'
+			## valign: 'center'
+			## size_hint: (None,None)
+			## size: dp(75),dp(18)
+			## pos: dp(584),dp(29)
+			## color: [0.84,0.84,0.84,1]
+		## Image:
+			## source: 'icons/status/' + app.Sky['StatusIcon'] + '.png'
+			## size_hint: (None,None)
+			## keep_ratio: 0
+			## allow_stretch: 1
+			## size: dp(18),dp(20)
+			## pos: dp(658),dp(29)
+			## color: [0.84,0.84,0.84,1]
+		## Label:
+			## text: 'Voltage: ' + app.Sky['Battery'][0]
+			## font_name: 'fonts/Helvetica.ttf'
+			## font_size: '15sp'
+			## text_size: self.size
+			## markup: 1
+			## halign: 'center'
+			## valign: 'center'
+			## size_hint: (None,None)
+			## size: dp(103),dp(18)
+			## pos: dp(676),dp(29)
+			## color: [0.84,0.84,0.84,1]
 
-		## AIR
-		Label:
-			text: '[color=f05e40ff]Air: [/color]'
-			font_name: 'fonts/Helvetica.ttf'
-			font_size: '15sp'
-			text_size: self.size
-			markup: 1
-			halign: 'right'
-			valign: 'center'
-			size_hint: (None,None)
-			size: dp(30),dp(18)
-			pos: dp(555),dp(6)
-			color: [0.84,0.84,0.84,1]
-		Label:
-			text: app.Air['Time']
-			font_name: 'fonts/Helvetica.ttf'
-			font_size: '15sp'
-			text_size: self.size
-			markup: 1
-			halign: 'center'
-			valign: 'center'
-			size_hint: (None,None)
-			size: dp(75),dp(18)
-			pos: dp(584),dp(6)
-			color: [0.84,0.84,0.84,1]
-		Image:
-			source: 'icons/status/' + app.Air['StatusIcon'] + '.png'
-			size_hint: (None,None)
-			keep_ratio: 0
-			allow_stretch: 1
-			size: dp(18),dp(20)
-			pos: dp(658),dp(6)
-		Label:
-			text: 'Voltage: ' + app.Air['Battery'][0]
-			font_name: 'fonts/Helvetica.ttf'
-			font_size: '15sp'
-			text_size: self.size
-			markup: 1
-			halign: 'center'
-			valign: 'center'
-			size_hint: (None,None)
-			size: dp(103),dp(18)
-			pos: dp(676),dp(6)
-			color: [0.84,0.84,0.84,1]
+		## ## AIR
+		## Label:
+			## text: '[color=f05e40ff]Air: [/color]'
+			## font_name: 'fonts/Helvetica.ttf'
+			## font_size: '15sp'
+			## text_size: self.size
+			## markup: 1
+			## halign: 'right'
+			## valign: 'center'
+			## size_hint: (None,None)
+			## size: dp(30),dp(18)
+			## pos: dp(555),dp(6)
+			## color: [0.84,0.84,0.84,1]
+		## Label:
+			## text: app.Air['Time']
+			## font_name: 'fonts/Helvetica.ttf'
+			## font_size: '15sp'
+			## text_size: self.size
+			## markup: 1
+			## halign: 'center'
+			## valign: 'center'
+			## size_hint: (None,None)
+			## size: dp(75),dp(18)
+			## pos: dp(584),dp(6)
+			## color: [0.84,0.84,0.84,1]
+		## Image:
+			## source: 'icons/status/' + app.Air['StatusIcon'] + '.png'
+			## size_hint: (None,None)
+			## keep_ratio: 0
+			## allow_stretch: 1
+			## size: dp(18),dp(20)
+			## pos: dp(658),dp(6)
+		## Label:
+			## text: 'Voltage: ' + app.Air['Battery'][0]
+			## font_name: 'fonts/Helvetica.ttf'
+			## font_size: '15sp'
+			## text_size: self.size
+			## markup: 1
+			## halign: 'center'
+			## valign: 'center'
+			## size_hint: (None,None)
+			## size: dp(103),dp(18)
+			## pos: dp(676),dp(6)
+			## color: [0.84,0.84,0.84,1]
 
 	## -------------------------------------------------------------------------
 	## BOTTOM MENU BAR
@@ -1276,7 +1322,7 @@ ScreenManager:
 			background_down: 'buttons/sunMoonPressed.png'
 			on_release: root.SwitchPanel(self,'SunMoon')
 		Button:
-			id: RainLightning
+			id: RainLightningButton
 			size_hint: (None,None)
 			size: dp(90),dp(30)
 			pos: dp(220),dp(0)
@@ -1310,7 +1356,7 @@ ScreenManager:
     size: dp(500),dp(400)
 	FloatLayout:
 		Label:
-			text: 'Console version: [color=9aba2fff]' + app.Version + '[/color]'           
+			text: 'Console version: [color=9aba2fff]' + app.Version + '[/color]'
 			font_name: 'fonts/SystemSanFranciscoDisplayBold.ttf'
 			font_size: '10.5pt'
 			text_size: self.size
@@ -1321,7 +1367,6 @@ ScreenManager:
 			size_hint: (None,None)
 			size: dp(500),dp(50)
 			pos: dp(150),dp(320)
-				
 
 ## =============================================================================
 ## NEW VERSION AVAILABLE POPUP
@@ -1393,7 +1438,7 @@ ScreenManager:
 		size: dp(root.width-20),dp(max(5, self.texture_size[1] + 20))
         pos: dp(root.x+10),dp(root.y + 10)
         font_size: '15sp'
-			
+
 <-SettingsPanel>:
     spacing: 5
     padding: 5

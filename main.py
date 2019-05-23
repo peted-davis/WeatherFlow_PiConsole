@@ -176,7 +176,7 @@ def VerifyJSON(Data,Type,Field):
 # ==============================================================================
 class wfpiconsole(App):
 
-	# Define required Kivy dictionary properties
+	# Define App class dictionary properties
 	Sky = DictProperty			([('WindSpd','----'),('WindGust','--'),('WindDir','---'),
 								  ('AvgWind','--'),('MaxGust','--'),('RainRate','---'),
 								  ('TodayRain','--'),('YesterdayRain','--'),('MonthRain','--'),
@@ -184,7 +184,7 @@ class wfpiconsole(App):
 								  ('Time','-'),('Battery','--'),('StatusIcon','Error')])
 	Air = DictProperty			([('Temp','--'),('MinTemp','---'),('MaxTemp','---'),
 								  ('Humidity','--'),('DewPoint','--'),('Pres','---'),
-								  ('MaxPres','--'),('MinPres','--'),('PresTrend','---'),
+								  ('MaxPres','--'),('MinPres','--'),('PresTrend','----'),
 								  ('FeelsLike','----'),('StrikeDeltaT','----'),('StrikeDist','--'),
 								  ('Strikes3hr','-'),('StrikesToday','-'),('StrikesMonth','-'),
 								  ('StrikesYear','-'),('Time','-'),('Battery','--'),
@@ -200,7 +200,7 @@ class wfpiconsole(App):
 	Sager = DictProperty		([('Forecast','--'),('Issued','--')])
 	System = DictProperty       ([('LatestVer','--')])
 
-	# Define required Kivy configParser properties
+	# Define App class configParser properties
 	BarometerMax = ConfigParserProperty('-','System','BarometerMax','wfpiconsole')
 	BarometerMin = ConfigParserProperty('-','System','BarometerMin','wfpiconsole')
 	ForecastLocn = ConfigParserProperty('-','Station','ForecastLocn','wfpiconsole')
@@ -208,7 +208,7 @@ class wfpiconsole(App):
 	DateFormat = ConfigParserProperty('-','Display','DateFormat','wfpiconsole')
 	Version = ConfigParserProperty('-','System','Version','wfpiconsole')
 
-	# Define required Kivy numeric properties
+	# Define App class numeric properties
 	RapidIcon = NumericProperty(0)
 
 	# BUILD 'WeatherFlowPiConsole' APP CLASS
@@ -244,6 +244,13 @@ class wfpiconsole(App):
 		Clock.schedule_interval(self.UpdateMethods,1.0)
 		Clock.schedule_interval(self.SunTransit,1.0)
 		Clock.schedule_interval(self.MoonPhase,1.0)
+
+		# Store required links items in CurrentConditions class
+		self.CurrentConditions = self.root.children[0]
+		self.LightningPanel = self.root.children[0].ids.LightningPanel
+		self.LightningPanelBackground = self.root.children[0].ids.LightningPanelBackground
+		self.LightningPanelIcon = self.root.children[0].ids.LightningPanelIcon
+		self.RainLightningButton = self.root.children[0].ids.RainLightningButton
 
 	# BUILD 'WeatherFlowPiConsole' APP CLASS SETTINGS
 	# --------------------------------------------------------------------------
@@ -550,7 +557,7 @@ class wfpiconsole(App):
 		self.Rapid['Direc'] = self.ObservationFormat(WindDir,'Direction')
 
 		# Animate wind rose arrow
-		self.WindRoseAnimation(WindDir[0],WindDirOld[0])
+		self.CurrentConditions.WindRoseAnimation(WindDir[0],WindDirOld[0])
 
 	# EXTRACT OBSERVATIONS FROM EVT_STRIKE WEBSOCKET JSON MESSAGE
 	# --------------------------------------------------------------------------
@@ -570,13 +577,15 @@ class wfpiconsole(App):
 		self.Air['StrikeDeltaT'] = self.ObservationFormat(StrikeDeltaT,'TimeDelta')
 		self.Air['StrikeDist'] = self.ObservationFormat(StrikeDist,'StrikeDistance')
 
-		# Switch Lightning panel background to show recent strike detected and
-		# open lightning panel if required based on config settings
-		self.root.children[0].ids.LightningPanelBackground.source = 'background/lightningDetected.png'
+		# Open lightning panel to show strike has been detected if required 
+		# based on user settings
 		if self.config['Display']['LightningPanel'] == '1':
-			self.root.children[0].ids.LightningPanel.opacity = 1
-			self.root.children[0].ids.RainLightning.background_normal = 'buttons/rainfall.png'
-			self.root.children[0].ids.RainLightning.background_down = 'buttons/rainfallPressed.png'
+			self.LightningPanel.opacity = 1
+			self.RainLightningButton.background_normal = 'buttons/rainfall.png'
+			self.RainLightningButton.background_down = 'buttons/rainfallPressed.png'
+
+		# Animate lightning bolt icon to show strike has been detected
+		self.CurrentConditions.LightningBoltAnim()
 
 	# GET LAST THREE HOURS OF DATA FROM WEATHERLOW API
 	# --------------------------------------------------------------------------
@@ -851,14 +860,14 @@ class wfpiconsole(App):
 							cObs[ii-1] = '-'
 						else:
 							DistBins = [5,10,20,35,50]
-							Dist = DistBins[bisect.bisect_right(DistBins,cObs[ii-1])]
+							Dist = DistBins[bisect.bisect_left(DistBins,cObs[ii-1])]
 							cObs[ii-1] = '{:.0f}'.format(Dist)
 					elif StrikeDist.strip() in ['miles']:
 						if math.isnan(cObs[ii-1]):
 							cObs[ii-1] = '-'
 						else:
 							DistBins = [3,6,12,22,32]
-							Dist = DistBins[bisect.bisect_right(DistBins,cObs[ii-1])]
+							Dist = DistBins[bisect.bisect_left(DistBins,cObs[ii-1])]
 							cObs[ii-1] = '{:.0f}'.format(Dist)
 
 		# Format time difference observations
@@ -905,32 +914,6 @@ class wfpiconsole(App):
 
 		# Return formatted observations
 		return cObs
-
-	# ANIMATE RAPID-WIND WIND ROSE DIRECTION ARROW
-	# --------------------------------------------------------------------------
-	def WindRoseAnimation(self,newDirec,oldDirec):
-
-		# Calculate change in wind direction over last Rapid-Wind period
-		WindShift = newDirec - oldDirec
-
-		# Animate Wind Rose at constant speed between old and new Rapid-Wind
-		# wind direction
-		if WindShift >= -180 and WindShift <= 180:
-			Anim = Animation(RapidIcon=newDirec,duration=2*abs(WindShift)/360)
-			Anim.start(self)
-		elif WindShift > 180:
-			Anim = Animation(RapidIcon=0.1,duration=2*oldDirec/360) + Animation(RapidIcon=newDirec,duration=2*(360-newDirec)/360)
-			Anim.start(self)
-		elif WindShift < -180:
-			Anim = Animation(RapidIcon=359.9,duration=2*(360-oldDirec)/360) + Animation(RapidIcon=newDirec,duration=2*newDirec/360)
-			Anim.start(self)
-
-	# Fix Wind Rose angle at 0/360 degree discontinuity
-	def on_RapidIcon(self,item,RapidIcon):
-		if RapidIcon == 0.1:
-			item.RapidIcon = 360
-		if RapidIcon == 359.9:
-			item.RapidIcon = 0
 
 	# CALCULATE DEW POINT FROM HUMIDITY AND TEMPERATURE
     # --------------------------------------------------------------------------
@@ -1040,6 +1023,10 @@ class wfpiconsole(App):
 			Pres3h = [Data3h[0][1],'mb']
 		else:
 			Pres3h = [NaN,'mb']
+			
+		# Convert station pressure into sea level pressure
+		Pres0h = self.SeaLevelPressure(Pres0h)
+		Pres3h = self.SeaLevelPressure(Pres3h)
 
 		# Calculate pressure trend
 		Trend = (Pres0h[0] - Pres3h[0])/3
@@ -1051,15 +1038,38 @@ class wfpiconsole(App):
 		# Define pressure trend text
 		if math.isnan(Trend):
 			TrendTxt = '-'
+		elif Trend > 2/3:
+			TrendTxt = '[color=ff8837ff]Rising rapidly[/color]'
 		elif Trend >= 1/3:
 			TrendTxt = '[color=ff8837ff]Rising[/color]'
+		elif Trend <= -2/3:
+			TrendTxt = '[color=00a4b4ff]Falling rapidly[/color]'
 		elif Trend <= -1/3:
 			TrendTxt = '[color=00a4b4ff]Falling[/color]'
 		else:
 			TrendTxt = '[color=9aba2fff]Steady[/color]'
+			
+		# Define weather tendency based on pressure and trend
+		if Pres0h[0] >= 1023:
+			if 'Rapidly Falling' in TrendTxt:
+				Tendency = 'Becoming cloudy and warmer'
+			elif any(T in TrendTxt for T in ['Rising','Steady']):
+				Tendency = 'Fair weather likely'
+		elif 1009 < Pres0h[0] < 1023:
+			if 'Rapidly Falling' in TrendTxt:
+				Tendency = 'Rainy conditions likely'
+			elif any(T in TrendTxt for T in ['Falling','Rising','Steady']):
+				Tendency = 'Conditions unchanged'
+		elif Pres0h[0] <= 1009:
+			if 'Rapidly Falling' in TrendTxt:
+				Tendency = 'Stormy conditions likely'
+			elif 'Falling' in TrendTxt:
+				Tendency = 'Rainy conditions likely'
+			elif any(T in TrendTxt for T in ['Rising','Steady']):
+				Tendency = 'Becoming clearer and cooler'
 
 		# Return pressure trend
-		return [Trend,'mb/hr',TrendTxt]
+		return [Trend,'mb/hr',TrendTxt,Tendency]
 
 	# CALCULATE RAIN ACCUMULATION LEVELS FOR TODAY/YESTERDAY/MONTH/YEAR
     # --------------------------------------------------------------------------
@@ -1244,8 +1254,12 @@ class wfpiconsole(App):
 		StrikeDeltaT = [deltaT,'s',deltaT]
 
 		# Switch Lightning Panel background if deltaT is greater than 5 minutes
-		if deltaT > 360:
-			self.root.children[0].ids.LightningPanelBackground.source = 'background/lightning.png'
+		if deltaT < 360:
+			self.LightningPanelBackground.source = 'background/lightningDetected.png'
+			self.LightningPanelIcon.source = 'icons/lightning/lightningBoltStrike.png'
+		else:
+			self.LightningPanelBackground.source = 'background/lightning.png'
+			self.LightningPanelIcon.source = 'icons/lightning/lightningBolt.png'
 
 		# Return time since and distance to last lightning strike
 		return StrikeDeltaT
@@ -2433,9 +2447,12 @@ class wfpiconsole(App):
 # ==============================================================================
 class CurrentConditions(Screen):
 
-	# Define Kivy properties required by 'CurrentConditions'
-	Screen = DictProperty([('Clock','--'),('SunMoon','Sun'),('MetSager','Met'),
-						   ('RainLightning','Rain'),('xRainAnim',471),('yRainAnim',11)])
+	# Define CurrentConditions class dictionary properties
+	Screen = DictProperty([('Clock','--'),('xRainAnim',471),('yRainAnim',11)])
+
+	# Define CurrentConditions class numeric properties
+	xLightningBolt = NumericProperty(0)
+	WindRoseDir = NumericProperty(0)
 
 	# INITIALISE 'CurrentConditions' SCREEN CLASS
 	# --------------------------------------------------------------------------
@@ -2469,6 +2486,32 @@ class CurrentConditions(Screen):
 		# Format current time
 		self.Screen['Clock'] = Now.strftime(DateFormat + '\n' + TimeFormat)
 
+	# ANIMATE RAPID-WIND WIND ROSE DIRECTION ARROW
+	# --------------------------------------------------------------------------
+	def WindRoseAnimation(self,newDirec,oldDirec):
+
+		# Calculate change in wind direction over last Rapid-Wind period
+		WindShift = newDirec - oldDirec
+
+		# Animate Wind Rose at constant speed between old and new Rapid-Wind
+		# wind direction
+		if WindShift >= -180 and WindShift <= 180:
+			Anim = Animation(WindRoseDir=newDirec,duration=2*abs(WindShift)/360)
+			Anim.start(self)
+		elif WindShift > 180:
+			Anim = Animation(WindRoseDir=0.1,duration=2*oldDirec/360) + Animation(WindRoseDir=newDirec,duration=2*(360-newDirec)/360)
+			Anim.start(self)
+		elif WindShift < -180:
+			Anim = Animation(WindRoseDir=359.9,duration=2*(360-oldDirec)/360) + Animation(WindRoseDir=newDirec,duration=2*newDirec/360)
+			Anim.start(self)
+
+	# Fix Wind Rose angle at 0/360 degree discontinuity
+	def on_WindRoseDir(self,item,WindRoseDir):
+		if WindRoseDir == 0.1:
+			item.WindRoseDir = 360
+		if WindRoseDir == 359.9:
+			item.WindRoseDir = 0
+
 	# ANIMATE RAIN RATE ICON
 	# --------------------------------------------------------------------------
 	def RainRateAnimation(self,dt):
@@ -2501,6 +2544,12 @@ class CurrentConditions(Screen):
 		else:
 			self.Screen['xRainAnim'] -= 1
 
+	# ANIMATE LIGHTNING BOLT ICON WHEN STRIKE IS DETECTED
+	# --------------------------------------------------------------------------
+	def LightningBoltAnim(self):
+		Anim = Animation(xLightningBolt=5,t='out_quad',d=0.02) + Animation(xLightningBolt=0,t='out_elastic',d=0.5)
+		Anim.start(self)
+
 	# SWITCH BETWEEN PANELS BASED ON USER INPUT
 	# --------------------------------------------------------------------------
 	def SwitchPanel(self,Instance,Panel):
@@ -2527,12 +2576,16 @@ class CurrentConditions(Screen):
 		elif Panel == 'RainLightning':
 			if self.ids.LightningPanel.opacity == 0:
 				self.ids.LightningPanel.opacity = 1
-				self.ids.RainLightning.background_normal = 'buttons/rainfall.png'
-				self.ids.RainLightning.background_down = 'buttons/rainfallPressed.png'
+				self.ids.RainLightningButton.background_normal = 'buttons/rainfall.png'
+				self.ids.RainLightningButton.background_down = 'buttons/rainfallPressed.png'
 			else:
 				self.ids.LightningPanel.opacity = 0
-				self.ids.RainLightning.background_normal = 'buttons/lightning.png'
-				self.ids.RainLightning.background_down = 'buttons/lightningPressed.png'
+				self.ids.RainLightningButton.background_normal = 'buttons/lightning.png'
+				self.ids.RainLightningButton.background_down = 'buttons/lightningPressed.png'
+
+
+
+
 
 # ==============================================================================
 # DEFINE CREDITS POPUP
