@@ -184,7 +184,7 @@ class wfpiconsole(App):
 								  ('Time','-'),('Battery','--'),('StatusIcon','Error')])
 	Air = DictProperty			([('Temp','--'),('MinTemp','---'),('MaxTemp','---'),
 								  ('Humidity','--'),('DewPoint','--'),('Pres','---'),
-								  ('MaxPres','--'),('MinPres','--'),('PresTrend','----'),
+								  ('MaxPres','---'),('MinPres','---'),('PresTrend','----'),
 								  ('FeelsLike','----'),('StrikeDeltaT','----'),('StrikeDist','--'),
 								  ('Strikes3hr','-'),('StrikesToday','-'),('StrikesMonth','-'),
 								  ('StrikesYear','-'),('Time','-'),('Battery','--'),
@@ -1490,15 +1490,15 @@ class wfpiconsole(App):
 				MinTemp = [min(Temp)[0],'c',datetime.fromtimestamp(Time[Temp.index(min(Temp))][0],Tz).strftime('%H:%M'),min(Temp)[0],Now]
 
 				# Define maximum and minimum pressure
-				MaxPres = [max(SLP)[0],'mb',max(SLP)[0],Now]
-				MinPres = [min(SLP)[0],'mb',min(SLP)[0],Now]
+				MaxPres = [max(SLP)[0],'mb',datetime.fromtimestamp(Time[SLP.index(max(SLP))][0],Tz).strftime('%H:%M'),max(SLP)[0],Now]
+				MinPres = [min(SLP)[0],'mb',datetime.fromtimestamp(Time[SLP.index(min(SLP))][0],Tz).strftime('%H:%M'),min(SLP)[0],Now]
 
 			# API call has failed. Return NaN
 			else:
 				MaxTemp = [NaN,'c','-',NaN,Now]
 				MinTemp = [NaN,'c','-',NaN,Now]
-				MaxPres = [NaN,'mb',NaN,Now]
-				MinPres = [NaN,'mb',NaN,Now]
+				MaxPres = [NaN,'mb','-',NaN,Now]
+				MinPres = [NaN,'mb','-',NaN,Now]
 
 			# Return required variables
 			return MaxTemp,MinTemp,MaxPres,MinPres
@@ -1511,8 +1511,8 @@ class wfpiconsole(App):
 			MinTemp = [Temp[0],'c',datetime.fromtimestamp(Time[0],Tz).strftime('%H:%M'),Temp[0],Now]
 
 			# Reset maximum and minimum pressure
-			MaxPres = [SLP[0],'mb',SLP[0],Now]
-			MinPres = [SLP[0],'mb',SLP[0],Now]
+			MaxPres = [SLP[0],'mb',datetime.fromtimestamp(Time[0],Tz).strftime('%H:%M'),SLP[0],Now]
+			MinPres = [SLP[0],'mb',datetime.fromtimestamp(Time[0],Tz).strftime('%H:%M'),SLP[0],Now]
 
 			# Return required variables
 			return MaxTemp,MinTemp,MaxPres,MinPres
@@ -1536,20 +1536,20 @@ class wfpiconsole(App):
 
 		# Current pressure is greater than maximum recorded pressure. Update
 		# maximum pressure
-		if SLP[0] > self.Air['MaxPres'][2]:
-			MaxPres = [SLP[0],'mb',SLP[0],Now]
-			MinPres = [self.Air['MinPres'][2],'mb',self.Air['MinPres'][2],Now]
+		if SLP[0] > self.Air['MaxPres'][3]:
+			MaxPres = [SLP[0],'mb',datetime.fromtimestamp(Time[0],Tz).strftime('%H:%M'),SLP[0],Now]
+			MinPres = [self.Air['MinPres'][3],'mb',self.Air['MinPres'][2],self.Air['MinPres'][3],Now]
 
 		# Current pressure is less than minimum recorded pressure. Update
 		# minimum pressure and time
-		elif SLP[0] < self.Air['MinPres'][2]:
-			MaxPres = [self.Air['MaxPres'][2],'mb',self.Air['MaxPres'][2],Now]
-			MinPres = [SLP[0],'mb',SLP[0],Now]
+		elif SLP[0] < self.Air['MinPres'][3]:
+			MaxPres = [self.Air['MaxPres'][3],'mb',self.Air['MaxPres'][2],self.Air['MaxPres'][3],Now]
+			MinPres = [SLP[0],'mb',datetime.fromtimestamp(Time[0],Tz).strftime('%H:%M'),SLP[0],Now]
 
 		# Maximum and minimum pressure unchanged. Return existing values
 		else:
-			MaxPres = [self.Air['MaxPres'][2],'mb',self.Air['MaxPres'][2],Now]
-			MinPres = [self.Air['MinPres'][2],'mb',self.Air['MinPres'][2],Now]
+			MaxPres = [self.Air['MaxPres'][3],'mb',self.Air['MaxPres'][2],self.Air['MaxPres'][3],Now]
+			MinPres = [self.Air['MinPres'][3],'mb',self.Air['MinPres'][2],self.Air['MinPres'][3],Now]
 
 		# Return required variables
 		return MaxTemp,MinTemp,MaxPres,MinPres

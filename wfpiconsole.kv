@@ -1101,7 +1101,7 @@ ScreenManager:
 
 		## CURRENT PRESSURE
 		Label:
-			text:  '[color=c8c8c8ff]SLP[/color]'
+			text:  '[color=c8c8c8ff] SLP [/color]'
 			font_name: 'fonts/SystemSanFranciscoDisplayBold.ttf'
 			font_size: '11pt'
 			text_size: self.size
@@ -1181,7 +1181,7 @@ ScreenManager:
 
 		## 24 HOUR PRESSURE LOW
 		Label:
-			text: app.Air['MinPres'][0]
+			text: '[color=00a4b4ff]' + app.Air['MinPres'][0] + '[/color]'
 			font_name: 'fonts/Helvetica.ttf'
 			font_size: '15sp'
 			text_size: self.size
@@ -1190,12 +1190,24 @@ ScreenManager:
 			valign: 'center'
 			size_hint: (None,None)
 			size: dp(70),dp(18)
-			pos: dp(539),dp(185)
+			pos: dp(539),dp(194)
 			color: [0.84,0.84,0.84,1]
+		Label:
+			text: app.Air['MinPres'][2]
+			font_name: 'fonts/Helvetica.ttf'
+			font_size: '15sp'
+			text_size: self.size
+			markup: 1
+			halign: 'center'
+			valign: 'center'
+			size_hint: (None,None)
+			size: dp(70),dp(18)
+			pos: dp(539),dp(177)
+			color: [0.84,0.84,0.84,1]		
 
 		## 24 HOUR PRESSURE HIGH
 		Label:
-			text: app.Air['MaxPres'][0]
+			text: '[color=f05e40ff]' + app.Air['MaxPres'][0] + '[/color]'
 			font_name: 'fonts/Helvetica.ttf'
 			font_size: '15sp'
 			text_size: self.size
@@ -1204,8 +1216,20 @@ ScreenManager:
 			valign: 'center'
 			size_hint: (None,None)
 			size: dp(70),dp(18)
-			pos: dp(609),dp(185)
+			pos: dp(609),dp(194)
 			color: [0.84,0.84,0.84,1]
+		Label:
+			text: app.Air['MaxPres'][2]
+			font_name: 'fonts/Helvetica.ttf'
+			font_size: '15sp'
+			text_size: self.size
+			markup: 1
+			halign: 'center'
+			valign: 'center'
+			size_hint: (None,None)
+			size: dp(70),dp(18)
+			pos: dp(609),dp(177)
+			color: [0.84,0.84,0.84,1]	
 
 	## -------------------------------------------------------------------------
 	## STATUS INDICATORS FOR AIR/SKY MODULES
