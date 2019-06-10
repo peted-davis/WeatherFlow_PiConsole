@@ -270,7 +270,7 @@ class wfpiconsole(App):
 	# OVERLOAD 'on_config_change' TO MAKE NECESSARY CHANGES TO CONFIG VALUES
 	# WHEN REQUIRED
 	# --------------------------------------------------------------------------
-	def on_config_change(self, config, section, key, value):
+	def on_config_change(self,config,section,key,value):
 
 		# Update current weather forecast and Sager Weathercaster forecast when
 		# temperature or wind speed units are changed
@@ -337,13 +337,13 @@ class wfpiconsole(App):
 		# Initialise data streaming upon connection of websocket
 		if Type == 'connection_opened':
 			self.WebsocketSendMessage('{"type":"listen_start",' +
-			                           ' "device_id":' + self.config['Station']['SkyID'] + ',' +
+			                          ' "device_id":' + self.config['Station']['SkyID'] + ',' +
 									   ' "id":"Sky"}')
 			self.WebsocketSendMessage('{"type":"listen_rapid_start",' +
-			                           ' "device_id":' + self.config['Station']['SkyID'] + ',' +
+			                          ' "device_id":' + self.config['Station']['SkyID'] + ',' +
 									   ' "id":"RapidSky"}')
 			self.WebsocketSendMessage('{"type":"listen_start",' +
-			                           ' "device_id":' + self.config['Station']['OutdoorID'] + ',' +
+			                          ' "device_id":' + self.config['Station']['OutdoorID'] + ',' +
 									   ' "id":"Outdoor"}')
 
 		# Extract observations from obs_sky websocket message
@@ -446,16 +446,25 @@ class wfpiconsole(App):
 		# Replace missing observations in latest AIR Websocket JSON with NaN
 		Obs = [x if x != None else NaN for x in Msg['obs'][0]]
 
-		# Extract required observations from latest AIR Websocket JSON
+		# Extract required observations from latest AIR Websocket JSON "Obs" 
+		# object
 		Time = [Obs[0],'s']
 		Pres = [Obs[1],'mb']
 		Temp = [Obs[2],'c']
 		Humidity = [Obs[3],' %']
 		Battery = [Obs[6],' v']
 		StrikeCount = [Obs[4],'count']
-		StrikeTime = [Msg['summary']['strike_last_epoch'],'s']
-		StrikeDist = [Msg['summary']['strike_last_dist'],'km']
-		Strikes3hr = [Msg['summary']['strike_count_3h'],'count']
+		
+		# Extract lightning strike data from the latest AIR Websocket JSON 
+		# "Summary" object
+		try:
+			StrikeTime = [Msg['summary']['strike_last_epoch'],'s']
+			StrikeDist = [Msg['summary']['strike_last_dist'],'km']
+			Strikes3hr = [Msg['summary']['strike_count_3h'],'count']
+		except:
+			StrikeTime = [NaN,'s']
+			StrikeDist = [NaN,'km']
+			Strikes3hr = [NaN,'count']
 
 		# Store latest AIR Websocket JSON
 		self.Air['Obs'] = Obs
@@ -875,7 +884,7 @@ class wfpiconsole(App):
 			for ii,Delta in enumerate(Obs):
 				if isinstance(Delta,str) and Delta.strip() in ['s']:
 					if math.isnan(cObs[ii-1]):
-						cObs[ii-1] = '-'
+						cObs = ['-','-','-','-',cObs[2]]
 					else:
 						days,remainder = divmod(cObs[ii-1],86400)
 						hours,remainder = divmod(remainder,3600)
@@ -1054,7 +1063,7 @@ class wfpiconsole(App):
 			if 'Rapidly Falling' in TrendTxt:
 				Tendency = 'Becoming cloudy and warmer'
 			elif any(T in TrendTxt for T in ['Rising','Steady']):
-				Tendency = 'Fair weather likely'
+				Tendency = 'Fair conditions likely'
 		elif 1009 < Pres0h[0] < 1023:
 			if 'Rapidly Falling' in TrendTxt:
 				Tendency = 'Rainy conditions likely'

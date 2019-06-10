@@ -21,6 +21,19 @@
 ScreenManager:
 	transition: NoTransition()
     CurrentConditions:
+	
+	
+<LargeText@Label>
+	font_name: 'fonts/SystemSanFranciscoDisplayThin.ttf'
+	font_size: '30sp'
+	text_size: self.size
+	markup: 1
+	valign: 'center'
+	halign: 'center'
+	size_hint: (None,None)
+	color: [0.84,0.84,0.84,1]
+	
+	
 
 ## =============================================================================
 ## CURRENT CONDITIONS SCREEN
@@ -75,18 +88,11 @@ ScreenManager:
 			pos: dp(125),dp(322)
 
 		## FORECAST TEMPERATURE
-		Label:
+		LargeText:
 			text:  app.MetData['Temp'][0] + app.MetData['Temp'][1]
-			font_name: 'fonts/SystemSanFranciscoDisplayThin.ttf'
-			font_size: '30sp'
-			text_size: self.size
-			markup: 1
 			halign: 'left'
-			valign: 'center'
-			size_hint: (None,None)
 			size: dp(170),dp(31)
 			pos: dp(8),dp(405)
-			color: [0.84,0.84,0.84,1]
 
 		## FORECAST PRECIPITATION
 		Label:
@@ -145,7 +151,7 @@ ScreenManager:
 			valign: 'top'
 			size_hint: (None,None)
 			size: dp(252),dp(170)
-			pos: dp(7),dp(276)
+			pos: dp(8),dp(282)
 			color: [0.84,0.84,0.84,1]
 		Label:
 			text: 'Forecast issued: ' + app.Sager['Issued']
@@ -204,7 +210,7 @@ ScreenManager:
 			valign: 'center'
 			size_hint: (None,None)
 			size: dp(65.5),dp(25)
-			pos: dp(269),dp(369)
+			pos: dp(269),dp(371)
 			color: [0.84,0.84,0.84,1]
 
 		## INDOOR TEMPERATURE MAXIMUM
@@ -218,7 +224,7 @@ ScreenManager:
 			valign: 'center'
 			size_hint: (None,None)
 			size: dp(65.5),dp(25)
-			pos: dp(334.5),dp(369)
+			pos: dp(334.5),dp(371)
 			color: [0.84,0.84,0.84,1]
 
 		## OUTDOOR TEMPERATURE MINIMUM
@@ -232,7 +238,7 @@ ScreenManager:
 			valign: 'center'
 			size_hint: (None,None)
 			size: dp(65.5),dp(25)
-			pos: dp(400),dp(372)
+			pos: dp(400),dp(371)
 			color: [0.84,0.84,0.84,1]
 		Label:
 			text: app.Air['MinTemp'][2]
@@ -244,7 +250,7 @@ ScreenManager:
 			valign: 'center'
 			size_hint: (None,None)
 			size: dp(65.5),dp(25)
-			pos: dp(400),dp(348)
+			pos: dp(400),dp(347)
 			color: [0.84,0.84,0.84,1]
 
 		## OUTDOOR TEMPERATURE MAXIMUM
@@ -258,7 +264,7 @@ ScreenManager:
 			valign: 'center'
 			size_hint: (None,None)
 			size: dp(65.5),dp(25)
-			pos: dp(465.5),dp(372)
+			pos: dp(465.5),dp(371)
 			color: [0.84,0.84,0.84,1]
 		Label:
 			text: app.Air['MaxTemp'][2]
@@ -270,7 +276,7 @@ ScreenManager:
 			valign: 'center'
 			size_hint: (None,None)
 			size: dp(65.5),dp(25)
-			pos: dp(465.5),dp(348)
+			pos: dp(465.5),dp(347)
 			color: [0.84,0.84,0.84,1]
 
 		## 'FEELS LIKE' TEMPERATURE
@@ -778,7 +784,7 @@ ScreenManager:
 			halign: 'center'
 			valign: 'center'
 			size_hint: (None,None)
-			size: dp(86),dp(21)
+			size: dp(86),dp(20)
 			pos: dp(444),dp(96)
 			color: [0.84,0.84,0.84,1]
 		Label:
@@ -790,8 +796,8 @@ ScreenManager:
 			halign: 'center'
 			valign: 'center'
 			size_hint: (None,None)
-			size: dp(175),dp(21)
-			pos: dp(269),dp(96)
+			size: dp(176),dp(20)
+			pos: dp(270),dp(96)
 			color: [0.84,0.84,0.84,1]
 
 		## RAINFALL INTENSITY ANIMATION
