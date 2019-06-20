@@ -2270,11 +2270,11 @@ class wfpiconsole(App):
 
 		# Define required pressure variables for the Sager Weathercaster
 		# Forecast
-		Pres6 = np.nanmean(Air['Pres'][:15])
-		Pres = np.nanmean(Air['Pres'][-15:])
+		Pres6 = Air['Pres'][:15]
+		Pres = Air['Pres'][-15:]		
 		if not np.all(np.isnan(Pres6)) or np.all(np.isnan(Pres)):
-			self.Sager['Pres6'] = np.nanmean(Pres6)
-			self.Sager['Pres'] = np.nanmean(Pres)
+			self.Sager['Pres6'] = self.SeaLevelPressure([np.nanmean(Pres6).tolist(),'mb'])[0]
+			self.Sager['Pres'] = self.SeaLevelPressure([np.nanmean(Pres).tolist(),'mb'])[0]			
 		else:
 			self.Sager['Forecast'] = '[color=f05e40ff]ERROR:[/color] Missing pressure data. Forecast will be regenerated in 60 minutes'
 			self.Sager['Issued'] = datetime.now(pytz.utc).astimezone(Tz).strftime('%H:%M')
