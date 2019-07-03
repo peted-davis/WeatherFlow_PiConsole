@@ -38,9 +38,11 @@ WFPICONSOLE_DEPS=(libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-de
 				  pkg-config libgl1-mesa-dev libgles2-mesa-dev python-setuptools
 				  libgstreamer1.0-dev git-core gstreamer1.0-plugins-{bad,base,good,ugly}
 				  python-dev libmtdev-dev xclip xsel libatlas-base-dev gstreamer1.0-{omx,alsa}
-				  rng-tools build-essential libssl-dev libffi6 libffi-dev)
-WFPICONSOLE_MODS=(autobahn[twisted] pytz pyasn1-modules service_identity geopy ephem Cython numpy packaging)
-MASTERBRANCH="https://raw.githubusercontent.com/peted-davis/WeatherFlow_PiConsole/master/wfpiconsole.sh"
+				  rng-tools build-essential libssl-dev libjpeg-dev libffi6 libffi-dev)
+WFPICONSOLE_MODS=(autobahn[twisted] pytz pyasn1-modules service_identity geopy ephem cython==0.29.9 pillow numpy packaging)
+WFPICONSOLE_BRANCH="https://raw.githubusercontent.com/peted-davis/WeatherFlow_PiConsole/master/wfpiconsole.sh"
+KIVY_VERSION="1.11.1"
+KIVY_BRANCH="https://github.com/kivy/kivy/archive/"$KIVY_VERSION".zip"
 
 # DEFINE INSTALLER PREAMBLE
 # ------------------------------------------------------------------------------
@@ -99,7 +101,7 @@ cleanUp() {
 # CODE DIRECTLY FROM THE MASTER GITHUB BRANCH
 # ------------------------------------------------------------------------------
 fetchUpdateCode() {
-	curl -sSL $MASTERBRANCH | bash -s runUpdate
+	curl -sSL $WFPICONSOLE_BRANCH | bash -s runUpdate
 }
 
 # CHECK COMPATABILITY OF SYSTEM FOR RUNNING THE WEATHERFLOW PICONSOLE
@@ -257,7 +259,7 @@ installDependentModules() {
 updatePip() {
 	local str="Updating Python package manager"
     printf "  %b %s..." "${INFO}" "${str}"
-	if (python3 -m pip install --upgrade pip &> errorLog); then
+	if (python3 -m pip install --upgrade pip setuptools &> errorLog); then
 		printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
 	else
 		printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
@@ -300,7 +302,7 @@ installKivy() {
 	if python3 -c "import kivy" &> /dev/null; then
 		printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
 	else
-		if (python3 -m pip install git+https://github.com/kivy/kivy.git@master &> errorLog); then
+		if (python3 -m pip install $KIVY_BRANCH &> errorLog); then
 			printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
 		else
 			printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
