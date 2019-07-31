@@ -214,7 +214,7 @@ installDependentPackages() {
 installDependentModules() {
 
     # Parse function input and print progress to screen.
-    printf "\\n  %b WeatherFlow PiConsole Python module checks...\\n" "${INFO}"
+    printf "\\n  %b WeatherFlow PiConsole Python module checks..." "${INFO}"
     declare -a argArray=("${!1}")
     declare -a installArray
 
@@ -241,8 +241,6 @@ installDependentModules() {
         fi
     done
 
-    echo $installArray
-
     # Only install dependent Python modules that are missing from the system to
     # avoid unecessary downloading
     if [[ "${#installArray[@]}" -gt 0 ]]; then
@@ -267,7 +265,7 @@ installDependentModules() {
 # ------------------------------------------------------------------------------
 updatePip() {
     local str="Updating Python package manager"
-    printf "  %b %s..." "${INFO}" "${str}"
+    printf "\\n  %b %s..." "${INFO}" "${str}"
     if (python3 -m pip install --upgrade pip setuptools &> errorLog); then
         printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
     else
