@@ -97,7 +97,7 @@ cleanUp() {
     rm -f pythonCommand errorLog
 }
 
-# INITIALISE THE UPDATE PROCESS BY FETCHING THE LATEST VERSION OF THE UPDATE 
+# INITIALISE THE UPDATE PROCESS BY FETCHING THE LATEST VERSION OF THE UPDATE
 # CODE DIRECTLY FROM THE MASTER GITHUB BRANCH
 # ------------------------------------------------------------------------------
 fetchUpdateCode() {
@@ -213,27 +213,36 @@ installDependentPackages() {
 # ------------------------------------------------------------------------------
 installDependentModules() {
 
-    # Parse function input and print progress to screen
+    # Parse function input and print progress to screen.
     printf "\\n  %b WeatherFlow PiConsole Python module checks...\\n" "${INFO}"
     declare -a argArray=("${!1}")
     declare -a installArray
+
+    # Get list of installed Python modules
+    PythonList=`python3 -m pip list`
 
     # Update Python package manager: pip
     updatePip
 
     # Check if any of the dependent Python modules are already installed.
     for i in "${argArray[@]}"; do
+        Module=`echo $i | cut -d"[" -f 1 | cut -d"=" -f 1`
         local str="Checking for Python module"
-        printf "  %b %s %s..." "${INFO}" "${str}" "${i}"
-        if python3 -c "import ${i%[*}" &> /dev/null; then
-            printf "%b  %b %s %s\\n" "${OVER}" "${TICK}" "${str}" "${i}"
-        elif pip list | grep -F "${i%[*}" &> /dev/null; then
+        printf "  %b %s %s..." "${INFO}" "${str}" "${Module}"
+        if echo $PythonList | grep -iF $Module &> /dev/null; then
             printf "%b  %b %s %s\\n" "${OVER}" "${TICK}" "${str}" "${i}"
         else
-            printf "%b  %b %s %s (will be installed)\\n" "${OVER}" "${INFO}" "${str}" "${i}"
-            installArray+=("${i}")
+            if python3 -c "import ${i%[*}" &> /dev/null; then
+                printf "%b  %b %s %s\\n" "${OVER}" "${TICK}" "${str}" "${i}"
+            else
+                printf "%b  %b %s %s (will be installed)\\n" "${OVER}" "${INFO}" "${str}" "${i}"
+                installArray+=("${i}")
+            fi
         fi
     done
+
+    echo $installArray
+
     # Only install dependent Python modules that are missing from the system to
     # avoid unecessary downloading
     if [[ "${#installArray[@]}" -gt 0 ]]; then
@@ -436,7 +445,7 @@ installServiceFile () {
     # Write current user and install directory to wfpiconsole.service file
     sed -i "s+WorkingDirectory=.*$+WorkingDirectory=$CONSOLEDIR+" $CONSOLEDIR/wfpiconsole.service
     sed -i "s+User=.*$+User=$USER+" $CONSOLEDIR/wfpiconsole.service
-    
+
     # Install wfpiconsole.service file to /etc/systemd/system/ and reload deamon
     local str="Copying service file to autostart directory"
     printf "  %b %s..." "${INFO}" "${str}"
@@ -452,7 +461,7 @@ installServiceFile () {
     fi
 }
 
-# ENABLE THE wfpiconsole.service 
+# ENABLE THE wfpiconsole.service
 # ------------------------------------------------------------------------------
 enableService () {
 
@@ -468,7 +477,7 @@ enableService () {
             printf "%s\\n\\n" "$(<errorLog)"
             cleanUp
             exit 1
-        fi  
+        fi
     else
         printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
         printf "  %bError: Unable to enable the WeatherFlow PiConsole service file\\n\\n %b" "${COL_LIGHT_RED}" "${COL_NC}"
@@ -478,7 +487,7 @@ enableService () {
     fi
 }
 
-# DISABLE THE wfpiconsole.service 
+# DISABLE THE wfpiconsole.service
 # ------------------------------------------------------------------------------
 disableService () {
 
@@ -525,9 +534,9 @@ processStarting() {
             printf "\\n"
             printf "  ======================================\\n"
             printf "  Enabling console autostart during boot \\n"
-            printf "  ======================================\\n\\n" 
+            printf "  ======================================\\n\\n"
             ;;
-    # Display autostart-disable starting dialogue       
+    # Display autostart-disable starting dialogue
         autostart-disable)
             printf "\\n  %b Root user check passed\\n" "${TICK}"
             printf "\\n"
@@ -550,7 +559,7 @@ processComplete() {
             printf "  Start the console with: 'wfpiconsole start'  \\n"
             printf "  ============================================ \\n\\n"
             ;;
-    # Display update complete dialogue  
+    # Display update complete dialogue
         runUpdate)
             printf "  \\n"
             printf "  ============================================= \\n"
@@ -566,7 +575,7 @@ processComplete() {
             printf "  Starting console for current session. Please wait... \\n"
             printf "  ==================================================== \\n\\n"
             ;;
-    # Display autostart-disable complete dialogue       
+    # Display autostart-disable complete dialogue
         autostart-disable)
             printf "  =================================================== \\n"
             printf "  WeatherFlow PiConsole autostart sucesfully disabled \\n"
@@ -617,15 +626,15 @@ install() {
 # ------------------------------------------------------------------------------
 update() {
 
-    # Fetch the latest update code directly from the master Github branch. This 
+    # Fetch the latest update code directly from the master Github branch. This
     # ensures that changes in dependencies are addressed during this update
     fetchUpdateCode
-}   
-    
+}
+
 # RUN THE UPDATE PROCESS
 # ------------------------------------------------------------------------------
-runUpdate() {   
-    
+runUpdate() {
+
     # Display update sarting dialogue
     processStarting ${FUNCNAME[0]}
     # Check that the update command is being run on a Raspberry Pi
@@ -651,23 +660,23 @@ runUpdate() {
 autostart-enable () {
 
     # Display autostart-enable starting dialogue
-    processStarting ${FUNCNAME[0]}  
-    # Edit and install wfpiconsole.service file 
-    installServiceFile  
+    processStarting ${FUNCNAME[0]}
+    # Edit and install wfpiconsole.service file
+    installServiceFile
     # Enable wfpiconsole service
     enableService
     # Clean up after enabling autostart
     cleanUp
     # Display autostart-enable complete dialogue
     processComplete ${FUNCNAME[0]}
-}   
-    
+}
+
 # DISABLE THE WeatherFlow PiConsole FROM STARTING AUTOMATICALLY
 # ------------------------------------------------------------------------------
 autostart-disable () {
 
     # Display autostart-disable starting dialogue
-    processStarting ${FUNCNAME[0]}  
+    processStarting ${FUNCNAME[0]}
     # Disable wfpiconsole service
     disableService
     # Clean up after disabling autostart
@@ -701,7 +710,7 @@ fi
 
 # ENSURE ROOT ACCESS WHERE REQUIRED AND PARSE COMMAND LINE INPUTS
 # ------------------------------------------------------------------------------
-# Root access is required to install/update/autostart the WeatherFlow PiConsole 
+# Root access is required to install/update/autostart the WeatherFlow PiConsole
 if [[ "${1}" != "start" ]] && [[ "${1}" != "stop" ]]; then
     if [[ ! $EUID -eq 0 ]]; then
         if [[ -x "$(command -v sudo)" ]]; then
@@ -711,7 +720,7 @@ if [[ "${1}" != "start" ]] && [[ "${1}" != "stop" ]]; then
             printf "\\n"
             printf "  %bError: Unable to $1 the WeatherFlow PiConsole.\\n\\n%b" "${COL_LIGHT_RED}" "${COL_NC}"
             printf "  sudo is needed to $1 the WeatherFlow PiConsole\\n"
-            printf "  Please install sudo and run this script again Pi\\n\\n"   
+            printf "  Please install sudo and run this script again Pi\\n\\n"
             cleanUp
             exit 1
         fi
