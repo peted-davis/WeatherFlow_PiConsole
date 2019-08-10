@@ -49,6 +49,17 @@ about the contents of the installer, please examine the [first](https://raw.gith
 and [second](https://raw.githubusercontent.com/peted-davis/WeatherFlow_PiConsole/master/wfpiconsole.sh) 
 install files in the Git repository before running the install command.
 
+### Raspberry Pi 4
+
+For those of you running a Raspberry Pi 4 an extra step is needed to get the console 
+running perfectly. The “Task Bar” panel on the Raspberry Pi desktop needs to be hidden 
+or else it will displace the console on the screen. There are two options to achieve this. 
+First right click on the “Task Bar” panel on the Raspberry Pi desktop and select Panel 
+settings. Select the Advanced tab. Then either:
+
+1. Un-tick ```"Reserve space, and not covered by maximised windows"```, or
+2. Tick ```"Minimise panel when not in use"``` and set ```"Size when minimised"``` to 0 pixels.
+
 ### Configure and Run WeatherFlow PiConsole
 
 When the console is run for the first time, you'll be required to enter a number 
