@@ -15,14 +15,6 @@
 # this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # ==============================================================================
-# INITIALISE KIVY BACKEND BASED ON CURRENT HARDWARE TYPE
-# ==============================================================================
-import platform
-import os
-if platform.system() == 'Linux' and 'arm' in platform.machine():
-    os.environ['KIVY_GL_BACKEND'] = 'gl'
-
-# ==============================================================================
 # CREATE OR UPDATE wfpiconsole.ini FILE
 # ==============================================================================
 from lib import configCreate
@@ -31,6 +23,23 @@ if not Path('wfpiconsole.ini').is_file():
     configCreate.create_ini()
 else:
     configCreate.update_ini()
+
+# ==============================================================================
+# INITIALISE KIVY BACKEND BASED ON CURRENT HARDWARE TYPE
+# ==============================================================================
+import configparser
+import os
+
+# Load config file
+config = configparser.ConfigParser()
+config.read('wfpiconsole.ini')
+
+# Initialise Kivy backend based on current hardware
+if config['System']['Hardware'] == 'Pi3':
+    os.environ['KIVY_GL_BACKEND'] = 'gl'
+elif config['System']['Hardware'] == 'Pi4':
+    os.environ['KIVY_GRAPHICS'] = 'gles'
+    os.environ['KIVY_WINDOW'] = 'sdl2'
 
 # ==============================================================================
 # INITIALISE KIVY TWISTED WEBSOCKET CLIENT
@@ -215,16 +224,20 @@ class wfpiconsole(App):
     # --------------------------------------------------------------------------
     def build(self):
 
-        # Force window size if required
-        if 'arm' not in platform.machine():
-            Window.size = (800,480)
-
         # Load user configuration from wfpiconsole.ini and define Settings panel
         # type
         self.config = ConfigParser(allow_no_value=True,name='wfpiconsole')
         self.config.optionxform = str
         self.config.read('wfpiconsole.ini')
         self.settings_cls = SettingsWithSidebar
+
+        # Force window size if required based on hardware type
+        if self.config['System']['Hardware'] == 'Pi4':
+            Window.size = (800,480)
+            Window.borderless = 1
+            Window.top = 0
+        if self.config['System']['Hardware'] == 'Other':
+            Window.size = (800,480)
 
         # Initialise Sunrise and Sunset time, Moonrise andMoonset time, and
         # MetOffice or DarkSky weather forecast data
@@ -446,7 +459,7 @@ class wfpiconsole(App):
         # Replace missing observations in latest AIR Websocket JSON with NaN
         Obs = [x if x != None else NaN for x in Msg['obs'][0]]
 
-        # Extract required observations from latest AIR Websocket JSON "Obs" 
+        # Extract required observations from latest AIR Websocket JSON "Obs"
         # object
         Time = [Obs[0],'s']
         Pres = [Obs[1],'mb']
@@ -454,8 +467,8 @@ class wfpiconsole(App):
         Humidity = [Obs[3],' %']
         Battery = [Obs[6],' v']
         StrikeCount = [Obs[4],'count']
-        
-        # Extract lightning strike data from the latest AIR Websocket JSON 
+
+        # Extract lightning strike data from the latest AIR Websocket JSON
         # "Summary" object
         try:
             StrikeTime = [Msg['summary']['strike_last_epoch'],'s']
@@ -586,7 +599,7 @@ class wfpiconsole(App):
         self.Air['StrikeDeltaT'] = self.ObservationFormat(StrikeDeltaT,'TimeDelta')
         self.Air['StrikeDist'] = self.ObservationFormat(StrikeDist,'StrikeDistance')
 
-        # Open lightning panel to show strike has been detected if required 
+        # Open lightning panel to show strike has been detected if required
         # based on user settings
         if self.config['Display']['LightningPanel'] == '1':
             self.LightningPanel.opacity = 1
@@ -1032,7 +1045,7 @@ class wfpiconsole(App):
             Pres3h = [Data3h[0][1],'mb']
         else:
             Pres3h = [NaN,'mb']
-            
+
         # Convert station pressure into sea level pressure
         Pres0h = self.SeaLevelPressure(Pres0h)
         Pres3h = self.SeaLevelPressure(Pres3h)
@@ -1057,7 +1070,7 @@ class wfpiconsole(App):
             TrendTxt = '[color=00a4b4ff]Falling[/color]'
         else:
             TrendTxt = '[color=9aba2fff]Steady[/color]'
-            
+
         # Define weather tendency based on pressure and trend
         if Pres0h[0] >= 1023:
             if 'Rapidly Falling' in TrendTxt:
@@ -2271,10 +2284,10 @@ class wfpiconsole(App):
         # Define required pressure variables for the Sager Weathercaster
         # Forecast
         Pres6 = Air['Pres'][:15]
-        Pres = Air['Pres'][-15:]        
+        Pres = Air['Pres'][-15:]
         if not np.all(np.isnan(Pres6)) or np.all(np.isnan(Pres)):
             self.Sager['Pres6'] = self.SeaLevelPressure([np.nanmean(Pres6).tolist(),'mb'])[0]
-            self.Sager['Pres'] = self.SeaLevelPressure([np.nanmean(Pres).tolist(),'mb'])[0]         
+            self.Sager['Pres'] = self.SeaLevelPressure([np.nanmean(Pres).tolist(),'mb'])[0]
         else:
             self.Sager['Forecast'] = '[color=f05e40ff]ERROR:[/color] Missing pressure data. Forecast will be regenerated in 60 minutes'
             self.Sager['Issued'] = datetime.now(pytz.utc).astimezone(Tz).strftime('%H:%M')
