@@ -35,11 +35,11 @@ config = configparser.ConfigParser()
 config.read('wfpiconsole.ini')
 
 # Initialise Kivy backend based on current hardware
-if config['System']['Hardware'] == 'Pi3':
-    os.environ['KIVY_GL_BACKEND'] = 'gl'
-elif config['System']['Hardware'] == 'Pi4':
+if config['System']['Hardware'] == 'Pi4':
     os.environ['KIVY_GRAPHICS'] = 'gles'
     os.environ['KIVY_WINDOW'] = 'sdl2'
+elif 'Pi' in config['System']['Hardware']:
+    os.environ['KIVY_GL_BACKEND'] = 'gl'
 
 # ==============================================================================
 # INITIALISE KIVY TWISTED WEBSOCKET CLIENT

@@ -43,6 +43,10 @@ try:
         Hardware = "Pi4"
     elif "Raspberry Pi 3" in Hardware:
         Hardware = "Pi3"
+    elif "Raspberry Pi 2" in Hardware:
+        Hardware = "Pi2"
+    elif "Raspberry Pi" in Hardware:
+        Hardware = "Pi1"
     else:
         Hardware = "Other"
 except:
