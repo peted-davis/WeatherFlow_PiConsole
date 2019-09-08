@@ -236,7 +236,7 @@ class wfpiconsole(App):
             Window.size = (800,480)
             Window.borderless = 1
             Window.top = 0
-        if self.config['System']['Hardware'] == 'Other':
+        elif self.config['System']['Hardware'] == 'Other':
             Window.size = (800,480)
 
         # Initialise Sunrise and Sunset time, Moonrise andMoonset time, and
@@ -470,14 +470,9 @@ class wfpiconsole(App):
 
         # Extract lightning strike data from the latest AIR Websocket JSON
         # "Summary" object
-        try:
-            StrikeTime = [Msg['summary']['strike_last_epoch'],'s']
-            StrikeDist = [Msg['summary']['strike_last_dist'],'km']
-            Strikes3hr = [Msg['summary']['strike_count_3h'],'count']
-        except:
-            StrikeTime = [NaN,'s']
-            StrikeDist = [NaN,'km']
-            Strikes3hr = [NaN,'count']
+        StrikeTime = [Msg['summary']['strike_last_epoch'] if 'strike_last_epoch' in Msg['summary'] else NaN,'s']
+        StrikeDist = [Msg['summary']['strike_last_dist'] if 'strike_last_dist' in Msg['summary'] else NaN,'km']
+        Strikes3hr = [Msg['summary']['strike_count_3h'] if 'strike_count_3h' in Msg['summary'] else NaN,'count']
 
         # Store latest AIR Websocket JSON
         self.Air['Obs'] = Obs
@@ -1039,7 +1034,7 @@ class wfpiconsole(App):
     def PressureTrend(self,Pres0h,Data3h):
 
         # Extract pressure observation from three hours ago. Return NaN for
-        # pressure trend if API call has failed
+        # pressure trend if API call has failed       
         if VerifyJSON(Data3h,'WeatherFlow','obs'):
             Data3h = Data3h.json()['obs']
             Pres3h = [Data3h[0][1],'mb']
@@ -1073,21 +1068,21 @@ class wfpiconsole(App):
 
         # Define weather tendency based on pressure and trend
         if Pres0h[0] >= 1023:
-            if 'Rapidly Falling' in TrendTxt:
+            if 'Falling rapidly' in TrendTxt:
                 Tendency = 'Becoming cloudy and warmer'
-            elif any(T in TrendTxt for T in ['Rising','Steady']):
+            else:
                 Tendency = 'Fair conditions likely'
         elif 1009 < Pres0h[0] < 1023:
-            if 'Rapidly Falling' in TrendTxt:
+            if 'Falling rapidly' in TrendTxt:
                 Tendency = 'Rainy conditions likely'
-            elif any(T in TrendTxt for T in ['Falling','Rising','Steady']):
+            else:
                 Tendency = 'Conditions unchanged'
         elif Pres0h[0] <= 1009:
-            if 'Rapidly Falling' in TrendTxt:
+            if 'Falling rapidly' in TrendTxt:
                 Tendency = 'Stormy conditions likely'
             elif 'Falling' in TrendTxt:
                 Tendency = 'Rainy conditions likely'
-            elif any(T in TrendTxt for T in ['Rising','Steady']):
+            else:
                 Tendency = 'Becoming clearer and cooler'
 
         # Return pressure trend
