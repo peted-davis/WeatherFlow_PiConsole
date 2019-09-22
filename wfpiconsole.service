@@ -20,6 +20,7 @@ Wants=network-online.target
 After=network-online.target
 
 [Service]
+Environment=DISPLAY=:0
 ExecStart=/usr/bin/python3 -u main.py
 WorkingDirectory=
 StandardOutput=inherit
