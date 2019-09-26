@@ -217,12 +217,12 @@ installDependentModules() {
     printf "\\n  %b WeatherFlow PiConsole Python module checks..." "${INFO}"
     declare -a argArray=("${!1}")
     declare -a installArray
+    
+    # Update Python package manager: pip
+    updatePip
 
     # Get list of installed Python modules
     PythonList=`python3 -m pip list`
-
-    # Update Python package manager: pip
-    updatePip
 
     # Check if any of the dependent Python modules are already installed.
     for i in "${argArray[@]}"; do
