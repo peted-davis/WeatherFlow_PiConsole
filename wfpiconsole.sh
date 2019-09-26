@@ -563,6 +563,7 @@ processComplete() {
             printf "  ============================================= \\n"
             printf "  WeatherFlow PiConsole update complete!        \\n"
             printf "  Restart the console with: 'wfpiconsole start' \\n"
+            printf "  or 'wfpiconsole autostart-enable'             \\n"
             printf "  ============================================= \\n\\n"
             ;;
     # Display autostart-enable complete dialogue
