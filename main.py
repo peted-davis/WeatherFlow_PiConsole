@@ -878,14 +878,14 @@ class wfpiconsole(App):
                         else:
                             DistValues = [0,5,6,8,10,12,14,17,20,24,27,31,34,37,40]
                             DispValues = ['0-5','2-8','3-9','5-11','7-13','9-15','11-17','14-20','17-23','21-27','24-30','28-34','31-37','34-40','37-43']
-                            cObs[ii-1] = DispValues[DistValues.index(cObs[ii-1])]
+                            cObs[ii-1] = DispValues[bisect.bisect(DistValues,cObs[ii-1])-1]
                     elif StrikeDist.strip() in ['miles']:
                         if math.isnan(cObs[ii-1]):
                             cObs[ii-1] = '-'
                         else:
                             DistValues = [0,3.1,3.7,5,6.2,7.5,8.7,10.6,12.4,14.9,16.8,19.3,21.1,23,24.9]
                             DispValues = ['0-3','1-5','2-6','3-7','4-8','6-9','7-11','9-12','11-14','13-17','15-19','17-21','19-23','21-25','37-43']
-                            cObs[ii-1] = DispValues[DistValues.index(round(cObs[ii-1],1))]
+                            cObs[ii-1] = DispValues[bisect.bisect(DistValues,cObs[ii-1])-1]
 
         # Format time difference observations
         elif Type == 'TimeDelta':

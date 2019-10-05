@@ -592,7 +592,11 @@ start () {
 # STOP THE WeatherFlow PiConsole
 # ------------------------------------------------------------------------------
 stop () {
-    pkill -HUP -f main.py
+    if (sudo systemctl | grep wfpiconsole.service &> errorLog); then
+        sudo systemctl stop wfpiconsole.service
+    else
+        pkill -HUP -f main.py
+    fi
 }
 
 # INSTALL WeatherFlow PiConsole

@@ -29,7 +29,6 @@ ExecStart=/usr/bin/python3 -u main.py
 WorkingDirectory=
 StandardOutput=inherit
 StandardError=inherit
-Restart=no
 User=
 
 [Install]
