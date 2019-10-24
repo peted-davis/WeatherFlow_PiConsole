@@ -60,6 +60,9 @@ settings. Select the Advanced tab. Then either:
 1. Un-tick ```"Reserve space, and not covered by maximised windows"```, or
 2. Tick ```"Minimise panel when not in use"``` and set ```"Size when minimised"``` to 0 pixels.
 
+Please note that you also cannot use SSH to start the console on a Raspberry Pi 4. Instead
+for remote access it is recommended to setup VNC (https://www.raspberrypi.org/documentation/remote-access/vnc/) 
+
 ### Configure and Run WeatherFlow PiConsole
 
 When the console is run for the first time, you'll be required to enter a number 
