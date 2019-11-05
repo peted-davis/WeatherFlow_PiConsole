@@ -28,7 +28,7 @@ be started from the terminal with a single command. The automated installation
 should take ~1 hour.
 
 The automated installer assumes you have already sucesfully setup your Raspberry 
-Pi and have installed Raspbian Stretch with Desktop. You should have also 
+Pi and have installed Raspbian Buster with Desktop. You should have also 
 attached the touch screen, and have either a keyboard and mouse attached 
 directly to the Pi, or have accessesd the Pi remotely through SSH/VNC. If you 
 are starting from scratch, the Raspberry Pi documentation should help get you
