@@ -158,7 +158,7 @@ python -m pip install --upgrade pip
 python -m pip install autobahn[twisted] pytz pyasn1-modules service_identity geopy ephem Cython numpy packaging
 ```
 
-5. Once that has finished, follow the 3 steps under the “Installation Instructions” here to install Kivy: https://kivy.org/doc/stable/installation/installation-windows.html
+5. Once that has finished, follow steps 2 and 3 under “Installing the kivy stable release” to install Kivy: https://kivy.org/doc/stable/installation/installation-windows.html
 This is the GUI library that drives the console. 
 
 6. Once Kivy is installed, run the following commands in order in the Anaconda Prompt. This will install the
