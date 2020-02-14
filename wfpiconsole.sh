@@ -34,15 +34,14 @@ PKG_UPDATE_CACHE="${PKG_MANAGER} update"
 PKG_UPDATE_INSTALL="${PKG_MANAGER} dist-upgrade -y"
 PKG_UPDATE_COUNT="${PKG_MANAGER} -s -o Debug::NoLocking=true upgrade | grep -c ^Inst || true"
 PKG_NEW_INSTALL=(${PKG_MANAGER} --yes install)
-WFPICONSOLE_DEPS=(libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev
+PKG_DEPENDENCIES=(libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev
                   pkg-config libgl1-mesa-dev libgles2-mesa-dev python-setuptools
                   libgstreamer1.0-dev git gstreamer1.0-plugins-{bad,base,good,ugly}
                   python-dev libmtdev-dev xclip xsel libatlas-base-dev gstreamer1.0-{omx,alsa}
                   rng-tools build-essential libssl-dev libjpeg-dev libffi6 libffi-dev)
-WFPICONSOLE_MODS=(autobahn[twisted] pytz pyasn1-modules service_identity geopy ephem cython==0.29.9 pillow numpy packaging)
+PYTHON_MODS=(autobahn[twisted] pytz pyasn1-modules service_identity geopy ephem pillow numpy packaging)
 WFPICONSOLE_BRANCH="https://raw.githubusercontent.com/peted-davis/WeatherFlow_PiConsole/master/wfpiconsole.sh"
-KIVY_VERSION="1.11.1"
-KIVY_BRANCH="https://github.com/kivy/kivy/archive/"$KIVY_VERSION".zip"
+CYTHON_VERSION="0.29.10"
 
 # DEFINE INSTALLER PREAMBLE
 # ------------------------------------------------------------------------------
@@ -178,9 +177,9 @@ updatePackages() {
     fi
 }
 
-# INSTALL DEPENDENT PACKAGES FOR THE WeatherFlow PiConsole
+# INSTALL PACKAGES REQUIRED BY THE WeatherFlow PiConsole
 # ------------------------------------------------------------------------------
-installDependentPackages() {
+installPackages() {
 
     # Parse function input and print progress to screen
     printf "\\n  %b WeatherFlow PiConsole dependency checks...\\n" "${INFO}"
@@ -209,9 +208,25 @@ installDependentPackages() {
     fi
 }
 
-# INSTALL DEPENDENT PYTHON MODULES FOR THE WeatherFlow PiConsole
+# UPDATE PYTHON PACKAGE MANAGER: PIP
 # ------------------------------------------------------------------------------
-installDependentModules() {
+updatePip() {
+    local str="Updating Python package manager"
+    printf "\\n  %b %s..." "${INFO}" "${str}"
+    if (python3 -m pip install --upgrade pip setuptools &> errorLog); then
+        printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
+    else
+        printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
+        printf "  %bError: Unable to update Python package manager: pip\\n\\n %b" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "%s\\n\\n" "$(<errorLog)"
+        cleanUp
+        exit 1
+    fi
+}
+
+# INSTALL PYTHON MODULES FOR THE WeatherFlow PiConsole
+# ------------------------------------------------------------------------------
+installPythonModules() {
 
     # Parse function input and print progress to screen.
     printf "\\n  %b WeatherFlow PiConsole Python module checks..." "${INFO}"
@@ -259,18 +274,21 @@ installDependentModules() {
             fi
         done
     fi
+    
+    # Install Cython
+    installCython
 }
 
-# UPDATE PYTHON PACKAGE MANAGER: PIP
+# INSTALL CYTHON
 # ------------------------------------------------------------------------------
-updatePip() {
-    local str="Updating Python package manager"
+installCython() {
+    local str="Installing Cython version $CYTHON_VERSION "
     printf "\\n  %b %s..." "${INFO}" "${str}"
-    if (python3 -m pip install --upgrade pip setuptools &> errorLog); then
+    if (python3 -m pip install cython==$CYTHON_VERSION &> errorLog);
         printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
     else
         printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
-        printf "  %bError: Unable to update Python package manager: pip\\n\\n %b" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "  %bError: Unable to install Cython version $CYTHON_VERSION\\n\\n %b" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "%s\\n\\n" "$(<errorLog)"
         cleanUp
         exit 1
@@ -279,7 +297,7 @@ updatePip() {
 
 # UPDATE DEPENDENT PYTHON MODULES FOR THE WeatherFlow PiConsole
 # ------------------------------------------------------------------------------
-updateModules() {
+updatePythonModules() {
 
     # Parse function input and print progress to screen
     printf "\\n  %b Updating WeatherFlow PiConsole Python modules...\\n" "${INFO}"
@@ -304,12 +322,12 @@ updateModules() {
 # INSTALL KIVY PYTHON LIBRARY
 # ------------------------------------------------------------------------------
 installKivy() {
-    local str="Installing Kivy Python library [This will take time. Please be patient....]"
+    local str="Installing Kivy Python library"
     printf "\\n  %b %s..." "${INFO}" "${str}"
     if python3 -c "import kivy" &> /dev/null; then
         printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
     else
-        if (python3 -m pip install $KIVY_BRANCH &> errorLog); then
+        if (python3 -m pip install kivy &> errorLog);
             printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
         else
             printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
@@ -610,9 +628,9 @@ install() {
     # Check for and ask user if they wish to install any updated local packages
     updatePackages
     # Install required packages
-    installDependentPackages WFPICONSOLE_DEPS[@]
+    installPackages PKG_DEPENDENCIES[@]
     # Install required Python modules
-    installDependentModules WFPICONSOLE_MODS[@]
+    installPythonModules PYTHON_MODS[@]
     # Install Kivy Python library
     installKivy
     # Configure Kivy for touchscreen
@@ -645,11 +663,11 @@ runUpdate() {
     # Check for and ask user if they wish to install any updated local packages
     updatePackages
     # Check if any new dependencies are required
-    installDependentPackages WFPICONSOLE_DEPS[@]
+    installPackages PKG_DEPENDENCIES[@]
     # Check if any new Python modules are required
-    installDependentModules WFPICONSOLE_MODS[@]
+    installPythonModules PYTHON_MODS[@]
     # Update outdated dependent Python modules
-    #updateModules WFPICONSOLE_MODS[@]
+    #updatePythonModules PYTHON_MODS[@]
     # Get the latest version of the WeatherFlow PiConsole and install
     getLatestVersion
     # Clean up after installation
