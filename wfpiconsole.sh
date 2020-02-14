@@ -327,7 +327,7 @@ installKivy() {
     if python3 -c "import kivy" &> /dev/null; then
         printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
     else
-        if (python3 -m pip install kivy &> errorLog);
+        if (python3 -m pip install kivy &> errorLog); then
             printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
         else
             printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
