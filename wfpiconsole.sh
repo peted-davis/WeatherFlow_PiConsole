@@ -284,7 +284,7 @@ installPythonModules() {
 installCython() {
     local str="Installing Cython version $CYTHON_VERSION "
     printf "\\n  %b %s..." "${INFO}" "${str}"
-    if (python3 -m pip install cython==$CYTHON_VERSION &> errorLog);
+    if (python3 -m pip install cython==$CYTHON_VERSION &> errorLog); then
         printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
     else
         printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
