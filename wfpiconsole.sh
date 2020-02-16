@@ -106,6 +106,8 @@ fetchUpdateCode() {
 # CHECK COMPATABILITY OF SYSTEM FOR RUNNING THE WEATHERFLOW PICONSOLE
 # ------------------------------------------------------------------------------
 hardwareCheck() {
+
+    # Ensure installer is running on a Raspberry Pi
     local Processor=$(uname -m)
     if [[ "$Processor" = "arm"* ]]; then
         printf "  %b Raspberry Pi found. Hardware check passed\\n" "${TICK}"
@@ -130,10 +132,10 @@ updatePackages() {
     # Update local package cache. Return error if cache cannot be updated
     local str="Checking for updated packages"
     printf "  %b %s..." "${INFO}" "${str}"
-    if eval "${PKG_UPDATE_CACHE}" &> errorLog; then
+    if (sudo ${PKG_UPDATE_CACHE} &> errorLog); then
 
         # If there are updates to install, check if user wishes to apply updates
-        updatesToInstall=$(eval "${PKG_UPDATE_COUNT}")
+        updatesToInstall=$(eval ${PKG_UPDATE_COUNT})
         if [ "$updatesToInstall" -gt "0" ]; then
             backtitle="Installing updated packages"
             title="Updated packages available to install"
@@ -149,7 +151,7 @@ updatePackages() {
                 printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
                 local str="Installing updated packages"
                 printf "  %b %s..." "${INFO}" "${str}"
-                if eval "debconf-apt-progress --logfile errorLog -- ${PKG_UPDATE_INSTALL}"; then
+                if (sudo debconf-apt-progress --logfile errorLog -- ${PKG_UPDATE_INSTALL}); then
                     printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
                 else
                     printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
@@ -199,7 +201,7 @@ installPackages() {
     # Only install dependent packages that are missing from the system to avoid
     # unecessary downloading
     if [[ "${#installArray[@]}" -gt 0 ]]; then
-        if ! (debconf-apt-progress --logfile errorLog -- "${PKG_NEW_INSTALL[@]}" "${installArray[@]}"); then
+        if ! (sudo debconf-apt-progress --logfile errorLog -- "${PKG_NEW_INSTALL[@]}" "${installArray[@]}"); then
             printf "  %b\\nError: Unable to install dependent packages\\n\\n %b" "${COL_LIGHT_RED}" "${COL_NC}"
             printf "%s\\n\\n" "$(<errorLog)"
             cleanUp
@@ -232,7 +234,7 @@ installPythonModules() {
     printf "\\n  %b WeatherFlow PiConsole Python module checks..." "${INFO}"
     declare -a argArray=("${!1}")
     declare -a installArray
-    
+
     # Update Python package manager: pip
     updatePip
 
@@ -274,7 +276,7 @@ installPythonModules() {
             fi
         done
     fi
-    
+
     # Install Cython
     installCython
 }
@@ -282,13 +284,13 @@ installPythonModules() {
 # INSTALL CYTHON
 # ------------------------------------------------------------------------------
 installCython() {
-    local str="Installing Cython version $CYTHON_VERSION "
-    printf "\\n  %b %s..." "${INFO}" "${str}"
+    local str="Installing Python module cython"
+    printf "  %b %s..." "${INFO}" "${str}"
     if (python3 -m pip install cython==$CYTHON_VERSION &> errorLog); then
         printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
     else
         printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
-        printf "  %bError: Unable to install Cython version $CYTHON_VERSION\\n\\n %b" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "  %bError: Unable to install Python module cython\\n\\n %b" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "%s\\n\\n" "$(<errorLog)"
         cleanUp
         exit 1
@@ -346,7 +348,7 @@ updateKivyConfig() {
     # Create Kivy config file for user that called function
     local str="Updating Kivy configuration for touch screen"
     printf "  %b %s..." "${INFO}" "${str}"
-    if sudo -u $USER python3 -c "import kivy" &> errorLog; then
+    if python3 -c "import kivy" &> errorLog; then
         :
     else
         printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
@@ -413,7 +415,7 @@ getLatestVersion() {
         else
             local str="Updating WeatherFlow PiConsole to ${latestVer}"
             printf "\\n  %b %s..." "${INFO}" "${str}"
-            sudo -u $USER curl -sL $tarballLoc --create-dirs -o $DLDIR/wfpiconsole.tar.gz
+            curl -sL $tarballLoc --create-dirs -o $DLDIR/wfpiconsole.tar.gz
             installLatestVersion
         fi
 
@@ -422,7 +424,7 @@ getLatestVersion() {
     else
         local str="Installing the latest version of the WeatherFlow PiConsole: ${latestVer}"
         printf "\\n  %b %s..." "${INFO}" "${str}"
-        sudo -u $USER curl -sL $tarballLoc --create-dirs -o $DLDIR/wfpiconsole.tar.gz
+        curl -sL $tarballLoc --create-dirs -o $DLDIR/wfpiconsole.tar.gz
         installLatestVersion
     fi
 }
@@ -433,7 +435,7 @@ installLatestVersion() {
 
     # Extract the latest version of the WeatherFlow PiConsole from the Github
     # tarball to the temporary download folder
-    sudo -u $USER tar -zxf $DLDIR/wfpiconsole.tar.gz -C $DLDIR --strip 1
+    tar -zxf $DLDIR/wfpiconsole.tar.gz -C $DLDIR --strip 1
     rm $DLDIR/wfpiconsole.tar.gz
 
     # Rsync the files in the download folder to the console directory. Delete
@@ -451,7 +453,7 @@ installLatestVersion() {
     # Make sure wfpiconsole.sh file is executable and create symlink to
     # usr/bin/local so function can be called directly from the command line
     chmod 744 $CONSOLEDIR/wfpiconsole.sh
-    ln -sf $CONSOLEDIR/wfpiconsole.sh /usr/local/bin/wfpiconsole
+    sudo ln -sf $CONSOLEDIR/wfpiconsole.sh /usr/local/bin/wfpiconsole
 }
 
 # INSTALL THE wfpiconsole.service FILE TO /etc/systemd/system/
@@ -510,7 +512,7 @@ disableService () {
     # Disable the wfpiconsole service
     local str="Disabling the WeatherFlow PiConsole service file"
     printf "  %b %s..." "${INFO}" "${str}"
-    if (sudo systemctl disable wfpiconsole.service &> errorLog); then
+    if (systemctl disable wfpiconsole.service &> errorLog); then
         printf "%b  %b %s\\n\\n" "${OVER}" "${TICK}" "${str}"
     else
         printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
@@ -530,7 +532,6 @@ processStarting() {
         install)
             whiptail --msgbox --backtitle "Welcome" --title "WeatherFlow PiConsole automated installer" \
             "\\n\\nThanks for checking out the WeatherFlow PiConsole. This script will guide you through the installation process on your Raspbery Pi." ${r} ${c}
-            printf "\\n  %b Root user check passed\\n" "${TICK}"
             printf "\\n"
             printf "  ================================\\n"
             printf "  Installing WeatherFlow PiConsole\\n"
@@ -538,7 +539,6 @@ processStarting() {
             ;;
     # Display update starting dialogue
         runUpdate)
-            printf "\\n  %b Root user check passed\\n" "${TICK}"
             printf "\\n"
             printf "  ==============================\\n"
             printf "  Updating WeatherFlow PiConsole\\n"
@@ -546,7 +546,6 @@ processStarting() {
             ;;
     # Display autostart-enable starting dialogue
         autostart-enable)
-            printf "\\n  %b Root user check passed\\n" "${TICK}"
             printf "\\n"
             printf "  ======================================\\n"
             printf "  Enabling console autostart during boot \\n"
@@ -554,7 +553,6 @@ processStarting() {
             ;;
     # Display autostart-disable starting dialogue
         autostart-disable)
-            printf "\\n  %b Root user check passed\\n" "${TICK}"
             printf "\\n"
             printf "  =======================================\\n"
             printf "  Disabling console autostart during boot \\n"
@@ -656,9 +654,9 @@ update() {
 # ------------------------------------------------------------------------------
 runUpdate() {
 
-    # Display update sarting dialogue
+    # Display installation starting dialogue
     processStarting ${FUNCNAME[0]}
-    # Check that the update command is being run on a Raspberry Pi
+    # Check that the install command is being run on a Raspberry Pi
     hardwareCheck
     # Check for and ask user if they wish to install any updated local packages
     updatePackages
@@ -729,26 +727,32 @@ if [ $# -eq 0 ]; then
     helpFunc
 fi
 
-# ENSURE ROOT ACCESS WHERE REQUIRED AND PARSE COMMAND LINE INPUTS
+# ENSURE ROOT ACCESS IS AVAILABLE AND PARSE COMMAND LINE INPUTS
 # ------------------------------------------------------------------------------
-# Root access is required to install/update/autostart the WeatherFlow PiConsole
-if [[ "${1}" != "start" ]] && [[ "${1}" != "stop" ]]; then
-    if [[ ! $EUID -eq 0 ]]; then
-        if [[ -x "$(command -v sudo)" ]]; then
-            exec sudo bash "$0" "$@"
-            exit $?
-        else
-            printf "\\n"
-            printf "  %bError: Unable to $1 the WeatherFlow PiConsole.\\n\\n%b" "${COL_LIGHT_RED}" "${COL_NC}"
-            printf "  sudo is needed to $1 the WeatherFlow PiConsole\\n"
-            printf "  Please install sudo and run this script again Pi\\n\\n"
-            cleanUp
-            exit 1
+# Ensure sudo command is available and script can be elevated to root privileges
+if [[ ! -x "$(command -v sudo)" ]]; then
+    printf "\\n"
+    printf "  %bError: Unable to $1 the WeatherFlow PiConsole.\\n\\n%b" "${COL_LIGHT_RED}" "${COL_NC}"
+    printf "  sudo is needed to $1 the WeatherFlow PiConsole\\n"
+    printf "  Please install sudo and run this script again Pi\\n\\n"
+    cleanUp
+    exit 1
+fi
+if [[ "${1}" != "start" ]]; then
+    if (sudo true); then
+        if [[ "${1}" != "stop" ]]; then
+            printf "\\n  %b Root user check passed\\n" "${TICK}"
         fi
+    else
+        printf "\\n %b  %b Root user check failed\\n" "${OVER}" "${CROSS}"
+        printf "  %bError: Unable to ${1} the WeatherFlow PiConsole \\n\\n %b" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "\\n"
+        cleanUp
+        exit 1
     fi
 fi
 
-# Handle redirecting to specific functions based on arguments
+# Handle redirecting to specific functions based on input arguments
 case "${1}" in
     "start"               ) start;;
     "stop"                ) stop;;
