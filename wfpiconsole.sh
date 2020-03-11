@@ -40,8 +40,10 @@ PKG_DEPENDENCIES=(libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-de
                   python-dev libmtdev-dev xclip xsel libatlas-base-dev gstreamer1.0-{omx,alsa}
                   rng-tools build-essential libssl-dev libjpeg-dev libffi6 libffi-dev)
 PYTHON_MODS=(autobahn[twisted] pytz pyasn1-modules service_identity geopy ephem pillow numpy packaging)
-WFPICONSOLE_BRANCH="https://raw.githubusercontent.com/peted-davis/WeatherFlow_PiConsole/master/wfpiconsole.sh"
+KIVY_VERSION="1.11.1"
 CYTHON_VERSION="0.29.10"
+KIVY_BRANCH="https://github.com/kivy/kivy/archive/"$KIVY_VERSION".zip"
+WFPICONSOLE_BRANCH="https://raw.githubusercontent.com/peted-davis/WeatherFlow_PiConsole/master/wfpiconsole.sh"
 
 # DEFINE INSTALLER PREAMBLE
 # ------------------------------------------------------------------------------
@@ -329,7 +331,7 @@ installKivy() {
     if python3 -c "import kivy" &> /dev/null; then
         printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
     else
-        if (python3 -m pip install kivy &> errorLog); then
+        if (python3 -m pip install $KIVY_BRANCH &> errorLog); then
             printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
         else
             printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
