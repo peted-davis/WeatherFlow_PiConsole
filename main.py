@@ -38,6 +38,7 @@ config.read('wfpiconsole.ini')
 if config['System']['Hardware'] == 'Pi4':
     os.environ['KIVY_GRAPHICS'] = 'gles'
     os.environ['KIVY_WINDOW'] = 'sdl2'
+    os.environ['SDL_VIDEO_ALLOW_SCREENSAVER'] = '1'
 elif 'Pi' in config['System']['Hardware']:
     os.environ['KIVY_GL_BACKEND'] = 'gl'
 
