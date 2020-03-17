@@ -326,7 +326,7 @@ updatePythonModules() {
 # INSTALL KIVY PYTHON LIBRARY
 # ------------------------------------------------------------------------------
 installKivy() {
-    local str="Installing Kivy Python library [This will take time. Please be patient....]"
+    local str="Installing Kivy Python library [This will take time - please be patient]"
     printf "\\n  %b %s..." "${INFO}" "${str}"
     if python3 -c "import kivy" &> /dev/null; then
         printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
