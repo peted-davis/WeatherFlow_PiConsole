@@ -314,10 +314,9 @@ def writekeyValue(Config,Section,Key,keyDetails):
             URL = Template.format(Config['Station']['Latitude'],Config['Station']['Longitude'],Config['Keys']['GeoNames'])
             GEONAMES = requests.get(URL).json()
         elif keyDetails['Source'] == 'MetOffice' and METOFFICE is None and Config['Station']['Country'] in ['GB']:
-            Template = 'http://datapoint.metoffice.gov.uk/public/data/val/wxfcs/all/json/sitelist?&Key={}'
-            header = {'User-Agent': "Magic Browser"}
+            Template = 'http://datapoint.metoffice.gov.uk/public/data/val/wxfcs/all/json/sitelist?&key={}'
             URL = Template.format(Config['Keys']['MetOffice'])
-            METOFFICE = requests.get(URL,headers=header).json()
+            METOFFICE = requests.get(URL).json()
 
         # Get height above ground of TEMPEST module
         if Section == 'Station':
@@ -341,7 +340,7 @@ def writekeyValue(Config,Section,Key,keyDetails):
                                 break
                             except ValueError:
                                 print('    TEMPEST ID not valid. Please try again..... ')
-                        Config.set('Station','OutdoorID',str(ID))
+                        Config.set('Station','TempestID',str(ID))
                     else:
                         break
 
@@ -356,16 +355,16 @@ def writekeyValue(Config,Section,Key,keyDetails):
                                     Value = Device['device_meta']['agl']
                     if Value is None:
                         while True:
-                            ID = input('    Outdoor AIR ID not found. Please re-enter your Outdoor AIR ID: ')
+                            ID = input('    Outdoor AIR module ID not found. Please re-enter your Outdoor AIR module ID: ')
                             if not ID:
-                                print('    Outdoor AIR ID cannot be empty. Please try again..... ')
+                                print('    Outdoor AIR module ID cannot be empty. Please try again..... ')
                                 continue
                             try:
                                 ID = int(ID)
                                 break
                             except ValueError:
-                                print('    Outdoor AIR ID not valid. Please try again..... ')
-                        Config.set('Station','OutdoorID',str(ID))
+                                print('    Outdoor AIR module ID not valid. Please try again..... ')
+                        Config.set('Station','OutAirID',str(ID))
                     else:
                         break
 
