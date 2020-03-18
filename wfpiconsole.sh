@@ -217,7 +217,7 @@ installPackages() {
 updatePip() {
     local str="Updating Python package manager"
     printf "\\n  %b %s..." "${INFO}" "${str}"
-    if (python3 -m pip install --upgrade pip setuptools &> errorLog); then
+    if (python3 -m pip install --user --upgrade pip setuptools &> errorLog); then
         printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
     else
         printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
@@ -267,7 +267,7 @@ installPythonModules() {
         for i in "${installArray[@]}"; do
             local str="Installing Python module"
             printf "  %b %s %s..." "${INFO}" "${str}" "${i}"
-            if (python3 -m pip install "$i" &> errorLog); then
+            if (python3 -m pip install --user "$i" &> errorLog); then
                 printf "%b  %b %s %s\\n" "${OVER}" "${TICK}" "${str}" "${i}"
             else
                 printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
@@ -288,7 +288,7 @@ installPythonModules() {
 installCython() {
     local str="Installing Python module cython"
     printf "  %b %s..." "${INFO}" "${str}"
-    if (python3 -m pip install cython==$CYTHON_VERSION &> errorLog); then
+    if (python3 -m pip install --user cython==$CYTHON_VERSION &> errorLog); then
         printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
     else
         printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
@@ -311,7 +311,7 @@ updatePythonModules() {
     for i in "${argArray[@]}"; do
         local str="Updating Python module"
         printf "  %b %s %s..." "${INFO}" "${str}" "${i}"
-        if (python3 -m pip install --upgrade "$i" &> errorLog); then
+        if (python3 -m pip install --user --upgrade "$i" &> errorLog); then
             printf "%b  %b %s %s\\n" "${OVER}" "${TICK}" "${str}" "${i}"
         else
             printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
@@ -331,7 +331,7 @@ installKivy() {
     if python3 -c "import kivy" &> /dev/null; then
         printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
     else
-        if (python3 -m pip install $KIVY_BRANCH &> errorLog); then
+        if (python3 -m pip install --user $KIVY_BRANCH &> errorLog); then
             printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
         else
             printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
