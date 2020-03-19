@@ -98,13 +98,6 @@ cleanUp() {
     rm -f pythonCommand errorLog
 }
 
-# INITIALISE THE UPDATE PROCESS BY FETCHING THE LATEST VERSION OF THE UPDATE
-# CODE DIRECTLY FROM THE MASTER GITHUB BRANCH
-# ------------------------------------------------------------------------------
-fetchUpdateCode() {
-    curl -sSL $WFPICONSOLE_BRANCH | bash -s runUpdate
-}
-
 # CHECK COMPATABILITY OF SYSTEM FOR RUNNING THE WEATHERFLOW PICONSOLE
 # ------------------------------------------------------------------------------
 hardwareCheck() {
@@ -649,7 +642,7 @@ update() {
 
     # Fetch the latest update code directly from the master Github branch. This
     # ensures that changes in dependencies are addressed during this update
-    fetchUpdateCode
+    curl -sSL $WFPICONSOLE_BRANCH | bash -s runUpdate
 }
 
 # RUN THE UPDATE PROCESS
@@ -742,7 +735,7 @@ if [[ ! -x "$(command -v sudo)" ]]; then
 fi
 if [[ "${1}" != "start" ]]; then
     if (sudo true); then
-        if [[ "${1}" != "stop" ]]; then
+        if [[ "${1}" != "stop" ]] && [[ "${1}" != "update" ]]; then
             printf "\\n  %b Root user check passed\\n" "${TICK}"
         fi
     else
