@@ -735,7 +735,7 @@ if [[ ! -x "$(command -v sudo)" ]]; then
 fi
 if [[ "${1}" != "start" ]]; then
     if (sudo true); then
-        if [[ "${1}" != "stop" ]] || [[ "${1}" != "update" ]]; then
+        if [[ "${1}" != "stop" ]] && [[ "${1}" != "update" ]]; then
             printf "\\n  %b Root user check passed\\n" "${TICK}"
         fi
     else
