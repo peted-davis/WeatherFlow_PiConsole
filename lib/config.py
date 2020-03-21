@@ -33,10 +33,11 @@ Version = 'v3.0'
 # Define required variables
 TEMPEST       = False
 INDOORAIR     = False
-STATION     = None
-OBSERVATION = None
+STATION       = None
+OBSERVATION   = None
 GEONAMES      = None
 METOFFICE     = None
+LOCATION      = None
 NaN           = float('NaN')
 
 # Determine hardware version
@@ -87,7 +88,7 @@ def create():
                 print(defaultINI[Section][Key])
                 print('  ---------------------------------')
             else:
-                writekeyValue(Config,Section,Key,defaultINI[Section][Key])
+                writeConfigKey(Config,Section,Key,defaultINI[Section][Key])
         print('')
 
     # WRITES USER CONFIGURATION FILE TO wfpiconsole.ini
@@ -147,7 +148,7 @@ def update():
                         newConfig.set(Section,Key,currentConfig[Section][Key])
                     if not currentConfig.has_option(Section,Key):
                         Changes = True
-                        writekeyValue(newConfig,Section,Key,defaultINI[Section][Key])
+                        writeConfigKey(newConfig,Section,Key,defaultINI[Section][Key])
                     elif Key == 'Version':
                         newConfig.set(Section,Key,defaultVersion)
                         print('  Updating version number to: ' + defaultVersion)
@@ -160,7 +161,7 @@ def update():
         with open('wfpiconsole.ini','w') as configfile:
             newConfig.write(configfile)
 
-def writekeyValue(Config,Section,Key,keyDetails):
+def writeConfigKey(Config,Section,Key,keyDetails):
 
     """ Gets and writes the key value pair to the specified section of the
         station configuration file
@@ -186,13 +187,13 @@ def writekeyValue(Config,Section,Key,keyDetails):
 
         # Request user input to determine which modules are present
         if Key == 'TempestID':
-            if queryUser('Do you own a Tempest module?*',default=None):
+            if queryUser('Do you own a TEMPEST module?*',default=None):
                 TEMPEST = True
             else:
                 Value = ''
                 keyRequired = False
         elif Key == 'InAirID':
-            if queryUser('Do you own an Indoor module?*',default=None):
+            if queryUser('Do you own an Indoor AIR module?*',default=None):
                 INDOORAIR = True
             else:
                 Value = ''
@@ -214,7 +215,7 @@ def writekeyValue(Config,Section,Key,keyDetails):
                 String = '  Please enter your ' + keyDetails['Desc'] + ': '
             Value = input(String)
             if not Value and keyDetails['State'] == 'required':
-                print('    ' + keyDetails['Desc'] + ' cannot be empty. Please try again.')
+                print('    ' + keyDetails['Desc'] + ' cannot be empty. Please try again')
                 continue
             elif not Value and keyDetails['State'] == 'optional':
                 break
@@ -222,7 +223,7 @@ def writekeyValue(Config,Section,Key,keyDetails):
                 Value = keyDetails['Format'](Value)
                 break
             except ValueError:
-                print('    ' + keyDetails['Desc'] + ' not valid. Please try again.')
+                print('    ' + keyDetails['Desc'] + ' not valid. Please try again')
 
         # Write userInput Key value pair to configuration file
         Config.set(Section,Key,str(Value))
@@ -271,58 +272,104 @@ def writekeyValue(Config,Section,Key,keyDetails):
         global OBSERVATION
         global GEONAMES
         global METOFFICE
+        global LOCATION
+        
+        # Define local variables
+        Value = ''
 
         # Ensure all necessary API keys have been provided
         if 'Country' in Config['Station']:
             if not Config['Keys']['MetOffice'] and not Config['Keys']['DarkSky']:
-                print('      MetOffice and DarkSky API keys cannot both be empty')
+                print('  MetOffice and DarkSky API keys cannot both be empty')
                 if Config['Station']['Country'] in ['GB']:
                     while True:
-                        Value = input('      Station located in UK. Please enter your MetOffice API Key (required): ')
+                        Value = input('    Station located in UK. Please enter your MetOffice API Key*: ')
                         if not Value:
-                            print('      MetOffice API Key cannot be empty. Please try again..... ')
+                            print('    MetOffice API Key cannot be empty. Please try again')
                             continue
                         break
                     Config.set('Keys','MetOffice',str(Value))
                 else:
                     while True:
-                        Value = input('      Station located outside UK. Please enter your DarkSky API Key (required): ')
+                        Value = input('    Station located outside UK. Please enter your DarkSky API Key*: ')
                         if not Value:
-                            print('      DarkSky API Key cannot be empty. Please try again..... ')
+                            print('    DarkSky API Key cannot be empty. Please try again')
                             continue
                         break
                     Config.set('Keys','DarkSky',str(Value))
 
-        # Make required API requests
+        # Get Station metadata from WeatherFlow API and validate Station ID
         if keyDetails['Source'] == 'station' and STATION is None:
             while True:
                 Template = 'https://swd.weatherflow.com/swd/rest/stations/{}?api_key={}'
                 URL = Template.format(Config['Station']['StationID'],Config['Keys']['WeatherFlow'])
                 STATION = requests.get(URL).json()
                 if 'NOT FOUND' in STATION['status']['status_message']:
-                    Value = input('      Station ID not recognised. Please re-enter your Station ID (required): ')
-                    Config.set('Station','StationID',str(Value))
-                    continue
+                    inputStr = '    Station not found. Please re-enter your Station ID*: '
+                    while True:
+                        ID = input(inputStr)
+                        if not ID:
+                            print('    Station ID cannot be empty. Please try again')
+                            continue
+                        try:
+                            ID = int(ID)
+                            break
+                        except ValueError:
+                            inputStr = '    Station ID not valid. Please re-enter your Station ID*: '
+                    Config.set('Station','StationID',str(ID))
                 elif 'SUCCESS' in STATION['status']['status_message']:
                     break
-        elif keyDetails['Source'] == 'observation' and OBSERVATION is None:
+        
+        # Get Observation metadata from WeatherFlow API
+        if keyDetails['Source'] == 'observation' and OBSERVATION is None:
             Template = 'https://swd.weatherflow.com/swd/rest/observations/station/{}?api_key={}'
             URL = Template.format(Config['Station']['StationID'],Config['Keys']['WeatherFlow'])
-            OBSERVATION = requests.get(URL).json()
-        elif keyDetails['Source'] == 'GeoNames' and GEONAMES is None:
-            Template = 'http://api.geonames.org/findNearbyPlaceName?lat={}&lng={}&username={}&radius=10&featureClass=P&maxRows=20&type=json'
-            URL = Template.format(Config['Station']['Latitude'],Config['Station']['Longitude'],Config['Keys']['GeoNames'])
-            GEONAMES = requests.get(URL).json()
-        elif keyDetails['Source'] == 'MetOffice' and METOFFICE is None and Config['Station']['Country'] in ['GB']:
-            Template = 'http://datapoint.metoffice.gov.uk/public/data/val/wxfcs/all/json/sitelist?&key={}'
-            URL = Template.format(Config['Keys']['MetOffice'])
-            METOFFICE = requests.get(URL).json()
+            OBSERVATION = requests.get(URL).json()            
+        
+        # Validate Geonames API key and get Station geographical data from 
+        # GeoNames API        
+        if keyDetails['Source'] == 'GeoNames' and GEONAMES is None:
+            while True:
+                Template = 'http://api.geonames.org/findNearbyPlaceName?lat={}&lng={}&username={}&radius=10&featureClass=P&maxRows=20&type=json'
+                URL = Template.format(Config['Station']['Latitude'],Config['Station']['Longitude'],Config['Keys']['GeoNames'])
+                GEONAMES = requests.get(URL).json()
+                if 'status' in GEONAMES:
+                    if GEONAMES['status']['message'] == 'invalid user' or  GEONAMES['status']['message'] == 'user does not exist.':
+                        inputStr = '    GeoNames API Key not valid. Please re-enter your GeoNames API Key*: '
+                        while True:
+                            ID = input(inputStr)
+                            if not ID:
+                                print('    GeoNames API Key cannot be empty. Please try again')
+                                continue
+                            break    
+                        Config.set('Keys','GeoNames',str(ID))
+                else:
+                    break
+                      
+        # Validate MetOffice API key and get MetOffice forecast locations from 
+        # MetOffice API                     
+        if keyDetails['Source'] == 'MetOffice' and METOFFICE is None and Config['Station']['Country'] in ['GB']:
+            while True:
+                Template = 'http://datapoint.metoffice.gov.uk/public/data/val/wxfcs/all/json/sitelist?&key={}'
+                URL = Template.format(Config['Keys']['MetOffice'])
+                METOFFICE = requests.get(URL)
+                if not METOFFICE.status_code // 100 == 2:
+                    inputStr = '    MetOffice API Key not valid. Please re-enter your MetOffice API Key*: '
+                    while True:
+                        ID = input(inputStr)
+                        if not ID:
+                            print('    MetOffice API Key cannot be empty. Please try again')
+                            continue
+                        break    
+                    Config.set('Keys','MetOffice',str(ID))
+                else:
+                    METOFFICE = METOFFICE.json()
+                    break
 
-        # Get height above ground of TEMPEST module
+        # Validate TEMPEST module ID and get height above ground of TEMPEST 
+        # module
         if Section == 'Station':
-            Value = ''
             if Key == 'TempestHeight' and Config['Station']['TempestID']:
-                Value = None
                 while True:
                     for Device in STATION['stations'][0]['devices']:
                         if 'device_type' in Device:
@@ -330,23 +377,24 @@ def writekeyValue(Config,Section,Key,keyDetails):
                                 if Device['device_type'] == 'ST':
                                     Value = Device['device_meta']['agl']
                     if Value is None:
+                        inputStr = '    TEMPEST module not found. Please re-enter your TEMPEST ID*: '
                         while True:
-                            ID = input('    TEMPEST ID not found. Please re-enter your TEMPEST ID: ')
+                            ID = input(inputStr)
                             if not ID:
-                                print('    TEMPEST ID cannot be empty. Please try again..... ')
+                                print('    TEMPEST ID cannot be empty. Please try again')
                                 continue
                             try:
                                 ID = int(ID)
                                 break
                             except ValueError:
-                                print('    TEMPEST ID not valid. Please try again..... ')
+                                inputStr = '    TEMPEST ID not valid. Please re-enter your TEMPEST ID*: '
                         Config.set('Station','TempestID',str(ID))
                     else:
                         break
 
-            # Get height above ground of Outdoor AIR module
-            elif Key == 'OutAirHeight' and Config['Station']['OutAirID']:
-                Value = None
+        # Validate AIR module ID and get height above ground of AIR module
+        if Section == 'Station':
+            if Key == 'OutAirHeight' and Config['Station']['OutAirID']:
                 while True:
                     for Device in STATION['stations'][0]['devices']:
                         if 'device_type' in Device:
@@ -354,23 +402,24 @@ def writekeyValue(Config,Section,Key,keyDetails):
                                 if Device['device_type'] == 'AR':
                                     Value = Device['device_meta']['agl']
                     if Value is None:
+                        inputStr = '    Outdoor AIR module not found. Please re-enter your Outdoor AIR ID*: '
                         while True:
-                            ID = input('    Outdoor AIR module ID not found. Please re-enter your Outdoor AIR module ID: ')
+                            ID = input(inputStr)
                             if not ID:
-                                print('    Outdoor AIR module ID cannot be empty. Please try again..... ')
+                                print('    Outdoor AIR module ID cannot be empty. Please try again')
                                 continue
                             try:
                                 ID = int(ID)
                                 break
                             except ValueError:
-                                print('    Outdoor AIR module ID not valid. Please try again..... ')
+                                inputStr = '    Outdoor AIR ID not valid. Please re-enter your Outdoor AIR ID*: '
                         Config.set('Station','OutAirID',str(ID))
                     else:
                         break
 
-            # Get height above ground of SKY module
-            elif Key == 'SkyHeight' and Config['Station']['SkyID']:
-                Value = None
+        # Validate SKY module ID and get height above ground of SKY module
+        if Section == 'Station':
+            if Key == 'SkyHeight' and Config['Station']['SkyID']:
                 while True:
                     for Device in STATION['stations'][0]['devices']:
                         if 'device_type' in Device:
@@ -378,23 +427,25 @@ def writekeyValue(Config,Section,Key,keyDetails):
                                 if Device['device_type'] == 'SK':
                                     Value = Device['device_meta']['agl']
                     if Value is None:
+                        inputStr = '    SKY module not found. Please re-enter your SKY ID*: '
                         while True:
-                            ID = input('    SKY module ID not found. Please re-enter your SKY module ID: ')
+                            ID = input(inputStr)
                             if not ID:
-                                print('    SKY module ID cannot be empty. Please try again..... ')
+                                print('    SKY module ID cannot be empty. Please try again')
                                 continue
                             try:
                                 ID = int(ID)
                                 break
                             except ValueError:
-                                print('      SKY module ID not valid. Please try again..... ')
+                                inputStr = '    SKY module ID not valid. Please re-enter your SKY ID*: '
                         Config.set('Station','SkyID',str(ID))
                     else:
                         break
-
-            # Get UK MetOffice forecast location
-            elif Key in ['ForecastLocn','MetOfficeID']:
-                if Config['Station']['Country'] in ['GB']:
+                        
+        # Get UK MetOffice or DarkSky forecast location                
+        if Section == 'Station':
+            if Key == 'ForecastLocn':                
+                if Config['Station']['Country'] == 'GB':       
                     MinDist = math.inf
                     for Locn in METOFFICE['Locations']['Location']:
                         ForecastLocn = (float(Locn['latitude']),float(Locn['longitude']))
@@ -405,47 +456,51 @@ def writekeyValue(Config,Section,Key,keyDetails):
                             Dist = geopy.distance(StationLocn,ForecastLocn).km
                             if Dist < MinDist:
                                 MinDist = Dist
-                                if Key in ['ForecastLocn']:
-                                    Value = Locn['name']
-                                elif Key in ['MetOfficeID']:
-                                    Value = Locn['id']
-
-                # Get DarkSky forecast location
+                                LOCATION = Locn
+                    Value = LOCATION['name']
                 else:
-                    if Key in ['ForecastLocn']:
-                        Locns = [Item['name'] for Item in GEONAMES['geonames']]
-                        Len = [len(Item) for Item in Locns]
-                        Ind = next((Item for Item in Len if Item<=20),NaN)
-                        if Ind != NaN:
-                            Value = Locns[Len.index(Ind)]
-                        else:
-                            Value = ''
-                    elif Key in ['MetOfficeID']:
+                    Locns = [Item['name'] for Item in GEONAMES['geonames']]
+                    Len = [len(Item) for Item in Locns]
+                    Ind = next((Item for Item in Len if Item<=20),NaN)
+                    if Ind != NaN:
+                        Value = Locns[Len.index(Ind)]
+                    else:
                         Value = ''
+        
+        # Get UK MetOffice forecast ID
+        if Section == 'Station':
+            if Key == 'MetOfficeID':                
+                if Config['Station']['Country'] == 'GB':  
+                    Value = LOCATION['id']    
+                else:
+                    Value = ''        
 
-            # Get station latitude/longitude
-            elif Key in ['Latitude','Longitude']:
+        # Get station latitude/longitude
+        if Section == 'Station':    
+            if Key in ['Latitude','Longitude']:
                 Value = STATION['stations'][0][Key.lower()]
 
-            # Get station timezone
-            elif Key in ['Timezone']:
+        # Get station timezone
+        if Section == 'Station':    
+            if Key in ['Timezone']:
                 Value = STATION['stations'][0]['timezone']
 
-            # Get station elevation
-            elif Key in ['Elevation']:
+        # Get station elevation
+        if Section == 'Station':    
+            if Key in ['Elevation']:
                 Value = STATION['stations'][0]['station_meta']['elevation']
 
-            # Get station country code
-            elif Key in ['Country']:
+        # Get station country code
+        if Section == 'Station':    
+            if Key in ['Country']:
                 Value = GEONAMES['geonames'][0]['countryCode']
 
         # Get station units
-        elif Section in ['Units']:
+        if Section in ['Units']:
             Value = OBSERVATION['station_units']['units_' + Key.lower()]
 
         # Write request Key value pair to configuration file
-        if Value:
-            print('  Adding ' + keyDetails['Desc'] + ': ' + str(Value))
+        print('  Adding ' + keyDetails['Desc'] + ': ' + str(Value))
         Config.set(Section,Key,str(Value))
 
 def queryUser(question,default=None):
@@ -476,7 +531,7 @@ def queryUser(question,default=None):
         elif choice in valid:
             return valid[choice]
         else:
-            sys.stdout.write('    Please respond with "yes"/"no" or "y"/"n".\n')
+            sys.stdout.write('    Please respond with "yes"/"no" or "y"/"n"\n')
 
 def defaultConfig():
 
