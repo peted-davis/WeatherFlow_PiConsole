@@ -409,8 +409,8 @@ getLatestVersion() {
     # Get info on latest version from Github API and extract latest version
     # number using Python JSON tools
     gitInfo=$(curl -s 'https://api.github.com/repos/peted-davis/WeatherFlow_PiConsole/releases/latest' -H 'Accept:application/vnd.github.v3+json')
-    latestVer=$(echo "$gitInfo" | python3 -c "import sys, json; print(json.load(sys.stdin)['tag_name'])")
-    tarballLoc=$(echo "$gitInfo" | python3 -c "import sys, json; print(json.load(sys.stdin)['tarball_url'])")
+    latestVer=$(echo "$gitInfo" | jq -r '.tag_name')
+    tarballLoc=$(echo "$gitInfo" | jq -r '.tarball_url')
 
     # If the WeatherFlow PiConsole is already installed, get the current
     # installed version from wfpiconsole.ini file.
@@ -480,6 +480,13 @@ installLatestVersion() {
         printf "%s\\n\\n" "$(<errorLog)"
         cleanUp
         exit 1
+    fi
+    
+    # Ensure console directory is owned by the correct user
+    consoleOwner=$(stat -c "%U" $CONSOLEDIR) 
+    if [ "$consoleOwner" != "$USER" ]; then
+        sudo chown -fR $USER $CONSOLEDIR
+        sudo chgrp -fR $USER $CONSOLEDIR
     fi
 
     # Make sure wfpiconsole.sh file is executable and create symlink to
