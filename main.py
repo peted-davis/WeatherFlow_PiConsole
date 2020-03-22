@@ -17,8 +17,11 @@
 # ==============================================================================
 # CREATE OR UPDATE wfpiconsole.ini FILE
 # ==============================================================================
+# Import required modules
 from lib     import config as configFile
 from pathlib import Path
+
+# Create or update config file if required
 if not Path('wfpiconsole.ini').is_file():
     configFile.create()
 else:
@@ -27,7 +30,7 @@ else:
 # ==============================================================================
 # INITIALISE KIVY GRAPHICS BACKEND BASED ON CURRENT HARDWARE TYPE
 # ==============================================================================
-from kivy.graphics   import opengl_utils
+# Import required modules
 import configparser
 import os
 
@@ -37,9 +40,9 @@ config.read('wfpiconsole.ini')
 
 # Initialise Kivy backend based on current hardware
 if config['System']['Hardware'] == 'Pi4':
-    os.environ['KIVY_GRAPHICS'] = 'gles'
-    os.environ['KIVY_WINDOW'] = 'sdl2'
     os.environ['SDL_VIDEO_ALLOW_SCREENSAVER'] = '1'
+    os.environ['KIVY_GRAPHICS'] = 'gles'
+    os.environ['KIVY_WINDOW']   = 'sdl2'
 elif config['System']['Hardware'] == 'Pi3':
     os.environ['KIVY_GL_BACKEND'] = 'gl'
 
