@@ -59,7 +59,7 @@ def create():
     """
 
     # Load default configuration dictionary
-    defaultINI = defaultConfig()
+    default = defaultConfig()
 
     # CONVERT DEFAULT CONFIGURATION DICTIONARY INTO .ini FILE
     # --------------------------------------------------------------------------
@@ -77,18 +77,18 @@ def create():
     Config.optionxform = str
 
     # Loop through all sections in default configuration dictionary
-    for Section in defaultINI:
+    for Section in default:
 
         # Add section to user configuration file
         Config.add_section(Section)
 
         # Add remaining sections to user configuration file
-        for Key in defaultINI[Section]:
+        for Key in default[Section]:
             if Key == 'Description':
-                print(defaultINI[Section][Key])
+                print(default[Section][Key])
                 print('  ---------------------------------')
             else:
-                writeConfigKey(Config,Section,Key,defaultINI[Section][Key])
+                writeConfigKey(Config,Section,Key,default[Section][Key])
         print('')
 
     # WRITES USER CONFIGURATION FILE TO wfpiconsole.ini
@@ -104,8 +104,8 @@ def update():
     """
 
     # Load default configuration dictionary
-    defaultINI = defaultConfig()
-    defaultVersion = defaultINI['System']['Version']['Value']
+    default = defaultConfig()
+    defaultVersion = default['System']['Version']['Value']
 
     # Load current user configuration file
     currentConfig = configparser.ConfigParser(allow_no_value=True)
@@ -134,22 +134,21 @@ def update():
 
         # Loop through all sections in default configuration dictionary. Take 
         # existing key values from current configuration file
-        for Section in defaultINI:
+        for Section in default:
             Changes = False
             newConfig.add_section(Section)
-            for Key in defaultINI[Section]:
+            for Key in default[Section]:
                 if Key == 'Description':
-                    print(defaultINI[Section][Key])
+                    print(default[Section][Key])
                     print('  ---------------------------------')
                 else:
-                    if defaultINI[Section][Key]['Type'] in ['fixed']:
-                        newConfig.set(Section,Key,defaultINI[Section][Key]['Value'])
                     if currentConfig.has_option(Section,Key):
-                        newConfig.set(Section,Key,currentConfig[Section][Key])
+                        copyConfigKey(newConfig,currentConfig,Section,Key,default[Section][Key])
                     if not currentConfig.has_option(Section,Key):
                         Changes = True
-                        writeConfigKey(newConfig,Section,Key,defaultINI[Section][Key])
+                        writeConfigKey(newConfig,Section,Key,default[Section][Key])
                     elif Key == 'Version':
+                        Changes = True
                         newConfig.set(Section,Key,defaultVersion)
                         print('  Updating version number to: ' + defaultVersion)
             if not Changes:
@@ -160,6 +159,29 @@ def update():
         # ----------------------------------------------------------------------
         with open('wfpiconsole.ini','w') as configfile:
             newConfig.write(configfile)
+
+def copyConfigKey(newConfig,currentConfig,Section,Key,keyDetails):
+
+    # Define global variables
+    global TEMPEST, INDOORAIR
+
+    # Copy fixed key from default configuration
+    if keyDetails['Type'] == 'fixed':
+        Value = keyDetails['Value']
+    
+    # Copy key value from existing configuration. Ignore AIR/SKY module IDs if 
+    # switching to TEMPEST module
+    else:
+        if (Key == 'SkyID' or Key == 'SkyHeight') and TEMPEST:
+            Value = ''
+        elif (Key == 'OutAirID' or Key == 'OutAirHeight') and TEMPEST:
+            Value = ''
+        else:
+            Value = currentConfig[Section][Key]        
+            
+    # Write key value to new configuration        
+    newConfig.set(Section,Key,str(Value))
+
 
 def writeConfigKey(Config,Section,Key,keyDetails):
 
@@ -187,13 +209,13 @@ def writeConfigKey(Config,Section,Key,keyDetails):
 
         # Request user input to determine which modules are present
         if Key == 'TempestID':
-            if queryUser('Do you own a TEMPEST module?*',default=None):
+            if queryUser('Do you own a TEMPEST module?*',None):
                 TEMPEST = True
             else:
                 Value = ''
                 keyRequired = False
         elif Key == 'InAirID':
-            if queryUser('Do you own an Indoor AIR module?*',default=None):
+            if queryUser('Do you own an Indoor AIR module?*',None):
                 INDOORAIR = True
             else:
                 Value = ''
@@ -376,7 +398,7 @@ def writeConfigKey(Config,Section,Key,keyDetails):
                             if str(Device['device_id']) == Config['Station']['TempestID']:
                                 if Device['device_type'] == 'ST':
                                     Value = Device['device_meta']['agl']
-                    if Value is None:
+                    if not Value:
                         inputStr = '    TEMPEST module not found. Please re-enter your TEMPEST ID*: '
                         while True:
                             ID = input(inputStr)
@@ -401,7 +423,7 @@ def writeConfigKey(Config,Section,Key,keyDetails):
                             if str(Device['device_id']) == Config['Station']['OutAirID']:
                                 if Device['device_type'] == 'AR':
                                     Value = Device['device_meta']['agl']
-                    if Value is None:
+                    if not Value:
                         inputStr = '    Outdoor AIR module not found. Please re-enter your Outdoor AIR ID*: '
                         while True:
                             ID = input(inputStr)
@@ -426,7 +448,7 @@ def writeConfigKey(Config,Section,Key,keyDetails):
                             if str(Device['device_id']) == Config['Station']['SkyID']:
                                 if Device['device_type'] == 'SK':
                                     Value = Device['device_meta']['agl']
-                    if Value is None:
+                    if not Value:
                         inputStr = '    SKY module not found. Please re-enter your SKY ID*: '
                         while True:
                             ID = input(inputStr)
@@ -503,31 +525,36 @@ def writeConfigKey(Config,Section,Key,keyDetails):
         print('  Adding ' + keyDetails['Desc'] + ': ' + str(Value))
         Config.set(Section,Key,str(Value))
 
-def queryUser(question,default=None):
-    """Ask a yes/no question via raw_input() and return their answer.
+def queryUser(Question,Default=None):
+    
+    """ Ask a yes/no question via raw_input() and return their answer.
 
-    "question" is a string that is presented to the user.
-    "default" is the presumed answer if the user just hits <Enter>.
-        It must be "yes" (the default), "no" or None (meaning
-        an answer is required of the user).
-
-    The "answer" return value is True for "yes" or False for "no".
+    INPUTS
+        Question                Query string presented to user
+        Default                 Presumed answer if the user just hits <Enter>.
+                                It must be "yes", "no" or None 
+                                
+    OUTPUT
+        Valid                   True for "yes" or False for "no"
     """
+    
+    # Define valid reponses and prompt based on specified default answer
     valid = {"yes": True, "y": True, "ye": True, "no": False, "n": False}
-    if default is None:
+    if Default is None:
         prompt = " [y/n] "
-    elif default == "yes":
+    elif Default == "yes":
         prompt = " [Y/n] "
-    elif default == "no":
+    elif Default == "no":
         prompt = " [y/N] "
     else:
-        raise ValueError("invalid default answer: '%s'" % default)
+        raise ValueError("invalid default answer: '%s'" % Default)
 
+    # Display question to user
     while True:
-        sys.stdout.write('  ' + question + prompt)
+        sys.stdout.write('  ' + Question + prompt)
         choice = input().lower()
-        if default is not None and choice == '':
-            return valid[default]
+        if Default is not None and choice == '':
+            return valid[Default]
         elif choice in valid:
             return valid[choice]
         else:
@@ -605,7 +632,7 @@ def defaultConfig():
                                                           ('PanelFour',      {'Type': 'default', 'Value': 'MoonPhase',     'Desc':'Secondary display for Panel Four'}),
                                                           ('PanelFive',      {'Type': 'default', 'Value': 'Lightning',     'Desc':'Secondary display for Panel Five'}),
                                                           ('PanelSix',       {'Type': 'default', 'Value': '',              'Desc':'Secondary display for Panel Six'})])
-    Default['System'] =          collections.OrderedDict([('Description',    '  System settings layout'),
+    Default['System'] =          collections.OrderedDict([('Description',    '  System settings'),
                                                           ('BarometerMax',   {'Type': 'dependent', 'Desc': 'maximum barometer pressure'}),
                                                           ('BarometerMin',   {'Type': 'dependent', 'Desc': 'minimum barometer pressure'}),
                                                           ('Timeout',        {'Type': 'default',   'Value': '20',    'Desc': 'Timeout in seconds for API requests'}),
