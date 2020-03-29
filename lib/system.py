@@ -1,5 +1,5 @@
 """ Contains system functions required by the Raspberry Pi Python console for 
-Weather Flow Smart Home Weather Stations. Copyright (C) 2018-2019 Peter Davis
+Weather Flow Smart Home Weather Stations. Copyright (C) 2018-2020 Peter Davis
 
 This program is free software: you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software

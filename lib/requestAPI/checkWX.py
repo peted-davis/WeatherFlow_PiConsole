@@ -1,5 +1,5 @@
 """ Returns CheckWX API requests required by the Raspberry Pi Python console 
-for Weather Flow Smart Home Weather Stations. Copyright (C) 2018-2019 Peter 
+for Weather Flow Smart Home Weather Stations. Copyright (C) 2018-2020 Peter 
 Davis
 
 This program is free software: you can redistribute it and/or modify it under

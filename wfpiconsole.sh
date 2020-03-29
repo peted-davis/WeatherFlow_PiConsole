@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Automated installer and updater for the WeatherFlow PiConsole. Modified
-# heavily from the PiHole and PiVPN installers. Copyright (C) 2018-2019
+# heavily from the PiHole and PiVPN installers. Copyright (C) 2018-2020
 # Peter Davis
 
 # This program is free software: you can redistribute it and/or modify it under

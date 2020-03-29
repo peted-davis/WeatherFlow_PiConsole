@@ -1,5 +1,5 @@
 # WeatherFlow PiConsole: Raspberry Pi Python console for WeatherFlow Smart Home
-# Weather Station. Copyright (C) 2018-2019 Peter Davis
+# Weather Station. Copyright (C) 2018-2020 Peter Davis
 
 # This program is free software: you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
