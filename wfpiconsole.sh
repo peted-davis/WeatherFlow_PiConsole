@@ -506,8 +506,8 @@ installServiceFile () {
     # Install wfpiconsole.service file to /etc/systemd/system/ and reload deamon
     local str="Copying service file to autostart directory"
     printf "  %b %s..." "${INFO}" "${str}"
-    cp $CONSOLEDIR/wfpiconsole.service /etc/systemd/system/
-    if (systemctl daemon-reload &> errorLog); then
+    sudo cp $CONSOLEDIR/wfpiconsole.service /etc/systemd/system/
+    if (sudo systemctl daemon-reload &> errorLog); then
         printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
     else
         printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
@@ -525,8 +525,8 @@ enableService () {
     # Enable wfpiconsole.service file
     local str="Enabling the WeatherFlow PiConsole service file"
     printf "  %b %s..." "${INFO}" "${str}"
-    if (systemctl enable wfpiconsole &> errorLog); then
-        if (systemctl start wfpiconsole &> errorLog); then
+    if (sudo systemctl enable wfpiconsole &> errorLog); then
+        if (sudo systemctl start wfpiconsole &> errorLog); then
             printf "%b  %b %s\\n\\n" "${OVER}" "${TICK}" "${str}"
         else
             printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
@@ -551,7 +551,7 @@ disableService () {
     # Disable the wfpiconsole service
     local str="Disabling the WeatherFlow PiConsole service file"
     printf "  %b %s..." "${INFO}" "${str}"
-    if (systemctl disable wfpiconsole.service &> errorLog); then
+    if (sudo systemctl disable wfpiconsole.service &> errorLog); then
         printf "%b  %b %s\\n\\n" "${OVER}" "${TICK}" "${str}"
     else
         printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
