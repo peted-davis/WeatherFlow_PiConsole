@@ -1,5 +1,18 @@
-""" Returns The Sager Weathercaster forecast based on the current weather 
-conditions, and the trend in conditions over the previous 6 hours. 
+""" Returns The Sager Weathercaster forecast required by the Raspberry Pi Python
+console for Weather Flow Smart Home Weather Stations. Copyright (C) 2018-2019  
+Peter Davis
+
+This program is free software: you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with
+this program.  If not, see <http://www.gnu.org/licenses/>.
 
 Python code based on BT's Global Sager Weathercaster PHP Scripts For Cumulus by 
 "Buford T. Justice" /"BTJustice" 
@@ -7,27 +20,270 @@ http://www.freewebs.com/btjustice/bt-forecasters.html
 2016-08-05
 """
 
-def DialSetting(Met):
+# Import required library modules
+from lib         import derivedVariables  as derive
+from lib         import requestAPI
+
+# Import required modules
+from kivy.clock  import Clock
+from datetime    import datetime, timedelta, time
+import time      as UNIX
+import numpy     as np
+import requests
+import math
+import pytz
+
+# Define global variables
+NaN = float('NaN')
+
+# Define circular mean 
+def CircularMean(angles):
+    angles = np.radians(angles)
+    r = np.nanmean(np.exp(1j*angles))
+    return np.angle(r, deg=True) % 360
+
+def Generate(sagerDict,Config):
+
+    """ Generates the Sager Weathercaster forecast based on the current weather
+    conditions and the trend in conditions over the previous 6 hours. 
+
+    INPUTS: 
+        sagerDict               Dictionary to hold the forecast information
+        Config                  Station configuration
+        
+    OUTPUT: 
+        sagerDict               Dictionary containing the Sager Weathercaster
+                                forecast
+    """
+
+    # Get station timezone and current UNIX timestamp in UTC
+    Now = int(UNIX.time())
+    Tz  = pytz.timezone(Config['Station']['Timezone'])
+    
+    # Define required station variables for the Sager Weathercaster Forecast
+    sagerDict['Lat'] = float(Config['Station']['Latitude'])
+    sagerDict['Units'] = Config['Units']['Wind']
+
+    # DOWNLOAD WIND AND RAIN DATA FROM EITHER TEMPEST OR SKY MODULE 
+    # --------------------------------------------------------------------------
+    # If applicable, download wind and rain data from last 6 hours from TEMPEST 
+    # module. If API call fails, return missing data error message
+    if Config['Station']['TempestID']:
+        Obs = {}
+        getTempestData(Obs,Now,Config)
+        if not Obs:
+            sagerDict['Forecast'] = '[color=f05e40ff]ERROR:[/color] Missing TEMPEST data. Forecast will be regenerated in 60 minutes'
+            sagerDict['Issued']   = datetime.now(pytz.utc).astimezone(Tz).strftime('%H:%M')
+            Clock.schedule_once(lambda dt: lambda dt: Generate(sagerDict,Config),3600)
+            return sagerDict
+            
+    # If applicable, download wind and rain data from last 6 hours from SKY 
+    # module. If API call fails, return missing data error message    
+    elif Config['Station']['SkyID']:
+        Obs = {}
+        getSkyData(Obs,Now,Config)
+        if not Obs:
+            sagerDict['Forecast'] = '[color=f05e40ff]ERROR:[/color] Missing SKY data. Forecast will be regenerated in 60 minutes'
+            sagerDict['Issued']   = datetime.now(pytz.utc).astimezone(Tz).strftime('%H:%M')
+            Clock.schedule_once(lambda dt: lambda dt: Generate(sagerDict,Config),3600)
+            return sagerDict
+            
+    # DERIVE REQUIRED WIND AND RAINFALL VARIABLES FROM TEMPEST OR SKY DATA
+    # --------------------------------------------------------------------------
+    # Convert wind and rain data to Numpy arrays, and convert wind speed to 
+    # miles per hour
+    Obs['Time']    = np.array(Obs['Time'],   dtype=np.int64)
+    Obs['WindSpd'] = np.array(Obs['WindSpd'],dtype=np.float64)*2.23694
+    Obs['WindDir'] = np.array(Obs['WindDir'],dtype=np.float64)
+    Obs['Rain']    = np.array(Obs['Rain'],   dtype=np.float64)
+    
+    # Define required wind direction variables for the Sager Weathercaster
+    # Forecast
+    WindDir6 = Obs['WindDir'][:15]
+    WindDir  = Obs['WindDir'][-15:]
+    if np.all(np.isnan(WindDir6)) or np.all(np.isnan(WindDir)):
+        sagerDict['Forecast'] = '[color=f05e40ff]ERROR:[/color] Missing wind direction data. Forecast will be regenerated in 60 minutes'
+        sagerDict['Issued']   = datetime.now(pytz.utc).astimezone(Tz).strftime('%H:%M')
+        Clock.schedule_once(lambda dt: Generate(sagerDict,Config),3600)
+        return sagerDict
+    else:
+        sagerDict['WindDir6'] = CircularMean(WindDir6)
+        sagerDict['WindDir']  = CircularMean(WindDir)
+
+    # Define required wind speed variables for the Sager Weathercaster
+    # Forecast
+    WindSpd6 = Obs['WindSpd'][:15]
+    WindSpd  = Obs['WindSpd'][-15:]
+    if np.all(np.isnan(WindSpd6)) or np.all(np.isnan(WindSpd)):
+        sagerDict['Forecast'] = '[color=f05e40ff]ERROR:[/color] Missing wind speed data. Forecast will be regenerated in 60 minutes'
+        sagerDict['Issued']   = datetime.now(pytz.utc).astimezone(Tz).strftime('%H:%M')
+        Clock.schedule_once(lambda dt: Generate(sagerDict,Config),3600)
+        return sagerDict
+    else:
+        sagerDict['WindSpd6'] = np.nanmean(WindSpd6)
+        sagerDict['WindSpd']  = np.nanmean(WindSpd)
+        
+    # Define required rainfall variables for the Sager Weathercaster Forecast
+    LastRain = np.where(Obs['Rain'] > 0)[0]
+    if LastRain.size == 0:
+        sagerDict['LastRain'] = math.inf
+    else:
+        LastRain = Obs['Time'][LastRain.max()]
+        LastRain = datetime.fromtimestamp(LastRain,Tz)
+        LastRain = datetime.now(pytz.utc).astimezone(Tz) - LastRain
+        sagerDict['LastRain'] = LastRain.total_seconds()/60    
+    
+    # DOWNLOAD TEMPERATURE AND PRESSURE DATA FROM AIR MODULE
+    # --------------------------------------------------------------------------
+    # If applicable, download temperature and pressure from last 6 hours from 
+    # AIR module. If API call fails, return missing data error message 
+    if Config['Station']['OutAirID']:
+        Obs = {}
+        getAirData(Obs,Now,Config)
+        if not Obs:
+            sagerDict['Forecast'] = '[color=f05e40ff]ERROR:[/color] Missing AIR data. Forecast will be regenerated in 60 minutes'
+            sagerDict['Issued']   = datetime.now(pytz.utc).astimezone(Tz).strftime('%H:%M')
+            Clock.schedule_once(lambda dt: lambda dt: Generate(sagerDict,Config),3600)
+            return sagerDict    
+
+    # DERIVE REQUIRED TEMPERATURE AND PRESSURE VARIABLES FROM TEMPEST OR AIR 
+    # DATA
+    # --------------------------------------------------------------------------
+    # Convert temperature and pressure data to Numpy arrays
+    Obs['Time'] = np.array(Obs['Time'],dtype=np.int64)
+    Obs['Pres'] = np.array(Obs['Pres'],dtype=np.float64)
+    Obs['Temp'] = np.array(Obs['Temp'],dtype=np.float64)
+
+    # Define required pressure variables for the Sager Weathercaster Forecast
+    Pres6 = Obs['Pres'][:15]
+    Pres  = Obs['Pres'][-15:]
+    if np.all(np.isnan(Pres6)) or np.all(np.isnan(Pres)):
+        sagerDict['Forecast'] = '[color=f05e40ff]ERROR:[/color] Missing pressure data. Forecast will be regenerated in 60 minutes'
+        sagerDict['Issued']   = datetime.now(pytz.utc).astimezone(Tz).strftime('%H:%M')
+        Clock.schedule_once(lambda dt: Generate(sagerDict,Config),3600)
+        return sagerDict
+    else:
+        sagerDict['Pres6'] = derive.SLP([np.nanmean(Pres6).tolist(),'mb'], Config)[0]
+        sagerDict['Pres']  = derive.SLP([np.nanmean(Pres).tolist(),'mb'], Config)[0]
+
+    # Define required temperature variables for the Sager Weathercaster
+    # Forecast
+    Temp = Obs['Temp'][-15:]
+    if np.all(np.isnan(Temp)):
+        sagerDict['Forecast'] = '[color=f05e40ff]ERROR:[/color] Missing temperature data. Forecast will be regenerated in 60 minutes'
+        sagerDict['Issued']   = datetime.now(pytz.utc).astimezone(Tz).strftime('%H:%M')
+        Clock.schedule_once(lambda dt: Generate(sagerDict,Config),3600)
+        return sagerDict
+    else:
+        sagerDict['Temp'] = np.nanmean(Temp)
+
+    # DOWNLOAD CLOSET METAR REPORT TO STATION LOCATION
+    # --------------------------------------------------------------------------
+    Data = requestAPI.checkWX.METAR(Config)
+    if requestAPI.checkWX.verifyResponse(Data,'data'):
+        sagerDict['METAR'] = Data.json()['data'][0]
+    else:
+        sagerDict['Forecast'] = '[color=f05e40ff]ERROR:[/color] Missing METAR information. Forecast will be regenerated in 60 minutes'
+        sagerDict['Issued']   = datetime.now(pytz.utc).astimezone(Tz).strftime('%H:%M')
+        Clock.schedule_once(lambda dt: Generate(sagerDict,Config),3600)
+        return sagerDict
+
+    # DERIVCE SAGER WEATHERCASTER FORECAST
+    # --------------------------------------------------------------------------
+    sagerDict['Dial'] = dialSetting(sagerDict)
+    if sagerDict['Dial'] is not None:
+        sagerDict['Forecast'] = getForecast(sagerDict['Dial'])
+        sagerDict['Issued']   = datetime.now(pytz.utc).astimezone(Tz).strftime('%H:%M')
+    else:
+        sagerDict['Forecast'] = '[color=f05e40ff]ERROR:[/color] Missing METAR information. Forecast will be regenerated in 60 minutes'
+        sagerDict['Issued']   = datetime.now(pytz.utc).astimezone(Tz).strftime('%H:%M')
+        Clock.schedule_once(lambda dt: Generate(sagerDict,Config),3600)
+        return sagerDict
+
+    # SCHEDULE GENERATION OF NEXT SAGER WEATHERCASTER FORECAST
+    # --------------------------------------------------------------------------
+    Now = datetime.now(pytz.utc).astimezone(Tz)
+    if Now.hour < 6:
+        Date = Now.date()
+        Time = time(6,0,0)
+        ForecastTime = Tz.localize(datetime.combine(Date,Time))
+    elif Now.hour < 18:
+        Date = Now.date()
+        Time = time(18,0,0)
+        ForecastTime = Tz.localize(datetime.combine(Date,Time))
+    else:
+        Date = Now.date() + timedelta(days=1)
+        Time = time(6,0,0)
+        ForecastTime = Tz.localize(datetime.combine(Date,Time))
+    Seconds = (ForecastTime - Now).total_seconds()
+    Clock.schedule_once(lambda dt: Generate,Seconds)
+    
+    # Return Sager Weathercaster forecast
+    return sagerDict
+    
+def getTempestData(Obs,Now,Config):
+    
+    # Download SKY data from last 6 hours
+    Data = requestAPI.weatherflow.Last6h(Config['Station']['TempestID'],Now,Config)
+   
+    # Extract observation times, wind speed, wind direction, and rainfall if API 
+    # call has not failed
+    if requestAPI.weatherflow.verifyResponse(Data,'obs'):
+        Obs['Time']    = [item[0] if item[0] != None else NaN for item in Data.json()['obs']]
+        Obs['WindSpd'] = [item[2] if item[2] != None else NaN for item in Data.json()['obs']]
+        Obs['WindDir'] = [item[4] if item[4] != None else NaN for item in Data.json()['obs']]
+        Obs['Pres']    = [item[6] if item[7] != None else NaN for item in Data.json()['obs']]
+        Obs['Temp']    = [item[6] if item[7] != None else NaN for item in Data.json()['obs']]
+        Obs['Rain']    = [item[12] if item[12] != None else NaN for item in Data.json()['obs']]
+    
+def getSkyData(Obs,Now,Config):
+
+    # Download SKY data from last 6 hours
+    Data = requestAPI.weatherflow.Last6h(Config['Station']['SkyID'],Now,Config)
+   
+    # Extract observation times, wind speed, wind direction, and rainfall if API 
+    # call has not failed
+    if requestAPI.weatherflow.verifyResponse(Data,'obs'):
+        Obs['Time']    = [item[0] if item[0] != None else NaN for item in Data.json()['obs']]
+        Obs['WindSpd'] = [item[5] if item[5] != None else NaN for item in Data.json()['obs']]
+        Obs['WindDir'] = [item[7] if item[7] != None else NaN for item in Data.json()['obs']]
+        Obs['Rain']    = [item[3] if item[3] != None else NaN for item in Data.json()['obs']]
+
+def getAirData(Obs,Now,Config):
+    
+    # Download AIR data from last 6 hours and define AIR dictionary
+    Data = requestAPI.weatherflow.Last6h(Config['Station']['OutAirID'],Now,Config)
+
+    # Extract observation times, pressure and temperature if API # call has not 
+    # failed
+    if requestAPI.weatherflow.verifyResponse(Data,'obs'):
+        Obs['Time'] = [item[0] if item[0] != None else NaN for item in Data.json()['obs']]
+        Obs['Pres'] = [item[1] if item[1] != None else NaN for item in Data.json()['obs']]
+        Obs['Temp'] = [item[2] if item[2] != None else NaN for item in Data.json()['obs']]
+
+def dialSetting(Met):
 
 	""" Calculates the position of the Sager Weathercaster Dial based on the
 	current weather conditions and the trend in conditions over the previous 6 
 	hours. 
 	
-	INPUTS: Met - Dictionary containing the following fields:
-		Lat					Weather observations latitude
-		METARKey			Metar Key
-		WindDir6 			Average wind direction 6 hours ago in degrees
-		WindDir				Current average wind direction in degrees
-		WindSpd6			Average wind speed 6 hours ago in mph
-		WindSpd				Current average wind speed in mph
-		Pres				Current atmospheric pressure in hPa
-		Pres6				Atmospheric pressure 6 hours ago in hPa
-		LastRain			Minutes since last rain
-		Temp				Current temperature
-		METAR				Closet METAR information to station location
+	INPUTS: 
+        Met                     Dictionary containing the following fields:
+            Lat					Weather observations latitude
+            METARKey			Metar Key
+            WindDir6 			Average wind direction 6 hours ago in degrees
+            WindDir				Current average wind direction in degrees
+            WindSpd6			Average wind speed 6 hours ago in mph
+            WindSpd				Current average wind speed in mph
+            Pres				Current atmospheric pressure in hPa
+            Pres6				Atmospheric pressure 6 hours ago in hPa
+            LastRain			Minutes since last rain
+            Temp				Current temperature
+            METAR				Closet METAR information to station location
 		
-	OUTPUT: Sager - Dictionary containing the position of the Sager 
-					Weathercaster Dial
+	OUTPUT: 
+        Sager                   Dictionary containing the position of the Sager 
+                                Weathercaster Dial
 	"""
 	
 	# Extract input location/meteorological variables
@@ -53,8 +309,7 @@ def DialSetting(Met):
 	try:
 		ccode = METAR['clouds'][0]['code']
 	except:
-		Sager = None
-		return Sager
+		return None
 			
 	# Searches METAR information for Precipitation Codes
 	try:		   
@@ -62,8 +317,7 @@ def DialSetting(Met):
 			if METAR['raw_text'].find(pcode) != -1:
 				Ind[count] = METAR['raw_text'].find(pcode)
 	except:
-		Sager = None
-		return Sager			
+		return None			
 	if len(Ind) != 0:		
 		pcode = pcodes[min(Ind,key=Ind.get)]
 			
@@ -507,17 +761,19 @@ def DialSetting(Met):
 	Sager['Units'] = Units
 	return Sager
 	
-def Forecast(Sager):
+def getForecast(Sager):
 
-	""" Defines the Sager Weathercaster Forecast based on the specified Sager 
+	""" Gets the Sager Weathercaster Forecast based on the specified Sager 
 	Weathercaster Dial position. 
 	
-	INPUTS: Sager - Dictionary containing the following fields:
-		Dial				Weather observations latitude
-		Lat					Weather observations latitude
-		Temp				Current temperature
+	INPUTS: 
+        Sager - Dictionary containing the following fields:
+            Dial				Weather observations latitude
+            Lat					Weather observations latitude
+            Temp				Current temperature
 		
-	OUTPUT: WeatherPredictionKey - Sager Weathercaster Forecast
+	OUTPUT: 
+        WeatherPredictionKey - Sager Weathercaster Forecast
 	"""
 	
 	# Extract Sager Weathercast dial settings, station latitude, and temperature
