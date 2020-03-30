@@ -182,7 +182,7 @@ def ExtractDarkSky(metData,Config):
 
         # Attempt to download forecast again in 10 minutes and return
         # metData dictionary
-        Clock.schedule_once(lambda dt: self.DownloadForecast(),600)
+        Clock.schedule_once(lambda dt: Download(metData,Config),600)  
         return metData
 
     # Extract 'valid from' time of all available hourly forecasts, and
