@@ -301,9 +301,8 @@ def writeConfigKey(Config,Section,Key,keyDetails):
 
         # Ensure all necessary API keys have been provided
         if 'Country' in Config['Station']:
-            if not Config['Keys']['MetOffice'] and not Config['Keys']['DarkSky']:
-                print('  MetOffice and DarkSky API keys cannot both be empty')
-                if Config['Station']['Country'] in ['GB']:
+            if Config['Station']['Country'] in ['GB']:
+                if not Config['Keys']['MetOffice']:
                     while True:
                         Value = input('    Station located in UK. Please enter your MetOffice API Key*: ')
                         if not Value:
@@ -311,14 +310,6 @@ def writeConfigKey(Config,Section,Key,keyDetails):
                             continue
                         break
                     Config.set('Keys','MetOffice',str(Value))
-                else:
-                    while True:
-                        Value = input('    Station located outside UK. Please enter your DarkSky API Key*: ')
-                        if not Value:
-                            print('    DarkSky API Key cannot be empty. Please try again')
-                            continue
-                        break
-                    Config.set('Keys','DarkSky',str(Value))
 
         # Get Station metadata from WeatherFlow API and validate Station ID
         if keyDetails['Source'] == 'station' and STATION is None:
@@ -577,7 +568,7 @@ def defaultConfig():
     Default['Keys'] =            collections.OrderedDict([('Description',    '  API keys'),
                                                           ('GeoNames',       {'Type': 'userInput', 'State': 'required', 'Format': str, 'Desc': 'GeoNames API Key'}),
                                                           ('MetOffice',      {'Type': 'userInput', 'State': 'optional', 'Format': str, 'Desc': 'UK MetOffice API Key'}),
-                                                          ('DarkSky',        {'Type': 'userInput', 'State': 'optional', 'Format': str, 'Desc': 'DarkSky API Key',}),
+                                                          ('DarkSky',        {'Type': 'userInput', 'State': 'optional', 'Format': str, 'Desc': 'DarkSky API Key (if you have one)',}),
                                                           ('CheckWX',        {'Type': 'userInput', 'State': 'required', 'Format': str, 'Desc': 'CheckWX API Key',}),
                                                           ('WeatherFlow',    {'Type': 'fixed',     'Value': '146e4f2c-adec-4244-b711-1aeca8f46a48', 'Desc': 'WeatherFlow API Key'})])
     Default['Station'] =         collections.OrderedDict([('Description',    '  Station and module IDs'),

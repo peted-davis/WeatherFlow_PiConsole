@@ -1,13 +1,14 @@
 # WeatherFlow PiConsole
-Raspberry Pi Python console for the Weather Flow Smart Home Weather Station. The 
-console uses the WeatherFlow REST API and websocket to stream data from your 
-Weather Flow Smart Home Weather Station in real time via the internet. As soon 
-as the data from your station reaches the WeatherFlow servers, it is pushed 
-immediately to the console, including the 3-second rapid fire wind updates.   
+Raspberry Pi Python console for the Weather Flow Tempest and Smart Home Weather 
+Station. The console uses the WeatherFlow REST API and websocket to stream data 
+from your Weather Flow Tempest or Smart Home Weather Station in real time via 
+the internet. As soon as the data from your station reaches the WeatherFlow 
+servers, it is pushed immediately to the console, including the 3-second rapid 
+fire wind updates.   
 
 Many of the graphical elements in the console are based on the Weather34 Home
 Weather Station Template (https://www.weather34.com/homeweatherstation/) 
-copyright 2015-2019 Brian Underdown. The Weather34 Home Weather Station Template 
+copyright 2015-2020 Brian Underdown. The Weather34 Home Weather Station Template 
 is licensed under a Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 
 International License.
 
@@ -79,10 +80,13 @@ and activate "Free Web Services". Once this is done, your username will be your
 
 2. Next, if you live in the UK go to the UK MetOffice DataPoint homepage
 (https://www.metoffice.gov.uk/datapoint), and register for a new account. You'll
-be given an API key that will be you 'MetOffice' API key. If you live outside 
+be given an API key that will be you 'MetOffice' API key. ~~If you live outside 
 the UK, register instead for a DarkSky API account (https://darksky.net/dev/register). 
 This will be your 'DarkSky' API key. The console requires you to enter either a 
-MetOffice API key or a DarkSky API key.
+MetOffice API key or a DarkSky API key.~~ As Apple have decided to restrict 
+access to DarkSky data to Apple users only, the console is currently unable to 
+provide a forecast for stations outside the UK. I am working on finding a 
+replacement API service.
 
 3. Finally go to CheckWX Aviation Weather and register to enable access to the 
 closest METAR information to you station location. 

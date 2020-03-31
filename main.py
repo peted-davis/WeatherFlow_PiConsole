@@ -460,12 +460,14 @@ class wfpiconsole(App):
 
         # At the top of each hour update the on-screen forecast for the Station
         # location
-        if Now.hour > self.MetData['Time'].hour or Now.date() > self.MetData['Time'].date():
-            if self.config['Station']['Country'] == 'GB':
+        if self.config['Station']['Country'] == 'GB':
+            if Now.hour > self.MetData['Time'].hour or Now.date() > self.MetData['Time'].date():
                 forecast.ExtractMetOffice(self.MetData,self.config)
-            else:
+                self.MetData['Time'] = Now
+        elif self.config['Keys']['DarkSky']:
+            if Now.hour > self.MetData['Time'].hour or Now.date() > self.MetData['Time'].date():
                 forecast.ExtractDarkSky(self.MetData,self.config)
-            self.MetData['Time'] = Now
+                self.MetData['Time'] = Now
 
         # Once sunset has passed, calculate new sunrise/sunset times
         if Now > self.Astro['Sunset'][0]:

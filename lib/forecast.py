@@ -57,7 +57,7 @@ def Download(metData,Config):
 
     # If station is located outside of Great Britain, download the latest
     # DarkSky hourly forecast
-    else:
+    elif Config['Keys']['DarkSky']:
     
         # Download latest three-hourly forecast
         Data = requestAPI.forecast.darkSky(Config)
