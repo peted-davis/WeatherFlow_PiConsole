@@ -16,9 +16,13 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 """
 
 # Import required modules
-from datetime import datetime, date, timedelta, time
-import ephem
+from astral.sun  import sun
+from datetime    import datetime, timedelta, date, time
+from astral      import LocationInfo
+from astral      import moon
 import pytz
+
+import ephem
 
 def SunriseSunset(astroData,Config):
 
@@ -35,30 +39,24 @@ def SunriseSunset(astroData,Config):
     
     # Define Sunrise/Sunset location properties
     Tz = pytz.timezone(Config['Station']['Timezone'])
-    Ob = ephem.Observer()
-    Ob.lat = str(Config['Station']['Latitude'])
-    Ob.lon = str(Config['Station']['Longitude'])
+    Station = LocationInfo()
+    Station.latitude  = Config['Station']['Latitude']
+    Station.longitude = Config['Station']['Longitude']
+    Station.timezone  = Config['Station']['Timezone']
     
     # The code is initialising. Calculate sunset/sunrise times for current day 
     # starting at midnight in Station timezone
     if astroData['Sunset'][0] == '-':
 
-        # Convert midnight today in Station timezone to midnight
-        # today in UTC
-        Date = date.today()
-        Midnight = Tz.localize(datetime.combine(Date,time()))
-        Midnight_UTC = Midnight.astimezone(pytz.utc)
-        Ob.date = Midnight_UTC.strftime('%Y/%m/%d %H:%M:%S')
+        # Set Observer time to midnight today in Station timezone 
+        Now = datetime.now(pytz.utc).astimezone(Tz)
+        Midnight = datetime(Now.year,Now.month,Now.day,0,0,0)
 
-        # Sunrise time in station time zone
-        Sunrise = Ob.next_rising(ephem.Sun())
-        Sunrise = pytz.utc.localize(Sunrise.datetime())
+        # Sunrise and sunset time
+        Sunrise = sun(Station.observer, Midnight)['sunrise']
+        Sunset = sun(Station.observer, Midnight)['sunset']
 
-        # Sunset time in station time zone
-        Sunset = Ob.next_setting(ephem.Sun())
-        Sunset = pytz.utc.localize(Sunset.datetime())
-
-        # Define Kivy label binds
+        # Define Kivy label binds in Station timezone
         astroData['Sunrise'][0] = Sunrise.astimezone(Tz)
         astroData['Sunset'][0] = Sunset.astimezone(Tz)
 
@@ -66,22 +64,15 @@ def SunriseSunset(astroData,Config):
     # midnight in Station timezone
     else:
 
-        # Convert midnight tomorrow in Station timezone to midnight
-        # tomorrow in UTC
-        Date = date.today() + timedelta(days=1)
-        Midnight = Tz.localize(datetime.combine(Date,time()))
-        Midnight_UTC = Midnight.astimezone(pytz.utc)
-        Ob.date = Midnight_UTC.strftime('%Y/%m/%d %H:%M:%S')
+        # Set Observer time to midnight tomorrow in Station timezone 
+        Now = datetime.now(pytz.utc).astimezone(Tz)
+        Midnight = datetime(Now.year,Now.month,Now.day,0,0,0) + timedelta(days=1)
 
-        # Sunrise time in station time zone
-        Sunrise = Ob.next_rising(ephem.Sun())
-        Sunrise = pytz.utc.localize(Sunrise.datetime())
+        # Sunrise and sunset time
+        Sunrise = sun(Station.observer, Midnight)['sunrise']
+        Sunset = sun(Station.observer, Midnight)['sunset']
 
-        # Sunset time in station time zone
-        Sunset = Ob.next_setting(ephem.Sun())
-        Sunset = pytz.utc.localize(Sunset.datetime())
-
-        # Define Kivy label binds
+        # Define Kivy label binds in Station timezone
         astroData['Sunrise'][0] = Sunrise.astimezone(Tz)
         astroData['Sunset'][0] = Sunset.astimezone(Tz)
         
