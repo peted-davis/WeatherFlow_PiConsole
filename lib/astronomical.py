@@ -1,5 +1,5 @@
-""" Returns the astronomical variables required by the Raspberry Pi Python 
-console for Weather Flow Smart Home Weather Stations. Copyright (C) 2018-2020  
+""" Returns the astronomical variables required by the Raspberry Pi Python
+console for Weather Flow Smart Home Weather Stations. Copyright (C) 2018-2020
 Peter Davis
 
 This program is free software: you can redistribute it and/or modify it under
@@ -24,22 +24,22 @@ def SunriseSunset(astroData,Config):
 
     """ Calculate sunrise and sunset times for the current day or tomorrow
     in the station timezone
-	
-	INPUTS: 
-		astroData			Dictionary holding sunrise and sunset data
-		Config              Station configuration
-		
-	OUTPUT: 
+
+    INPUTS:
         astroData           Dictionary holding sunrise and sunset data
-	"""
-    
+        Config              Station configuration
+
+    OUTPUT:
+        astroData           Dictionary holding sunrise and sunset data
+    """
+
     # Define Sunrise/Sunset observer properties
     Tz = pytz.timezone(Config['Station']['Timezone'])
     Observer     = ephem.Observer()
     Observer.lat = str(Config['Station']['Latitude'])
     Observer.lon = str(Config['Station']['Longitude'])
-    
-    # The code is initialising. Calculate sunset/sunrise times for current day 
+
+    # The code is initialising. Calculate sunset/sunrise times for current day
     # starting at midnight today in UTC
     if astroData['Sunset'][0] == '-':
 
@@ -51,7 +51,7 @@ def SunriseSunset(astroData,Config):
         # Calculate Sunrise time in UTC
         Sunrise = Observer.next_rising(ephem.Sun())
         Sunrise = pytz.utc.localize(Sunrise.datetime())
-        
+
         # Calculate Sunset time in UTC
         Sunset = Observer.next_setting(ephem.Sun())
         Sunset = pytz.utc.localize(Sunset.datetime())
@@ -60,7 +60,7 @@ def SunriseSunset(astroData,Config):
         astroData['Sunrise'][0] = Sunrise.astimezone(Tz)
         astroData['Sunset'][0] = Sunset.astimezone(Tz)
 
-    # Sunset has passed. Calculate sunset/sunrise times for tomorrow starting at 
+    # Sunset has passed. Calculate sunset/sunrise times for tomorrow starting at
     # time of last Sunset in UTC
     else:
 
@@ -71,7 +71,7 @@ def SunriseSunset(astroData,Config):
         # Calculate Sunrise time in UTC
         Sunrise = Observer.next_rising(ephem.Sun())
         Sunrise = pytz.utc.localize(Sunrise.datetime())
-        
+
         # Calculate Sunset time in UTC
         Sunset = Observer.next_setting(ephem.Sun())
         Sunset = pytz.utc.localize(Sunset.datetime())
@@ -79,25 +79,25 @@ def SunriseSunset(astroData,Config):
         # Define Sunrise/Sunset times in Station timezone
         astroData['Sunrise'][0] = Sunrise.astimezone(Tz)
         astroData['Sunset'][0] = Sunset.astimezone(Tz)
-        
+
     # Format sunrise/sunset labels based on date of next sunrise
     astroData = Format(astroData,Config,'Sun')
-    
+
     # Return astroData
     return astroData
-    
+
 def MoonriseMoonset(astroData,Config):
 
-    """ Calculate moonrise and moonset times for the current day or 
+    """ Calculate moonrise and moonset times for the current day or
     tomorrow in the station timezone
-	
-	INPUTS: 
-		astroData			Dictionary holding moonrise and moonset data
-		Config              Station configuration
-		
-	OUTPUT: 
+
+    INPUTS:
         astroData           Dictionary holding moonrise and moonset data
-	"""
+        Config              Station configuration
+
+    OUTPUT:
+        astroData           Dictionary holding moonrise and moonset data
+    """
 
     # Define Moonrise/Moonset location properties
     Tz = pytz.timezone(Config['Station']['Timezone'])
@@ -117,22 +117,22 @@ def MoonriseMoonset(astroData,Config):
         # Calculate Moonrise time in UTC
         Moonrise = Observer.next_rising(ephem.Moon())
         Moonrise = pytz.utc.localize(Moonrise.datetime())
-        
+
         # Define Moonrise time in Station timezone
         astroData['Moonrise'][0] = Moonrise.astimezone(Tz)
 
-    # Moonset has passed. Calculate time of next moonrise starting at 
+    # Moonset has passed. Calculate time of next moonrise starting at
     # time of last Moonset in UTC
     else:
 
         # Set Observer time to last Moonset time in UTC
         Moonset = astroData['Moonset'][0].astimezone(pytz.utc) + timedelta(seconds=1)
-        Observer.date = Sunset.strftime('%Y/%m/%d %H:%M:%S')
+        Observer.date = Moonset.strftime('%Y/%m/%d %H:%M:%S')
 
         # Calculate Moonrise time in UTC
         Moonrise = Observer.next_rising(ephem.Moon())
         Moonrise = pytz.utc.localize(Moonrise.datetime())
-        
+
         # Define Moonrise time in Station timezone
         astroData['Moonrise'][0] = Moonrise.astimezone(Tz)
 
@@ -143,7 +143,7 @@ def MoonriseMoonset(astroData,Config):
     # Calculate time of next Moonset starting at time of last Moonrise in UTC
     Moonset = Observer.next_setting(ephem.Moon())
     Moonset = pytz.utc.localize(Moonset.datetime())
-    
+
     # Define Moonset time in Station timezone
     astroData['Moonset'][0] = Moonset.astimezone(Tz)
 
@@ -162,29 +162,29 @@ def MoonriseMoonset(astroData,Config):
 
     # Format sunrise/sunset labels based on date of next sunrise
     astroData = Format(astroData,Config,'Moon')
-    
+
     # Return astroData
     return astroData
-         
+
 def Format(astroData,Config,Type):
 
-    """ Format the sunrise/sunset labels and moonrise/moonset labels based on 
+    """ Format the sunrise/sunset labels and moonrise/moonset labels based on
     the current time of day in the station timezone
-	
-	INPUTS: 
-		astroData			Dictionary holding sunrise/sunset and moonrise/moonset 
+
+    INPUTS:
+        astroData           Dictionary holding sunrise/sunset and moonrise/moonset
                             data
-		Config              Station configuration
+        Config              Station configuration
         Type                Flag specifying whether to format sun or moon data
-		
-	OUTPUT: 
+
+    OUTPUT:
         astroData           Dictionary holding moonrise and moonset data
-	"""
+    """
 
     # Get current time in Station timezone
     Tz = pytz.timezone(Config['Station']['Timezone'])
     Now = datetime.now(pytz.utc).astimezone(Tz)
-    
+
     # Format Sunrise/Sunset data
     if Type == 'Sun':
         if Now.date() == astroData['Sunrise'][0].date():
@@ -193,10 +193,10 @@ def Format(astroData,Config,Type):
         else:
             astroData['Sunrise'][1] = astroData['Sunrise'][0].strftime('%H:%M') + ' (+1)'
             astroData['Sunset'][1] = astroData['Sunset'][0].strftime('%H:%M') + ' (+1)'
-            
-    # Format Moonrise/Moonset data        
+
+    # Format Moonrise/Moonset data
     elif Type == 'Moon':
-    
+
         # Update Moonrise Kivy Label bind based on date of next moonrise
         if Now.date() == astroData['Moonrise'][0].date():
             astroData['Moonrise'][1] = astroData['Moonrise'][0].strftime('%H:%M')
@@ -223,18 +223,18 @@ def Format(astroData,Config,Type):
 
     # Return dictionary holding sunrise/sunset and moonrise/moonset data
     return astroData
-    
+
 def sunTransit(astroData, Config, *largs):
 
     """ Calculate the sun transit between sunrise and sunset
-	
-	INPUTS: 
-		astroData			Dictionary holding sunrise and sunset data
-		Config              Station configuration
-		
-	OUTPUT: 
+
+    INPUTS:
+        astroData           Dictionary holding sunrise and sunset data
+        Config              Station configuration
+
+    OUTPUT:
         astroData           Dictionary holding moonrise and moonset data
-	"""
+    """
 
     # Get current time in station time zone
     Tz = pytz.timezone(Config['Station']['Timezone'])
@@ -277,18 +277,18 @@ def sunTransit(astroData, Config, *largs):
 
     # Return dictionary containing sun transit data
     return astroData
-    
+
 def moonPhase(astroData, Config, *largs):
 
     """ Calculate the moon phase for the current time in station timezone
-	
-	INPUTS: 
-		astroData			Dictionary holding moonrise and moonset data
-		Config              Station configuration
-		
-	OUTPUT: 
+
+    INPUTS:
         astroData           Dictionary holding moonrise and moonset data
-	"""
+        Config              Station configuration
+
+    OUTPUT:
+        astroData           Dictionary holding moonrise and moonset data
+    """
 
     # Get current time in UTC
     Tz = pytz.timezone(Config['Station']['Timezone'])
@@ -333,6 +333,6 @@ def moonPhase(astroData, Config, *largs):
 
     # Define Kivy Label binds
     astroData['Phase'] = [PhaseIcon,PhaseTxt,Illumination]
-    
+
     # Return dictionary containing moon phase data
     return astroData
