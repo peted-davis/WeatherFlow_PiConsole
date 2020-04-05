@@ -16,13 +16,9 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 """
 
 # Import required modules
-from astral.sun  import sun
-from datetime    import datetime, timedelta, date, time
-from astral      import LocationInfo
-from astral      import moon
-import pytz
-
+from datetime import datetime, timedelta, date, time
 import ephem
+import pytz
 
 def SunriseSunset(astroData,Config):
 
@@ -37,42 +33,50 @@ def SunriseSunset(astroData,Config):
         astroData           Dictionary holding sunrise and sunset data
 	"""
     
-    # Define Sunrise/Sunset location properties
+    # Define Sunrise/Sunset observer properties
     Tz = pytz.timezone(Config['Station']['Timezone'])
-    Station = LocationInfo()
-    Station.latitude  = Config['Station']['Latitude']
-    Station.longitude = Config['Station']['Longitude']
-    Station.timezone  = Config['Station']['Timezone']
+    Observer     = ephem.Observer()
+    Observer.lat = str(Config['Station']['Latitude'])
+    Observer.lon = str(Config['Station']['Longitude'])
     
     # The code is initialising. Calculate sunset/sunrise times for current day 
-    # starting at midnight in Station timezone
+    # starting at midnight today in UTC
     if astroData['Sunset'][0] == '-':
 
-        # Set Observer time to midnight today in Station timezone 
-        Now = datetime.now(pytz.utc).astimezone(Tz)
-        Midnight = datetime(Now.year,Now.month,Now.day,0,0,0)
+        # Set Observer time to midnight today in UTC
+        UTC = datetime.now(pytz.utc)
+        Midnight = datetime(UTC.year,UTC.month,UTC.day,0,0,0)
+        Observer.date = Midnight.strftime('%Y/%m/%d %H:%M:%S')
 
-        # Sunrise and sunset time
-        Sunrise = sun(Station.observer, Midnight)['sunrise']
-        Sunset = sun(Station.observer, Midnight)['sunset']
+        # Calculate Sunrise time in UTC
+        Sunrise = Observer.next_rising(ephem.Sun())
+        Sunrise = pytz.utc.localize(Sunrise.datetime())
+        
+        # Calculate Sunset time in UTC
+        Sunset = Observer.next_setting(ephem.Sun())
+        Sunset = pytz.utc.localize(Sunset.datetime())
 
-        # Define Kivy label binds in Station timezone
+        # Define Sunrise/Sunset times in Station timezone
         astroData['Sunrise'][0] = Sunrise.astimezone(Tz)
         astroData['Sunset'][0] = Sunset.astimezone(Tz)
 
     # Sunset has passed. Calculate sunset/sunrise times for tomorrow starting at 
-    # midnight in Station timezone
+    # time of last Sunset in UTC
     else:
 
-        # Set Observer time to midnight tomorrow in Station timezone 
-        Now = datetime.now(pytz.utc).astimezone(Tz)
-        Midnight = datetime(Now.year,Now.month,Now.day,0,0,0) + timedelta(days=1)
+        # Set Observer time to last Sunset time in UTC
+        Sunset = astroData['Sunset'][0].astimezone(pytz.utc) + timedelta(seconds=1)
+        Observer.date = Sunset.strftime('%Y/%m/%d %H:%M:%S')
 
-        # Sunrise and sunset time
-        Sunrise = sun(Station.observer, Midnight)['sunrise']
-        Sunset = sun(Station.observer, Midnight)['sunset']
+        # Calculate Sunrise time in UTC
+        Sunrise = Observer.next_rising(ephem.Sun())
+        Sunrise = pytz.utc.localize(Sunrise.datetime())
+        
+        # Calculate Sunset time in UTC
+        Sunset = Observer.next_setting(ephem.Sun())
+        Sunset = pytz.utc.localize(Sunset.datetime())
 
-        # Define Kivy label binds in Station timezone
+        # Define Sunrise/Sunset times in Station timezone
         astroData['Sunrise'][0] = Sunrise.astimezone(Tz)
         astroData['Sunset'][0] = Sunset.astimezone(Tz)
         
@@ -97,59 +101,62 @@ def MoonriseMoonset(astroData,Config):
 
     # Define Moonrise/Moonset location properties
     Tz = pytz.timezone(Config['Station']['Timezone'])
-    Now = datetime.now(pytz.utc).astimezone(Tz)
-    Ob = ephem.Observer()
-    Ob.lat = str(Config['Station']['Latitude'])
-    Ob.lon = str(Config['Station']['Longitude'])
+    Observer     = ephem.Observer()
+    Observer.lat = str(Config['Station']['Latitude'])
+    Observer.lon = str(Config['Station']['Longitude'])
 
     # The code is initialising. Calculate moonrise time for current day
-    # starting at midnight in station time zone
+    # starting at midnight today in UTC
     if astroData['Moonrise'][0] == '-':
 
-        # Convert midnight in Station timezone to midnight in UTC
-        Date = date.today()
-        Midnight = Tz.localize(datetime.combine(Date,time()))
-        Midnight_UTC = Midnight.astimezone(pytz.utc)
-        Ob.date = Midnight_UTC.strftime('%Y/%m/%d %H:%M:%S')
+        # Set Observer time to midnight today in UTC
+        UTC = datetime.now(pytz.utc)
+        Midnight = datetime(UTC.year,UTC.month,UTC.day,0,0,0)
+        Observer.date = Midnight.strftime('%Y/%m/%d %H:%M:%S')
 
-        # Calculate Moonrise time in Station time zone
-        Moonrise = Ob.next_rising(ephem.Moon())
+        # Calculate Moonrise time in UTC
+        Moonrise = Observer.next_rising(ephem.Moon())
         Moonrise = pytz.utc.localize(Moonrise.datetime())
+        
+        # Define Moonrise time in Station timezone
         astroData['Moonrise'][0] = Moonrise.astimezone(Tz)
 
-    # Moonset has passed. Calculate time of next moonrise in station
-    # timezone
+    # Moonset has passed. Calculate time of next moonrise starting at 
+    # time of last Moonset in UTC
     else:
 
-        # Convert moonset time in Station timezone to moonset time in UTC
-        Moonset = astroData['Moonset'][0].astimezone(pytz.utc)
-        Ob.date = Moonset.strftime('%Y/%m/%d %H:%M:%S')
+        # Set Observer time to last Moonset time in UTC
+        Moonset = astroData['Moonset'][0].astimezone(pytz.utc) + timedelta(seconds=1)
+        Observer.date = Sunset.strftime('%Y/%m/%d %H:%M:%S')
 
-        # Calculate Moonrise time in Station time zone
-        Moonrise = Ob.next_rising(ephem.Moon())
+        # Calculate Moonrise time in UTC
+        Moonrise = Observer.next_rising(ephem.Moon())
         Moonrise = pytz.utc.localize(Moonrise.datetime())
+        
+        # Define Moonrise time in Station timezone
         astroData['Moonrise'][0] = Moonrise.astimezone(Tz)
 
     # Convert Moonrise time in Station timezone to Moonrise time in UTC
     Moonrise = astroData['Moonrise'][0].astimezone(pytz.utc)
-    Ob.date = Moonrise.strftime('%Y/%m/%d %H:%M:%S')
+    Observer.date = Moonrise.strftime('%Y/%m/%d %H:%M:%S')
 
-    # Calculate time of next Moonset in station timezone based on current
-    # Moonrise time in UTC
-    Moonset = Ob.next_setting(ephem.Moon())
+    # Calculate time of next Moonset starting at time of last Moonrise in UTC
+    Moonset = Observer.next_setting(ephem.Moon())
     Moonset = pytz.utc.localize(Moonset.datetime())
+    
+    # Define Moonset time in Station timezone
     astroData['Moonset'][0] = Moonset.astimezone(Tz)
 
     # Calculate date of next full moon in UTC
-    Ob.date = Now.strftime('%Y/%m/%d')
-    FullMoon = ephem.next_full_moon(Ob.date)
+    Observer.date = datetime.now(pytz.utc).strftime('%Y/%m/%d')
+    FullMoon = ephem.next_full_moon(Observer.date)
     FullMoon = pytz.utc.localize(FullMoon.datetime())
 
     # Calculate date of next new moon in UTC
-    NewMoon = ephem.next_new_moon(Ob.date)
+    NewMoon = ephem.next_new_moon(Observer.date)
     NewMoon = pytz.utc.localize(NewMoon.datetime())
 
-    # Define Kivy label binds for next new/full moon in station time zone
+    # Define next new/full moon in station time zone
     astroData['FullMoon'] = [FullMoon.astimezone(Tz).strftime('%b %d'),FullMoon]
     astroData['NewMoon'] = [NewMoon.astimezone(Tz).strftime('%b %d'),NewMoon]
 
@@ -174,7 +181,7 @@ def Format(astroData,Config,Type):
         astroData           Dictionary holding moonrise and moonset data
 	"""
 
-    # Calculate current time in Station timezone
+    # Get current time in Station timezone
     Tz = pytz.timezone(Config['Station']['Timezone'])
     Now = datetime.now(pytz.utc).astimezone(Tz)
     
@@ -283,26 +290,15 @@ def moonPhase(astroData, Config, *largs):
         astroData           Dictionary holding moonrise and moonset data
 	"""
 
-    # Define current time and date in UTC and station timezone
+    # Get current time in UTC
     Tz = pytz.timezone(Config['Station']['Timezone'])
     UTC = datetime.now(pytz.utc)
-    Now = UTC.astimezone(Tz)
 
-    # Define moon phase location properties
-    Ob = ephem.Observer()
-    Ob.lat = str(Config['Station']['Latitude'])
-    Ob.lon = str(Config['Station']['Longitude'])
+    # Get date of next full moon in station time zone
+    FullMoon = astroData['FullMoon'][1].astimezone(Tz)
 
-    # Calculate date of next full moon in station time zone
-    Ob.date = Now.strftime('%Y/%m/%d')
-    FullMoon = ephem.next_full_moon(Ob.date)
-    FullMoon = pytz.utc.localize(FullMoon.datetime())
-    FullMoon = FullMoon.astimezone(Tz)
-
-    # Calculate date of next new moon in station time zone
-    NewMoon = ephem.next_new_moon(Ob.date)
-    NewMoon = pytz.utc.localize(NewMoon.datetime())
-    NewMoon = NewMoon.astimezone(Tz)
+    # Get date of next new moon in station time zone
+    NewMoon = astroData['NewMoon'][1].astimezone(Tz)
 
     # Calculate phase of moon
     Moon = ephem.Moon()

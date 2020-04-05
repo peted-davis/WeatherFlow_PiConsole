@@ -39,7 +39,7 @@ PKG_DEPENDENCIES=(libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-de
                   libgstreamer1.0-dev git gstreamer1.0-plugins-{bad,base,good,ugly}
                   python-dev libmtdev-dev xclip xsel libatlas-base-dev gstreamer1.0-{omx,alsa}
                   rng-tools build-essential libssl-dev libjpeg-dev libffi6 libffi-dev jq)
-PYTHON_MODS=(autobahn[twisted] pytz pyasn1-modules service_identity geopy ephem pillow numpy packaging)
+PYTHON_MODS=(autobahn[twisted] numpy pytz pyasn1-modules service_identity geopy ephem pillow packaging)
 CYTHON_VERSION="0.29.10"
 KIVY_VERSION="1.11.1"
 KIVY_REPO="https://github.com/kivy/kivy/archive/"$KIVY_VERSION".zip"
