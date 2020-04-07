@@ -48,7 +48,7 @@ def checkVersion(verData,Config,UpdateNotification):
     if requestAPI.github.verifyResponse(Data,'tag_name'):
         verData['Latest'] = Data.json()['tag_name']
     else:
-        Next = Tz.localize(datetime.combine(date.today()+timedelta(days=1),time(0,0,0)))
+        Next = Tz.localize(datetime(Now.year,Now.month,Now.day,0,0,0)+timedelta(days=1))
         Clock.schedule_once(lambda dt: checkVersion(verData,Config,UpdateNotification),(Next-Now).total_seconds()) 
         return verData
     
@@ -65,7 +65,7 @@ def checkVersion(verData,Config,UpdateNotification):
         verData['UpdateNotification'].open()
 
     # Schedule next Version Check
-    Next = Tz.localize(datetime.combine(date.today()+timedelta(days=1),time(0,0,0)))
+    Next = Tz.localize(datetime(Now.year,Now.month,Now.day,0,0,0)+timedelta(days=1))
     Clock.schedule_once(lambda dt: checkVersion(verData,Config,UpdateNotification),(Next-Now).total_seconds())
     
     # Return system variables
