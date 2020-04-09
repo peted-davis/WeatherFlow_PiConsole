@@ -18,6 +18,7 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 from lib import derivedVariables   as derive
 from lib import observationFormat  as observation
 from lib import requestAPI
+import time
 
 # Define global variables
 NaN = float('NaN')
@@ -98,16 +99,16 @@ def Tempest(Msg,Console):
     UVIndex          = derive.UVIndex(UV)
 
     # Convert observation units as required
-    Temp        = observation.Units(Temp,Console.config['Units']['Temp'])
-    MaxTemp     = observation.Units(MaxTemp,Console.config['Units']['Temp'])
-    MinTemp     = observation.Units(MinTemp,Console.config['Units']['Temp'])
-    DewPoint    = observation.Units(DewPoint,Console.config['Units']['Temp'])
-    FeelsLike   = observation.Units(FeelsLike,Console.config['Units']['Temp'])
-    SLP         = observation.Units(SLP,Console.config['Units']['Pressure'])
-    MaxPres     = observation.Units(MaxPres,Console.config['Units']['Pressure'])
-    MinPres     = observation.Units(MinPres,Console.config['Units']['Pressure'])
-    PresTrend   = observation.Units(PresTrend,Console.config['Units']['Pressure'])
-    StrikeDist  = observation.Units(StrikeDist,Console.config['Units']['Distance'])
+    Temp          = observation.Units(Temp,Console.config['Units']['Temp'])
+    MaxTemp       = observation.Units(MaxTemp,Console.config['Units']['Temp'])
+    MinTemp       = observation.Units(MinTemp,Console.config['Units']['Temp'])
+    DewPoint      = observation.Units(DewPoint,Console.config['Units']['Temp'])
+    FeelsLike     = observation.Units(FeelsLike,Console.config['Units']['Temp'])
+    SLP           = observation.Units(SLP,Console.config['Units']['Pressure'])
+    MaxPres       = observation.Units(MaxPres,Console.config['Units']['Pressure'])
+    MinPres       = observation.Units(MinPres,Console.config['Units']['Pressure'])
+    PresTrend     = observation.Units(PresTrend,Console.config['Units']['Pressure'])
+    StrikeDist    = observation.Units(StrikeDist,Console.config['Units']['Distance'])
     RainRate      = observation.Units(RainRate,Console.config['Units']['Precip'])
     TodayRain     = observation.Units(rainAccum['Today'],Console.config['Units']['Precip'])
     YesterdayRain = observation.Units(rainAccum['Yesterday'],Console.config['Units']['Precip'])
@@ -121,7 +122,7 @@ def Tempest(Msg,Console):
     FeelsLike     = observation.Units(FeelsLike,Console.config['Units']['Temp'])
 
     # Define Kivy label binds
-    Console.Obs['outTemp']   = observation.Format(Temp,'Temp')
+    Console.Obs['outTemp']       = observation.Format(Temp,'Temp')
     Console.Obs['outTempMax']    = observation.Format(MaxTemp,'Temp')
     Console.Obs['outTempMin']    = observation.Format(MinTemp,'Temp')
     Console.Obs['DewPoint']      = observation.Format(DewPoint,'Temp')
@@ -158,6 +159,14 @@ def Tempest(Msg,Console):
     if hasattr(Console,'RainfallPanel'):
         Console.RainfallPanel.RainRateAnimation()
 
+    # Set mean wind speed and direction icons if WindSpeedPanel is active
+    if hasattr(Console,'WindSpeedPanel'):
+        Console.WindSpeedPanel.meanWindIcons()
+
+    # Set current pressure arrow if BarometerPanel is active
+    if hasattr(Console,'BarometerPanel'):
+        Console.BarometerPanel.setArrow()
+
 def Sky(Msg,Console):
 
     """ Handles Websocket messages recieved from SKY module
@@ -187,13 +196,11 @@ def Sky(Msg,Console):
     Console.Obs['SkyMsg'] = Msg
 
     # Extract required observations from latest AIR Websocket observations
-    if 'outAirMsg' in Console.Obs:
-        Obs = [x if x != None else NaN for x in Console.Obs['outAirMsg']['obs'][0]]
-        Temp = [Obs[2],'c']
-        Humidity = [Obs[3],'%']
-    else:
-        Temp = None
-        Humidity = None
+    while not 'outAirMsg' in Console.Obs:
+        time.sleep(0.01)  
+    Obs = [x if x != None else NaN for x in Console.Obs['outAirMsg']['obs'][0]]
+    Temp = [Obs[2],'c']
+    Humidity = [Obs[3],'%']
 
     # Set wind direction to None if wind speed is zero
     if WindSpd[0] == 0:
@@ -250,6 +257,14 @@ def Sky(Msg,Console):
     if hasattr(Console,'RainfallPanel'):
         Console.RainfallPanel.RainRateAnimation()
 
+    # Set mean wind speed and direction icons if WindSpeedPanel is active
+    if hasattr(Console,'WindSpeedPanel'):
+        Console.WindSpeedPanel.meanWindIcons()
+        
+    # Set "Feels Like" icon if TemperaturePanel is active    
+    if hasattr(Console,'TemperaturePanel'):
+        Console.TemperaturePanel.feelsLikeIcon()    
+
 def outdoorAir(Msg,Console):
 
     """ Handles Websocket messages recieved from outdoor AIR module
@@ -296,11 +311,10 @@ def outdoorAir(Msg,Console):
     Console.Obs['outAirMsg'] = Msg
 
     # Extract required observations from latest SKY Websocket JSON
-    if 'SkyMsg' in Console.Obs:
-        Obs = [x if x != None else NaN for x in Console.Obs['SkyMsg']['obs'][0]]
-        WindSpd = [Obs[5],'mps']
-    else:
-        WindSpd = None
+    while not 'SkyMsg' in Console.Obs:
+        time.sleep(0.01)
+    Obs = [x if x != None else NaN for x in Console.Obs['SkyMsg']['obs'][0]]
+    WindSpd = [Obs[5],'mps']
 
     # Calculate derived variables from AIR observations
     DewPoint         = derive.DewPoint(Temp,Humidity)
@@ -345,6 +359,14 @@ def outdoorAir(Msg,Console):
     Console.Obs['Humidity']     = observation.Format(Humidity,'Humidity')
     Console.Obs['Battery']      = observation.Format(Battery,'Battery')
 
+    # Set current pressure arrow if BarometerPanel is active
+    if hasattr(Console,'BarometerPanel'):
+        Console.BarometerPanel.setArrow()
+        
+    # Set "Feels Like" icon if TemperaturePanel is active    
+    if hasattr(Console,'TemperaturePanel'):
+        Console.TemperaturePanel.feelsLikeIcon()
+        
 def indoorAir(Msg,Console):
 
     """ Handles Websocket messages recieved from indoor AIR module

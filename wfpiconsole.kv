@@ -312,7 +312,7 @@ ScreenManager:
 
 	## 'Feels like' icon and text
 	Image:
-		source: 'icons/feelsLike/' + app.Obs['FeelsLike'][3] + '.png'
+		source: 'icons/feelsLike/' + root.feelsLike + '.png'
 		pos_hint: {'x': 7/262, 'y': 6/202}
 		size_hint: (38/262, 29/202)
 	SmallText:
@@ -380,7 +380,7 @@ ScreenManager:
 
     ## Current Beaufort scale text and icon
     Image:
-        source: 'icons/windSpeed/' + app.Obs['WindSpd'][3] + '.png'
+        source: 'icons/windSpeed/' + root.meanWindSpd + '.png'
 		keep_ratio: 0
 	    allow_stretch: 1
 		pos_hint: {'x': 18/262, 'y': 28/202}
@@ -393,7 +393,7 @@ ScreenManager:
 
     ## Current average wind direction
     Image:
-        source: 'icons/windDir/' + app.Obs['WindDir'][2] + '.png'
+        source: 'icons/windDir/' + root.meanWindDir + '.png'
 		keep_ratio: 0
 	    allow_stretch: 1
 		pos_hint: {'x': 216/262, 'y': 28/202}
@@ -406,7 +406,7 @@ ScreenManager:
 
     ## Rapid wind direction arrow
     Image:
-        source: 'icons/windRose/' + str(round(root.WindRoseDir)) + '.png'
+        source: 'icons/windRose/' + str(round(root.rapidWindDir)) + '.png'
 		keep_ratio: 0
 	    allow_stretch: 1
 		pos_hint: {'x': 65/262, 'y': 26/202}
@@ -767,7 +767,7 @@ ScreenManager:
 
 	## Current pressure arrow
 	Image:
-		source: 'icons/barometer/' + app.Obs['Pres'][2] + '.png'
+		source: 'icons/barometer/' + str(root.barometerArrow) + '.png'
 		keep_ratio: 0
 	    allow_stretch: 1
 		pos_hint: {'x': 46/262, 'y': 18/202}
