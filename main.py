@@ -110,7 +110,7 @@ from kivy.animation   import Animation
 from kivy.factory     import Factory
 from kivy.metrics     import dp
 from kivy.config      import ConfigParser
-from kivy.clock       import Clock,mainthread
+from kivy.clock       import Clock, mainthread
 from kivy.app         import App
 
 # ==============================================================================
@@ -200,9 +200,6 @@ class wfpiconsole(App):
     DateFormat   = ConfigParserProperty('-','Display','DateFormat',  'wfpiconsole')
     IndoorTemp   = ConfigParserProperty('-','Display','IndoorTemp',  'wfpiconsole')
 
-    # Define App class numeric properties
-    unitChange = NumericProperty(0)
-
     # BUILD 'WeatherFlowPiConsole' APP CLASS
     # --------------------------------------------------------------------------
     def build(self):
@@ -229,7 +226,7 @@ class wfpiconsole(App):
         forecast.Download(self.MetData,self.config)
 
         # Generate Sager Weathercaster forecast
-        thread = Thread(target=sagerForecast.Generate, args=(self.Sager,self.config)).start()
+        thread = Thread(target=sagerForecast.Generate, args=(self.Sager,self.config), name="Sager").start()
 
         # Initialise websocket connection
         self.WebsocketConnect()
@@ -238,7 +235,7 @@ class wfpiconsole(App):
         Clock.schedule_interval(self.UpdateMethods,1.0)
         Clock.schedule_interval(partial(astro.sunTransit,self.Astro,self.config),1.0)
         Clock.schedule_interval(partial(astro.moonPhase ,self.Astro,self.config),1.0)
-        Clock.schedule_once(lambda dt: system.checkVersion(self.Version,self.config,updateNotif))
+        Clock.schedule_once(lambda dt: system.checkVersion(self.Version,self.config,updateNotif))  
 
     # BUILD 'WeatherFlowPiConsole' APP CLASS SETTINGS
     # --------------------------------------------------------------------------
@@ -302,15 +299,23 @@ class wfpiconsole(App):
             self.config.set('System','BarometerMin',Min[Units.index(value)])
 
         # Update display when any units are changed
-        
-        # UPDATE THIS FOR THREADING
-        
         if section == 'Units' or section == 'FeelsLike':
-            self.unitChange = 1
+            if self.config['Station']['TempestID']:
+                Thread(target=websocket.Tempest, args=(self.Obs['TempestMsg'],self), name='Tempest').start()
+                Thread(target=websocket.rapidWind, args=(self.Obs['RapidMsg'],self), name="rapidWind").start()
+            if self.config['Station']['SkyID']:
+                Thread(target=websocket.Sky, args=(self.Obs['SkyMsg'],self), name="Sky").start()
+                Thread(target=websocket.rapidWind, args=(self.Obs['RapidMsg'],self), name="rapidWind").start()
+            if self.config['Station']['OutAirID']:
+                Thread(target=websocket.outdoorAir, args=(self.Obs['outAirMsg'],self), name="outdoorAir").start()
+            if self.config['Station']['InAirID']:
+                Thread(target=websocket.indoorAir, args=(self.Obs['inAirMsg'],self), name="indoorAir").start()
+        import threading        
+        for thread in threading.enumerate(): 
+            print(thread.name)         
 
         # Update primary and secondary panels displayed on CurrentConditions
         # screen
-        start = datetime.now()
         if section in ['PrimaryPanels','SecondaryPanels']:
             for Panel,Type in App.get_running_app().config['PrimaryPanels'].items():
                 if Panel == key:
@@ -402,32 +407,32 @@ class wfpiconsole(App):
 
         # Extract observations from obs_sky websocket message
         elif Type == 'obs_st':
-            Thread(target=websocket.Tempest, args=(Msg,self)).start()
+            Thread(target=websocket.Tempest, args=(Msg,self), name="Tempest").start()
 
         # Extract observations from obs_sky websocket message
         elif Type == 'obs_sky':
-            Thread(target=websocket.Sky, args=(Msg,self)).start()
+            Thread(target=websocket.Sky, args=(Msg,self), name="Sky").start()
 
         # Extract observations from obs_air websocket message based on device
         # ID
         elif Type == 'obs_air':
             if self.config['Station']['InAirID']:
                 if Msg['device_id'] == int(self.config['Station']['InAirID']):
-                    Thread(target=websocket.indoorAir, args=(Msg,self)).start()
+                    Thread(target=websocket.indoorAir, args=(Msg,self), name="indoorAir").start()
             if self.config['Station']['OutAirID']:
                 if Msg['device_id'] == int(self.config['Station']['OutAirID']):
-                    Thread(target=websocket.outdoorAir, args=(Msg,self)).start()
+                    Thread(target=websocket.outdoorAir, args=(Msg,self), name="outdoorAir").start()
 
         # Extract observations from rapid_wind websocket message
         elif Type == 'rapid_wind':
-            Thread(target=websocket.rapidWind, args=(Msg,self)).start()
+            Thread(target=websocket.rapidWind, args=(Msg,self), name="rapidWind").start()
 
         # Extract observations from evt_strike websocket message and open
         # secondary lightning panel to show strike has been detected if required
         elif Type == 'evt_strike':
 
             # Extract observations from evt_strike websocket message
-            Thread(target=websocket.evtStrike, args=(Msg,self)).start()
+            Thread(target=websocket.evtStrike, args=(Msg,self), name="evt_strike").start()
 
             # Open secondary lightning panel to show strike has been detected
             if self.config['Display']['LightningPanel'] == '1':
@@ -453,7 +458,7 @@ class wfpiconsole(App):
         Tz = pytz.timezone(self.config['Station']['Timezone'])
         Now = datetime.now(pytz.utc).astimezone(Tz)
         Now = Now.replace(microsecond=0)
-
+        
         # At 5 minutes past each hour, download a new forecast for the Station
         # location
         if (Now.minute,Now.second) == (5,0):
@@ -482,20 +487,6 @@ class wfpiconsole(App):
         if Now.time() == time(0,0,0):
             self.Astro = astro.Format(self.Astro,self.config,"Sun")
             self.Astro = astro.Format(self.Astro,self.config,"Moon")
-
-        # Update display if units have been changed
-        if self.unitChange == 1:
-            if self.config['Station']['TempestID']:
-                websocket.Tempest(self.Obs['TempestMsg'],self)
-                websocket.rapidWind(self.Obs['RapidMsg'],self)
-            elif self.config['Station']['SkyID']:
-                websocket.Sky(self.Obs['SkyMsg'],self)
-                websocket.rapidWind(self.Obs['RapidMsg'],self)
-            if self.config['Station']['OutAirID']:
-                websocket.outdoorAir(self.Obs['outAirMsg'],self)
-            if self.config['Station']['InAirID']:
-                websocket.indoorAir(self.Obs['inAirMsg'],self)
-            self.unitChange = 0
 
 # ==============================================================================
 # CurrentConditions SCREEN CLASS
