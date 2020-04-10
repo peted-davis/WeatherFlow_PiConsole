@@ -173,7 +173,7 @@ class wfpiconsole(App):
                               ('WindGust','--'),       ('WindDir','---'),    ('AvgWind','--'),
                               ('MaxGust','--'),        ('RainRate','---'),   ('TodayRain','--'),
                               ('YesterdayRain','--'),  ('MonthRain','--'),   ('YearRain','--'),
-                              ('Radiation','----'),    ('UVIndex','---'),    ('outTemp','--'),
+                              ('Radiation','----'),    ('UVIndex','----'),   ('outTemp','--'),
                               ('outTempMin','---'),    ('outTempMax','---'), ('inTemp','--'),
                               ('inTempMin','---'),     ('inTempMax','---'),  ('Humidity','--'),
                               ('DewPoint','--'),       ('Pres','---'),       ('MaxPres','---'),

@@ -450,18 +450,21 @@ ScreenManager:
 	## Solar radiation
 	MediumText:
 		text: app.Obs['Radiation'][0] + app.Obs['Radiation'][1]
-		pos_hint: {'x': 3/262, 'y': 129/202}
+		pos_hint: {'x': 3/262, 'y': 130/202}
 		size_hint: (105/262, 33/202)
 
 	## UV Index
-	MediumText:
+	BoldText:
 		text: app.Obs['UVIndex'][0]
-		pos_hint: {'x': 154/262, 'y': 129/202}
-		size_hint: (52.5/262, 33/202)
-	Image:
-		source: 'icons/uv/' + app.Obs['UVIndex'][2] + '.png'
-		pos_hint: {'x': 206.5/262, 'y': 129/202}
-		size_hint: (52.5/262, 33/202)
+		pos_hint: {'x': 154/262, 'y': 146/202}
+		size_hint: (105/262, 16.5/202)
+        font_size: '20sp'
+        color: app.Obs['UVIndex'][3] if app.Obs['UVIndex'][3] != '-' else [1,1,1,1]
+	BoldText:
+		text: app.Obs['UVIndex'][2]
+		pos_hint: {'x': 154/262, 'y': 128/202}
+		size_hint: (105/262, 16.5/202)
+        color: app.Obs['UVIndex'][3] if app.Obs['UVIndex'][3] != '-' else [1,1,1,1]  
 
 	## Sunrise time
 	SmallText:
