@@ -89,10 +89,12 @@ class WeatherFlowClientFactory(WebSocketClientFactory,ReconnectingClientFactory)
 
     def clientConnectionFailed(self,connector,reason):
         print('Client connection failed .. retrying ..')
+        self.setProtocolOptions(openHandshakeTimeout=60)
         self.retry(connector)
 
     def clientConnectionLost(self,connector,reason):
         print('Client connection lost .. retrying ..')
+        self.setProtocolOptions(openHandshakeTimeout=60)
         self.retry(connector)
 
     def __init__(self, url, app):
@@ -352,6 +354,7 @@ class wfpiconsole(App):
         (Options, Args) = Parser.parse_args()
         self._factory = WeatherFlowClientFactory(Options.url,self)
         self._factory.protocol = WeatherFlowClientProtocol
+        self._factory.setProtocolOptions(openHandshakeTimeout=60)
         if self._factory.isSecure:
             contextFactory = ssl.ClientContextFactory()
         else:
