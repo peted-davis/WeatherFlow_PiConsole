@@ -964,17 +964,29 @@ def UVIndex(uvLevel):
         uvIndex             UV index
 	"""
 
-    # Define UV cutoffs and UV index levels
-    Cutoffs = [1,3,6,8,11]
-    Index = ['0','1','2','3','4','5']
+    # Define UV Index cutoffs and level descriptions
+    Cutoffs = [0,3,6,8,11]
+    Level   = ['None','Low','Moderate','High','Very High','Extreme']
+    
+    # Define UV index colours
+    White  = [1,1,1,1] 
+    Green  = [155/255,188/255, 47/255,1]
+    Yellow = [230/255,162/255, 65/255,1]
+    Orange = [216/255,112/255, 64/255,1]
+    Red    = [230/255, 75/255, 36/255,1]
+    Violet = [134/255,128/255,188/255,1]
+    Color  = [White,Green,Yellow,Orange,Red,Violet]
 
     # Set the UV index
     if math.isnan(uvLevel[0]):
-        uvIndex = [uvLevel[0],'index','-'] 
-    else:
-        Ind = bisect.bisect(Cutoffs,uvLevel[0])
-        uvIndex = [round(uvLevel[0],1),'index',Index[Ind]]  
-    
+        uvIndex = [uvLevel[0],'index','-',White] 
+    else:    
+        if uvLevel[0] > 0:
+            Ind = bisect.bisect(Cutoffs,uvLevel[0])
+        else:
+            Ind = 0
+        uvIndex = [round(uvLevel[0],1),'index',Level[Ind],Color[Ind]]  
+        
     # Return UV Index icon
     return uvIndex
     
