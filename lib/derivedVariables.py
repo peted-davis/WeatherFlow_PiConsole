@@ -982,7 +982,7 @@ def UVIndex(uvLevel):
         uvIndex = [uvLevel[0],'index','-',White] 
     else:    
         if uvLevel[0] > 0:
-            Ind = bisect.bisect(Cutoffs,uvLevel[0])
+            Ind = bisect.bisect(Cutoffs,round(uvLevel[0],1))
         else:
             Ind = 0
         uvIndex = [round(uvLevel[0],1),'index',Level[Ind],Color[Ind]]  

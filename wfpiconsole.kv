@@ -454,17 +454,22 @@ ScreenManager:
 		size_hint: (105/262, 33/202)
 
 	## UV Index
-	BoldText:
+	MediumText:
 		text: app.Obs['UVIndex'][0]
-		pos_hint: {'x': 154/262, 'y': 146/202}
-		size_hint: (105/262, 16.5/202)
-        font_size: '20sp'
-        color: app.Obs['UVIndex'][3] if app.Obs['UVIndex'][3] != '-' else [1,1,1,1]
+		pos_hint: {'x': 154/262, 'y': 118/202}
+		size_hint: (105/262, 33/202)
 	BoldText:
 		text: app.Obs['UVIndex'][2]
-		pos_hint: {'x': 154/262, 'y': 128/202}
-		size_hint: (105/262, 16.5/202)
-        color: app.Obs['UVIndex'][3] if app.Obs['UVIndex'][3] != '-' else [1,1,1,1]  
+		pos_hint: {'x': 169/262, 'y': 148/202}
+		size_hint: (75/262, 16.5/202)
+        color: [20/255,20/255,20/255,1]
+        canvas.before:
+            Color:
+                rgba: app.Obs['UVIndex'][3] if app.Obs['UVIndex'][3] != '-' else [20/255,20/255,20/255,1]
+            RoundedRectangle:
+                pos: [self.pos[0],self.pos[1]-2]
+                size: self.size
+                radius: [5,]   
 
 	## Sunrise time
 	SmallText:

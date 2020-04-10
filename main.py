@@ -310,10 +310,7 @@ class wfpiconsole(App):
                 Thread(target=websocket.outdoorAir, args=(self.Obs['outAirMsg'],self), name="outdoorAir").start()
             if self.config['Station']['InAirID']:
                 Thread(target=websocket.indoorAir, args=(self.Obs['inAirMsg'],self), name="indoorAir").start()
-        import threading        
-        for thread in threading.enumerate(): 
-            print(thread.name)         
-
+                
         # Update primary and secondary panels displayed on CurrentConditions
         # screen
         if section in ['PrimaryPanels','SecondaryPanels']:
