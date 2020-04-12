@@ -204,7 +204,7 @@ class wfpiconsole(App):
 
     # Define App class numeric properties
     unitChange = NumericProperty(0)
-
+    
     # BUILD 'WeatherFlowPiConsole' APP CLASS
     # --------------------------------------------------------------------------
     def build(self):
@@ -217,6 +217,9 @@ class wfpiconsole(App):
         self.config.optionxform = str
         self.config.read('wfpiconsole.ini')
         self.settings_cls = SettingsWithSidebar
+        
+        Tz = pytz.timezone(self.config['Station']['Timezone'])
+        self.oldTime = datetime.now(pytz.utc).astimezone(Tz)
 
         # Force window size if required based on hardware type
         if self.config['System']['Hardware'] == 'Pi4':
@@ -347,19 +350,11 @@ class wfpiconsole(App):
 
     # CONNECT TO THE SECURE WEATHERFLOW WEBSOCKET SERVER
     # --------------------------------------------------------------------------
-    def WebsocketConnect(self):
-        Parser = OptionParser()
-        Server = 'wss://ws.weatherflow.com/swd/data?api_key=' + self.config['Keys']['WeatherFlow']
-        Parser.add_option("-u", "--url", dest="url", help="Secure WeatherFlow websocket", default=Server)
-        (Options, Args) = Parser.parse_args()
-        self._factory = WeatherFlowClientFactory(Options.url,self)
-        self._factory.protocol = WeatherFlowClientProtocol
-        self._factory.setProtocolOptions(openHandshakeTimeout=60)
-        if self._factory.isSecure:
-            contextFactory = ssl.ClientContextFactory()
-        else:
-            contextFactory = None
-        connectWS(self._factory, contextFactory)
+    def WebsocketConnect(self):        
+        Template = 'ws://ws.weatherflow.com/swd/data?api_key={}'
+        Server = Template.format(self.config['Keys']['WeatherFlow'])
+        self._factory = WeatherFlowClientFactory(Server,self)
+        reactor.connectTCP('ws.weatherflow.com',80,self._factory)
 
     # SEND MESSAGE TO THE WEATHERFLOW WEBSOCKET SERVER
     # --------------------------------------------------------------------------
@@ -408,6 +403,11 @@ class wfpiconsole(App):
 
         # Extract observations from obs_sky websocket message
         elif Type == 'obs_sky':
+            Tz = pytz.timezone(self.config['Station']['Timezone'])
+            Now = datetime.now(pytz.utc).astimezone(Tz)
+            if self.oldTime:
+            	print(Now.strftime("%d/%m/%y %H:%M:%S"), " Sky message recieved (" + str(round((Now-self.oldTime).total_seconds()))  + ")"  )
+            self.oldTime = Now
             websocket.Sky(Msg,self)
 
         # Extract observations from obs_air websocket message based on device
