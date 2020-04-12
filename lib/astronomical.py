@@ -59,6 +59,13 @@ def SunriseSunset(astroData,Config):
         # Define Sunrise/Sunset times in Station timezone
         astroData['Sunrise'][0] = Sunrise.astimezone(Tz)
         astroData['Sunset'][0] = Sunset.astimezone(Tz)
+        
+        # Calculate length and position of the day line on the daytime/nightime 
+        # bar
+        sunriseMidnight = (astroData['Sunrise'][0].hour*3600 + astroData['Sunrise'][0].minute*60)
+        sunsetMidnight = (astroData['Sunset'][0].hour*3600 + astroData['Sunset'][0].minute*60)
+        astroData['Sunrise'][2] = (sunriseMidnight/86400)
+        astroData['Sunset'][2] = ((sunsetMidnight-sunriseMidnight)/86400)
 
     # Sunset has passed. Calculate sunset/sunrise times for tomorrow starting at
     # time of last Sunset in UTC
@@ -79,6 +86,13 @@ def SunriseSunset(astroData,Config):
         # Define Sunrise/Sunset times in Station timezone
         astroData['Sunrise'][0] = Sunrise.astimezone(Tz)
         astroData['Sunset'][0] = Sunset.astimezone(Tz)
+        
+        # Calculate length and position of the day line on the daytime/nightime 
+        # bar
+        sunriseMidnight = (astroData['Sunrise'][0].hour*3600 + astroData['Sunrise'][0].minute*60)
+        sunsetMidnight = (astroData['Sunset'][0].hour*3600 + astroData['Sunset'][0].minute*60)
+        astroData['Sunrise'][2] = (sunriseMidnight/86400)
+        astroData['Sunset'][2] = ((sunsetMidnight-sunriseMidnight)/86400)
 
     # Format sunrise/sunset labels based on date of next sunrise
     astroData = Format(astroData,Config,'Sun')
@@ -239,31 +253,32 @@ def sunTransit(astroData, Config, *largs):
     # Get current time in station time zone
     Tz = pytz.timezone(Config['Station']['Timezone'])
     Now = datetime.now(pytz.utc).astimezone(Tz)
+    
+    # Calculate sun icon position on daytime/nightime bar
+    secondsMidnight = (Now.replace(microsecond=0) - Now.replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds()
+    astroData['sunPosition'] = (secondsMidnight/86400)
 
-    # If time is between sunrise and sun set, calculate sun
-    # transit angle
+
+    
+
+    # If time is between sunrise and sun set, calculate number of daylight hours 
+    # remaining
     if Now >= astroData['Sunrise'][0] and Now <= astroData['Sunset'][0]:
 
-        # Determine total length of daylight, amount of daylight
-        # that has passed, and amount of daylight left
+        # Determine total length of daylight, amount of daylight that has passed
+        # and amount of daylight left
         DaylightTotal = astroData['Sunset'][0] - astroData['Sunrise'][0]
         DaylightLapsed = Now - astroData['Sunrise'][0]
         DaylightLeft = astroData['Sunset'][0] - Now
-
-        # Determine sun transit angle
-        Angle = DaylightLapsed.total_seconds() / DaylightTotal.total_seconds() * 180
-        Angle = int(Angle*10)/10.0
 
         # Determine hours and minutes left until sunset
         hours,remainder = divmod(DaylightLeft.total_seconds(), 3600)
         minutes,seconds = divmod(remainder,60)
 
         # Define Kivy Label binds
-        astroData['SunAngle'] = '{:.1f}'.format(Angle)
-        astroData['sunEvent'] = ['Till [color=f05e40ff]Sunset[/color]','{:02.0f}'.format(hours),'{:02.0f}'.format(minutes)]
+        astroData['sunEvent'] = ['[color=f05e40ff]Sunset[/color]','{:02.0f}'.format(hours),'{:02.0f}'.format(minutes),'Daytime']
 
-    # When not daylight, set sun transit angle to building
-    # value. Define time until sunrise
+    # When not daylight, calculate time until sunrise
     elif Now <= astroData['Sunrise'][0]:
 
         # Determine hours and minutes left until sunrise
@@ -272,8 +287,7 @@ def sunTransit(astroData, Config, *largs):
         minutes,seconds = divmod(remainder,60)
 
         # Define Kivy Label binds
-        astroData['SunAngle'] = '-'
-        astroData['sunEvent'] = ['Till [color=f0b240ff]Sunrise[/color]','{:02.0f}'.format(hours),'{:02.0f}'.format(minutes)]
+        astroData['sunEvent'] = ['[color=f0b240ff]Sunrise[/color]','{:02.0f}'.format(hours),'{:02.0f}'.format(minutes),'Nightime']
 
     # Return dictionary containing sun transit data
     return astroData

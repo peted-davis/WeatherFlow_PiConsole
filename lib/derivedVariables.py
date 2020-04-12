@@ -969,13 +969,13 @@ def UVIndex(uvLevel):
     Level   = ['None','Low','Moderate','High','Very High','Extreme']
     
     # Define UV index colours
-    White  = [1,1,1,1] 
+    Grey   = [100/255,100/255,100/255,1] 
     Green  = [155/255,188/255, 47/255,1]
     Yellow = [230/255,162/255, 65/255,1]
     Orange = [216/255,112/255, 64/255,1]
     Red    = [230/255, 75/255, 36/255,1]
     Violet = [134/255,128/255,188/255,1]
-    Color  = [White,Green,Yellow,Orange,Red,Violet]
+    Color  = [Grey,Green,Yellow,Orange,Red,Violet]
 
     # Set the UV index
     if math.isnan(uvLevel[0]):

@@ -182,10 +182,10 @@ class wfpiconsole(App):
                               ('Strikes3hr','-'),      ('StrikesToday','-'), ('StrikesMonth','-'),
                               ('StrikesYear','-')
                              ])
-    Astro = DictProperty    ([('Sunrise',['-','-']),   ('Sunset',['-','-']), ('sunEvent',['-','-','-']),
-                              ('SunAngle','-'),        ('ValidDate','--'),   ('Moonrise',['-','-']),
-                              ('Moonset',['-','-']),   ('NewMoon','--'),     ('FullMoon','--'),
-                              ('Phase','---')
+    Astro = DictProperty    ([('Sunrise',['-','-',0]), ('Sunset',['-','-',0]),('sunEvent','----'),
+                              ('sunPosition',0),       ('ValidDate','--'),    ('Moonrise',['-','-']),
+                              ('Moonset',['-','-']),   ('NewMoon','--'),      ('FullMoon','--'),
+                              ('Phase','---'),
                              ])
     MetData = DictProperty  ([('Weather','Building'),   ('Temp','--'),         ('Precip','--'),
                               ('WindSpd','--'),         ('WindDir','--'),      ('Valid','--')
@@ -226,7 +226,7 @@ class wfpiconsole(App):
         forecast.Download(self.MetData,self.config)
 
         # Generate Sager Weathercaster forecast
-        thread = Thread(target=sagerForecast.Generate, args=(self.Sager,self.config), name="Sager").start()
+        #thread = Thread(target=sagerForecast.Generate, args=(self.Sager,self.config), name="Sager").start()
 
         # Initialise websocket connection
         self.WebsocketConnect()
@@ -235,7 +235,7 @@ class wfpiconsole(App):
         Clock.schedule_interval(self.UpdateMethods,1.0)
         Clock.schedule_interval(partial(astro.sunTransit,self.Astro,self.config),1.0)
         Clock.schedule_interval(partial(astro.moonPhase ,self.Astro,self.config),1.0)
-        Clock.schedule_once(lambda dt: system.checkVersion(self.Version,self.config,updateNotif))  
+        #Clock.schedule_once(lambda dt: system.checkVersion(self.Version,self.config,updateNotif))  
 
     # BUILD 'WeatherFlowPiConsole' APP CLASS SETTINGS
     # --------------------------------------------------------------------------

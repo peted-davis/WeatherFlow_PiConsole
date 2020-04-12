@@ -446,7 +446,26 @@ ScreenManager:
 		size_hint: (1,1)
 		keep_ratio: 0
 		allow_stretch: 1
+        canvas:
+            Color:
+                rgba: [100/255,100/255,100/255,1]
+            Rectangle:
+                pos: [13, 94+9.6]
+                size: [236, 9.6]
+            Color:
+                rgba: [0/255,164/255,180/255,150/255]
+            Rectangle:
+                pos: [13+app.Astro['Sunrise'][2]*236, 94+9.6]
+                size: [app.Astro['Sunset'][2]*236, 9.6] 
 
+    ## Sun Icon
+    Image:
+		source: 'icons/sun/sunIcon.png'
+		keep_ratio: 0
+	    allow_stretch: 1
+		pos_hint: {'x': (5.5+app.Astro['sunPosition']*236)/262, 'y': 90.7/202}             
+		size_hint: (17/262, 17/202)
+    
 	## Solar radiation
 	MediumText:
 		text: app.Obs['Radiation'][0] + app.Obs['Radiation'][1]
@@ -456,11 +475,11 @@ ScreenManager:
 	## UV Index
 	MediumText:
 		text: app.Obs['UVIndex'][0]
-		pos_hint: {'x': 154/262, 'y': 118/202}
-		size_hint: (105/262, 33/202)
+		pos_hint: {'x': 147.5/262, 'y': 145.5/202}
+		size_hint: (75/262, 18.5/202)
 	BoldText:
 		text: app.Obs['UVIndex'][2]
-		pos_hint: {'x': 169/262, 'y': 148/202}
+		pos_hint: {'x': 147.5/262, 'y': 128/202}
 		size_hint: (75/262, 16.5/202)
         color: [20/255,20/255,20/255,1]
         canvas.before:
@@ -474,32 +493,35 @@ ScreenManager:
 	## Sunrise time
 	SmallText:
 		text: app.Astro['Sunrise'][1]
-		pos_hint: {'x': 7/262, 'y': 3/202}
+        halign: 'left'
+		pos_hint: {'x': 13/262, 'y': 73/202}
 		size_hint: (80/262, 18/202)
 
 	## Sunset time
 	SmallText:
 		text: app.Astro['Sunset'][1]
-		pos_hint: {'x': 175/262, 'y': 3/202}
+        halign: 'right'
+		pos_hint: {'x': 169/262, 'y': 73/202}
 		size_hint: (80/262, 18/202)
-
-	## Sun transit icon
-	Image:
-		source: 'icons/sun/' + app.Astro['SunAngle'] + '.png'
-		keep_ratio: 0
-	    allow_stretch: 1
-		pos_hint: {'x': 40/262, 'y': 36.5/202}
-		size_hint: (182/262, 99/202)
 
 	## Time remaining until sunrise or sunset
+    BoldText:
+		text: app.Astro['sunEvent'][3]
+        color: [200/255,200/255,200/255,1]
+		pos_hint: {'x': 5/262, 'y': 53/202}
+		size_hint: (123/262, 18/202)
 	LargeText:
-		text: app.Astro['sunEvent'][1] + ':' + app.Astro['sunEvent'][2]
-		pos_hint: {'x': 91/262, 'y': 51/202}
-		size_hint: (80/262, 28/202)
+		text: app.Astro['sunEvent'][1]
+		pos_hint: {'x': 5/262, 'y': 22/202}
+		size_hint: (40/262, 33/202)
+	LargeText:
+		text: app.Astro['sunEvent'][2]
+		pos_hint: {'x': 62/262, 'y': 22/202}
+		size_hint: (40/262, 33/202)
 	SmallText:
-		text: app.Astro['sunEvent'][0]
-		pos_hint: {'x': 91/262, 'y': 33/202}
-		size_hint: (80/262, 18/202)
+		text: 'Till [font=fonts/SystemSanFranciscoDisplayBold.ttf]' + app.Astro['sunEvent'][0] + '[/font]'
+		pos_hint: {'x': 5/262, 'y': 3/202}
+		size_hint: (123/262, 18/202)
 
 <SunriseSunsetButton>:
 	Button:
