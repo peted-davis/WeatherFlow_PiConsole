@@ -332,8 +332,11 @@ def Format(Obs,Type):
                     if math.isnan(cObs[ii-1]):
                         cObs[ii-1] = '-'
                         cObs[ii] = ' /min'
-                    else:
+                    elif cObs[ii-1].tolist().is_integer():  
                         cObs[ii-1] = '{:.0f}'.format(cObs[ii-1])
+                        cObs[ii] = ' /min'
+                    else:
+                        cObs[ii-1] = '{:.1f}'.format(cObs[ii-1])
                         cObs[ii] = ' /min'
 
     # Format time difference observations
