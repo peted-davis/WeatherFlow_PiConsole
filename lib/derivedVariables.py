@@ -990,7 +990,6 @@ def UVIndex(uvLevel):
     # Return UV Index icon
     return uvIndex
 
-
 # # CHECK STATUS OF SKY AND AIR MODULES
 # # --------------------------------------------------------------------------
 # def SkyAirStatus(self,dt):
@@ -1030,15 +1029,3 @@ def UVIndex(uvLevel):
         # # Latest Sky observation time is greater than 5 minutes old
         # else:
             # self.Obs['StatusIcon'] = 'Error'
-
-
-
-
-
-
-
-
-
-
-
-
