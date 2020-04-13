@@ -171,18 +171,18 @@ NaN = float('NaN')
 class wfpiconsole(App):
 
     # Define App class dictionary properties
-    Obs = DictProperty      ([('rapidSpd','--'),       ('rapidDir','----'),  ('WindSpd','-----'),
-                              ('WindGust','--'),       ('WindDir','---'),    ('AvgWind','--'),
-                              ('MaxGust','--'),        ('RainRate','---'),   ('TodayRain','--'),
-                              ('YesterdayRain','--'),  ('MonthRain','--'),   ('YearRain','--'),
-                              ('Radiation','----'),    ('UVIndex','---'),    ('outTemp','--'),
-                              ('outTempMin','---'),    ('outTempMax','---'), ('inTemp','--'),
-                              ('inTempMin','---'),     ('inTempMax','---'),  ('Humidity','--'),
-                              ('DewPoint','--'),       ('Pres','---'),       ('MaxPres','---'),
-                              ('MinPres','---'),       ('PresTrend','----'), ('FeelsLike','----'),
-                              ('StrikeDeltaT','-----'),('StrikeDist','--'),  ('StrikeFreq','----'),
-                              ('Strikes3hr','-'),      ('StrikesToday','-'), ('StrikesMonth','-'),
-                              ('StrikesYear','-')
+    Obs = DictProperty      ([('rapidSpd','--'),       ('rapidDir','----'),     ('rapidShift','-'),
+                              ('WindSpd','-----'),     ('WindGust','--'),       ('WindDir','---'),
+                              ('AvgWind','--'),        ('MaxGust','--'),        ('RainRate','---'),
+                              ('TodayRain','--'),      ('YesterdayRain','--'),  ('MonthRain','--'),
+                              ('YearRain','--'),       ('Radiation','----'),    ('UVIndex','---'),
+                              ('outTemp','--'),        ('outTempMin','---'),    ('outTempMax','---'),
+                              ('inTemp','--'),         ('inTempMin','---'),     ('inTempMax','---'),
+                              ('Humidity','--'),       ('DewPoint','--'),       ('Pres','---'),
+                              ('MaxPres','---'),       ('MinPres','---'),       ('PresTrend','----'),
+                              ('FeelsLike','----'),    ('StrikeDeltaT','-----'),('StrikeDist','--'),
+                              ('StrikeFreq','----'),   ('Strikes3hr','-'),      ('StrikesToday','-'),
+                              ('StrikesMonth','-'),    ('StrikesYear','-')
                              ])
     Astro = DictProperty    ([('Sunrise',['-','-']),   ('Sunset',['-','-']), ('sunEvent',['-','-','-']),
                               ('SunAngle','-'),        ('ValidDate','--'),   ('Moonrise',['-','-']),
@@ -204,7 +204,7 @@ class wfpiconsole(App):
 
     # Define App class numeric properties
     unitChange = NumericProperty(0)
-    
+
     # BUILD 'WeatherFlowPiConsole' APP CLASS
     # --------------------------------------------------------------------------
     def build(self):
@@ -217,7 +217,7 @@ class wfpiconsole(App):
         self.config.optionxform = str
         self.config.read('wfpiconsole.ini')
         self.settings_cls = SettingsWithSidebar
-        
+
         Tz = pytz.timezone(self.config['Station']['Timezone'])
         self.oldTime = datetime.now(pytz.utc).astimezone(Tz)
 
@@ -350,7 +350,7 @@ class wfpiconsole(App):
 
     # CONNECT TO THE SECURE WEATHERFLOW WEBSOCKET SERVER
     # --------------------------------------------------------------------------
-    def WebsocketConnect(self):        
+    def WebsocketConnect(self):
         Template = 'ws://ws.weatherflow.com/swd/data?api_key={}'
         Server = Template.format(self.config['Keys']['WeatherFlow'])
         self._factory = WeatherFlowClientFactory(Server,self)
@@ -397,39 +397,70 @@ class wfpiconsole(App):
                                           ' "device_id":' + self.config['Station']['InAirID'] + ',' +
                                           ' "id":"IndoorAir"}')
 
-        # Extract observations from obs_sky websocket message
+        # Extract observations from obs_st websocket message and animate
+        # RainRate icon if required
         elif Type == 'obs_st':
-            websocket.Tempest(Msg,self)
 
-        # Extract observations from obs_sky websocket message
+            # Extract observations
+            websocket.Tempest(Msg,self.Obs,self.config)
+
+            # If RainfallPanel is open, animate RainRate
+            if hasattr(self,'RainfallPanel'):
+                self.RainfallPanel.RainRateAnimation()
+
+            Tz = pytz.timezone(self.config['Station']['Timezone'])
+            Now = datetime.now(pytz.utc).astimezone(Tz)
+            if self.oldTime:
+            	print(Now.strftime("%d/%m/%y %H:%M:%S"), " Tempest message recieved (" + str(round((Now-self.oldTime).total_seconds()))  + ")"  )
+            self.oldTime = Now
+
+        # Extract observations from obs_sky websocket message and animate
+        # RainRate icon if required
         elif Type == 'obs_sky':
+
+            # Extract observations
+            websocket.Sky(Msg,self.Obs,self.config)
+
+            # If RainfallPanel is open, animate RainRate
+            if hasattr(self,'RainfallPanel'):
+                self.RainfallPanel.RainRateAnimation()
+
             Tz = pytz.timezone(self.config['Station']['Timezone'])
             Now = datetime.now(pytz.utc).astimezone(Tz)
             if self.oldTime:
             	print(Now.strftime("%d/%m/%y %H:%M:%S"), " Sky message recieved (" + str(round((Now-self.oldTime).total_seconds()))  + ")"  )
             self.oldTime = Now
-            websocket.Sky(Msg,self)
 
         # Extract observations from obs_air websocket message based on device
         # ID
         elif Type == 'obs_air':
+
+            # Extract observations from Indoor Air
             if self.config['Station']['InAirID']:
                 if Msg['device_id'] == int(self.config['Station']['InAirID']):
-                    websocket.indoorAir(Msg,self)
+                    websocket.indoorAir(Msg,self.Obs,self.config)
+
+            # Extract observations from Outdoor Air
             if self.config['Station']['OutAirID']:
                 if Msg['device_id'] == int(self.config['Station']['OutAirID']):
-                    websocket.outdoorAir(Msg,self)
+                    websocket.outdoorAir(Msg,self.Obs,self.config)
 
         # Extract observations from rapid_wind websocket message
         elif Type == 'rapid_wind':
-            websocket.rapidWind(Msg,self)
+
+            # Extract observations
+            websocket.rapidWind(Msg,self.Obs,self.config)
+
+            # If WindSpeedPanel panel is open, animate wind rose arrow
+            if hasattr(self,'WindSpeedPanel'):
+                self.WindSpeedPanel.WindRoseAnimation()
 
         # Extract observations from evt_strike websocket message and open
         # secondary lightning panel to show strike has been detected if required
         elif Type == 'evt_strike':
 
-            # Extract observations from evt_strike websocket message
-            websocket.evtStrike(Msg,self)
+            # Extract observations
+            websocket.evtStrike(Msg,self.Obs,self.config)
 
             # Open secondary lightning panel to show strike has been detected
             if self.config['Display']['LightningPanel'] == '1':
@@ -602,20 +633,23 @@ class WindSpeedPanel(RelativeLayout):
 
     # ANIMATE WIND ROSE DIRECTION ARROW
     # --------------------------------------------------------------------------
-    def WindRoseAnimation(self,newDirec,oldDirec):
+    def WindRoseAnimation(self):
 
-        # Calculate change in wind direction over last Rapid-Wind period
-        WindShift = newDirec - oldDirec
+        # Get current wind direction, old wind direction and change in wind
+        # direction over last Rapid-Wind period
+        windShift = App.get_running_app().Obs['rapidShift']
+        newDirec = App.get_running_app().Obs['RapidMsg']['ob'][2]
+        oldDirec = newDirec - windShift
 
         # Animate Wind Rose at constant speed between old and new Rapid-Wind
         # wind direction
-        if WindShift >= -180 and WindShift <= 180:
-            Anim = Animation(WindRoseDir=newDirec,duration=2*abs(WindShift)/360)
+        if windShift >= -180 and windShift <= 180:
+            Anim = Animation(WindRoseDir=newDirec,duration=2*abs(windShift)/360)
             Anim.start(self)
-        elif WindShift > 180:
+        elif windShift > 180:
             Anim = Animation(WindRoseDir=0.1,duration=2*oldDirec/360) + Animation(WindRoseDir=newDirec,duration=2*(360-newDirec)/360)
             Anim.start(self)
-        elif WindShift < -180:
+        elif windShift < -180:
             Anim = Animation(WindRoseDir=359.9,duration=2*(360-oldDirec)/360) + Animation(WindRoseDir=newDirec,duration=2*newDirec/360)
             Anim.start(self)
 
