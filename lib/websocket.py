@@ -23,21 +23,20 @@ import time
 # Define global variables
 NaN = float('NaN')
 
-def Tempest(Msg,Obs,Config):
+def Tempest(Msg,Console):
 
     """ Handles Websocket messages received from TEMPEST module
 
 	INPUTS:
-		Msg				    Websocket messages received from SKY module
-		Obs			        Dictionary containing Station observations
-        Config              Station configuration
+		Msg				    Websocket messages received from TEMPEST module
+		Console             Console object
 	"""
 
     # Replace missing observations from latest SKY Websocket JSON with NaN
     Ob = [x if x != None else NaN for x in Msg['obs'][0]]
 
     # Extract TEMPEST device ID
-    Device = Config['Station']['TempestID']
+    Device = Console.config['Station']['TempestID']
 
     # Extract required observations from latest TEMPEST Websocket JSON
     Time      = [Ob[0],'s']
@@ -60,41 +59,41 @@ def Tempest(Msg,Obs,Config):
     Strikes3hr = [Msg['summary']['strike_count_3h']   if 'strike_count_3h'   in Msg['summary'] else NaN,'count']
 
     # Store latest TEMPEST Websocket message
-    Obs['TempestMsg'] = Msg
+    Console.Obs['TempestMsg'] = Msg
 
     # Extract required derived observations
-    minPres     = Obs['MinPres']
-    maxPres     = Obs['MaxPres']
-    minTemp     = Obs['outTempMin']
-    maxTemp     = Obs['outTempMax']
-    StrikeCount = {'Today': Obs['StrikesToday'],
-                   'Month': Obs['StrikesMonth'],
-                   'Year':  Obs['StrikesYear']}
-    rainAccum   = {'Today':     Obs['TodayRain'],
-                   'Yesterday': Obs['YesterdayRain'],
-                   'Month':     Obs['MonthRain'],
-                   'Year':      Obs['YearRain']}
-    avgWind     = Obs['AvgWind']
-    maxGust     = Obs['MaxGust']
+    minPres     = Console.Obs['MinPres']
+    maxPres     = Console.Obs['MaxPres']
+    minTemp     = Console.Obs['outTempMin']
+    maxTemp     = Console.Obs['outTempMax']
+    StrikeCount = {'Today': Console.Obs['StrikesToday'],
+                   'Month': Console.Obs['StrikesMonth'],
+                   'Year':  Console.Obs['StrikesYear']}
+    rainAccum   = {'Today':     Console.Obs['TodayRain'],
+                   'Yesterday': Console.Obs['YesterdayRain'],
+                   'Month':     Console.Obs['MonthRain'],
+                   'Year':      Console.Obs['YearRain']}
+    avgWind     = Console.Obs['AvgWind']
+    maxGust     = Console.Obs['MaxGust']
 
     # Request TEMPEST data from the previous three hours
-    Data3h = requestAPI.weatherflow.Last3h(Device,Time[0],Config)
+    Data3h = requestAPI.weatherflow.Last3h(Device,Time[0],Console.config)
 
     # Calculate derived variables from TEMPEST observations
     DewPoint         = derive.DewPoint(Temp,Humidity)
-    SLP              = derive.SLP(Pres,Config)
-    PresTrend        = derive.SLPTrend(Pres,Time,Data3h,Config)
-    FeelsLike        = derive.FeelsLike(Temp,Humidity,WindSpd,Config)
-    MaxTemp, MinTemp = derive.TempMaxMin(Time,Temp,maxTemp,minTemp,Device,Config)
-    MaxPres, MinPres = derive.SLPMaxMin(Time,Pres,maxPres,minPres,Device,Config)
-    StrikeCount      = derive.StrikeCount(Strikes,StrikeCount,Device,Config)
-    StrikeFreq       = derive.StrikeFrequency(Time,Data3h,Config)
+    SLP              = derive.SLP(Pres,Console.config)
+    PresTrend        = derive.SLPTrend(Pres,Time,Data3h,Console.config)
+    FeelsLike        = derive.FeelsLike(Temp,Humidity,WindSpd,Console.config)
+    MaxTemp, MinTemp = derive.TempMaxMin(Time,Temp,maxTemp,minTemp,Device,Console.config)
+    MaxPres, MinPres = derive.SLPMaxMin(Time,Pres,maxPres,minPres,Device,Console.config)
+    StrikeCount      = derive.StrikeCount(Strikes,StrikeCount,Device,Console.config)
+    StrikeFreq       = derive.StrikeFrequency(Time,Data3h,Console.config)
     StrikeDeltaT     = derive.StrikeDeltaT(StrikeTime)
-    FeelsLike        = derive.FeelsLike(Temp,Humidity,WindSpd,Config)
+    FeelsLike        = derive.FeelsLike(Temp,Humidity,WindSpd,Console.config)
     RainRate         = derive.RainRate(Rain)
-    rainAccum        = derive.RainAccumulation(Rain,rainAccum,Device,Config)
-    AvgWind          = derive.MeanWindSpeed(WindSpd,avgWind,Device,Config)
-    MaxGust          = derive.MaxWindGust(WindGust,maxGust,Device,Config)
+    rainAccum        = derive.RainAccumulation(Rain,rainAccum,Device,Console.config)
+    AvgWind          = derive.MeanWindSpeed(WindSpd,avgWind,Device,Console.config)
+    MaxGust          = derive.MaxWindGust(WindGust,maxGust,Device,Console.config)
     WindSpd          = derive.BeaufortScale(WindSpd)
     WindDir          = derive.CardinalWindDirection(WindDir,WindSpd)
     UVIndex          = derive.UVIndex(UV)
@@ -168,21 +167,27 @@ def Tempest(Msg,Obs,Config):
     if hasattr(Console,'BarometerPanel'):
         Console.BarometerPanel.setArrow()
 
-def Sky(Msg,Obs,Config):
+    # Set "Feels Like" icon if TemperaturePanel is active
+    if hasattr(Console,'TemperaturePanel'):
+        Console.TemperaturePanel.feelsLikeIcon()
+
+    # Return Console object
+    return Console
+
+def Sky(Msg,Console):
 
     """ Handles Websocket messages received from SKY module
 
 	INPUTS:
 		Msg				    Websocket messages received from SKY module
-		Obs			        Dictionary containing Station observations
-        Config              Station configuration
+		Console             Console object
 	"""
 
     # Replace missing observations from latest SKY Websocket JSON with NaN
     Ob = [x if x != None else NaN for x in Msg['obs'][0]]
 
     # Extract SKY device ID
-    Device = Config['Station']['SkyID']
+    Device = Console.config['Station']['SkyID']
 
     # Extract required observations from latest SKY Websocket JSON
     Time      = [Ob[0],'s']
@@ -195,51 +200,49 @@ def Sky(Msg,Obs,Config):
     Radiation = [Ob[10],' W m[sup]-2[/sup]']
 
     # Store latest SKY Websocket message
-    Obs['SkyMsg'] = Msg
+    Console.Obs['SkyMsg'] = Msg
 
     # Extract required observations from latest AIR Websocket observations
-    if 'outAirMsg' in Obs:
-        Ob = [x if x != None else NaN for x in Obs['outAirMsg']['obs'][0]]
-        Temp = [Ob[2],'c']
-        Humidity = [Ob[3],'%']
-    else:
-        Temp = None
-        Humidity = None
+    while not 'outAirMsg' in Console.Obs:
+        time.sleep(0.01)
+    Ob = [x if x != None else NaN for x in Console.Obs['outAirMsg']['obs'][0]]
+    Temp = [Ob[2],'c']
+    Humidity = [Ob[3],'%']
 
     # Set wind direction to None if wind speed is zero
     if WindSpd[0] == 0:
         WindDir = [None,'degrees']
 
     # Extract required derived observations
-    rainAccum = {'Today':     Obs['TodayRain'],
-                 'Yesterday': Obs['YesterdayRain'],
-                 'Month':     Obs['MonthRain'],
-                 'Year':      Obs['YearRain']}
-    avgWind   = Obs['AvgWind']
-    maxGust   = Obs['MaxGust']
+    rainAccum = {'Today':     Console.Obs['TodayRain'],
+                 'Yesterday': Console.Obs['YesterdayRain'],
+                 'Month':     Console.Obs['MonthRain'],
+                 'Year':      Console.Obs['YearRain']}
+    avgWind   = Console.Obs['AvgWind']
+    maxGust   = Console.Obs['MaxGust']
 
     # Calculate derived variables from SKY observations
-    FeelsLike = derive.FeelsLike(Temp,Humidity,WindSpd,Config)
+    FeelsLike = derive.FeelsLike(Temp,Humidity,WindSpd,Console.config)
     RainRate  = derive.RainRate(Rain)
-    rainAccum = derive.RainAccumulation(Rain,rainAccum,Device,Config)
-    AvgWind   = derive.MeanWindSpeed(WindSpd,avgWind,Device,Config)
-    MaxGust   = derive.MaxWindGust(WindGust,maxGust,Device,Config)
+    rainAccum = derive.RainAccumulation(Rain,rainAccum,Device,Console.config)
+    AvgWind   = derive.MeanWindSpeed(WindSpd,avgWind,Device,Console.config)
+    MaxGust   = derive.MaxWindGust(WindGust,maxGust,Device,Console.config)
     WindSpd   = derive.BeaufortScale(WindSpd)
     WindDir   = derive.CardinalWindDirection(WindDir,WindSpd)
     UVIndex   = derive.UVIndex(UV)
 
     # Convert observation units as required
-    RainRate      = observation.Units(RainRate,Config['Units']['Precip'])
-    TodayRain     = observation.Units(rainAccum['Today'],Config['Units']['Precip'])
-    YesterdayRain = observation.Units(rainAccum['Yesterday'],Config['Units']['Precip'])
-    MonthRain     = observation.Units(rainAccum['Month'],Config['Units']['Precip'])
-    YearRain      = observation.Units(rainAccum['Year'],Config['Units']['Precip'])
-    WindSpd       = observation.Units(WindSpd,Config['Units']['Wind'])
-    WindDir       = observation.Units(WindDir,Config['Units']['Direction'])
-    WindGust      = observation.Units(WindGust,Config['Units']['Wind'])
-    AvgWind       = observation.Units(AvgWind,Config['Units']['Wind'])
-    MaxGust       = observation.Units(MaxGust,Config['Units']['Wind'])
-    FeelsLike     = observation.Units(FeelsLike,Config['Units']['Temp'])
+    RainRate      = observation.Units(RainRate,Console.config['Units']['Precip'])
+    TodayRain     = observation.Units(rainAccum['Today'],Console.config['Units']['Precip'])
+    YesterdayRain = observation.Units(rainAccum['Yesterday'],Console.config['Units']['Precip'])
+    MonthRain     = observation.Units(rainAccum['Month'],Console.config['Units']['Precip'])
+    YearRain      = observation.Units(rainAccum['Year'],Console.config['Units']['Precip'])
+    WindSpd       = observation.Units(WindSpd,Console.config['Units']['Wind'])
+    WindDir       = observation.Units(WindDir,Console.config['Units']['Direction'])
+    WindGust      = observation.Units(WindGust,Console.config['Units']['Wind'])
+    AvgWind       = observation.Units(AvgWind,Console.config['Units']['Wind'])
+    MaxGust       = observation.Units(MaxGust,Console.config['Units']['Wind'])
+    FeelsLike     = observation.Units(FeelsLike,Console.config['Units']['Temp'])
 
     # Define Kivy label binds
     Console.Obs['FeelsLike']     = observation.Format(FeelsLike,'Temp')
@@ -264,26 +267,28 @@ def Sky(Msg,Obs,Config):
     # Set mean wind speed and direction icons if WindSpeedPanel is active
     if hasattr(Console,'WindSpeedPanel'):
         Console.WindSpeedPanel.meanWindIcons()
-        
-    # Set "Feels Like" icon if TemperaturePanel is active    
-    if hasattr(Console,'TemperaturePanel'):
-        Console.TemperaturePanel.feelsLikeIcon()    
 
-def outdoorAir(Msg,Obs,Config):
+    # Set "Feels Like" icon if TemperaturePanel is active
+    if hasattr(Console,'TemperaturePanel'):
+        Console.TemperaturePanel.feelsLikeIcon()
+
+    # Return Console object
+    return Console
+
+def outdoorAir(Msg,Console):
 
     """ Handles Websocket messages received from outdoor AIR module
 
 	INPUTS:
-		Msg				    Websocket messages received from SKY module
-		Obs			        Dictionary containing Station observations
-        Config              Station configuration
+		Msg				    Websocket messages received from outdoor AIR module
+		Console             Console object
 	"""
 
     # Replace missing observations in latest outdoor AIR Websocket JSON with NaN
     Ob = [x if x != None else NaN for x in Msg['obs'][0]]
 
     # Extract outdoor AIR device ID
-    Device = Config['Station']['OutAirID']
+    Device = Console.config['Station']['OutAirID']
 
     # Extract required observations from latest outdoor AIR Websocket JSON
     Time     = [Ob[0],'s']
@@ -293,57 +298,57 @@ def outdoorAir(Msg,Obs,Config):
     Battery  = [Ob[6],' v']
     Strikes  = [Ob[4],'count']
 
-    # Extract lightning strike data from the latest AIR Websocket JSON
+    # Extract lightning strike data from the latest outdoor AIR Websocket JSON
     # "Summary" object
     StrikeTime = [Msg['summary']['strike_last_epoch'] if 'strike_last_epoch' in Msg['summary'] else NaN,'s']
     StrikeDist = [Msg['summary']['strike_last_dist']  if 'strike_last_dist'  in Msg['summary'] else NaN,'km']
     Strikes3hr = [Msg['summary']['strike_count_3h']   if 'strike_count_3h'   in Msg['summary'] else NaN,'count']
 
     # Extract required derived observations
-    minPres      = Obs['MinPres']
-    maxPres      = Obs['MaxPres']
-    minTemp      = Obs['outTempMin']
-    maxTemp      = Obs['outTempMax']
-    StrikeCount  = {'Today': Obs['StrikesToday'],
-                    'Month': Obs['StrikesMonth'],
-                    'Year':  Obs['StrikesYear']}
+    minPres      = Console.Obs['MinPres']
+    maxPres      = Console.Obs['MaxPres']
+    minTemp      = Console.Obs['outTempMin']
+    maxTemp      = Console.Obs['outTempMax']
+    StrikeCount  = {'Today': Console.Obs['StrikesToday'],
+                    'Month': Console.Obs['StrikesMonth'],
+                    'Year':  Console.Obs['StrikesYear']}
 
     # Request Outdoor AIR data from the previous three hours
-    Data3h = requestAPI.weatherflow.Last3h(Device,Time[0],Config)
+    Data3h = requestAPI.weatherflow.Last3h(Device,Time[0],Console.config)
 
     # Store latest Outdoor AIR Websocket message
-    Obs['outAirMsg'] = Msg
+    Console.Obs['outAirMsg'] = Msg
 
     # Extract required observations from latest SKY Websocket JSON
-    while not 'SkyMsg' in Obs:
+    while not 'SkyMsg' in Console.Obs:
         time.sleep(0.01)
     Ob = [x if x != None else NaN for x in Console.Obs['SkyMsg']['obs'][0]]
     WindSpd = [Ob[5],'mps']
 
     # Calculate derived variables from AIR observations
     DewPoint         = derive.DewPoint(Temp,Humidity)
-    SLP              = derive.SLP(Pres,Config)
-    PresTrend        = derive.SLPTrend(Pres,Time,Data3h,Config)
-    FeelsLike        = derive.FeelsLike(Temp,Humidity,WindSpd,Config)
-    MaxTemp, MinTemp = derive.TempMaxMin(Time,Temp,maxTemp,minTemp,Device,Config)
-    MaxPres, MinPres = derive.SLPMaxMin(Time,Pres,maxPres,minPres,Device,Config)
-    StrikeCount      = derive.StrikeCount(Strikes,StrikeCount,Device,Config)
-    StrikeFreq       = derive.StrikeFrequency(Time,Data3h,Config)
+    SLP              = derive.SLP(Pres,Console.config)
+    PresTrend        = derive.SLPTrend(Pres,Time,Data3h,Console.config)
+    FeelsLike        = derive.FeelsLike(Temp,Humidity,WindSpd,Console.config)
+    MaxTemp, MinTemp = derive.TempMaxMin(Time,Temp,maxTemp,minTemp,Device,Console.config)
+    MaxPres, MinPres = derive.SLPMaxMin(Time,Pres,maxPres,minPres,Device,Console.config)
+    StrikeCount      = derive.StrikeCount(Strikes,StrikeCount,Device,Console.config)
+    StrikeFreq       = derive.StrikeFrequency(Time,Data3h,Console.config)
     StrikeDeltaT     = derive.StrikeDeltaT(StrikeTime)
 
     # Convert observation units as required
-    Temp        = observation.Units(Temp,Config['Units']['Temp'])
-    MaxTemp     = observation.Units(MaxTemp,Config['Units']['Temp'])
-    MinTemp     = observation.Units(MinTemp,Config['Units']['Temp'])
-    DewPoint    = observation.Units(DewPoint,Config['Units']['Temp'])
-    FeelsLike   = observation.Units(FeelsLike,Config['Units']['Temp'])
-    SLP         = observation.Units(SLP,Config['Units']['Pressure'])
-    MaxPres     = observation.Units(MaxPres,Config['Units']['Pressure'])
-    MinPres     = observation.Units(MinPres,Config['Units']['Pressure'])
-    PresTrend   = observation.Units(PresTrend,Config['Units']['Pressure'])
-    StrikeDist  = observation.Units(StrikeDist,Config['Units']['Distance'])
+    Temp        = observation.Units(Temp,Console.config['Units']['Temp'])
+    MaxTemp     = observation.Units(MaxTemp,Console.config['Units']['Temp'])
+    MinTemp     = observation.Units(MinTemp,Console.config['Units']['Temp'])
+    DewPoint    = observation.Units(DewPoint,Console.config['Units']['Temp'])
+    FeelsLike   = observation.Units(FeelsLike,Console.config['Units']['Temp'])
+    SLP         = observation.Units(SLP,Console.config['Units']['Pressure'])
+    MaxPres     = observation.Units(MaxPres,Console.config['Units']['Pressure'])
+    MinPres     = observation.Units(MinPres,Console.config['Units']['Pressure'])
+    PresTrend   = observation.Units(PresTrend,Console.config['Units']['Pressure'])
+    StrikeDist  = observation.Units(StrikeDist,Console.config['Units']['Distance'])
 
-    # Define AIR Kivy label binds
+    # Define Kivy label binds
     Console.Obs['outTemp']      = observation.Format(Temp,'Temp')
     Console.Obs['outTempMax']   = observation.Format(MaxTemp,'Temp')
     Console.Obs['outTempMin']   = observation.Format(MinTemp,'Temp')
@@ -366,63 +371,64 @@ def outdoorAir(Msg,Obs,Config):
     # Set current pressure arrow if BarometerPanel is active
     if hasattr(Console,'BarometerPanel'):
         Console.BarometerPanel.setArrow()
-        
-    # Set "Feels Like" icon if TemperaturePanel is active    
+
+    # Set "Feels Like" icon if TemperaturePanel is active
     if hasattr(Console,'TemperaturePanel'):
         Console.TemperaturePanel.feelsLikeIcon()
-        
-def indoorAir(Msg,Obs,Config):
+
+    # Return Console object
+    return Console
+
+def indoorAir(Msg,Console):
 
     """ Handles Websocket messages received from indoor AIR module
-    
+
 	INPUTS:
-		Msg				    Websocket messages received from SKY module
-		Obs			        Dictionary containing Station observations
-        Config              Station configuration
+		Msg				    Websocket messages received from indoor AIR module
+		Console             Console object
 	"""
 
     # Replace missing observations in latest AIR Websocket JSON with NaN
     Ob = [x if x != None else NaN for x in Msg['obs'][0]]
 
     # Extract indoor AIR device ID
-    Device = Config['Station']['InAirID']
+    Device = Console.config['Station']['InAirID']
 
     # Extract required observations from latest indoor AIR Websocket JSON
     Time     = [Ob[0],'s']
     Temp     = [Ob[2],'c']
 
     # Store latest indoor AIR Websocket message
-    Obs['inAirMsg'] = Msg
+    Console.Obs['inAirMsg'] = Msg
 
     # Extract required derived observations
-    minTemp = Obs['inTempMin']
-    maxTemp = Obs['inTempMax']
+    minTemp = Console.Obs['inTempMin']
+    maxTemp = Console.Obs['inTempMax']
 
     # Calculate derived variables from indoor AIR observations
-    MaxTemp, MinTemp = derive.TempMaxMin(Time,Temp,maxTemp,minTemp,Device,Config)
+    MaxTemp, MinTemp = derive.TempMaxMin(Time,Temp,maxTemp,minTemp,Device,Console.config)
 
     # Convert observation units as required
-    Temp    = observation.Units(Temp,Config['Units']['Temp'])
-    MaxTemp = observation.Units(MaxTemp,Config['Units']['Temp'])
-    MinTemp = observation.Units(MinTemp,Config['Units']['Temp'])
+    Temp    = observation.Units(Temp,Console.config['Units']['Temp'])
+    MaxTemp = observation.Units(MaxTemp,Console.config['Units']['Temp'])
+    MinTemp = observation.Units(MinTemp,Console.config['Units']['Temp'])
 
-    # Define indoor AIR Kivy label binds
-    Obs['inTemp']    = observation.Format(Temp,'Temp')
-    Obs['inTempMax'] = observation.Format(MaxTemp,'Temp')
-    Obs['inTempMin'] = observation.Format(MinTemp,'Temp')
+    # Define Kivy label binds
+    Console.Obs['inTemp']    = observation.Format(Temp,'Temp')
+    Console.Obs['inTempMax'] = observation.Format(MaxTemp,'Temp')
+    Console.Obs['inTempMin'] = observation.Format(MinTemp,'Temp')
 
-    # Return Station observations
-    return Obs
+    # Return Console object
+    return Console
 
-def rapidWind(Msg,Obs,Config):
+def rapidWind(Msg,Console):
 
     """ Handles RapidWind Websocket messages received from either SKY or TEMPEST
-        modules
+        module
 
 	INPUTS:
-		Msg				    Websocket messages received from SKY module
-		Obs			        Dictionary containing Station observations
-        Config              Station configuration
+		Msg				    Websocket messages received from SKY or TEMPEST
+		Console             Console object
 	"""
 
     # Replace missing observations from Rapid Wind Websocket JSON
@@ -435,8 +441,8 @@ def rapidWind(Msg,Obs,Config):
     WindDir = [Ob[2],'degrees']
 
     # Extract wind direction from previous SKY Rapid-Wind Websocket JSON
-    if 'RapidMsg' in Obs:
-        Ob = [x if x != None else NaN for x in Obs['RapidMsg']['ob']]
+    if 'RapidMsg' in Console.Obs:
+        Ob = [x if x != None else NaN for x in Console.Obs['RapidMsg']['ob']]
         WindDirOld = [Ob[2],'degrees']
     else:
         WindDirOld = [0,'degrees']
@@ -447,51 +453,54 @@ def rapidWind(Msg,Obs,Config):
         WindDir = WindDirOld
         Msg['ob'][2] = WindDirOld[0]
 
-    # Store latest Rapid Wind Observation JSON message
-    Obs['RapidMsg'] = Msg
+    # Store latest Rapid Wind Console.Observation JSON message
+    Console.Obs['RapidMsg'] = Msg
 
     # Calculate derived variables from Rapid Wind observations
     WindDir = derive.CardinalWindDirection(WindDir,WindSpd)
 
     # Convert observation units as required
-    WindSpd = observation.Units(WindSpd,Config['Units']['Wind'])
+    WindSpd = observation.Units(WindSpd,Console.config['Units']['Wind'])
     WindDir = observation.Units(WindDir,'degrees')
 
-    # Define Rapid Wind Kivy label binds
-    Obs['rapidShift'] = WindDir[0] - WindDirOld[0]
-    Obs['rapidSpd']   = observation.Format(WindSpd,'Wind')
-    Obs['rapidDir']   = observation.Format(WindDir,'Direction')
+    # Define Kivy label binds
+    Console.Obs['rapidShift'] = WindDir[0] - WindDirOld[0]
+    Console.Obs['rapidSpd']   = observation.Format(WindSpd,'Wind')
+    Console.Obs['rapidDir']   = observation.Format(WindDir,'Direction')
 
-    # Return Station observations
-    return Obs
+    # If WindSpeedPanel panel is open, animate wind rose arrow
+    if hasattr(Console,'WindSpeedPanel'):
+        Console.WindSpeedPanel.WindRoseAnimation()
 
-def evtStrike(Msg,Obs,Config):
+    # Return Console object
+    return Console
 
-    """ Handles lightning strike event Websocket messages received from AIR
-        module
+def evtStrike(Msg,Console):
+
+    """ Handles lightning strike event Websocket messages received from either
+        AIR or TEMPEST module
 
 	INPUTS:
-		Msg				    Websocket messages received from SKY module
-		Obs			        Dictionary containing Station observations
-        Config              Station configuration
+		Msg				    Websocket messages received from AIR or TEMPEST
+		Console             Console object
 	"""
 
     # Extract required observations from latest evt_strike Websocket JSON
     StrikeTime = [Msg['evt'][0],'s']
     StrikeDist = [Msg['evt'][1],'km']
 
-    # Store latest Rapid Wind Observation JSON message
-    Obs['evtStrikeMsg'] = Msg
+    # Store latest Rapid Wind Console.Observation JSON message
+    Console.Obs['evtStrikeMsg'] = Msg
 
     # Calculate derived variables from evt_strike observations
     StrikeDeltaT = derive.StrikeDeltaT(StrikeTime)
 
     # Convert observation units as required
-    StrikeDist = observation.Units(StrikeDist,Config['Units']['Distance'])
+    StrikeDist = observation.Units(StrikeDist,Console.config['Units']['Distance'])
 
-    # Define AIR Kivy label binds
-    Obs['StrikeDeltaT'] = observation.Format(StrikeDeltaT,'TimeDelta')
-    Obs['StrikeDist']   = observation.Format(StrikeDist,'StrikeDistance')
+    # Define Kivy label binds
+    Console.Obs['StrikeDeltaT'] = observation.Format(StrikeDeltaT,'TimeDelta')
+    Console.Obs['StrikeDist']   = observation.Format(StrikeDist,'StrikeDistance')
 
-    # Return Station observations
-    return Obs
+    # Return Console object
+    return Console

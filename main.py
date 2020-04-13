@@ -406,55 +406,35 @@ class wfpiconsole(App):
         # Extract observations from obs_st websocket message and animate
         # RainRate icon if required
         elif Type == 'obs_st':
-
-            # Extract observations
-            Thread(target=websocket.Tempest, args=(Msg,self.Obs,self.config), name="Tempest").start()
-
-            # If RainfallPanel is open, animate RainRate
-            if hasattr(self,'RainfallPanel'):
-                self.RainfallPanel.RainRateAnimation()
+            Thread(target=websocket.Tempest, args=(Msg,self), name="Tempest").start()
 
         # Extract observations from obs_sky websocket message and animate
         # RainRate icon if required
         elif Type == 'obs_sky':
-
-            # Extract observations
-            Thread(target=websocket.Sky, args=(Msg,self.Obs,self.config), name="Sky").start()
-
-            # If RainfallPanel is open, animate RainRate
-            if hasattr(self,'RainfallPanel'):
-                self.RainfallPanel.RainRateAnimation()
+            Thread(target=websocket.Sky, args=(Msg,self), name="Sky").start()
 
         # Extract observations from obs_air websocket message based on device
         # ID
         elif Type == 'obs_air':
 
             # Extract observations from Indoor Air
-            if self.config['Station']['InAirID']:
-                if Msg['device_id'] == int(self.config['Station']['InAirID']):
-                    Thread(target=websocket.indoorAir, args=(Msg,self.Obs,self.config), name="indoorAir").start()
+            if self.config['Station']['InAirID'] and Msg['device_id'] == int(self.config['Station']['InAirID']):
+                Thread(target=websocket.indoorAir, args=(Msg,self), name="indoorAir").start()
                     
             # Extract observations from Outdoor Air        
-            if self.config['Station']['OutAirID']:
-                if Msg['device_id'] == int(self.config['Station']['OutAirID']):
-                    Thread(target=websocket.outdoorAir, args=(Msg,self.Obs,self.config), name="outdoorAir").start()
+            if self.config['Station']['OutAirID'] and Msg['device_id'] == int(self.config['Station']['OutAirID']):
+                Thread(target=websocket.outdoorAir, args=(Msg,self), name="outdoorAir").start()
 
         # Extract observations from rapid_wind websocket message
         elif Type == 'rapid_wind':
+            Thread(target=websocket.rapidWind, args=(Msg,self), name="rapidWind").start()
 
-            # Extract observations
-            Thread(target=websocket.rapidWind, args=(Msg,self.Obs,self.config), name="rapidWind").start()
-
-            # If WindSpeedPanel panel is open, animate wind rose arrow
-            if hasattr(self,'WindSpeedPanel'):
-                self.WindSpeedPanel.WindRoseAnimation()
-
-        # Extract observations from evt_strike websocket message and open
-        # secondary lightning panel to show strike has been detected if required
+        # Extract observations from evt_strike websocket message. Open lightning 
+        # panel to show strike has been detected if required
         elif Type == 'evt_strike':
 
             # Extract observations from evt_strike websocket message
-            Thread(target=websocket.evtStrike, args=(Msg,self.Obs,self.config), name="evt_strike").start()
+            Thread(target=websocket.evtStrike, args=(Msg,self), name="evt_strike").start()
 
             # Open secondary lightning panel to show strike has been detected
             if self.config['Display']['LightningPanel'] == '1':
@@ -643,13 +623,13 @@ class WindSpeedPanel(RelativeLayout):
         # Animate Wind Rose at constant speed between old and new Rapid-Wind
         # wind direction
         if windShift >= -180 and windShift <= 180:
-            Anim = Animation(WindRoseDir=newDirec,duration=2*abs(windShift)/360)
+            Anim = Animation(rapidWindDir=newDirec,duration=2*abs(windShift)/360)
             Anim.start(self)
         elif windShift > 180:
-            Anim = Animation(WindRoseDir=0.1,duration=2*oldDirec/360) + Animation(WindRoseDir=newDirec,duration=2*(360-newDirec)/360)
+            Anim = Animation(rapidWindDir=0.1,duration=2*oldDirec/360) + Animation(rapidWindDir=newDirec,duration=2*(360-newDirec)/360)
             Anim.start(self)
         elif windShift < -180:
-            Anim = Animation(WindRoseDir=359.9,duration=2*(360-oldDirec)/360) + Animation(WindRoseDir=newDirec,duration=2*newDirec/360)
+            Anim = Animation(rapidWindDir=359.9,duration=2*(360-oldDirec)/360) + Animation(rapidWindDir=newDirec,duration=2*newDirec/360)
             Anim.start(self)
 
     # Fix Wind Rose angle at 0/360 degree discontinuity
