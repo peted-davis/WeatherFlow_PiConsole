@@ -218,6 +218,7 @@ def Sky(Msg,Console):
                  'Yesterday': Console.Obs['YesterdayRain'],
                  'Month':     Console.Obs['MonthRain'],
                  'Year':      Console.Obs['YearRain']}
+    peakSun   = Console.Obs['peakSun']             
     avgWind   = Console.Obs['AvgWind']
     maxGust   = Console.Obs['MaxGust']
 
@@ -229,6 +230,7 @@ def Sky(Msg,Console):
     MaxGust   = derive.MaxWindGust(WindGust,maxGust,Device,Console.config)
     WindSpd   = derive.BeaufortScale(WindSpd)
     WindDir   = derive.CardinalWindDirection(WindDir,WindSpd)
+    peakSun   = derive.peakSunHours(Radiation,peakSun,Device,Console.config)
     UVIndex   = derive.UVIndex(UV)
 
     # Convert observation units as required
@@ -258,6 +260,7 @@ def Sky(Msg,Console):
     Console.Obs['WindDir']       = observation.Format(WindDir,'Direction')
     Console.Obs['Radiation']     = observation.Format(Radiation,'Radiation')
     Console.Obs['Battery']       = observation.Format(Battery,'Battery')
+    Console.Obs['peakSun']       = observation.Format(peakSun,'peakSun')
     Console.Obs['UVIndex']       = observation.Format(UVIndex,'UV')
 
     # Animate RainRate if RainfallPanel is active

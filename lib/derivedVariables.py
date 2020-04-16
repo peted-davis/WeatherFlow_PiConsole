@@ -264,7 +264,7 @@ def SLPMaxMin(Time,Pres,maxPres,minPres,Device,Config):
     Now = datetime.now(pytz.utc).astimezone(Tz)
 
     # Code initialising. Download all data for current day using Weatherflow
-    # API and daily maximum and minimum pressure
+    # API and calculate daily maximum and minimum pressure
     if maxPres[0] == '-':
 
         # Download pressure data from the current day
@@ -349,7 +349,7 @@ def TempMaxMin(Time,Temp,maxTemp,minTemp,Device,Config):
     Now = datetime.now(pytz.utc).astimezone(Tz)
 
     # Code initialising. Download all data for current day using Weatherflow
-    # API and daily maximum and minimum temperature
+    # API and calculate daily maximum and minimum temperature
     if maxTemp[0] == '-':
 
         # Download temperature data from the current day
@@ -469,7 +469,7 @@ def StrikeFrequency(obTime,Data3h,Config):
     if len(activeStrikes) > 0:
         strikeFrequency3h = [np.nanmean(activeStrikes),'/min']
     else:
-        strikeFrequency3h = [0,'/min']
+        strikeFrequency3h = [np.nanmean([0]),'/min']
 
     # Calculate average strike frequency over the last 10 minutes
     Count10m = Count3h[np.where(Time >= obTime[0]-600)]
@@ -477,7 +477,7 @@ def StrikeFrequency(obTime,Data3h,Config):
     if len(activeStrikes) > 0:
         strikeFrequency10m = [np.nanmean(activeStrikes),'/min']
     else:
-        strikeFrequency10m = [0,'/min']
+        strikeFrequency10m = [np.nanmean([0]),'/min']
 
     # Return strikeFrequency for last 10 minutes and last three hours
     strikeFrequency = strikeFrequency10m + strikeFrequency3h
@@ -894,11 +894,7 @@ def CardinalWindDirection(windDir,windSpd=[1,'mps']):
 	OUTPUT:
         cardinalWind        Cardinal wind direction
 	"""
-
-
-    #print(windSpd)
-    #print(windDir)
-
+    
     # Define all possible cardinal wind directions and descriptions
     Direction = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW','N']
     Description = ['Due North','North NE','North East','East NE','Due East','East SE','South East','South SE',
@@ -989,6 +985,54 @@ def UVIndex(uvLevel):
 
     # Return UV Index icon
     return uvIndex
+    
+def peakSunHours(Radiation,peakSun,Device,Config):
+
+    # Define current time in station timezone
+    Tz = pytz.timezone(Config['Station']['Timezone'])
+    Now = datetime.now(pytz.utc).astimezone(Tz)
+
+    # Code initialising. Download all data for current day using Weatherflow
+    # API and calculate Peak Sun Hours
+    if peakSun[0] == '-':
+
+        # Download rainfall data for current day
+        Data = requestAPI.weatherflow.Today(Device,Config)
+
+        # Calculate Peak Sun H. Return NaN if API call has failed
+        if requestAPI.weatherflow.verifyResponse(Data,'obs'):
+            Data = Data.json()['obs']
+            if Config['Station']['SkyID']:
+                Radiation = [item[10] if item[10] != None else NaN for item in Data]
+            elif Config['Station']['TempestID']:
+                Radiation = [item[11] if item[11] != None else NaN for item in Data]
+            kwh = sum([item*1/60 for item in Radiation])
+            peakSun = [kwh/1000,'hrs',kwh,Now]
+        else:
+            peakSun = [NaN,'hrs',NaN,Now]
+        
+        # Return Peak Sun Hours
+        return peakSun
+        
+    # At midnight, reset Peak Sun Hours
+    if Now.date() > peakSun[3].date():
+    
+        # Calculate Peak Sun Hours
+        kwh = Radiation[0] * 1/60
+        peakSun = [kwh/1000,'hrs',kwh,Now]
+
+        # Return Peak Sun Hours
+        return peakSun
+
+    # Add current Radiation value to Peak Sun Hours
+    else:
+        
+        # Calculate Peak Sun Hours
+        kwh = peakSun[2] + (Radiation[0] * 1/60)
+        peakSun = [kwh/1000,'hrs',kwh,Now]
+
+        # Return Peak Sun Hours
+        return peakSun 
 
 # # CHECK STATUS OF SKY AND AIR MODULES
 # # --------------------------------------------------------------------------

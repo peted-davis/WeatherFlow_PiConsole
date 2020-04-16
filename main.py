@@ -171,28 +171,28 @@ NaN = float('NaN')
 class wfpiconsole(App):
 
     # Define App class dictionary properties
-    Obs = DictProperty      ([('rapidSpd','--'),       ('rapidDir','----'),     ('rapidShift','-'),
-                              ('WindSpd','-----'),     ('WindGust','--'),       ('WindDir','---'),
-                              ('AvgWind','--'),        ('MaxGust','--'),        ('RainRate','---'),
-                              ('TodayRain','--'),      ('YesterdayRain','--'),  ('MonthRain','--'),
-                              ('YearRain','--'),       ('Radiation','----'),    ('UVIndex','----'),
-                              ('outTemp','--'),        ('outTempMin','---'),    ('outTempMax','---'),
-                              ('inTemp','--'),         ('inTempMin','---'),     ('inTempMax','---'),
-                              ('Humidity','--'),       ('DewPoint','--'),       ('Pres','---'),
-                              ('MaxPres','---'),       ('MinPres','---'),       ('PresTrend','----'),
-                              ('FeelsLike','----'),    ('StrikeDeltaT','-----'),('StrikeDist','--'),
-                              ('StrikeFreq','----'),   ('Strikes3hr','-'),      ('StrikesToday','-'),
-                              ('StrikesMonth','-'),    ('StrikesYear','-')
+    Obs = DictProperty      ([('rapidSpd','--'),       ('rapidDir','----'),    ('rapidShift','-'),
+                              ('WindSpd','-----'),     ('WindGust','--'),      ('WindDir','---'),
+                              ('AvgWind','--'),        ('MaxGust','--'),       ('RainRate','---'),
+                              ('TodayRain','--'),      ('YesterdayRain','--'), ('MonthRain','--'),
+                              ('YearRain','--'),       ('Radiation','----'),   ('UVIndex','----'),
+                              ('peakSun','--'),        ('outTemp','--'),       ('outTempMin','---'),    
+                              ('outTempMax','---'),    ('inTemp','--'),        ('inTempMin','---'),     
+                              ('inTempMax','---'),     ('Humidity','--'),      ('DewPoint','--'),       
+                              ('Pres','---'),          ('MaxPres','---'),      ('MinPres','---'),       
+                              ('PresTrend','----'),    ('FeelsLike','----'),   ('StrikeDeltaT','-----'),
+                              ('StrikeDist','--'),     ('StrikeFreq','----'),  ('Strikes3hr','-'),      
+                              ('StrikesToday','-'),    ('StrikesMonth','-'),   ('StrikesYear','-')
                              ])
-    Astro = DictProperty    ([('Sunrise',['-','-',0]), ('Sunset',['-','-',0]),('sunEvent','----'),
-                              ('sunPosition',0),       ('ValidDate','--'),    ('Moonrise',['-','-']),
-                              ('Moonset',['-','-']),   ('NewMoon','--'),      ('FullMoon','--'),
-                              ('Phase','---'),
+    Astro = DictProperty    ([('Sunrise',['-','-',0]), ('Sunset',['-','-',0]), ('Dawn',['-','-',0]),
+                              ('Dusk',['-','-',0]),    ('sunEvent','----'),    ('sunIcon',['-',0]),
+                              ('sunIconPosition',0),   ('Moonrise',['-','-']), ('Moonset',['-','-']),
+                              ('NewMoon','--'),        ('FullMoon','--'),      ('Phase','---'),
                              ])
-    MetData = DictProperty  ([('Weather','Building'),   ('Temp','--'),         ('Precip','--'),
-                              ('WindSpd','--'),         ('WindDir','--'),      ('Valid','--')
+    MetData = DictProperty  ([('Weather','Building'),  ('Temp','--'),          ('Precip','--'),
+                              ('WindSpd','--'),        ('WindDir','--'),       ('Valid','--')
                              ])
-    Sager = DictProperty    ([('Forecast','--'),('Issued','--')])
+    Sager = DictProperty    ([('Forecast','--'),       ('Issued','--')])
     Version = DictProperty  ([('Latest','-')])
 
     # Define App class configParser properties

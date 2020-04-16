@@ -33,11 +33,13 @@ def SunriseSunset(astroData,Config):
         astroData           Dictionary holding sunrise and sunset data
     """
 
-    # Define Sunrise/Sunset observer properties
+    # Define Sunrise/Sunset observer properties to match the United States Naval 
+    # Observatory Astronomical Almanac
     Tz = pytz.timezone(Config['Station']['Timezone'])
-    Observer     = ephem.Observer()
-    Observer.lat = str(Config['Station']['Latitude'])
-    Observer.lon = str(Config['Station']['Longitude'])
+    Observer          = ephem.Observer()
+    Observer.pressure = 0
+    Observer.lat      = str(Config['Station']['Latitude'])
+    Observer.lon      = str(Config['Station']['Longitude'])
 
     # The code is initialising. Calculate sunset/sunrise times for current day
     # starting at midnight today in UTC
@@ -47,25 +49,43 @@ def SunriseSunset(astroData,Config):
         UTC = datetime.now(pytz.utc)
         Midnight = datetime(UTC.year,UTC.month,UTC.day,0,0,0)
         Observer.date = Midnight.strftime('%Y/%m/%d %H:%M:%S')
+        
+        # Calculate Dawn time in UTC
+        Observer.horizon = '-6'
+        Dawn             = Observer.next_rising(ephem.Sun(), use_center=True)
+        Dawn             = pytz.utc.localize(Dawn.datetime())
 
         # Calculate Sunrise time in UTC
-        Sunrise = Observer.next_rising(ephem.Sun())
-        Sunrise = pytz.utc.localize(Sunrise.datetime())
+        Observer.horizon = '-0:34'
+        Sunrise          = Observer.next_rising(ephem.Sun())
+        Sunrise          = pytz.utc.localize(Sunrise.datetime())
 
         # Calculate Sunset time in UTC
-        Sunset = Observer.next_setting(ephem.Sun())
-        Sunset = pytz.utc.localize(Sunset.datetime())
-
-        # Define Sunrise/Sunset times in Station timezone
-        astroData['Sunrise'][0] = Sunrise.astimezone(Tz)
-        astroData['Sunset'][0] = Sunset.astimezone(Tz)
+        Observer.horizon = '-0:34'
+        Sunset           = Observer.next_setting(ephem.Sun())
+        Sunset           = pytz.utc.localize(Sunset.datetime())
         
-        # Calculate length and position of the day line on the daytime/nightime 
-        # bar
+        # Calculate Dusk time in UTC
+        Observer.horizon = '-6'
+        Dusk             = Observer.next_setting(ephem.Sun(), use_center=True)
+        Dusk             = pytz.utc.localize(Dusk.datetime())
+
+        # Define Dawn/Dusk and Sunrise/Sunset times in Station timezone
+        astroData['Dawn'][0]    = Dawn.astimezone(Tz)
+        astroData['Sunrise'][0] = Sunrise.astimezone(Tz)
+        astroData['Sunset'][0]  = Sunset.astimezone(Tz)
+        astroData['Dusk'][0]    = Dusk.astimezone(Tz)
+        
+        # Calculate length and position of the dawn/dusk and sunrise/sunset 
+        # lines on the day/night bar
+        dawnMidnight    = (astroData['Dawn'][0].hour*3600 + astroData['Dawn'][0].minute*60)
         sunriseMidnight = (astroData['Sunrise'][0].hour*3600 + astroData['Sunrise'][0].minute*60)
-        sunsetMidnight = (astroData['Sunset'][0].hour*3600 + astroData['Sunset'][0].minute*60)
-        astroData['Sunrise'][2] = (sunriseMidnight/86400)
-        astroData['Sunset'][2] = ((sunsetMidnight-sunriseMidnight)/86400)
+        sunsetMidnight  = (astroData['Sunset'][0].hour*3600 + astroData['Sunset'][0].minute*60)
+        duskMidnight    = (astroData['Dusk'][0].hour*3600 + astroData['Dusk'][0].minute*60)
+        astroData['Dawn'][2]    = dawnMidnight/86400
+        astroData['Sunrise'][2] = sunriseMidnight/86400
+        astroData['Sunset'][2]  = (sunsetMidnight-sunriseMidnight)/86400
+        astroData['Dusk'][2]    = (duskMidnight-dawnMidnight)/86400
 
     # Sunset has passed. Calculate sunset/sunrise times for tomorrow starting at
     # time of last Sunset in UTC
@@ -75,24 +95,42 @@ def SunriseSunset(astroData,Config):
         Sunset = astroData['Sunset'][0].astimezone(pytz.utc) + timedelta(seconds=1)
         Observer.date = Sunset.strftime('%Y/%m/%d %H:%M:%S')
 
+        # Calculate Dawn time in UTC
+        Observer.horizon = '-6'
+        Dawn             = Observer.next_rising(ephem.Sun(), use_center=True)
+        Dawn             = pytz.utc.localize(Dawn.datetime())
+
         # Calculate Sunrise time in UTC
-        Sunrise = Observer.next_rising(ephem.Sun())
-        Sunrise = pytz.utc.localize(Sunrise.datetime())
+        Observer.horizon = '-0:34'
+        Sunrise          = Observer.next_rising(ephem.Sun())
+        Sunrise          = pytz.utc.localize(Sunrise.datetime())
 
         # Calculate Sunset time in UTC
-        Sunset = Observer.next_setting(ephem.Sun())
-        Sunset = pytz.utc.localize(Sunset.datetime())
-
-        # Define Sunrise/Sunset times in Station timezone
-        astroData['Sunrise'][0] = Sunrise.astimezone(Tz)
-        astroData['Sunset'][0] = Sunset.astimezone(Tz)
+        Observer.horizon = '-0:34'
+        Sunset           = Observer.next_setting(ephem.Sun())
+        Sunset           = pytz.utc.localize(Sunset.datetime())
         
-        # Calculate length and position of the day line on the daytime/nightime 
-        # bar
+        # Calculate Dusk time in UTC
+        Observer.horizon = '-6'
+        Dusk             = Observer.next_setting(ephem.Sun(), use_center=True)
+        Dusk             = pytz.utc.localize(Dusk.datetime())
+
+        # Define Dawn/Dusk and Sunrise/Sunset times in Station timezone
+        astroData['Dawn'][0]    = Dawn.astimezone(Tz)
+        astroData['Sunrise'][0] = Sunrise.astimezone(Tz)
+        astroData['Sunset'][0]  = Sunset.astimezone(Tz)
+        astroData['Dusk'][0]    = Dusk.astimezone(Tz)
+        
+        # Calculate length and position of the dawn/dusk and sunrise/sunset 
+        # lines on the day/night bar
+        dawnMidnight    = (astroData['Dawn'][0].hour*3600 + astroData['Dawn'][0].minute*60)
         sunriseMidnight = (astroData['Sunrise'][0].hour*3600 + astroData['Sunrise'][0].minute*60)
-        sunsetMidnight = (astroData['Sunset'][0].hour*3600 + astroData['Sunset'][0].minute*60)
-        astroData['Sunrise'][2] = (sunriseMidnight/86400)
-        astroData['Sunset'][2] = ((sunsetMidnight-sunriseMidnight)/86400)
+        sunsetMidnight  = (astroData['Sunset'][0].hour*3600 + astroData['Sunset'][0].minute*60)
+        duskMidnight    = (astroData['Dusk'][0].hour*3600 + astroData['Dusk'][0].minute*60)
+        astroData['Dawn'][2]    = dawnMidnight/86400
+        astroData['Sunrise'][2] = sunriseMidnight/86400
+        astroData['Sunset'][2]  = (sunsetMidnight-sunriseMidnight)/86400
+        astroData['Dusk'][2]    = (duskMidnight-dawnMidnight)/86400
 
     # Format sunrise/sunset labels based on date of next sunrise
     astroData = Format(astroData,Config,'Sun')
@@ -256,13 +294,10 @@ def sunTransit(astroData, Config, *largs):
     
     # Calculate sun icon position on daytime/nightime bar
     secondsMidnight = (Now.replace(microsecond=0) - Now.replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds()
-    astroData['sunPosition'] = (secondsMidnight/86400)
-
-
-    
+    astroData['sunIconPosition'] = (secondsMidnight/86400)
 
     # If time is between sunrise and sun set, calculate number of daylight hours 
-    # remaining
+    # remaining 
     if Now >= astroData['Sunrise'][0] and Now <= astroData['Sunset'][0]:
 
         # Determine total length of daylight, amount of daylight that has passed
@@ -276,7 +311,9 @@ def sunTransit(astroData, Config, *largs):
         minutes,seconds = divmod(remainder,60)
 
         # Define Kivy Label binds
-        astroData['sunEvent'] = ['[color=f05e40ff]Sunset[/color]','{:02.0f}'.format(hours),'{:02.0f}'.format(minutes),'Daytime']
+        astroData['sunEvent']   = ['[color=f05e40ff]Sunset[/color]','{:02.0f}'.format(hours),'{:02.0f}'.format(minutes),'Daytime']
+        astroData['sunIcon'][0] = 'sunUp'
+        astroData['sunIcon'][1] = 0
 
     # When not daylight, calculate time until sunrise
     elif Now <= astroData['Sunrise'][0]:
@@ -287,7 +324,9 @@ def sunTransit(astroData, Config, *largs):
         minutes,seconds = divmod(remainder,60)
 
         # Define Kivy Label binds
-        astroData['sunEvent'] = ['[color=f0b240ff]Sunrise[/color]','{:02.0f}'.format(hours),'{:02.0f}'.format(minutes),'Nightime']
+        astroData['sunEvent']   = ['[color=f0b240ff]Sunrise[/color]','{:02.0f}'.format(hours),'{:02.0f}'.format(minutes),'Nightime']
+        astroData['sunIcon'][0] = '-'
+        astroData['sunIcon'][1] = 1
 
     # Return dictionary containing sun transit data
     return astroData

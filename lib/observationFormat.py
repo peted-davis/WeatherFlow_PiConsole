@@ -284,6 +284,15 @@ def Format(Obs,Type):
                     cObs[ii-1] = '-'
                 else:
                     cObs[ii-1] = '{:.1f}'.format(cObs[ii-1])
+                    
+    # Format Peak Sun Hours observations
+    elif Type == 'peakSun':
+        for ii,psh in enumerate(Obs):
+            if isinstance(psh,str) and psh.strip() == 'hrs':
+                if math.isnan(cObs[ii-1]):
+                    cObs[ii-1] = '-'
+                else:
+                    cObs[ii-1] = '{:.2f}'.format(cObs[ii-1])    
 
     # Format battery voltage observations
     elif Type == 'Battery':
