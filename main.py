@@ -55,7 +55,7 @@ install_twisted_reactor()
 from twisted.python             import log
 from twisted.internet.protocol  import ReconnectingClientFactory
 from twisted.protocols.policies import TimeoutMixin
-from autobahn.twisted.websocket import WebSocketClientProtocol,WebSocketClientFactory,connectWS
+from autobahn.twisted.websocket import WebSocketClientProtocol, WebSocketClientFactory, connectWS
 
 # Specifies behaviour of Websocket Client
 class WeatherFlowClientProtocol(WebSocketClientProtocol,TimeoutMixin):
@@ -82,25 +82,26 @@ class WeatherFlowClientProtocol(WebSocketClientProtocol,TimeoutMixin):
 class WeatherFlowClientFactory(WebSocketClientFactory,ReconnectingClientFactory):
 
     # Define protocol and reconnection properties
-    protocol = WeatherFlowClientProtocol
+    protocol     = WeatherFlowClientProtocol
     initialDelay = 60
-    maxDelay = 60
-    jitter = 0
+    maxDelay     = 60
+    jitter       = 0
 
     def clientConnectionFailed(self,connector,reason):
-        print('Client connection failed .. retrying ..')
+        print('Websocket connection failed .. retrying ..')
         self.setProtocolOptions(openHandshakeTimeout=60)
         self.retry(connector)
 
     def clientConnectionLost(self,connector,reason):
-        print('Client connection lost .. retrying ..')
+        print('Websocket connection lost .. retrying ..')
         self.setProtocolOptions(openHandshakeTimeout=60)
         self.retry(connector)
 
     def __init__(self, url, app):
         WebSocketClientFactory.__init__(self,url)
-        self._app = app
-        self._proto = None
+        self.maxdelay = 60
+        self._app     = app
+        self._proto   = None
 
 # ==============================================================================
 # IMPORT REQUIRED CORE KIVY MODULES
@@ -212,9 +213,6 @@ class wfpiconsole(App):
         self.config.optionxform = str
         self.config.read('wfpiconsole.ini')
         self.settings_cls = SettingsWithSidebar
-
-        Tz = pytz.timezone(self.config['Station']['Timezone'])
-        self.oldTime = datetime.now(pytz.utc).astimezone(Tz)
 
         # Force window size if required based on hardware type
         if self.config['System']['Hardware'] == 'Pi4':
@@ -357,10 +355,15 @@ class wfpiconsole(App):
     # CONNECT TO THE SECURE WEATHERFLOW WEBSOCKET SERVER
     # --------------------------------------------------------------------------
     def WebsocketConnect(self):
-        Template = 'ws://ws.weatherflow.com/swd/data?api_key={}'
-        Server = Template.format(self.config['Keys']['WeatherFlow'])
+        Server = 'wss://ws.weatherflow.com/swd/data?api_key=' + self.config['Keys']['WeatherFlow']
         self._factory = WeatherFlowClientFactory(Server,self)
-        reactor.connectTCP('ws.weatherflow.com',80,self._factory)
+        self._factory.protocol = WeatherFlowClientProtocol
+        self._factory.setProtocolOptions(openHandshakeTimeout=60)
+        if self._factory.isSecure:
+            contextFactory = ssl.ClientContextFactory()
+        else:
+            contextFactory = None
+        connectWS(self._factory, contextFactory)
 
     # SEND MESSAGE TO THE WEATHERFLOW WEBSOCKET SERVER
     # --------------------------------------------------------------------------
@@ -412,7 +415,7 @@ class wfpiconsole(App):
         # RainRate icon if required
         elif Type == 'obs_sky':
             Thread(target=websocket.Sky, args=(Msg,self), name="Sky").start()
-
+            
         # Extract observations from obs_air websocket message based on device
         # ID
         elif Type == 'obs_air':
