@@ -48,6 +48,20 @@ elif config['System']['Hardware'] == 'Pi3':
     os.environ['KIVY_GL_BACKEND'] = 'gl'
 
 # ==============================================================================
+# ENABLE MOUSE SUPPORT ON RASPBERRY PI 3
+# ==============================================================================
+# Load Kivy configuration file
+kivyconfig = configparser.ConfigParser()
+kivyconfig.read(os.path.expanduser('~/.kivy/') + 'config.ini')
+
+# Add mouse support if not already set
+if config['System']['Hardware'] == 'Pi3':
+    if not config.has_option('modules','cursor'):
+        kivyconfig.set('modules','cursor','1')
+        with open(os.path.expanduser('~/.kivy/') + 'config.ini','w') as kivycfg:
+            kivyconfig.write(kivycfg)
+
+# ==============================================================================
 # INITIALISE KIVY TWISTED WEBSOCKET CLIENT
 # ==============================================================================
 from kivy.support import install_twisted_reactor
@@ -662,13 +676,13 @@ class SunriseSunsetPanel(RelativeLayout):
 
     # Define SunriseSunsetPanel class properties
     uvIcon = StringProperty('-')
-    
+
     # INITIALISE 'SunriseSunsetPanel' RELATIVE LAYOUT CLASS
     # --------------------------------------------------------------------------
     def __init__(self,**kwargs):
         super(SunriseSunsetPanel,self).__init__(**kwargs)
         App.get_running_app().SunriseSunsetPanel = self
-        
+
     # SET CURRENT UV INDEX ICON (uses mainthread)
     # --------------------------------------------------------------------------
     @mainthread
