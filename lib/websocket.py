@@ -1,5 +1,6 @@
 """ Handles Websocket messages received by the Raspberry Pi Python console for
-eather Flow Smart Home Weather Stations. Copyright (C) 2018-2020  Peter Davis
+WeatherFlow Tempest and Smart Home Weather stations.
+Copyright (C) 2018-2020 Peter Davis
 
 This program is free software: you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
@@ -163,6 +164,10 @@ def Tempest(Msg,Console):
     if hasattr(Console,'WindSpeedPanel'):
         Console.WindSpeedPanel.meanWindIcons()
 
+    # Set UV Index icon if Sunrise/Sunset panel is active
+    if hasattr(Console,'SunriseSunsetPanel'):
+        Console.SunriseSunsetPanel.setUVIcon()
+
     # Set current pressure arrow if BarometerPanel is active
     if hasattr(Console,'BarometerPanel'):
         Console.BarometerPanel.setArrow()
@@ -267,6 +272,10 @@ def Sky(Msg,Console):
     # Set mean wind speed and direction icons if WindSpeedPanel is active
     if hasattr(Console,'WindSpeedPanel'):
         Console.WindSpeedPanel.meanWindIcons()
+
+    # Set UV Index icon if Sunrise/Sunset panel is active
+    if hasattr(Console,'SunriseSunsetPanel'):
+        Console.SunriseSunsetPanel.setUVIcon()
 
     # Set "Feels Like" icon if TemperaturePanel is active
     if hasattr(Console,'TemperaturePanel'):

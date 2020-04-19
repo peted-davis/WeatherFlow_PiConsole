@@ -1,7 +1,7 @@
 # WeatherFlow PiConsole
-Raspberry Pi Python console for the Weather Flow Tempest and Smart Home Weather 
-Station. The console uses the WeatherFlow REST API and websocket to stream data 
-from your Weather Flow Tempest or Smart Home Weather Station in real time via 
+Raspberry Pi Python console for the WeatherFlow Tempest and Smart Home Weather 
+stations. The console uses the WeatherFlow REST API and websocket to stream data 
+from your Weather Flow Tempest or Smart Home Weather station in real time via 
 the internet. As soon as the data from your station reaches the WeatherFlow 
 servers, it is pushed immediately to the console, including the 3-second rapid 
 fire wind updates.   
@@ -52,17 +52,18 @@ install files in the Git repository before running the install command.
 
 ### Raspberry Pi 4
 
-For those of you running a Raspberry Pi 4 an extra step is needed to get the console 
-running perfectly. The “Task Bar” panel on the Raspberry Pi desktop needs to be hidden 
-or else it will displace the console on the screen. There are two options to achieve this. 
-First right click on the “Task Bar” panel on the Raspberry Pi desktop and select Panel 
-settings. Select the Advanced tab. Then either:
+For those of you running a Raspberry Pi 4 an extra step is needed to get the 
+console running perfectly. The “Task Bar” panel on the Raspberry Pi desktop 
+needs to be hidden or else it will displace the console on the screen. There are 
+two options to achieve this. First right click on the “Task Bar” panel on the 
+Raspberry Pi desktop and select Panel settings. Select the Advanced tab. Then 
+either:
 
 1. Un-tick ```"Reserve space, and not covered by maximised windows"```, or
 2. Tick ```"Minimise panel when not in use"``` and set ```"Size when minimised"``` to 0 pixels.
 
-Please note that you also cannot use SSH to start the console on a Raspberry Pi 4. Instead
-for remote access it is recommended to setup VNC (https://www.raspberrypi.org/documentation/remote-access/vnc/) 
+Please note that you also cannot use SSH to start the console on a Raspberry Pi 
+4. Instead for remote access it is recommended to setup VNC (https://www.raspberrypi.org/documentation/remote-access/vnc/) 
 
 ### Configure and Run WeatherFlow PiConsole
 
@@ -73,8 +74,8 @@ an apppropriate weather forecast for your location, and one needed to download
 the closest METAR information for your location. Follow the steps below to
 register for the required API keys: 
 
-1. First, go to http://www.geonames.org/login and register for a new account. Once
-you have registered, go to your account (http://www.geonames.org/manageaccount)
+1. First, go to http://www.geonames.org/login and register for a new account. 
+Once you have registered, go to your account (http://www.geonames.org/manageaccount)
 and activate "Free Web Services". Once this is done, your username will be your
 'GeoNames' API key.
 
@@ -147,8 +148,8 @@ wfpiconsole stop
 Although not officially supported, use the following step-by-step instructions
 to install and run the WeatherFlow PiConsole on Windows.
 
-1. Download and install the Python 3.7 version of Miniconda for Windows (a lightweight Python
-interpreter): https://conda.io/miniconda.html
+1. Download and install the Python 3.7 version of Miniconda for Windows (a 
+lightweight Python interpreter): https://conda.io/miniconda.html
 
 2. Once Miniconda is installed open the ‘Anaconda Prompt’ program.
 
@@ -162,11 +163,12 @@ python -m pip install --upgrade pip
 python -m pip install autobahn[twisted] pytz pyasn1-modules service_identity geopy ephem Cython numpy packaging
 ```
 
-5. Once that has finished, follow steps 2 and 3 under “Installing the kivy stable release” to install Kivy: https://kivy.org/doc/stable/installation/installation-windows.html
+5. Once that has finished, follow steps 2 and 3 under “Installing the kivy 
+stable release” to install Kivy: https://kivy.org/doc/stable/installation/installation-windows.html
 This is the GUI library that drives the console. 
 
-6. Once Kivy is installed, run the following commands in order in the Anaconda Prompt. This will install the
-WeatherFlow PiConsole.
+6. Once Kivy is installed, run the following commands in order in the Anaconda 
+Prompt. This will install the WeatherFlow PiConsole.
 ```
 cd && mkdir wfpiconsole && cd wfpiconsole
 curl -sL https://api.github.com/repos/peted-davis/WeatherFlow_PiConsole/tarball -o PiConsole.tar.gz
@@ -174,6 +176,7 @@ tar -xvf PiConsole.tar.gz --strip 1
 del /f PiConsole.tar.gz
 ```
 
-7. You’re almost there now! You can start the console using ```python main.py```. As this is the first time 
-you have run the console, you’ll be asked for some API keys. Details of what you need can be found under 
-"Configure and Run WeatherFlow PiConsole" in the **[Installation Instructions](#installation-instructions)**.
+7. You’re almost there now! You can start the console using ```python main.py```. 
+As this is the first time you have run the console, you’ll be asked for some API 
+keys. Details of what you need can be found under "Configure and Run WeatherFlow 
+PiConsole" in the **[Installation Instructions](#installation-instructions)**.

@@ -1,5 +1,6 @@
-# WeatherFlow PiConsole: Raspberry Pi Python console for WeatherFlow Smart Home
-# Weather Station. Copyright (C) 2018-2020 Peter Davis
+# WeatherFlow PiConsole: Raspberry Pi Python console for WeatherFlow Tempest and
+# Smart Home Weather stations.
+# Copyright (C) 2018-2020 Peter Davis
 
 # This program is free software: you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
@@ -229,16 +230,18 @@ class wfpiconsole(App):
         forecast.Download(self.MetData,self.config)
 
         # Generate Sager Weathercaster forecast
-        thread = Thread(target=sagerForecast.Generate, args=(self.Sager,self.config), name="Sager").start()
+        Thread(target=sagerForecast.Generate, args=(self.Sager,self.config), name="Sager").start()
 
         # Initialise websocket connection
         self.WebsocketConnect()
+
+        # Check for latest version
+        Clock.schedule_once(partial(system.checkVersion,self.Version,self.config,updateNotif))
 
         # Schedule function calls
         Clock.schedule_interval(self.UpdateMethods,1.0)
         Clock.schedule_interval(partial(astro.sunTransit,self.Astro,self.config),1.0)
         Clock.schedule_interval(partial(astro.moonPhase ,self.Astro,self.config),1.0)
-        Clock.schedule_once(lambda dt: system.checkVersion(self.Version,self.config,updateNotif))  
 
     # BUILD 'WeatherFlowPiConsole' APP CLASS SETTINGS
     # --------------------------------------------------------------------------
@@ -313,9 +316,9 @@ class wfpiconsole(App):
                 Thread(target=websocket.outdoorAir, args=(self.Obs['outAirMsg'],self), name="outdoorAir").start()
             if self.config['Station']['InAirID']:
                 Thread(target=websocket.indoorAir, args=(self.Obs['inAirMsg'],self), name="indoorAir").start()
-        import threading        
-        for thread in threading.enumerate(): 
-            print(thread.name)         
+        import threading
+        for thread in threading.enumerate():
+            print(thread.name)
 
         # Update primary and secondary panels displayed on CurrentConditions
         # screen
@@ -415,7 +418,7 @@ class wfpiconsole(App):
         # RainRate icon if required
         elif Type == 'obs_sky':
             Thread(target=websocket.Sky, args=(Msg,self), name="Sky").start()
-            
+
         # Extract observations from obs_air websocket message based on device
         # ID
         elif Type == 'obs_air':
@@ -423,8 +426,8 @@ class wfpiconsole(App):
             # Extract observations from Indoor Air
             if self.config['Station']['InAirID'] and Msg['device_id'] == int(self.config['Station']['InAirID']):
                 Thread(target=websocket.indoorAir, args=(Msg,self), name="indoorAir").start()
-                    
-            # Extract observations from Outdoor Air        
+
+            # Extract observations from Outdoor Air
             if self.config['Station']['OutAirID'] and Msg['device_id'] == int(self.config['Station']['OutAirID']):
                 Thread(target=websocket.outdoorAir, args=(Msg,self), name="outdoorAir").start()
 
@@ -432,7 +435,7 @@ class wfpiconsole(App):
         elif Type == 'rapid_wind':
             Thread(target=websocket.rapidWind, args=(Msg,self), name="rapidWind").start()
 
-        # Extract observations from evt_strike websocket message. Open lightning 
+        # Extract observations from evt_strike websocket message. Open lightning
         # panel to show strike has been detected if required
         elif Type == 'evt_strike':
 
@@ -463,7 +466,7 @@ class wfpiconsole(App):
         Tz = pytz.timezone(self.config['Station']['Timezone'])
         Now = datetime.now(pytz.utc).astimezone(Tz)
         Now = Now.replace(microsecond=0)
-        
+
         # At 5 minutes past each hour, download a new forecast for the Station
         # location
         if (Now.minute,Now.second) == (5,0):
@@ -578,17 +581,17 @@ class TemperaturePanel(RelativeLayout):
 
     # Define TemperaturePanel class properties
     feelsLike = StringProperty('-')
-    
+
     # INITIALISE 'TemperaturePanel' RELATIVE LAYOUT CLASS
     # --------------------------------------------------------------------------
     def __init__(self,**kwargs):
         super(TemperaturePanel,self).__init__(**kwargs)
         Clock.schedule_once(lambda dt: self.feelsLikeIcon())
         App.get_running_app().TemperaturePanel = self
-      
+
     # SET "FEELS LIKE" ICON (uses mainthread)
     # --------------------------------------------------------------------------
-    @mainthread    
+    @mainthread
     def feelsLikeIcon(self):
         self.feelsLike = App.get_running_app().Obs['FeelsLike'][3]
 
@@ -616,7 +619,7 @@ class WindSpeedPanel(RelativeLayout):
     # --------------------------------------------------------------------------
     @mainthread
     def WindRoseAnimation(self):
-    
+
         # Get current wind direction, old wind direction and change in wind
         # direction over last Rapid-Wind period
         windShift = App.get_running_app().Obs['rapidShift']
@@ -641,9 +644,9 @@ class WindSpeedPanel(RelativeLayout):
             item.rapidWindDir = 360
         if rapidWindDir == 359.9:
             item.rapidWindDir = 0
-            
+
     # SET MEAN WIND SPEED AND DIRECTION ICONS (uses mainthread)
-    # --------------------------------------------------------------------------   
+    # --------------------------------------------------------------------------
     @mainthread
     def meanWindIcons(self):
         self.meanWindDir = App.get_running_app().Obs['WindDir'][2]
@@ -656,7 +659,21 @@ class WindSpeedButton(RelativeLayout):
 # SunriseSunsetPanel RELATIVE LAYOUT CLASS
 # ==============================================================================
 class SunriseSunsetPanel(RelativeLayout):
-    pass
+
+    # Define SunriseSunsetPanel class properties
+    uvIcon = StringProperty('-')
+    
+    # INITIALISE 'SunriseSunsetPanel' RELATIVE LAYOUT CLASS
+    # --------------------------------------------------------------------------
+    def __init__(self,**kwargs):
+        super(SunriseSunsetPanel,self).__init__(**kwargs)
+        App.get_running_app().SunriseSunsetPanel = self
+        
+    # SET CURRENT UV INDEX ICON (uses mainthread)
+    # --------------------------------------------------------------------------
+    @mainthread
+    def setUVIcon(self):
+        self.uvIcon = App.get_running_app().Obs['UVIndex'][2]
 
 class SunriseSunsetButton(RelativeLayout):
     pass
@@ -685,13 +702,17 @@ class RainfallPanel(RelativeLayout):
     def __init__(self,**kwargs):
         super(RainfallPanel,self).__init__(**kwargs)
         Clock.schedule_once(self.Clock)
+        self.RainRateAnimation()
         App.get_running_app().RainfallPanel = self
 
     # ANIMATE RAIN RATE ICON
     # --------------------------------------------------------------------------
+    @mainthread
     def RainRateAnimation(self):
 
         # Get current rain rate and convert to float
+        if App.get_running_app().Obs['RainRate'][0] == '-':
+            return
         RainRate = float(App.get_running_app().Obs['RainRate'][3])
 
         # Define required animation variables
@@ -786,17 +807,17 @@ class BarometerPanel(RelativeLayout):
 
     # Define BarometerPanel class properties
     barometerArrow = StringProperty('-')
-    
+
     # INITIALISE 'BarometerPanel' RELATIVE LAYOUT CLASS
     # --------------------------------------------------------------------------
     def __init__(self,**kwargs):
         super(BarometerPanel,self).__init__(**kwargs)
         Clock.schedule_once(lambda dt: self.setArrow())
         App.get_running_app().BarometerPanel = self
-      
+
     # SET BAROMETER ARROW FOR CURRENT PRESSURE (uses mainthread)
     # --------------------------------------------------------------------------
-    @mainthread    
+    @mainthread
     def setArrow(self):
         self.barometerArrow = App.get_running_app().Obs['Pres'][2]
 

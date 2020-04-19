@@ -1,18 +1,19 @@
-## WeatherFlow PiConsole: Raspberry Pi Python console for Weather Flow
-## Smart Home Weather Station. Copyright (C) 2018-2020  Peter Davis
+## WeatherFlow PiConsole: Raspberry Pi Python console for WeatherFlow Tempest 
+## and Smart Home Weather stations. 
+## Copyright (C) 2018-2020 Peter Davis
 
-## This program is free software: you can redistribute it and/or modify
-## it under the terms of the GNU General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
+## This program is free software: you can redistribute it and/or modify it under
+## the terms of the GNU General Public License as published by the Free Software
+## Foundation, either version 3 of the License, or (at your option) any later
+## version.
 
-## This program is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU General Public License for more details.
+## This program is distributed in the hope that it will be useful, but WITHOUT
+## ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+## FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+## details.
 
-## You should have received a copy of the GNU General Public License
-## along with this program.  If not, see <http://www.gnu.org/licenses/>.
+## You should have received a copy of the GNU General Public License along with
+## this program. If not, see <http://www.gnu.org/licenses/>.
 
 ## =============================================================================
 ## SCREEN MANAGER
@@ -165,7 +166,7 @@ ScreenManager:
 
     ## Forecast location, valid, and issued time
 	SmallText:
-		text: app.config['Station']['ForecastLocn'] + '; Valid until ' + app.MetData['Valid']
+		text: (app.config['Station']['ForecastLocn'] +';' if len(app.config['Station']['ForecastLocn']) <= 18 else '') + ' Valid until ' + app.MetData['Valid']
 		halign: 'right'
 		pos_hint: {'x': 6/262, 'y': 3/202}
 		size_hint: (252/262, 16/202)
@@ -459,7 +460,7 @@ ScreenManager:
 		pos_hint: {'x': 154/262, 'y': 129/202}
 		size_hint: (52.5/262, 33/202)
 	Image:
-		source: 'icons/uv/' + app.Obs['UVIndex'][2] + '.png'
+		source: 'icons/uv/' + root.uvIcon + '.png'
 		pos_hint: {'x': 206.5/262, 'y': 129/202}
 		size_hint: (52.5/262, 33/202)
 
@@ -624,9 +625,6 @@ ScreenManager:
     MediumText
         text: root.realtimeClock
         font_name: 'fonts/SystemSanFranciscoDisplayRegular.ttf'
-        halign: 'center'
-        valign: 'center'
-        font_size: '20sp'
         pos_hint: {'x': 0/262, 'y': 0/202}
 		size_hint: (262/262, 46/202)
 
