@@ -536,20 +536,20 @@ ScreenManager:
     BoldText:
 		text: app.Astro['sunEvent'][3]
         color: [200/255,200/255,200/255,1]
-		pos_hint: {'x': 5/262, 'y': 52/202}
-		size_hint: (123/262, 18/202)
-	LargeText:
-		text: app.Astro['sunEvent'][1]
-		pos_hint: {'x': 5/262, 'y': 22/202}
-		size_hint: (40/262, 33/202)
-	LargeText:
-		text: app.Astro['sunEvent'][2]
-		pos_hint: {'x': 62/262, 'y': 22/202}
-		size_hint: (40/262, 33/202)
+		pos_hint: {'x': 22/262, 'y': 52/202}
+		size_hint: (80/262, 18/202)
+	MediumText:
+		text: app.Astro['sunEvent'][1] + ' : ' + app.Astro['sunEvent'][2]
+		pos_hint: {'x': 22/262, 'y': 21/202}
+		size_hint: (80/262, 21/202)
+	##LargeText:
+##		text: app.Astro['sunEvent'][2]
+##		pos_hint: {'x': 62/262, 'y': 26/202}
+##		size_hint: (40/262, 28/202)
 	SmallText:
-		text: 'Till [font=fonts/SystemSanFranciscoDisplayBold.ttf]' + app.Astro['sunEvent'][0] + '[/font]'
-		pos_hint: {'x': 5/262, 'y': 3/202}
-		size_hint: (123/262, 18/202)
+		text: 'Till ' + app.Astro['sunEvent'][0] 
+		pos_hint: {'x': 22/262, 'y': 3/202}
+		size_hint: (80/262, 18/202)
         
     ## Peak Sun Hours
     BoldText:
@@ -557,10 +557,14 @@ ScreenManager:
         color: [200/255,200/255,200/255,1]
 		pos_hint: {'x': 135/262, 'y': 52/202}
 		size_hint: (123/262, 18/202)  
-	MediumText:
+	LargeText:
 		text: app.Obs['peakSun'][0]
 		pos_hint: {'x': 135/262, 'y': 20/202}
-		size_hint: (123/262, 33/202)        
+		size_hint: (123/262, 33/202) 
+    SmallText:
+		text: 'Solar: ' + app.Obs['peakSun'][4] 
+		pos_hint: {'x': 135/262, 'y': 3/202}
+		size_hint: (123/262, 18/202)
 
 <SunriseSunsetButton>:
 	Button:

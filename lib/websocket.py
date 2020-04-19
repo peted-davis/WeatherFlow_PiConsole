@@ -230,7 +230,7 @@ def Sky(Msg,Console):
     MaxGust   = derive.MaxWindGust(WindGust,maxGust,Device,Console.config)
     WindSpd   = derive.BeaufortScale(WindSpd)
     WindDir   = derive.CardinalWindDirection(WindDir,WindSpd)
-    peakSun   = derive.peakSunHours(Radiation,peakSun,Device,Console.config)
+    peakSun   = derive.peakSunHours(Radiation,peakSun,Console.Astro,Device,Console.config)
     UVIndex   = derive.UVIndex(UV)
 
     # Convert observation units as required

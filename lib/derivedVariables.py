@@ -916,7 +916,6 @@ def CardinalWindDirection(windDir,windSpd=[1,'mps']):
         cardinalWind = [windDir[0],windDir[1],Direction,Description]
 
     # Return cardinal wind direction and description
-    #print(cardinalWind)
     return cardinalWind
 
 def BeaufortScale(windSpd):
@@ -986,7 +985,7 @@ def UVIndex(uvLevel):
     # Return UV Index icon
     return uvIndex
     
-def peakSunHours(Radiation,peakSun,Device,Config):
+def peakSunHours(Radiation,peakSun,Astro,Device,Config):
 
     # Define current time in station timezone
     Tz = pytz.timezone(Config['Station']['Timezone'])
@@ -999,7 +998,7 @@ def peakSunHours(Radiation,peakSun,Device,Config):
         # Download rainfall data for current day
         Data = requestAPI.weatherflow.Today(Device,Config)
 
-        # Calculate Peak Sun H. Return NaN if API call has failed
+        # Calculate Peak Sun Hours. Return NaN if API call has failed
         if requestAPI.weatherflow.verifyResponse(Data,'obs'):
             Data = Data.json()['obs']
             if Config['Station']['SkyID']:
@@ -1011,18 +1010,12 @@ def peakSunHours(Radiation,peakSun,Device,Config):
         else:
             peakSun = [NaN,'hrs',NaN,Now]
         
-        # Return Peak Sun Hours
-        return peakSun
-        
     # At midnight, reset Peak Sun Hours
-    if Now.date() > peakSun[3].date():
+    elif Now.date() > peakSun[3].date():
     
         # Calculate Peak Sun Hours
         kwh = Radiation[0] * 1/60
         peakSun = [kwh/1000,'hrs',kwh,Now]
-
-        # Return Peak Sun Hours
-        return peakSun
 
     # Add current Radiation value to Peak Sun Hours
     else:
@@ -1030,9 +1023,32 @@ def peakSunHours(Radiation,peakSun,Device,Config):
         # Calculate Peak Sun Hours
         kwh = peakSun[2] + (Radiation[0] * 1/60)
         peakSun = [kwh/1000,'hrs',kwh,Now]
+        
+    # Calculate proportion of daylight hours that have passed    
+    daylightTotal  = (Astro['Sunset'][0] - Astro['Sunrise'][0]).total_seconds()
+    if Astro['Sunrise'][0] <= Now <= Astro['Sunset'][0]:   
+        daylightElapsed = (Now - Astro['Sunrise'][0]).total_seconds()
+    else:  
+        daylightElapsed = daylightTotal  
+    daylightFactor = daylightElapsed/daylightTotal
+      
+    # Define daily solar potential text
+    if peakSun[0]/daylightFactor == 0:
+        peakSun.append('[color=646464]None[/color]')
+    elif peakSun[0]/daylightFactor < 2:
+        peakSun.append('[color=9BBC2F]Limited[/color]')
+    elif peakSun[0]/daylightFactor < 4:
+        peakSun.append('[color=E6A241]Moderate[/color]')
+    elif peakSun[0]/daylightFactor < 6:
+        peakSun.append('[color=E64B24]Good[/color]')
+    else:
+        peakSun.append('[color=8680BC]Excellent[/color]')
 
-        # Return Peak Sun Hours
-        return peakSun 
+    print(peakSun[0]/daylightFactor)
+    print(peakSun)
+
+    # Return Peak Sun Hours
+    return peakSun 
 
 # # CHECK STATUS OF SKY AND AIR MODULES
 # # --------------------------------------------------------------------------
