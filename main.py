@@ -81,7 +81,7 @@ class WeatherFlowClientProtocol(WebSocketClientProtocol,TimeoutMixin):
 
     def onOpen(self):
         self.factory._proto = self
-
+        
     def onMessage(self,payload,isBinary):
         Message = json.loads(payload.decode('utf8'))
         self.factory._app.WebsocketDecodeMessage(Message)
@@ -557,6 +557,9 @@ class CurrentConditions(Screen):
 
         # Determine new button type
         newButton = App.get_running_app().config[Button[3] + 'Panels'][Button[1]]
+        
+        # Destroy old panel class attribute
+        delattr(App.get_running_app(), newButton + 'Panel')
 
         # Switch panel
         App.get_running_app().CurrentConditions.ids[Button[1]].clear_widgets()
@@ -574,7 +577,11 @@ class CurrentConditions(Screen):
 # ForecastPanel RELATIVE LAYOUT CLASS
 # ==============================================================================
 class ForecastPanel(RelativeLayout):
-    pass
+    
+    # Initialise 'ForecastPanel' relative layout class
+    def __init__(self,**kwargs):
+        super(ForecastPanel,self).__init__(**kwargs)
+        App.get_running_app().ForecastPanel = self
 
 class ForecastButton(RelativeLayout):
     pass
@@ -583,7 +590,11 @@ class ForecastButton(RelativeLayout):
 # SagerPanel RELATIVE LAYOUT CLASS
 # ==============================================================================
 class SagerPanel(RelativeLayout):
-    pass
+    
+    # Initialise 'SagerPanel' relative layout class
+    def __init__(self,**kwargs):
+        super(SagerPanel,self).__init__(**kwargs)
+        App.get_running_app().SagerPanel = self
 
 class SagerButton(RelativeLayout):
     pass
@@ -696,7 +707,12 @@ class SunriseSunsetButton(RelativeLayout):
 # MoonPhasePanel RELATIVE LAYOUT CLASS
 # ==============================================================================
 class MoonPhasePanel(RelativeLayout):
-    pass
+    
+    # Initialise 'MoonPhasePanel' relative layout class
+    def __init__(self,**kwargs):
+        super(MoonPhasePanel,self).__init__(**kwargs)
+        App.get_running_app().MoonPhasePanel = self
+    
 
 class MoonPhaseButton(RelativeLayout):
     pass
@@ -798,11 +814,13 @@ class LightningPanel(RelativeLayout):
 
     # Define LightningPanel class properties
     xLightningBolt = NumericProperty(0)
+    lightningBoltIcon = StringProperty('lightningBolt')
 
     # INITIALISE 'LightningPanel' RELATIVE LAYOUT CLASS
     # --------------------------------------------------------------------------
     def __init__(self,**kwargs):
         super(LightningPanel,self).__init__(**kwargs)
+        self.setLightningBoltIcon()
         App.get_running_app().LightningPanel = self
 
     # ANIMATE LIGHTNING BOLT ICON WHEN STRIKE IS DETECTED
@@ -810,6 +828,15 @@ class LightningPanel(RelativeLayout):
     def LightningBoltAnim(self):
         Anim = Animation(xLightningBolt=5,t='out_quad',d=0.02) + Animation(xLightningBolt=0,t='out_elastic',d=0.5)
         Anim.start(self)
+
+    # SET LIGHTNING BOLT ICON (uses mainthread)
+    # --------------------------------------------------------------------------
+    @mainthread
+    def setLightningBoltIcon(self):
+        if App.get_running_app().Obs['StrikeDeltaT'][4] < 360:
+            self.lightningBoltIcon = 'lightningBoltStrike'
+        else:
+            self.lightningBoltIcon = 'lightningBolt'
 
 class LightningButton(RelativeLayout):
     pass

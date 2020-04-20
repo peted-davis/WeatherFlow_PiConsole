@@ -176,6 +176,10 @@ def Tempest(Msg,Console):
     if hasattr(Console,'TemperaturePanel'):
         Console.TemperaturePanel.feelsLikeIcon()
 
+    # Set lightning bolt icon if LightningPanel panel is active
+    if hasattr(Console,'LightningPanel'):
+        Console.LightningPanel.setLightningBoltIcon()
+
     # Return Console object
     return Console
 
@@ -385,6 +389,10 @@ def outdoorAir(Msg,Console):
     if hasattr(Console,'TemperaturePanel'):
         Console.TemperaturePanel.feelsLikeIcon()
 
+    # Set lightning bolt icon if LightningPanel panel is active
+    if hasattr(Console,'LightningPanel'):
+        Console.LightningPanel.setLightningBoltIcon()
+
     # Return Console object
     return Console
 
@@ -477,7 +485,7 @@ def rapidWind(Msg,Console):
     Console.Obs['rapidSpd']   = observation.Format(WindSpd,'Wind')
     Console.Obs['rapidDir']   = observation.Format(WindDir,'Direction')
 
-    # If WindSpeedPanel panel is open, animate wind rose arrow
+    # Animate wind rose arrow if WindSpeedPanel panel is active
     if hasattr(Console,'WindSpeedPanel'):
         Console.WindSpeedPanel.WindRoseAnimation()
 
@@ -510,6 +518,10 @@ def evtStrike(Msg,Console):
     # Define Kivy label binds
     Console.Obs['StrikeDeltaT'] = observation.Format(StrikeDeltaT,'TimeDelta')
     Console.Obs['StrikeDist']   = observation.Format(StrikeDist,'StrikeDistance')
+
+    # Set lightning bolt icon if LightningPanel panel is active
+    if hasattr(Console,'LightningPanel'):
+        Console.LightningPanel.setLightningBoltIcon()
 
     # Return Console object
     return Console

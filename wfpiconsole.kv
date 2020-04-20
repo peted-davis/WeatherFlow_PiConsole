@@ -1,5 +1,5 @@
-## WeatherFlow PiConsole: Raspberry Pi Python console for WeatherFlow Tempest 
-## and Smart Home Weather stations. 
+## WeatherFlow PiConsole: Raspberry Pi Python console for WeatherFlow Tempest
+## and Smart Home Weather stations.
 ## Copyright (C) 2018-2020 Peter Davis
 
 ## This program is free software: you can redistribute it and/or modify it under
@@ -229,7 +229,7 @@ ScreenManager:
 
 	## Indoor temperature
     BoldText:
-		text: '[color=c8c8c8ff]Indoor[/color]' 
+		text: '[color=c8c8c8ff]Indoor[/color]'
 		pos_hint: {'x': 0/262, 'y': 166/202}
 		size_hint: (131/262, 17/202)
         opacity: 1 if app.IndoorTemp == '1' else 0
@@ -238,7 +238,7 @@ ScreenManager:
 		pos_hint: {'x': 0/262, 'y': 126/202}
 		size_hint: (131/262, 38/202)
         opacity: 1 if app.IndoorTemp == '1' else 0
-        
+
 	## Indoor temperature minimum
 	MediumText:
 		text: '[color=00a4b4ff]' + app.Obs['inTempMin'][0] + '[size=15sp]' + app.Obs['inTempMin'][1] + '[/color][/size]'
@@ -249,7 +249,7 @@ ScreenManager:
 		text: app.Obs['inTempMin'][2]
 		pos_hint: {'x': 0/262, 'y': 82/202}
 		size_hint: (65.5/262, 22/202)
-        opacity: 1 if app.IndoorTemp == '1' else 0        
+        opacity: 1 if app.IndoorTemp == '1' else 0
 
 	## Indoor temperature maximum
 	MediumText:
@@ -261,13 +261,13 @@ ScreenManager:
         text: app.Obs['inTempMax'][2]
 		pos_hint: {'x': 65.5/262, 'y': 82/202}
 		size_hint: (65.5/262, 22/202)
-        opacity: 1 if app.IndoorTemp == '1' else 0     
-        
+        opacity: 1 if app.IndoorTemp == '1' else 0
+
 	## Outdoor temperature
     BoldText:
-		text: '[color=c8c8c8ff]Outdoor[/color]' 
+		text: '[color=c8c8c8ff]Outdoor[/color]'
 		pos_hint: {'x': 131/262 if app.IndoorTemp == '1' else 0/262, 'y': 166/202}
-		size_hint: (131/262 if app.IndoorTemp == '1' else 262/262, 17/202)  
+		size_hint: (131/262 if app.IndoorTemp == '1' else 262/262, 17/202)
 	LargeText:
 		text: app.Obs['outTemp'][0] + app.Obs['outTemp'][1]
 		pos_hint: {'x': 131/262 if app.IndoorTemp == '1' else 65.5/262, 'y': 126/202}
@@ -290,7 +290,7 @@ ScreenManager:
 		size_hint: (65.5/262, 22/202)
 	SmallText:
 		text: app.Obs['outTempMax'][2]
-		pos_hint: {'x': 196.5/262 if app.IndoorTemp == '1' else 131/262, 'y': 82/202} 
+		pos_hint: {'x': 196.5/262 if app.IndoorTemp == '1' else 131/262, 'y': 82/202}
 		size_hint: (65.5/262, 22/202)
 
 	## 'Feels like' temperature
@@ -737,10 +737,7 @@ ScreenManager:
 				x: root.xLightningBolt
 		canvas.after:
 			PopMatrix
-		source:
-			'icons/lightning/lightningBolt.png' if app.Obs['StrikeDeltaT'][4] == '-' else \
-			'icons/lightning/lightningBoltStrike.png' if app.Obs['StrikeDeltaT'][4] < 360 else \
-			'icons/lightning/lightningBolt.png'
+		source: 'icons/lightning/' + root.lightningBoltIcon + '.png'
 		keep_ratio: 0
 		allow_stretch: 1
 		pos_hint: {'x': 14/262, 'y': 120/202}
@@ -853,7 +850,7 @@ ScreenManager:
             text: 'Console version: [color=9aba2fff]' + app.config['System']['Version'] + '[/color]'
             size_hint: (1,0.1)
             pos_hint: {'x': 0, 'y': 0.71}
-            
+
 ## =============================================================================
 ## UPDATE NOTIFICATION
 ## =============================================================================
@@ -873,4 +870,4 @@ ScreenManager:
         BoldText:
             text: '[color=9aba2fff]' + app.Version['Latest'] + '[/color]'
             size_hint: (1,0.2)
-            pos_hint: {'x': 0.05, 'y': 0.31}            
+            pos_hint: {'x': 0.05, 'y': 0.31}
