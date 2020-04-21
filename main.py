@@ -411,6 +411,8 @@ class wfpiconsole(App):
             if hasattr(self,'RainfallPanel'):
                 self.RainfallPanel.RainRateAnimation()
 
+            print("Tempest message received")
+
         # Extract observations from obs_sky websocket message and animate
         # RainRate icon if required
         elif Type == 'obs_sky':
@@ -421,6 +423,8 @@ class wfpiconsole(App):
             # If RainfallPanel is open, animate RainRate
             if hasattr(self,'RainfallPanel'):
                 self.RainfallPanel.RainRateAnimation()
+
+            print("Sky message received")
 
         # Extract observations from obs_air websocket message based on device
         # ID
@@ -934,5 +938,5 @@ class SettingToggleTemperature(SettingString):
 # RUN APP
 # ==============================================================================
 if __name__ == '__main__':
-    log.startLogging(sys.stdout)
+    log.startLogging(open(os.path.expanduser('~/wfpiconsole/wfpiconsole.log'),'w'))
     wfpiconsole().run()
