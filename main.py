@@ -421,6 +421,13 @@ class wfpiconsole(App):
             # If RainfallPanel is open, animate RainRate
             if hasattr(self,'RainfallPanel'):
                 self.RainfallPanel.RainRateAnimation()
+                
+            Tz = pytz.timezone(self.config['Station']['Timezone'])
+            Now = datetime.now(pytz.utc).astimezone(Tz)            
+            String = Now.strftime("%d/%m/%y %H:%M:%S") + " Sky message received" 
+            #sys.stdout.write('\033[2K\033[1G' + String)
+            #sys.stdout.flush()    
+            print (String)   
 
         # Extract observations from obs_air websocket message based on device
         # ID
