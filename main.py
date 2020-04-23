@@ -89,12 +89,10 @@ class WeatherFlowClientFactory(WebSocketClientFactory,ReconnectingClientFactory)
 
     def clientConnectionFailed(self,connector,reason):
         print('Websocket connection failed .. retrying ..')
-        self.setProtocolOptions(openHandshakeTimeout=60)
         self.retry(connector)
 
     def clientConnectionLost(self,connector,reason):
         print('Websocket connection lost .. retrying ..')
-        self.setProtocolOptions(openHandshakeTimeout=60)
         self.retry(connector)
 
     def __init__(self, url, app):
@@ -351,13 +349,7 @@ class wfpiconsole(App):
     def WebsocketConnect(self):
         Server = 'wss://ws.weatherflow.com/swd/data?api_key=' + self.config['Keys']['WeatherFlow']
         self._factory = WeatherFlowClientFactory(Server,self)
-        self._factory.protocol = WeatherFlowClientProtocol
-        self._factory.setProtocolOptions(openHandshakeTimeout=60)
-        if self._factory.isSecure:
-            contextFactory = ssl.ClientContextFactory()
-        else:
-            contextFactory = None
-        connectWS(self._factory, contextFactory)
+        reactor.connectSSL('ws.weatherflow.com',443,self._factory,ssl.ClientContextFactory(),60)
 
     # SEND MESSAGE TO THE WEATHERFLOW WEBSOCKET SERVER
     # --------------------------------------------------------------------------
