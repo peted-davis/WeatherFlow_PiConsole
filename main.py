@@ -88,7 +88,7 @@ class WeatherFlowClientProtocol(WebSocketClientProtocol,TimeoutMixin):
         self.resetTimeout()
 
     def timeoutConnection(self):
-        self.transport.loseConnection()
+        self.transport.abortConnection()
 
     def onClose(self,wasClean,code,reason):
         self.factory._proto = None
@@ -389,6 +389,9 @@ class wfpiconsole(App):
         # Extract type of received message
         Type = Msg['type']
 
+        if Type != 'rapid_wind':
+            print(Type)
+
         # Start listening for device observations and events upon connection of
         # websocket based on device IDs specified in user configuration file
         if Type == 'connection_opened':
@@ -420,14 +423,10 @@ class wfpiconsole(App):
         elif Type == 'obs_st':
             Thread(target=websocket.Tempest, args=(Msg,self), name="Tempest").start()
 
-            print("Tempest message received")
-
         # Extract observations from obs_sky websocket message and animate
         # RainRate icon if required
         elif Type == 'obs_sky':
             Thread(target=websocket.Sky, args=(Msg,self), name="Sky").start()
-
-            print("Sky message received")
 
         # Extract observations from obs_air websocket message based on device
         # ID
