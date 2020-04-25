@@ -1,22 +1,22 @@
 """ Returns The Sager Weathercaster forecast required by the Raspberry Pi Python
-console for Weather Flow Smart Home Weather Stations. Copyright (C) 2018-2020  
-Peter Davis
+console for WeatherFlow Tempest and Smart Home Weather stations.
+Copyright (C) 2018-2020 Peter Davis
 
 This program is free software: you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
 Foundation, either version 3 of the License, or (at your option) any later
 version.
 
-This program is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
-PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License along with
-this program.  If not, see <http://www.gnu.org/licenses/>.
+this program. If not, see <http://www.gnu.org/licenses/>.
 
-Python code based on BT's Global Sager Weathercaster PHP Scripts For Cumulus by 
-"Buford T. Justice" /"BTJustice" 
-http://www.freewebs.com/btjustice/bt-forecasters.html 
+Python code based on BT's Global Sager Weathercaster PHP Scripts For Cumulus by
+"Buford T. Justice" /"BTJustice"
+http://www.freewebs.com/btjustice/bt-forecasters.html
 2016-08-05
 """
 
@@ -36,7 +36,7 @@ import pytz
 # Define global variables
 NaN = float('NaN')
 
-# Define circular mean 
+# Define circular mean
 def CircularMean(angles):
     angles = np.radians(angles)
     r = np.nanmean(np.exp(1j*angles))
@@ -45,13 +45,13 @@ def CircularMean(angles):
 def Generate(sagerDict,Config):
 
     """ Generates the Sager Weathercaster forecast based on the current weather
-    conditions and the trend in conditions over the previous 6 hours. 
+    conditions and the trend in conditions over the previous 6 hours.
 
-    INPUTS: 
+    INPUTS:
         sagerDict               Dictionary to hold the forecast information
         Config                  Station configuration
-        
-    OUTPUT: 
+
+    OUTPUT:
         sagerDict               Dictionary containing the Sager Weathercaster
                                 forecast
     """
@@ -59,14 +59,14 @@ def Generate(sagerDict,Config):
     # Get station timezone and current UNIX timestamp in UTC
     Now = int(UNIX.time())
     Tz  = pytz.timezone(Config['Station']['Timezone'])
-    
+
     # Define required station variables for the Sager Weathercaster Forecast
     sagerDict['Lat'] = float(Config['Station']['Latitude'])
     sagerDict['Units'] = Config['Units']['Wind']
 
-    # DOWNLOAD WIND AND RAIN DATA FROM EITHER TEMPEST OR SKY MODULE 
+    # DOWNLOAD WIND AND RAIN DATA FROM EITHER TEMPEST OR SKY MODULE
     # --------------------------------------------------------------------------
-    # If applicable, download wind and rain data from last 6 hours from TEMPEST 
+    # If applicable, download wind and rain data from last 6 hours from TEMPEST
     # module. If API call fails, return missing data error message
     if Config['Station']['TempestID']:
         Obs = {}
@@ -76,9 +76,9 @@ def Generate(sagerDict,Config):
             sagerDict['Issued']   = datetime.now(pytz.utc).astimezone(Tz).strftime('%H:%M')
             Clock.schedule_once(lambda dt: lambda dt: Generate(sagerDict,Config),3600)
             return sagerDict
-            
-    # If applicable, download wind and rain data from last 6 hours from SKY 
-    # module. If API call fails, return missing data error message    
+
+    # If applicable, download wind and rain data from last 6 hours from SKY
+    # module. If API call fails, return missing data error message
     elif Config['Station']['SkyID']:
         Obs = {}
         getSkyData(Obs,Now,Config)
@@ -87,16 +87,16 @@ def Generate(sagerDict,Config):
             sagerDict['Issued']   = datetime.now(pytz.utc).astimezone(Tz).strftime('%H:%M')
             Clock.schedule_once(lambda dt: lambda dt: Generate(sagerDict,Config),3600)
             return sagerDict
-            
+
     # DERIVE REQUIRED WIND AND RAINFALL VARIABLES FROM TEMPEST OR SKY DATA
     # --------------------------------------------------------------------------
-    # Convert wind and rain data to Numpy arrays, and convert wind speed to 
+    # Convert wind and rain data to Numpy arrays, and convert wind speed to
     # miles per hour
     Obs['Time']    = np.array(Obs['Time'],   dtype=np.int64)
     Obs['WindSpd'] = np.array(Obs['WindSpd'],dtype=np.float64)*2.23694
     Obs['WindDir'] = np.array(Obs['WindDir'],dtype=np.float64)
     Obs['Rain']    = np.array(Obs['Rain'],   dtype=np.float64)
-    
+
     # Define required wind direction variables for the Sager Weathercaster
     # Forecast
     WindDir6 = Obs['WindDir'][:15]
@@ -122,7 +122,7 @@ def Generate(sagerDict,Config):
     else:
         sagerDict['WindSpd6'] = np.nanmean(WindSpd6)
         sagerDict['WindSpd']  = np.nanmean(WindSpd)
-        
+
     # Define required rainfall variables for the Sager Weathercaster Forecast
     LastRain = np.where(Obs['Rain'] > 0)[0]
     if LastRain.size == 0:
@@ -131,12 +131,12 @@ def Generate(sagerDict,Config):
         LastRain = Obs['Time'][LastRain.max()]
         LastRain = datetime.fromtimestamp(LastRain,Tz)
         LastRain = datetime.now(pytz.utc).astimezone(Tz) - LastRain
-        sagerDict['LastRain'] = LastRain.total_seconds()/60    
-    
+        sagerDict['LastRain'] = LastRain.total_seconds()/60
+
     # DOWNLOAD TEMPERATURE AND PRESSURE DATA FROM AIR MODULE
     # --------------------------------------------------------------------------
-    # If applicable, download temperature and pressure from last 6 hours from 
-    # AIR module. If API call fails, return missing data error message 
+    # If applicable, download temperature and pressure from last 6 hours from
+    # AIR module. If API call fails, return missing data error message
     if Config['Station']['OutAirID']:
         Obs = {}
         getAirData(Obs,Now,Config)
@@ -144,9 +144,9 @@ def Generate(sagerDict,Config):
             sagerDict['Forecast'] = '[color=f05e40ff]ERROR:[/color] Missing AIR data. Forecast will be regenerated in 60 minutes'
             sagerDict['Issued']   = datetime.now(pytz.utc).astimezone(Tz).strftime('%H:%M')
             Clock.schedule_once(lambda dt: lambda dt: Generate(sagerDict,Config),3600)
-            return sagerDict    
+            return sagerDict
 
-    # DERIVE REQUIRED TEMPERATURE AND PRESSURE VARIABLES FROM TEMPEST OR AIR 
+    # DERIVE REQUIRED TEMPERATURE AND PRESSURE VARIABLES FROM TEMPEST OR AIR
     # DATA
     # --------------------------------------------------------------------------
     # Convert temperature and pressure data to Numpy arrays
@@ -217,16 +217,16 @@ def Generate(sagerDict,Config):
         ForecastTime = Tz.localize(datetime.combine(Date,Time))
     Seconds = (ForecastTime - Now).total_seconds()
     Clock.schedule_once(lambda dt: Generate,Seconds)
-    
+
     # Return Sager Weathercaster forecast
     return sagerDict
-    
+
 def getTempestData(Obs,Now,Config):
-    
+
     # Download SKY data from last 6 hours
     Data = requestAPI.weatherflow.Last6h(Config['Station']['TempestID'],Now,Config)
-   
-    # Extract observation times, wind speed, wind direction, and rainfall if API 
+
+    # Extract observation times, wind speed, wind direction, and rainfall if API
     # call has not failed
     if requestAPI.weatherflow.verifyResponse(Data,'obs'):
         Obs['Time']    = [item[0] if item[0] != None else NaN for item in Data.json()['obs']]
@@ -235,13 +235,13 @@ def getTempestData(Obs,Now,Config):
         Obs['Pres']    = [item[6] if item[7] != None else NaN for item in Data.json()['obs']]
         Obs['Temp']    = [item[6] if item[7] != None else NaN for item in Data.json()['obs']]
         Obs['Rain']    = [item[12] if item[12] != None else NaN for item in Data.json()['obs']]
-    
+
 def getSkyData(Obs,Now,Config):
 
     # Download SKY data from last 6 hours
     Data = requestAPI.weatherflow.Last6h(Config['Station']['SkyID'],Now,Config)
-   
-    # Extract observation times, wind speed, wind direction, and rainfall if API 
+
+    # Extract observation times, wind speed, wind direction, and rainfall if API
     # call has not failed
     if requestAPI.weatherflow.verifyResponse(Data,'obs'):
         Obs['Time']    = [item[0] if item[0] != None else NaN for item in Data.json()['obs']]
@@ -250,11 +250,11 @@ def getSkyData(Obs,Now,Config):
         Obs['Rain']    = [item[3] if item[3] != None else NaN for item in Data.json()['obs']]
 
 def getAirData(Obs,Now,Config):
-    
+
     # Download AIR data from last 6 hours and define AIR dictionary
     Data = requestAPI.weatherflow.Last6h(Config['Station']['OutAirID'],Now,Config)
 
-    # Extract observation times, pressure and temperature if API # call has not 
+    # Extract observation times, pressure and temperature if API # call has not
     # failed
     if requestAPI.weatherflow.verifyResponse(Data,'obs'):
         Obs['Time'] = [item[0] if item[0] != None else NaN for item in Data.json()['obs']]
@@ -264,10 +264,10 @@ def getAirData(Obs,Now,Config):
 def dialSetting(Met):
 
 	""" Calculates the position of the Sager Weathercaster Dial based on the
-	current weather conditions and the trend in conditions over the previous 6 
-	hours. 
-	
-	INPUTS: 
+	current weather conditions and the trend in conditions over the previous 6
+	hours.
+
+	INPUTS:
         Met                     Dictionary containing the following fields:
             Lat					Weather observations latitude
             METARKey			Metar Key
@@ -280,12 +280,12 @@ def dialSetting(Met):
             LastRain			Minutes since last rain
             Temp				Current temperature
             METAR				Closet METAR information to station location
-		
-	OUTPUT: 
-        Sager                   Dictionary containing the position of the Sager 
+
+	OUTPUT:
+        Sager                   Dictionary containing the position of the Sager
                                 Weathercaster Dial
 	"""
-	
+
 	# Extract input location/meteorological variables
 	Lat = Met['Lat']							# Weather station latitude
 	Units = Met['Units']						# Weather station wind speed units
@@ -298,29 +298,29 @@ def dialSetting(Met):
 	lr = Met['LastRain']						# Minutes since last rain
 	t = Met['Temp']								# Current temperature
 	METAR = Met['METAR']						# Closet METAR information to station location
-	
+
 	# Define required variables
 	Ind = {}
 	pcode = {}
 	pcodes = list(['FZDZ','FZRA','SHGR','SHGS','SHPL','SHRA','SHSN','TSGR','TSGS','TSPL','TSRA',
 				   'TSSN','VCSH','VCTS','DZ','GR','GS','IC','PL','RA','SG','SN','UP'])
-	
+
 	# Extacts Cloud Code from METAR information
 	try:
 		ccode = METAR['clouds'][0]['code']
 	except:
 		return None
-			
+
 	# Searches METAR information for Precipitation Codes
-	try:		   
+	try:
 		for count,pcode in enumerate(pcodes):
 			if METAR['raw_text'].find(pcode) != -1:
 				Ind[count] = METAR['raw_text'].find(pcode)
 	except:
-		return None			
-	if len(Ind) != 0:		
+		return None
+	if len(Ind) != 0:
 		pcode = pcodes[min(Ind,key=Ind.get)]
-			
+
 	# Determines the Present Weather result used with The Sager Weathercaster:
 	if len(pcode) > 0:
 		pw = "Precipitation"
@@ -336,15 +336,15 @@ def dialSetting(Met):
 		pw = "Precipitation"
 	else:
 		pw = None
-	
-	# Convert the average wind direction in degrees from 6 hours 
+
+	# Convert the average wind direction in degrees from 6 hours
 	# ago into a direction. An average direction of exactly zero
 	# is assumed to indicate calm conditions
 	if ws6 <= 1:
 		wd6 = "Calm"
 	elif wd6 >= 0 and wd6 < 22.5 or wd6 >= 337.5:
 		wd6 = "N"
-	elif wd6 >= 22.5 and wd6 < 67.5: 
+	elif wd6 >= 22.5 and wd6 < 67.5:
 		wd6 = "NE"
 	elif wd6 >= 67.5 and wd6 < 112.5:
 		wd6 = "E"
@@ -358,15 +358,15 @@ def dialSetting(Met):
 		wd6 = "W"
 	elif wd6 >= 292.5 and wd6 < 337.5:
 		wd6 = "NW"
-	
-	# Convert the current average wind direction in degrees into 
-	# a direction. An average direction of exactly zero is 
+
+	# Convert the current average wind direction in degrees into
+	# a direction. An average direction of exactly zero is
 	# assumed to indicate calm conditions
 	if ws <= 1:
 		wd = "Calm"
 	elif wd >= 0 and wd < 22.5 or wd >= 337.5:
 		wd = "N"
-	elif wd >= 22.5 and wd < 67.5: 
+	elif wd >= 22.5 and wd < 67.5:
 		wd = "NE"
 	elif wd >= 67.5 and wd < 112.5:
 		wd = "E"
@@ -379,335 +379,335 @@ def dialSetting(Met):
 	elif wd >= 247.5 and wd < 292.5:
 		wd = "W"
 	elif wd >= 292.5 and wd < 337.5:
-		wd = "NW"	
-		
+		wd = "NW"
+
 	# Compare the change in wind direction over the last 6 hours
-    # to determine if the wind is: 
-	# 	- Backing changing counter-clockwise 
-	#	- Steady same direction or opposite direction 
-	#   - Veering changing clockwise 
+    # to determine if the wind is:
+	# 	- Backing changing counter-clockwise
+	#	- Steady same direction or opposite direction
+	#   - Veering changing clockwise
 	#	- Calm
-	if wd == "N": 
-		if wd6 == "NE" or wd6 == "E" or wd6 == "SE": 
+	if wd == "N":
+		if wd6 == "NE" or wd6 == "E" or wd6 == "SE":
 			wdc = "Backing"
 		elif wd6 == "N" or wd6 == "S" or wd6 == "Calm":
 			wdc = "Steady"
-		elif wd6 == "NW" or wd6 == "W" or wd6 == "SW": 
+		elif wd6 == "NW" or wd6 == "W" or wd6 == "SW":
 			wdc = "Veering"
-	elif wd == "NE": 
-		if wd6 == "E" or wd6 == "SE" or wd6 == "S": 
+	elif wd == "NE":
+		if wd6 == "E" or wd6 == "SE" or wd6 == "S":
 			wdc = "Backing"
-		elif wd6 == "NE" or wd6 == "SW" or wd6 == "Calm": 
+		elif wd6 == "NE" or wd6 == "SW" or wd6 == "Calm":
 			wdc = "Steady"
-		elif wd6 == "N" or wd6 == "NW" or wd6 == "W": 
+		elif wd6 == "N" or wd6 == "NW" or wd6 == "W":
 			wdc = "Veering"
-	elif wd == "E": 
-		if wd6 == "SE" or wd6 == "S" or wd6 == "SW": 
+	elif wd == "E":
+		if wd6 == "SE" or wd6 == "S" or wd6 == "SW":
 			wdc = "Backing"
-		elif wd6 == "E" or wd6 == "W" or wd6 == "Calm": 
+		elif wd6 == "E" or wd6 == "W" or wd6 == "Calm":
 			wdc = "Steady"
-		elif wd6 == "NE" or wd6 == "N" or wd6 == "NW": 
+		elif wd6 == "NE" or wd6 == "N" or wd6 == "NW":
 			wdc = "Veering"
-	elif wd == "SE": 
-		if wd6 == "S" or wd6 == "SW" or wd6 == "W": 
+	elif wd == "SE":
+		if wd6 == "S" or wd6 == "SW" or wd6 == "W":
 			wdc = "Backing"
-		elif wd6 == "SE" or wd6 == "NW" or wd6 == "Calm": 
+		elif wd6 == "SE" or wd6 == "NW" or wd6 == "Calm":
 			wdc = "Steady"
-		elif wd6 == "E" or wd6 == "NE" or wd6 == "N": 
+		elif wd6 == "E" or wd6 == "NE" or wd6 == "N":
 			wdc = "Veering"
-	elif wd == "S": 
-		if wd6 == "SW" or wd6 == "W" or wd6 == "NW": 
+	elif wd == "S":
+		if wd6 == "SW" or wd6 == "W" or wd6 == "NW":
 			wdc = "Backing"
-		elif wd6 == "S" or wd6 == "N" or wd6 == "Calm": 
+		elif wd6 == "S" or wd6 == "N" or wd6 == "Calm":
 			wdc = "Steady"
-		elif wd6 == "SE" or wd6 == "E" or wd6 == "NE": 
+		elif wd6 == "SE" or wd6 == "E" or wd6 == "NE":
 			wdc = "Veering"
-	elif wd == "SW": 
-		if wd6 == "W" or wd6 == "NW" or wd6 == "N": 
+	elif wd == "SW":
+		if wd6 == "W" or wd6 == "NW" or wd6 == "N":
 			wdc = "Backing"
-		elif wd6 == "SW" or wd6 == "NE" or wd6 == "Calm": 
+		elif wd6 == "SW" or wd6 == "NE" or wd6 == "Calm":
 			wdc = "Steady"
-		elif wd6 == "S" or wd6 == "SE" or wd6 == "E": 
+		elif wd6 == "S" or wd6 == "SE" or wd6 == "E":
 			wdc = "Veering"
-	elif wd == "W": 
-		if wd6 == "NW" or wd6 == "N" or wd6 == "NE": 
+	elif wd == "W":
+		if wd6 == "NW" or wd6 == "N" or wd6 == "NE":
 			wdc = "Backing"
-		elif wd6 == "W" or wd6 == "E" or wd6 == "Calm": 
+		elif wd6 == "W" or wd6 == "E" or wd6 == "Calm":
 			wdc = "Steady"
-		elif wd6 == "SW" or wd6 == "S" or wd6 == "SE": 
+		elif wd6 == "SW" or wd6 == "S" or wd6 == "SE":
 			wdc = "Veering"
-	elif wd == "NW": 
-		if wd6 == "N" or wd6 == "NE" or wd6 == "E": 
+	elif wd == "NW":
+		if wd6 == "N" or wd6 == "NE" or wd6 == "E":
 			wdc = "Backing"
-		elif wd6 == "NW" or wd6 == "SE" or wd6 == "Calm": 
+		elif wd6 == "NW" or wd6 == "SE" or wd6 == "Calm":
 			wdc = "Steady"
-		elif wd6 == "W" or wd6 == "SW" or wd6 == "S": 
+		elif wd6 == "W" or wd6 == "SW" or wd6 == "S":
 			wdc = "Veering"
-	elif wd == "Calm": 
+	elif wd == "Calm":
 		wdc = "Calm"
-		
-	# Determine the Wind Dial position from the current wind direction and whether 
-	# the change from 6 hours ago is Backing/Steady/Veering/Calm modified by the 
-	# weather station latitude. The Sager Weathercaster is designed for use in the 
+
+	# Determine the Wind Dial position from the current wind direction and whether
+	# the change from 6 hours ago is Backing/Steady/Veering/Calm modified by the
+	# weather station latitude. The Sager Weathercaster is designed for use in the
 	# Northern Temperate Zone. The relationship between the wind direction and the
 	# setting on the Wind Dial changes with latitude due to the Coriolis effect.
-	
+
 	# Northern Hemisphere: Polar Zone & Tropical Zone
-	if Lat >= 0: 									
-		if Lat < 23.5 or Lat >= 66.6: 				
-			if wd == "S": 
-				if wdc == "Backing": 
+	if Lat >= 0:
+		if Lat < 23.5 or Lat >= 66.6:
+			if wd == "S":
+				if wdc == "Backing":
 					d1 = "A"
-				elif wdc == "Steady": 
+				elif wdc == "Steady":
 					d1 = "B"
-				elif wdc == "Veering": 
+				elif wdc == "Veering":
 					d1 = "C"
-			elif wd == "SW": 
-				if wdc == "Backing": 
+			elif wd == "SW":
+				if wdc == "Backing":
 					d1 = "D"
-				elif wdc == "Steady": 
+				elif wdc == "Steady":
 					d1 = "E"
-				elif wdc == "Veering": 
+				elif wdc == "Veering":
 					d1 = "F"
-			elif wd == "W": 
-				if wdc == "Backing": 
+			elif wd == "W":
+				if wdc == "Backing":
 					d1 = "G"
-				elif wdc == "Steady": 
+				elif wdc == "Steady":
 					d1 = "H"
-				elif wdc == "Veering": 
+				elif wdc == "Veering":
 					d1 = "J"
-			elif wd == "NW": 
-				if wdc == "Backing": 
+			elif wd == "NW":
+				if wdc == "Backing":
 					d1 = "K"
-				elif wdc == "Steady": 
+				elif wdc == "Steady":
 					d1 = "L"
-				elif wdc == "Veering": 
+				elif wdc == "Veering":
 					d1 = "M"
-			elif wd == "N": 
-				if wdc == "Backing": 
+			elif wd == "N":
+				if wdc == "Backing":
 					d1 = "N"
-				elif wdc == "Steady": 
+				elif wdc == "Steady":
 					d1 = "O"
-				elif wdc == "Veering": 
+				elif wdc == "Veering":
 					d1 = "P"
-			elif wd == "NE": 
-				if wdc == "Backing": 
+			elif wd == "NE":
+				if wdc == "Backing":
 					d1 = "Q"
-				elif wdc == "Steady": 
+				elif wdc == "Steady":
 					d1 = "R"
-				elif wdc == "Veering": 
+				elif wdc == "Veering":
 					d1 = "S"
-			elif wd == "E": 
-				if wdc == "Backing": 
+			elif wd == "E":
+				if wdc == "Backing":
 					d1 = "T"
-				elif wdc == "Steady": 
+				elif wdc == "Steady":
 					d1 = "U"
-				elif wdc == "Veering": 
+				elif wdc == "Veering":
 					d1 = "V"
-			elif wd == "SE": 
-				if wdc == "Backing": 
+			elif wd == "SE":
+				if wdc == "Backing":
 					d1 = "W"
-				elif wdc == "Steady": 
+				elif wdc == "Steady":
 					d1 = "X"
-				elif wdc == "Veering": 
+				elif wdc == "Veering":
 					d1 = "Y"
-			elif wd == "Calm": 
+			elif wd == "Calm":
 				d1 = "Z"
-				
-		# Northern Hemisphere: Temperate Zone	
-		elif Lat >= 23.5 and Lat < 66.6: 		
-			if wd == "N": 
-				if wdc == "Backing": 
+
+		# Northern Hemisphere: Temperate Zone
+		elif Lat >= 23.5 and Lat < 66.6:
+			if wd == "N":
+				if wdc == "Backing":
 					d1 = "A"
-				elif wdc == "Steady": 
+				elif wdc == "Steady":
 					d1 = "B"
-				elif wdc == "Veering": 
+				elif wdc == "Veering":
 					d1 = "C"
-			elif wd == "NE": 
-				if wdc == "Backing": 
+			elif wd == "NE":
+				if wdc == "Backing":
 					d1 = "D"
-				elif wdc == "Steady": 
+				elif wdc == "Steady":
 					d1 = "E"
-				elif wdc == "Veering": 
+				elif wdc == "Veering":
 					d1 = "F"
-			elif wd == "E": 
-				if wdc == "Backing": 
+			elif wd == "E":
+				if wdc == "Backing":
 					d1 = "G"
-				elif wdc == "Steady": 
+				elif wdc == "Steady":
 					d1 = "H"
-				elif wdc == "Veering": 
+				elif wdc == "Veering":
 					d1 = "J"
-			elif wd == "SE": 
-				if wdc == "Backing": 
+			elif wd == "SE":
+				if wdc == "Backing":
 					d1 = "K"
-				elif wdc == "Steady": 
+				elif wdc == "Steady":
 					d1 = "L"
-				elif wdc == "Veering": 
+				elif wdc == "Veering":
 					d1 = "M"
-			elif wd == "S": 
-				if wdc == "Backing": 
+			elif wd == "S":
+				if wdc == "Backing":
 					d1 = "N"
-				elif wdc == "Steady": 
+				elif wdc == "Steady":
 					d1 = "O"
-				elif wdc == "Veering": 
+				elif wdc == "Veering":
 					d1 = "P"
-			elif wd == "SW": 
-				if wdc == "Backing": 
+			elif wd == "SW":
+				if wdc == "Backing":
 					d1 = "Q"
-				elif wdc == "Steady": 
+				elif wdc == "Steady":
 					d1 = "R"
-				elif wdc == "Veering": 
+				elif wdc == "Veering":
 					d1 = "S"
-			elif wd == "W": 
-				if wdc == "Backing": 
+			elif wd == "W":
+				if wdc == "Backing":
 					d1 = "T"
-				elif wdc == "Steady": 
+				elif wdc == "Steady":
 					d1 = "U"
-				elif wdc == "Veering": 
+				elif wdc == "Veering":
 					d1 = "V"
-			elif wd == "NW": 
-				if wdc == "Backing": 
+			elif wd == "NW":
+				if wdc == "Backing":
 					d1 = "W"
-				elif wdc == "Steady": 
+				elif wdc == "Steady":
 					d1 = "X"
-				elif wdc == "Veering": 
+				elif wdc == "Veering":
 					d1 = "Y"
-			elif wd == "Calm": 
+			elif wd == "Calm":
 				d1 = "Z"
-			
-	# Southern Hemisphere: Polar Zone & Tropical Zone	
-	elif Lat < 0:									
-		if Lat > -23.5 or Lat <= -66.6: 			
-			if wd == "N": 
-				if wdc == "Backing": 
+
+	# Southern Hemisphere: Polar Zone & Tropical Zone
+	elif Lat < 0:
+		if Lat > -23.5 or Lat <= -66.6:
+			if wd == "N":
+				if wdc == "Backing":
 					d1 = "A"
-				elif wdc == "Steady": 
+				elif wdc == "Steady":
 					d1 = "B"
-				elif wdc == "Veering": 
+				elif wdc == "Veering":
 					d1 = "C"
-			elif wd == "NW": 
-				if wdc == "Backing": 
+			elif wd == "NW":
+				if wdc == "Backing":
 					d1 = "D"
-				elif wdc == "Steady": 
+				elif wdc == "Steady":
 					d1 = "E"
-				elif wdc == "Veering": 
+				elif wdc == "Veering":
 					d1 = "F"
-			elif wd == "W": 
-				if wdc == "Backing": 
+			elif wd == "W":
+				if wdc == "Backing":
 					d1 = "G"
-				elif wdc == "Steady": 
+				elif wdc == "Steady":
 					d1 = "H"
-				elif wdc == "Veering": 
+				elif wdc == "Veering":
 					d1 = "J"
-			elif wd == "SW": 
-				if wdc == "Backing": 
+			elif wd == "SW":
+				if wdc == "Backing":
 					d1 = "K"
-				elif wdc == "Steady": 
+				elif wdc == "Steady":
 					d1 = "L"
-				elif wdc == "Veering": 
+				elif wdc == "Veering":
 					d1 = "M"
-			elif wd == "S": 
-				if wdc == "Backing": 
+			elif wd == "S":
+				if wdc == "Backing":
 					d1 = "N"
-				elif wdc == "Steady": 
+				elif wdc == "Steady":
 					d1 = "O"
-				elif wdc == "Veering": 
+				elif wdc == "Veering":
 					d1 = "P"
-			elif wd == "SE": 
-				if wdc == "Backing": 
+			elif wd == "SE":
+				if wdc == "Backing":
 					d1 = "Q"
-				elif wdc == "Steady": 
+				elif wdc == "Steady":
 					d1 = "R"
-				elif wdc == "Veering": 
+				elif wdc == "Veering":
 					d1 = "S"
-			elif wd == "E": 
-				if wdc == "Backing": 
+			elif wd == "E":
+				if wdc == "Backing":
 					d1 = "T"
-				elif wdc == "Steady": 
+				elif wdc == "Steady":
 					d1 = "U"
-				elif wdc == "Veering": 
+				elif wdc == "Veering":
 					d1 = "V"
-			elif wd == "NE": 
-				if wdc == "Backing": 
+			elif wd == "NE":
+				if wdc == "Backing":
 					d1 = "W"
-				elif wdc == "Steady": 
+				elif wdc == "Steady":
 					d1 = "X"
-				elif wdc == "Veering": 
+				elif wdc == "Veering":
 					d1 = "Y"
-			elif wd == "Calm": 
+			elif wd == "Calm":
 				d1 = "Z"
-		
-		# Southern Hemisphere: Temperate Zone			
-		elif Lat <= -23.5 and Lat > -66.6: 		
-			if wd == "S": 
-				if wdc == "Backing": 
+
+		# Southern Hemisphere: Temperate Zone
+		elif Lat <= -23.5 and Lat > -66.6:
+			if wd == "S":
+				if wdc == "Backing":
 					d1 = "A"
-				elif wdc == "Steady": 
+				elif wdc == "Steady":
 					d1 = "B"
-				elif wdc == "Veering": 
+				elif wdc == "Veering":
 					d1 = "C"
-			elif wd == "SE": 
-				if wdc == "Backing": 
+			elif wd == "SE":
+				if wdc == "Backing":
 					d1 = "D"
-				elif wdc == "Steady": 
+				elif wdc == "Steady":
 					d1 = "E"
-				elif wdc == "Veering": 
+				elif wdc == "Veering":
 					d1 = "F"
-			elif wd == "E": 
-				if wdc == "Backing": 
+			elif wd == "E":
+				if wdc == "Backing":
 					d1 = "G"
-				elif wdc == "Steady": 
+				elif wdc == "Steady":
 					d1 = "H"
-				elif wdc == "Veering": 
+				elif wdc == "Veering":
 					d1 = "J"
-			elif wd == "NE": 
-				if wdc == "Backing": 
+			elif wd == "NE":
+				if wdc == "Backing":
 					d1 = "K"
-				elif wdc == "Steady": 
+				elif wdc == "Steady":
 					d1 = "L"
-				elif wdc == "Veering": 
+				elif wdc == "Veering":
 					d1 = "M"
-			elif wd == "N": 
-				if wdc == "Backing": 
+			elif wd == "N":
+				if wdc == "Backing":
 					d1 = "N"
-				elif wdc == "Steady": 
+				elif wdc == "Steady":
 					d1 = "O"
-				elif wdc == "Veering": 
+				elif wdc == "Veering":
 					d1 = "P"
-			elif wd == "NW": 
-				if wdc == "Backing": 
+			elif wd == "NW":
+				if wdc == "Backing":
 					d1 = "Q"
-				elif wdc == "Steady": 
+				elif wdc == "Steady":
 					d1 = "R"
-				elif wdc == "Veering": 
+				elif wdc == "Veering":
 					d1 = "S"
-			elif wd == "W": 
-				if wdc == "Backing": 
+			elif wd == "W":
+				if wdc == "Backing":
 					d1 = "T"
-				elif wdc == "Steady": 
+				elif wdc == "Steady":
 					d1 = "U"
-				elif wdc == "Veering": 
+				elif wdc == "Veering":
 					d1 = "V"
-			elif wd == "SW": 
-				if wdc == "Backing": 
+			elif wd == "SW":
+				if wdc == "Backing":
 					d1 = "W"
-				elif wdc == "Steady": 
+				elif wdc == "Steady":
 					d1 = "X"
-				elif wdc == "Veering": 
+				elif wdc == "Veering":
 					d1 = "Y"
-			elif wd == "Calm": 
+			elif wd == "Calm":
 				d1 = "Z"
-		
+
 	# Determine the Barometer Dial position from the current atmospheric pressure
 	if p >= 1029.5:
 		d2 = "1"
-	elif p >= 1019.3 and p < 1029.5: 
+	elif p >= 1019.3 and p < 1029.5:
 		d2 = "2"
 	elif p >= 1012.5 and p < 1019.3:
 		d2 = "3"
 	elif p >= 1005.8 and p < 1012.5:
 		d2 = "4"
-	elif p >= 999.0 and p < 1005.8: 
+	elif p >= 999.0 and p < 1005.8:
 		d2 = "5"
 	elif p >= 988.8 and p < 999.0:
 		d2 = "6"
@@ -715,8 +715,8 @@ def dialSetting(Met):
 		d2 = "7"
 	elif p < 975.3:
 		d2 = "8"
-		
-	# Determine the Barometer Change Dial position using the current atmospheric 
+
+	# Determine the Barometer Change Dial position using the current atmospheric
 	# pressure trend in hPa/6 hours.
 	pt = p - p6
 	if pt >= 1.4:							# Rising Rapidly
@@ -734,8 +734,8 @@ def dialSetting(Met):
 	elif pt <= -1.4:						# Falling Rapidly
 		trd = "Falling Rapidly"
 		d3 = "5"
-	
-	# Determine the Present Weather Dial position using the current weather 
+
+	# Determine the Present Weather Dial position using the current weather
 	# conditions
 	if lr <= 30:
 		pw = "Precipitation"
@@ -752,7 +752,7 @@ def dialSetting(Met):
 		d4 = "5"
 	elif pw == None:
 		d4 = "x"
-			
+
 	# Return SagerWeathercaster dial setting as function output
 	Sager = dict()
 	Sager['DialSet'] = d1 + d2 + d3 + d4
@@ -760,27 +760,27 @@ def dialSetting(Met):
 	Sager['Lat'] = Lat
 	Sager['Units'] = Units
 	return Sager
-	
+
 def getForecast(Sager):
 
-	""" Gets the Sager Weathercaster Forecast based on the specified Sager 
-	Weathercaster Dial position. 
-	
-	INPUTS: 
+	""" Gets the Sager Weathercaster Forecast based on the specified Sager
+	Weathercaster Dial position.
+
+	INPUTS:
         Sager - Dictionary containing the following fields:
             Dial				Weather observations latitude
             Lat					Weather observations latitude
             Temp				Current temperature
-		
-	OUTPUT: 
+
+	OUTPUT:
         WeatherPredictionKey - Sager Weathercaster Forecast
 	"""
-	
+
 	# Extract Sager Weathercast dial settings, station latitude, and temperature
 	Dial = Sager['DialSet']
 	Lat = Sager['Lat']
 	t = Sager['Temp']
-	
+
 	# Define precipitation type based on current temperature
 	if t <= -1.5:
 		fp1 = "Snow"
@@ -791,7 +791,7 @@ def getForecast(Sager):
 	elif t >= 1.5:
 		fp1 = "Rain";
 		fp2 = "rain";
-	
+
 	# Define Expected Weather as listed in The Sager Weathercaster with
 	# modifications based on current temperature
 	Expected = [None]*21
@@ -816,63 +816,63 @@ def getForecast(Sager):
 	Expected[18] = fp1 + " or showers followed by fair early in period (within 6 hours) and becoming cooler; "			# Rain changed to fp1.
 	Expected[19] = "Unsettled followed by fair; ";
 	Expected[20] = "Unsettled followed by fair early in period (within 6 hours) and becoming cooler; ";
-	
-	# Define Wind Velocities as listed in The Sager Weathercaster with 
+
+	# Define Wind Velocities as listed in The Sager Weathercaster with
 	# modifications based on Beaufort Scale terminology and users choice of wind
 	# speed units
 	Wind = [None]*8
 	if Sager['Units'] in ['mph','lfm']:
 		Wind[0] = "Wind probably increasing. "
-		Wind[1] = "Wind moderate to fresh (13-24 mph). " 																	# Changed from "Moderate to fresh". 
+		Wind[1] = "Wind moderate to fresh (13-24 mph). " 																	# Changed from "Moderate to fresh".
 		Wind[2] = "Wind strong to near gale (25-38 mph). "																	# Changed from "Strong".
 		Wind[3] = "Wind gale to strong gale (39-54 mph). "																	# Changed from "Gale".
 		Wind[4] = "Wind storm to violent storm (55-73 mph). "																# Changed from "Dangerous gale (whole gale)".
 		Wind[5] = "Wind hurricane (74+ mph). "
 		Wind[6] = "Wind diminishing, or moderating somewhat if current winds are of fresh to strong velocity. "
 		Wind[7] = "Wind unchanged. Some tendency for slight increase during day, diminishing in evening. "
-	elif Sager['Units'] == 'kph':	
+	elif Sager['Units'] == 'kph':
 		Wind[0] = "Wind probably increasing. "
-		Wind[1] = "Wind moderate to fresh (20-39 km/h). " 																	
-		Wind[2] = "Wind strong to near gale (40-61 km/h). "																	
-		Wind[3] = "Wind gale to strong gale (62-88 km/h). "																	
-		Wind[4] = "Wind storm to violent storm (89-117 km/h). "																
+		Wind[1] = "Wind moderate to fresh (20-39 km/h). "
+		Wind[2] = "Wind strong to near gale (40-61 km/h). "
+		Wind[3] = "Wind gale to strong gale (62-88 km/h). "
+		Wind[4] = "Wind storm to violent storm (89-117 km/h). "
 		Wind[5] = "Wind hurricane (118+ km/h). "
 		Wind[6] = "Wind diminishing, or moderating somewhat if current winds are of fresh to strong velocity. "
-		Wind[7] = "Wind unchanged. Some tendency for slight increase during day, diminishing in evening. "	
-	elif Sager['Units'] == 'kts':	
+		Wind[7] = "Wind unchanged. Some tendency for slight increase during day, diminishing in evening. "
+	elif Sager['Units'] == 'kts':
 		Wind[0] = "Wind probably increasing. "
-		Wind[1] = "Wind moderate to fresh (11-21 kts). " 																	
-		Wind[2] = "Wind strong to near gale (22-33 kts). "																	
-		Wind[3] = "Wind gale to strong gale (34-47 kts). "																	
-		Wind[4] = "Wind storm to violent storm (47-63 kts). "																
+		Wind[1] = "Wind moderate to fresh (11-21 kts). "
+		Wind[2] = "Wind strong to near gale (22-33 kts). "
+		Wind[3] = "Wind gale to strong gale (34-47 kts). "
+		Wind[4] = "Wind storm to violent storm (47-63 kts). "
 		Wind[5] = "Wind hurricane (64+ kts). "
 		Wind[6] = "Wind diminishing, or moderating somewhat if current winds are of fresh to strong velocity. "
-		Wind[7] = "Wind unchanged. Some tendency for slight increase during day, diminishing in evening. "	
-	elif Sager['Units'] == 'bft':	
+		Wind[7] = "Wind unchanged. Some tendency for slight increase during day, diminishing in evening. "
+	elif Sager['Units'] == 'bft':
 		Wind[0] = "Wind probably increasing. "
-		Wind[1] = "Wind moderate to fresh (4-5 bft). " 																		
-		Wind[2] = "Wind strong to near gale (6-7 bft). "																	
-		Wind[3] = "Wind gale to strong gale (8-9 bft). "																	
-		Wind[4] = "Wind storm to violent storm (10-11 bft). "																
+		Wind[1] = "Wind moderate to fresh (4-5 bft). "
+		Wind[2] = "Wind strong to near gale (6-7 bft). "
+		Wind[3] = "Wind gale to strong gale (8-9 bft). "
+		Wind[4] = "Wind storm to violent storm (10-11 bft). "
 		Wind[5] = "Wind hurricane (12+ bft). "
 		Wind[6] = "Wind diminishing, or moderating somewhat if current winds are of fresh to strong velocity. "
-		Wind[7] = "Wind unchanged. Some tendency for slight increase during day, diminishing in evening. "		
-	elif Sager['Units'] == 'mps':	
+		Wind[7] = "Wind unchanged. Some tendency for slight increase during day, diminishing in evening. "
+	elif Sager['Units'] == 'mps':
 		Wind[0] = "Wind probably increasing. "
-		Wind[1] = "Wind moderate to fresh (5.5-10.7 m/s). " 																		
-		Wind[2] = "Wind strong to near gale (10.8-17.1 m/s). "																	
-		Wind[3] = "Wind gale to strong gale (17.2-24.4 m/s). "																	
-		Wind[4] = "Wind storm to violent storm (24.5-32.6 m/s). "																
+		Wind[1] = "Wind moderate to fresh (5.5-10.7 m/s). "
+		Wind[2] = "Wind strong to near gale (10.8-17.1 m/s). "
+		Wind[3] = "Wind gale to strong gale (17.2-24.4 m/s). "
+		Wind[4] = "Wind storm to violent storm (24.5-32.6 m/s). "
 		Wind[5] = "Wind hurricane (32.7+ m/s). "
 		Wind[6] = "Wind diminishing, or moderating somewhat if current winds are of fresh to strong velocity. "
-		Wind[7] = "Wind unchanged. Some tendency for slight increase during day, diminishing in evening. "	
+		Wind[7] = "Wind unchanged. Some tendency for slight increase during day, diminishing in evening. "
 
 	# Define Wind Direction as listed in The Sager Weathercaster with
 	# modifications based on latitude of station
 	# Northern Hemisphere: Polar & Tropical Zone
 	Direction = [None]*9
-	if Lat >= 0: 													
-		if Lat < 23.5 or Lat >= 66.6: 								
+	if Lat >= 0:
+		if Lat < 23.5 or Lat >= 66.6:
 			Direction[0] = "South or southwest"
 			Direction[1] = "Southwest or west"
 			Direction[2] = "West or northwest"
@@ -882,9 +882,9 @@ def getForecast(Sager):
 			Direction[6] = "East or Southeast"
 			Direction[7] = "Southeast or south"
 			Direction[8] = "Shifting (or variable)"
-			
-		# Northern Hemisphere: Temperate Zone	
-		elif Lat >= 23.5 and Lat < 66.6: 							
+
+		# Northern Hemisphere: Temperate Zone
+		elif Lat >= 23.5 and Lat < 66.6:
 			Direction[0] = "North or northeast"
 			Direction[1] = "Northeast or east"
 			Direction[2] = "East or southeast"
@@ -894,10 +894,10 @@ def getForecast(Sager):
 			Direction[6] = "West or northwest"
 			Direction[7] = "Northwest or north"
 			Direction[8] = "Shifting (or variable)"
-			
+
 	# Southern Hemisphere: Polar & Tropical Zone
-	elif Lat < 0: 							
-		if Lat > -23.5 or Lat <= -66.6:	 	
+	elif Lat < 0:
+		if Lat > -23.5 or Lat <= -66.6:
 			Direction[0] = "North or northwest"
 			Direction[1] = "Northwest or west"
 			Direction[2] = "West or southwest"
@@ -907,9 +907,9 @@ def getForecast(Sager):
 			Direction[6] = "East or northeast"
 			Direction[7] = "Northeast or north"
 			Direction[8] = "Shifting (or variable)"
-			
-		# Southern Hemisphere: Temperate Zone	
-		elif Lat <= -23.5 and Lat > -66.6: 			
+
+		# Southern Hemisphere: Temperate Zone
+		elif Lat <= -23.5 and Lat > -66.6:
 			Direction[0] = "South or southeast"
 			Direction[1] = "Southeast or east"
 			Direction[2] = "East or northeast"
@@ -919,7 +919,7 @@ def getForecast(Sager):
 			Direction[6] = "West or southwest"
 			Direction[7] = "Southwest or south"
 			Direction[8] = "Shifting (or variable)"
-			
+
 	# Define the forecast for each Sager Weather Prediction Key
 	AD1 = Expected[0] + Wind[6] + Direction[0] + "."
 	AD6 = Expected[0] + Wind[6] + Direction[5] + "."
@@ -1300,7 +1300,7 @@ def getForecast(Sager):
 	YU7 = Expected[20] + Wind[7] + Direction[6] + "."
 	YU8 = Expected[20] + Wind[7] + Direction[7] + "."
 
-	# Determine the Sager Weather Prediction Key that corresponds to the 
+	# Determine the Sager Weather Prediction Key that corresponds to the
 	# current Weather Dial settings
 	WeatherPredictionKey = {"A111": CU8,
 					"A112": CU8,
@@ -6301,4 +6301,3 @@ def getForecast(Sager):
 
 	# Return SagerWeathercaster forecast text as function output
 	return WeatherPredictionKey.get(Dial,"Forecast Unavailable")
-					

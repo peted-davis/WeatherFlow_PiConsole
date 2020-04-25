@@ -1,5 +1,6 @@
 """ Handles Websocket messages received by the Raspberry Pi Python console for
-eather Flow Smart Home Weather Stations. Copyright (C) 2018-2020  Peter Davis
+WeatherFlow Tempest and Smart Home Weather stations.
+Copyright (C) 2018-2020 Peter Davis
 
 This program is free software: you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
@@ -163,6 +164,10 @@ def Tempest(Msg,Console):
     if hasattr(Console,'WindSpeedPanel'):
         Console.WindSpeedPanel.meanWindIcons()
 
+    # Set UV Index icon if Sunrise/Sunset panel is active
+    if hasattr(Console,'SunriseSunsetPanel'):
+        Console.SunriseSunsetPanel.setUVIcon()
+
     # Set current pressure arrow if BarometerPanel is active
     if hasattr(Console,'BarometerPanel'):
         Console.BarometerPanel.setArrow()
@@ -170,6 +175,10 @@ def Tempest(Msg,Console):
     # Set "Feels Like" icon if TemperaturePanel is active
     if hasattr(Console,'TemperaturePanel'):
         Console.TemperaturePanel.feelsLikeIcon()
+
+    # Set lightning bolt icon if LightningPanel panel is active
+    if hasattr(Console,'LightningPanel'):
+        Console.LightningPanel.setLightningBoltIcon()
 
     # Return Console object
     return Console
@@ -270,6 +279,10 @@ def Sky(Msg,Console):
     # Set mean wind speed and direction icons if WindSpeedPanel is active
     if hasattr(Console,'WindSpeedPanel'):
         Console.WindSpeedPanel.meanWindIcons()
+
+    # Set UV Index icon if Sunrise/Sunset panel is active
+    if hasattr(Console,'SunriseSunsetPanel'):
+        Console.SunriseSunsetPanel.setUVIcon()
 
     # Set "Feels Like" icon if TemperaturePanel is active
     if hasattr(Console,'TemperaturePanel'):
@@ -379,6 +392,10 @@ def outdoorAir(Msg,Console):
     if hasattr(Console,'TemperaturePanel'):
         Console.TemperaturePanel.feelsLikeIcon()
 
+    # Set lightning bolt icon if LightningPanel panel is active
+    if hasattr(Console,'LightningPanel'):
+        Console.LightningPanel.setLightningBoltIcon()
+
     # Return Console object
     return Console
 
@@ -471,7 +488,7 @@ def rapidWind(Msg,Console):
     Console.Obs['rapidSpd']   = observation.Format(WindSpd,'Wind')
     Console.Obs['rapidDir']   = observation.Format(WindDir,'Direction')
 
-    # If WindSpeedPanel panel is open, animate wind rose arrow
+    # Animate wind rose arrow if WindSpeedPanel panel is active
     if hasattr(Console,'WindSpeedPanel'):
         Console.WindSpeedPanel.WindRoseAnimation()
 
@@ -504,6 +521,10 @@ def evtStrike(Msg,Console):
     # Define Kivy label binds
     Console.Obs['StrikeDeltaT'] = observation.Format(StrikeDeltaT,'TimeDelta')
     Console.Obs['StrikeDist']   = observation.Format(StrikeDist,'StrikeDistance')
+
+    # Set lightning bolt icon if LightningPanel panel is active
+    if hasattr(Console,'LightningPanel'):
+        Console.LightningPanel.setLightningBoltIcon()
 
     # Return Console object
     return Console
