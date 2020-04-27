@@ -505,15 +505,15 @@ class wfpiconsole(App):
         # Update display if units have been changed
         if self.unitChange == 1:
             if self.config['Station']['TempestID']:
-                websocket.Tempest(self.Obs['TempestMsg'],self)
-                websocket.rapidWind(self.Obs['RapidMsg'],self)
+                websocket.Tempest(self.Obs['TempestMsg'],self.Obs,self.config)
+                websocket.rapidWind(self.Obs['RapidMsg'],self.Obs,self.config)
             elif self.config['Station']['SkyID']:
-                websocket.Sky(self.Obs['SkyMsg'],self)
-                websocket.rapidWind(self.Obs['RapidMsg'],self)
+                websocket.Sky(self.Obs['SkyMsg'],self.Obs,self.config)
+                websocket.rapidWind(self.Obs['RapidMsg'],self.Obs,self.config)
             if self.config['Station']['OutAirID']:
-                websocket.outdoorAir(self.Obs['outAirMsg'],self)
+                websocket.outdoorAir(self.Obs['outAirMsg'],self.Obs,self.config)
             if self.config['Station']['InAirID']:
-                websocket.indoorAir(self.Obs['inAirMsg'],self)
+                websocket.indoorAir(self.Obs['inAirMsg'],self.Obs,self.config)
             self.unitChange = 0
 
 # ==============================================================================

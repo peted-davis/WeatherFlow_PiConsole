@@ -1,5 +1,5 @@
-""" Formats and sets the required units of observations displayed on the 
-Raspberry Pi Python console for Weather Flow Smart Home Weather Stations. 
+""" Formats and sets the required units of observations displayed on the
+Raspberry Pi Python console for Weather Flow Smart Home Weather Stations.
 Copyright (C) 2018-2020  Peter Davis
 
 This program is free software: you can redistribute it and/or modify it under
@@ -22,12 +22,12 @@ import math
 def Units(Obs,Unit):
 
     """ Sets the required observation units
-	
-	INPUTS: 
+
+	INPUTS:
 		Obs				Observations with current units
 		Unit			Required output unit
-		
-	OUTPUT: 
+
+	OUTPUT:
         cObs            Observation converted into required unit
 	"""
 
@@ -139,16 +139,16 @@ def Units(Obs,Unit):
 
     # Return converted observations
     return cObs
-    
+
 def Format(Obs,Type):
 
     """ Formats the observation for display on the console
-	
-	INPUTS: 
+
+	INPUTS:
 		Obs				Observations with units
 		Type			Observation type
-		
-	OUTPUT: 
+
+	OUTPUT:
         cObs            Formatted observation based on specified type
 	"""
 
@@ -215,7 +215,7 @@ def Format(Obs,Type):
                         elif cObs[ii-1] < 10:
                             cObs[ii-1] = '{:.1f}'.format(cObs[ii-1])
                         else:
-                            cObs[ii-1] = '{:.0f}'.format(cObs[ii-1])            
+                            cObs[ii-1] = '{:.0f}'.format(cObs[ii-1])
                 elif Prcp.strip() == 'mm/hr':
                     if math.isnan(cObs[ii-1]):
                         cObs[ii-1] = '-'
@@ -227,7 +227,7 @@ def Format(Obs,Type):
                         elif cObs[ii-1] < 10:
                             cObs[ii-1] = '{:.1f}'.format(cObs[ii-1])
                         else:
-                            cObs[ii-1] = '{:.0f}'.format(cObs[ii-1])            
+                            cObs[ii-1] = '{:.0f}'.format(cObs[ii-1])
                 elif Prcp.strip() in ['"','cm']:
                     if math.isnan(cObs[ii-1]):
                         cObs[ii-1] = '-'
@@ -256,7 +256,7 @@ def Format(Obs,Type):
                         elif cObs[ii-1] < 100:
                             cObs[ii-1] = '{:.1f}'.format(cObs[ii-1])
                         else:
-                            cObs[ii-1] = '{:.0f}'.format(cObs[ii-1])                            
+                            cObs[ii-1] = '{:.0f}'.format(cObs[ii-1])
 
     # Format humidity observations
     elif Type == 'Humidity':
@@ -315,15 +315,21 @@ def Format(Obs,Type):
                     else:
                         DistValues = [0,1,5,6,8,10,12,14,17,20,24,27,31,34,35,37,40]
                         DispValues = ['0-5','0-5','2-8','3-9','5-11','7-13','9-15','11-17','14-20','17-23','21-27','24-30','28-34','31-37','32-38','34-40','37-43']
-                        cObs[ii-1] = DispValues[DistValues.index(cObs[ii-1])]
+                        try:
+                            cObs[ii-1] = DispValues[DistValues.index(cObs[ii-1])]
+                        except:
+                            cObs[ii-1] = str(cObs[ii-1])
                 elif StrikeDist.strip() in ['miles']:
                     if math.isnan(cObs[ii-1]):
                         cObs[ii-1] = '-'
                     else:
                         DistValues = [0,0.6,3.1,3.7,5,6.2,7.5,8.7,10.6,12.4,14.9,16.8,19.3,21.1,21.7,23,24.9]
                         DispValues = ['0-3','0-3','1-5','2-6','3-7','4-8','6-9','7-11','9-12','11-14','13-17','15-19','17-21','19-23','20-24','21-25','37-43']
-                        cObs[ii-1] = DispValues[DistValues.index(round(cObs[ii-1],1))]
-                        
+                        try:
+                            cObs[ii-1] = DispValues[DistValues.index(round(cObs[ii-1],1))]
+                        except:
+                            cObs[ii-1] = str(round(cObs[ii-1],1))
+
     # Format lightning strike frequency observations
     elif Type == 'StrikeFrequency':
         for ii,StrikeFreq in enumerate(Obs):
