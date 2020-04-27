@@ -28,7 +28,7 @@ import sys
 import os
 
 # Define wfpiconsole version number
-Version = 'v3.1.9'
+Version = 'v3.1.10'
 
 # Define required variables
 TEMPEST       = False
