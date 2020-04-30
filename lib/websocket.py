@@ -492,7 +492,7 @@ def rapidWind(Msg,Console):
     # Return Console object
     return Console
 
-def evtStrike(Msg,Console,LightningPanel,LightningButton):
+def evtStrike(Msg,Console):
 
     """ Handles lightning strike event Websocket messages received from either
         AIR or TEMPEST module
