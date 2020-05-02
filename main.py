@@ -75,22 +75,23 @@ from autobahn.twisted.websocket import WebSocketClientProtocol, WebSocketClientF
 # Specifies behaviour of Websocket Client
 class WeatherFlowClientProtocol(WebSocketClientProtocol,TimeoutMixin):
 
-    def onConnect(self, response):
+    def onOpen(self):
+        print("Websocket connection open")
+        self.factory._proto = self
         self.factory.resetDelay()
         self.setTimeout(300)
 
-    def onOpen(self):
-        self.factory._proto = self
-        
     def onMessage(self,payload,isBinary):
         Message = json.loads(payload.decode('utf8'))
         self.factory._app.WebsocketDecodeMessage(Message)
         self.resetTimeout()
 
     def timeoutConnection(self):
+        print("Websocket connection timeout")
         self.transport.abortConnection()
 
     def onClose(self,wasClean,code,reason):
+        print("Websocket connection closed")
         self.factory._proto = None
 
 # Specifies Websocket Factory
@@ -98,16 +99,15 @@ class WeatherFlowClientFactory(WebSocketClientFactory,ReconnectingClientFactory)
 
     # Define protocol and reconnection properties
     protocol     = WeatherFlowClientProtocol
-    initialDelay = 60
     maxDelay     = 60
     jitter       = 0
 
     def clientConnectionFailed(self,connector,reason):
-        print('Websocket connection failed .. retrying ..')
+        print('Websocket connection retrying')
         self.retry(connector)
 
     def clientConnectionLost(self,connector,reason):
-        print('Websocket connection lost .. retrying ..')
+        print('Websocket connection retrying')
         self.retry(connector)
 
     def __init__(self, url, app):
@@ -172,12 +172,6 @@ from kivy.uix.button         import Button
 from kivy.uix.widget         import Widget
 from kivy.uix.popup          import Popup
 from kivy.uix.label          import Label
-
-# ==============================================================================
-# DEFINE GLOBAL FUNCTIONS AND VARIABLES
-# ==============================================================================
-# Define global variables
-NaN = float('NaN')
 
 # ==============================================================================
 # DEFINE 'WeatherFlowPiConsole' APP CLASS
@@ -369,7 +363,7 @@ class wfpiconsole(App):
     def WebsocketConnect(self):
         Server = 'wss://ws.weatherflow.com/swd/data?api_key=' + self.config['Keys']['WeatherFlow']
         self._factory = WeatherFlowClientFactory(Server,self)
-        reactor.connectSSL('ws.weatherflow.com',443,self._factory,ssl.ClientContextFactory(),60)
+        reactor.connectSSL('ws.weatherflow.com',443,self._factory,ssl.ClientContextFactory(),20)
 
     # SEND MESSAGE TO THE WEATHERFLOW WEBSOCKET SERVER
     # --------------------------------------------------------------------------
@@ -385,9 +379,6 @@ class wfpiconsole(App):
 
         # Extract type of received message
         Type = Msg['type']
-
-        if Type != 'rapid_wind':
-            print(Type)
 
         # Start listening for device observations and events upon connection of
         # websocket based on device IDs specified in user configuration file
@@ -447,22 +438,6 @@ class wfpiconsole(App):
 
             # Extract observations from evt_strike websocket message
             Thread(target=websocket.evtStrike, args=(Msg,self), name="evt_strike").start()
-
-            # Open secondary lightning panel to show strike has been detected
-            if self.config['Display']['LightningPanel'] == '1':
-                for ii,Button in enumerate(self.CurrentConditions.buttonList):
-                    if "Lightning" in Button[2]:
-                        newButton = self.config[Button[3] + 'Panels'][Button[1]]
-                        self.CurrentConditions.ids[Button[1]].clear_widgets()
-                        self.CurrentConditions.ids[Button[1]].add_widget(eval(Button[2] + 'Panel')())
-                        self.CurrentConditions.ids[Button[0]].clear_widgets()
-                        self.CurrentConditions.ids[Button[0]].add_widget(eval(newButton + 'Button')())
-                        self.CurrentConditions.buttonList[ii] = [Button[0],Button[1],newButton,'Secondary']
-                        break
-
-            # If lightning panel is open, animate lightning bolt icon
-            if hasattr(self,'LightningPanel'):
-                self.LightningPanel.LightningBoltAnim()
 
     # UPDATE 'WeatherFlowPiConsole' APP CLASS METHODS AT REQUIRED INTERVALS
     # --------------------------------------------------------------------------
@@ -534,12 +509,17 @@ class CurrentConditions(Screen):
 
     # SWITCH BETWEEN DIFFERENT PANELS ON CURRENT CONDITIONS SCREEN
     # --------------------------------------------------------------------------
-    def SwitchPanel(self,Instance):
+    @mainthread
+    def SwitchPanel(self,Instance,manButton=None):
 
         # Determine ID of button that has been pressed
         for id,Object in App.get_running_app().CurrentConditions.ids.items():
-            if Object == Instance.parent.parent:
-                break
+            if Instance:
+                if Object == Instance.parent.parent:
+                    break
+            else:
+                if Object == manButton:
+                    break
 
         # Extract entry in buttonList that correponds to the button that has
         # been pressed
@@ -549,7 +529,7 @@ class CurrentConditions(Screen):
 
         # Determine new button type
         newButton = App.get_running_app().config[Button[3] + 'Panels'][Button[1]]
-        
+
         # Destroy old panel class attribute
         delattr(App.get_running_app(), newButton + 'Panel')
 
@@ -569,7 +549,7 @@ class CurrentConditions(Screen):
 # ForecastPanel RELATIVE LAYOUT CLASS
 # ==============================================================================
 class ForecastPanel(RelativeLayout):
-    
+
     # Initialise 'ForecastPanel' relative layout class
     def __init__(self,**kwargs):
         super(ForecastPanel,self).__init__(**kwargs)
@@ -582,7 +562,7 @@ class ForecastButton(RelativeLayout):
 # SagerPanel RELATIVE LAYOUT CLASS
 # ==============================================================================
 class SagerPanel(RelativeLayout):
-    
+
     # Initialise 'SagerPanel' relative layout class
     def __init__(self,**kwargs):
         super(SagerPanel,self).__init__(**kwargs)
@@ -603,8 +583,8 @@ class TemperaturePanel(RelativeLayout):
     # --------------------------------------------------------------------------
     def __init__(self,**kwargs):
         super(TemperaturePanel,self).__init__(**kwargs)
-        Clock.schedule_once(lambda dt: self.feelsLikeIcon())
         App.get_running_app().TemperaturePanel = self
+        self.feelsLikeIcon()
 
     # SET "FEELS LIKE" ICON (uses mainthread)
     # --------------------------------------------------------------------------
@@ -631,6 +611,7 @@ class WindSpeedPanel(RelativeLayout):
         super(WindSpeedPanel,self).__init__(**kwargs)
         Clock.schedule_once(lambda dt: self.meanWindIcons())
         App.get_running_app().WindSpeedPanel = self
+        self.meanWindIcons()
 
     # ANIMATE WIND ROSE DIRECTION ARROW (uses mainthread)
     # --------------------------------------------------------------------------
@@ -685,6 +666,7 @@ class SunriseSunsetPanel(RelativeLayout):
     def __init__(self,**kwargs):
         super(SunriseSunsetPanel,self).__init__(**kwargs)
         App.get_running_app().SunriseSunsetPanel = self
+        self.setUVIcon()
 
     # SET CURRENT UV INDEX ICON (uses mainthread)
     # --------------------------------------------------------------------------
@@ -699,12 +681,12 @@ class SunriseSunsetButton(RelativeLayout):
 # MoonPhasePanel RELATIVE LAYOUT CLASS
 # ==============================================================================
 class MoonPhasePanel(RelativeLayout):
-    
+
     # Initialise 'MoonPhasePanel' relative layout class
     def __init__(self,**kwargs):
         super(MoonPhasePanel,self).__init__(**kwargs)
         App.get_running_app().MoonPhasePanel = self
-    
+
 
 class MoonPhaseButton(RelativeLayout):
     pass
@@ -723,9 +705,9 @@ class RainfallPanel(RelativeLayout):
     # --------------------------------------------------------------------------
     def __init__(self,**kwargs):
         super(RainfallPanel,self).__init__(**kwargs)
-        Clock.schedule_once(self.Clock)
-        self.RainRateAnimation()
         App.get_running_app().RainfallPanel = self
+        self.RainRateAnimation()
+        self.Clock(None)
 
     # ANIMATE RAIN RATE ICON
     # --------------------------------------------------------------------------
@@ -812,23 +794,25 @@ class LightningPanel(RelativeLayout):
     # --------------------------------------------------------------------------
     def __init__(self,**kwargs):
         super(LightningPanel,self).__init__(**kwargs)
-        self.setLightningBoltIcon()
         App.get_running_app().LightningPanel = self
+        self.setLightningBoltIcon()
 
     # ANIMATE LIGHTNING BOLT ICON WHEN STRIKE IS DETECTED
     # --------------------------------------------------------------------------
+    @mainthread
     def LightningBoltAnim(self):
-        Anim = Animation(xLightningBolt=5,t='out_quad',d=0.02) + Animation(xLightningBolt=0,t='out_elastic',d=0.5)
+        Anim = Animation(xLightningBolt=10,t='out_quad',d=0.02) + Animation(xLightningBolt=0,t='out_elastic',d=0.5)
         Anim.start(self)
 
     # SET LIGHTNING BOLT ICON (uses mainthread)
     # --------------------------------------------------------------------------
     @mainthread
     def setLightningBoltIcon(self):
-        if App.get_running_app().Obs['StrikeDeltaT'][4] < 360:
-            self.lightningBoltIcon = 'lightningBoltStrike'
-        else:
-            self.lightningBoltIcon = 'lightningBolt'
+        if App.get_running_app().Obs['StrikeDeltaT'][4] != '-':
+            if App.get_running_app().Obs['StrikeDeltaT'][4] < 360:
+                self.lightningBoltIcon = 'lightningBoltStrike'
+            else:
+                self.lightningBoltIcon = 'lightningBolt'
 
 class LightningButton(RelativeLayout):
     pass
@@ -845,8 +829,8 @@ class BarometerPanel(RelativeLayout):
     # --------------------------------------------------------------------------
     def __init__(self,**kwargs):
         super(BarometerPanel,self).__init__(**kwargs)
-        Clock.schedule_once(lambda dt: self.setArrow())
         App.get_running_app().BarometerPanel = self
+        self.setArrow()
 
     # SET BAROMETER ARROW FOR CURRENT PRESSURE (uses mainthread)
     # --------------------------------------------------------------------------
@@ -1001,5 +985,8 @@ class SettingToggleTemperature(SettingString):
 # RUN APP
 # ==============================================================================
 if __name__ == '__main__':
-    log.startLogging(open(os.path.expanduser('~/wfpiconsole/wfpiconsole.log'),'w'))
-    wfpiconsole().run()
+    log.startLogging(sys.stdout)
+    try:
+        wfpiconsole().run()
+    except KeyboardInterrupt:
+        wfpiconsole().stop()

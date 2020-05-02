@@ -1,5 +1,5 @@
-""" Contains system functions required by the Raspberry Pi Python console for 
-WeatherFlow Tempest and Smart Home Weather stations. 
+""" Contains system functions required by the Raspberry Pi Python console for
+WeatherFlow Tempest and Smart Home Weather stations.
 Copyright (C) 2018-2020 Peter Davis
 
 This program is free software: you can redistribute it and/or modify it under
@@ -29,13 +29,13 @@ def checkVersion(verData,Config,updateNotif,*largs):
 
     """ Checks current version of the PiConsole against the latest available
     version on Github
-	
-	INPUTS: 
+
+	INPUTS:
         verData                 Dictionary holding version information
 		Config                  Station configuration
         updateNotif             Instance of the updateNotif widget
-		
-	OUTPUT: 
+
+	OUTPUT:
         verData                 Dictionary holding version information
 	"""
 
@@ -45,15 +45,15 @@ def checkVersion(verData,Config,updateNotif,*largs):
     # Get current time in station time zone
     Tz = pytz.timezone(Config['Station']['Timezone'])
     Now = datetime.now(pytz.utc).astimezone(Tz)
-    
+
     # Extract version number from API response
     if requestAPI.github.verifyResponse(Data,'tag_name'):
         verData['Latest'] = Data.json()['tag_name']
     else:
-        Next = Tz.localize(datetime(Now.year,Now.month,Now.day,0,0,0)+timedelta(days=1))
+        Next = Tz.localize(datetime(Now.year,Now.month,Now.day)+timedelta(days=1))
         Clock.schedule_once(partial(checkVersion,verData,Config,updateNotif),(Next-Now).total_seconds())
         return verData
-    
+
     # If current and latest version numbers do not match, open update
     # notification
     if version.parse(Config['System']['Version']) < version.parse(verData['Latest']):
@@ -67,9 +67,9 @@ def checkVersion(verData,Config,updateNotif,*largs):
         verData['updateNotif'].open()
 
     # Schedule next Version Check
-    Next = Tz.localize(datetime(Now.year,Now.month,Now.day,0,0,0)+timedelta(days=1))
+    Next = Tz.localize(datetime(Now.year,Now.month,Now.day)+timedelta(days=1))
     Clock.schedule_once(partial(checkVersion,verData,Config,updateNotif),(Next-Now).total_seconds())
-    
+
     # Return system variables
     return verData
-    
+

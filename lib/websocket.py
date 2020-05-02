@@ -522,9 +522,21 @@ def evtStrike(Msg,Console):
     Console.Obs['StrikeDeltaT'] = observation.Format(StrikeDeltaT,'TimeDelta')
     Console.Obs['StrikeDist']   = observation.Format(StrikeDist,'StrikeDistance')
 
-    # Set lightning bolt icon if LightningPanel panel is active
+    # If required, open secondary lightning panel to show strike has been
+    # detected
+    if Console.config['Display']['LightningPanel'] == '1':
+        for ii,Button in enumerate(Console.CurrentConditions.buttonList):
+            if "Lightning" in Button[2]:
+                Console.CurrentConditions.SwitchPanel([],Button)
+
+                # Wait for lightning panel to be instantiated
+                while not hasattr(Console,'LightningPanel'):
+                    time.sleep(0.1)
+
+    # Set and animate lightning bolt icon if LightningPanel panel is active
     if hasattr(Console,'LightningPanel'):
         Console.LightningPanel.setLightningBoltIcon()
+        Console.LightningPanel.LightningBoltAnim()
 
     # Return Console object
     return Console

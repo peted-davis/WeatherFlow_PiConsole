@@ -724,47 +724,47 @@ ScreenManager:
 			'[color=c8c8c8ff]Last Strike[/color]' if app.Obs['StrikeDeltaT'][4] == '-' else \
 			'[color=c8c8c8ff]Strike Detected![/color]' if app.Obs['StrikeDeltaT'][4] < 360 else \
 			'[color=c8c8c8ff]Last Strike[/color]'
-		pos_hint: {'x': 93/262, 'y': 168/202}
-		size_hint: (166/262, 18/202)
+		pos_hint: {'x': 83/262, 'y': 168/202}
+		size_hint: (176/262, 18/202)
 	LargeText:
 		text: app.Obs['StrikeDeltaT'][0]
-		pos_hint: {'x': 93/262, 'y': 139/202}
+		pos_hint: {'x': 83/262, 'y': 139/202}
 		size_hint: (80/262 if app.Obs['StrikeDeltaT'][2] == '-' else 40/262, 28/202)
 	BoldText:
 		text: app.Obs['StrikeDeltaT'][1]
 		font_size: '9pt'
-		pos_hint: {'x': 93/262, 'y': 120.5/202}
+		pos_hint: {'x': 83/262, 'y': 120.5/202}
 		size_hint: (80/262 if app.Obs['StrikeDeltaT'][2] == '-' else 40/262, 25/202)
 	LargeText:
 		text: app.Obs['StrikeDeltaT'][2]
         opacity: 0 if app.Obs['StrikeDeltaT'][2] == '-' else 1
-		pos_hint: {'x': 133/262, 'y': 139/202}
+		pos_hint: {'x': 123/262, 'y': 139/202}
 		size_hint: (40/262, 28/202)
 	BoldText:
 		text: app.Obs['StrikeDeltaT'][3]
 		font_size: '9pt'
 		opacity: 0 if app.Obs['StrikeDeltaT'][2] == '-' else 1
-		pos_hint: {'x': 133/262, 'y': 120.5/202}
+		pos_hint: {'x': 123/262, 'y': 120.5/202}
 		size_hint: (40/262, 25/202)
 	SmallText:
 		text: '[color=f05e40ff]ago[/color]'
-		pos_hint: {'x': 93/262, 'y': 106/202}
+		pos_hint: {'x': 83/262, 'y': 106/202}
 		size_hint: (80/262, 18/202)
 
 	## Last strike distance
 	LargeText:
 		text: app.Obs['StrikeDist'][0]
-		pos_hint: {'x': 179/262, 'y': 139/202}
-		size_hint: (80/262, 28/202)
+		pos_hint: {'x': 169/262, 'y': 139/202}
+		size_hint: (90/262, 28/202)
 	BoldText:
 		text: app.Obs['StrikeDist'][1]
 		font_size: '9pt'
-		pos_hint: {'x': 179/262, 'y': 120.5/202}
-		size_hint: (80/262, 25/202)
+		pos_hint: {'x': 169/262, 'y': 120.5/202}
+		size_hint: (90/262, 25/202)
 	SmallText:
 		text: '[color=f05e40ff]away[/color]'
-		pos_hint: {'x': 179/262, 'y': 106/202}
-		size_hint: (80/262, 18/202)
+		pos_hint: {'x': 169/262, 'y': 106/202}
+		size_hint: (90/262, 18/202)
 
 	## Last three hour lightning strikes
 	MediumText:
@@ -813,7 +813,7 @@ ScreenManager:
 		source: 'icons/lightning/' + root.lightningBoltIcon + '.png'
 		keep_ratio: 0
 		allow_stretch: 1
-		pos_hint: {'x': 14/262, 'y': 120/202}
+		pos_hint: {'x': 9/262, 'y': 120/202}
 		size_hint: (65/262, 68/202)
 
 <LightningButton>:
