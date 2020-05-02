@@ -103,11 +103,11 @@ class WeatherFlowClientFactory(WebSocketClientFactory,ReconnectingClientFactory)
     jitter       = 0
 
     def clientConnectionFailed(self,connector,reason):
-        print('Websocket connection failed .. retrying ..')
+        print('Websocket connection retrying')
         self.retry(connector)
 
     def clientConnectionLost(self,connector,reason):
-        print('Websocket connection lost .. retrying ..')
+        print('Websocket connection retrying')
         self.retry(connector)
 
     def __init__(self, url, app):
