@@ -1,18 +1,18 @@
-""" Defines the configuration .ini files required by the Raspberry Pi Python
-console for Weather Flow Smart Home Weather Stations.
-Copyright (C) 2018-2020  Peter Davis
+""" Defines the configuration .ini files required by the Raspberry Pi Python 
+console for WeatherFlow Tempest and Smart Home Weather stations. 
+Copyright (C) 2018-2020 Peter Davis
 
 This program is free software: you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
 Foundation, either version 3 of the License, or (at your option) any later
 version.
 
-This program is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
-PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+This program is distributed in the hope that it will be useful, but WITHOUT 
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License along with
-this program.  If not, see <http://www.gnu.org/licenses/>.
+this program. If not, see <http://www.gnu.org/licenses/>.
 """
 
 # Import required modules
@@ -28,7 +28,7 @@ import sys
 import os
 
 # Define wfpiconsole version number
-Version = 'v3.1.10'
+Version = 'v3.2'
 
 # Define required variables
 TEMPEST       = False
@@ -474,7 +474,7 @@ def writeConfigKey(Config,Section,Key,keyDetails):
                 else:
                     Locns = [Item['name'] for Item in GEONAMES['geonames']]
                     Len = [len(Item) for Item in Locns]
-                    Ind = next((Item for Item in Len if Item<=20),NaN)
+                    Ind = next((Item for Item in Len if Item<=18),NaN)
                     if Ind != NaN:
                         Value = Locns[Len.index(Ind)]
                     else:

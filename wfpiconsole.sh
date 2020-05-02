@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
 # Automated installer and updater for the WeatherFlow PiConsole. Modified
-# heavily from the PiHole and PiVPN installers. Copyright (C) 2018-2020
-# Peter Davis
+# heavily from the PiHole and PiVPN installers. 
+# Copyright (C) 2018-2020 Peter Davis
 
 # This program is free software: you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
@@ -11,11 +11,11 @@
 
 # This program is distributed in the hope that it will be useful, but WITHOUT
 # ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-# FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
 # details.
 
 # You should have received a copy of the GNU General Public License along with
-# this program.  If not, see <http://www.gnu.org/licenses/>.
+# this program. If not, see <http://www.gnu.org/licenses/>.
 
 # GET INVOKING USER
 # ------------------------------------------------------------------------------
@@ -39,7 +39,7 @@ PKG_DEPENDENCIES=(libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-de
                   libgstreamer1.0-dev git gstreamer1.0-plugins-{bad,base,good,ugly}
                   python-dev libmtdev-dev xclip xsel libatlas-base-dev gstreamer1.0-{omx,alsa}
                   rng-tools build-essential libssl-dev libjpeg-dev libffi6 libffi-dev jq)
-PYTHON_MODS=(autobahn[twisted] pytz pyasn1-modules service_identity geopy ephem pillow numpy packaging)
+PYTHON_MODS=(autobahn[twisted] numpy pytz pyasn1-modules service_identity geopy ephem pillow packaging)
 CYTHON_VERSION="0.29.10"
 KIVY_VERSION="1.11.1"
 KIVY_REPO="https://github.com/kivy/kivy/archive/"$KIVY_VERSION".zip"

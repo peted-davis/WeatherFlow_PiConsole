@@ -1,18 +1,19 @@
-## WeatherFlow PiConsole: Raspberry Pi Python console for Weather Flow
-## Smart Home Weather Station. Copyright (C) 2018-2020  Peter Davis
+## WeatherFlow PiConsole: Raspberry Pi Python console for WeatherFlow Tempest
+## and Smart Home Weather stations.
+## Copyright (C) 2018-2020 Peter Davis
 
-## This program is free software: you can redistribute it and/or modify
-## it under the terms of the GNU General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
+## This program is free software: you can redistribute it and/or modify it under
+## the terms of the GNU General Public License as published by the Free Software
+## Foundation, either version 3 of the License, or (at your option) any later
+## version.
 
-## This program is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU General Public License for more details.
+## This program is distributed in the hope that it will be useful, but WITHOUT
+## ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+## FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+## details.
 
-## You should have received a copy of the GNU General Public License
-## along with this program.  If not, see <http://www.gnu.org/licenses/>.
+## You should have received a copy of the GNU General Public License along with
+## this program. If not, see <http://www.gnu.org/licenses/>.
 
 ## =============================================================================
 ## SCREEN MANAGER
@@ -165,7 +166,7 @@ ScreenManager:
 
     ## Forecast location, valid, and issued time
 	SmallText:
-		text: app.config['Station']['ForecastLocn'] + '; Valid until ' + app.MetData['Valid']
+		text: (app.config['Station']['ForecastLocn'] +';' if len(app.config['Station']['ForecastLocn']) <= 18 else '') + ' Valid until ' + app.MetData['Valid']
 		halign: 'right'
 		pos_hint: {'x': 6/262, 'y': 3/202}
 		size_hint: (252/262, 16/202)
@@ -228,7 +229,7 @@ ScreenManager:
 
 	## Indoor temperature
     BoldText:
-		text: '[color=c8c8c8ff]Indoor[/color]' 
+		text: '[color=c8c8c8ff]Indoor[/color]'
 		pos_hint: {'x': 0/262, 'y': 166/202}
 		size_hint: (131/262, 17/202)
         opacity: 1 if app.IndoorTemp == '1' else 0
@@ -237,7 +238,7 @@ ScreenManager:
 		pos_hint: {'x': 0/262, 'y': 126/202}
 		size_hint: (131/262, 38/202)
         opacity: 1 if app.IndoorTemp == '1' else 0
-        
+
 	## Indoor temperature minimum
 	MediumText:
 		text: '[color=00a4b4ff]' + app.Obs['inTempMin'][0] + '[size=15sp]' + app.Obs['inTempMin'][1] + '[/color][/size]'
@@ -248,7 +249,7 @@ ScreenManager:
 		text: app.Obs['inTempMin'][2]
 		pos_hint: {'x': 0/262, 'y': 82/202}
 		size_hint: (65.5/262, 22/202)
-        opacity: 1 if app.IndoorTemp == '1' else 0        
+        opacity: 1 if app.IndoorTemp == '1' else 0
 
 	## Indoor temperature maximum
 	MediumText:
@@ -260,13 +261,13 @@ ScreenManager:
         text: app.Obs['inTempMax'][2]
 		pos_hint: {'x': 65.5/262, 'y': 82/202}
 		size_hint: (65.5/262, 22/202)
-        opacity: 1 if app.IndoorTemp == '1' else 0     
-        
+        opacity: 1 if app.IndoorTemp == '1' else 0
+
 	## Outdoor temperature
     BoldText:
-		text: '[color=c8c8c8ff]Outdoor[/color]' 
+		text: '[color=c8c8c8ff]Outdoor[/color]'
 		pos_hint: {'x': 131/262 if app.IndoorTemp == '1' else 0/262, 'y': 166/202}
-		size_hint: (131/262 if app.IndoorTemp == '1' else 262/262, 17/202)  
+		size_hint: (131/262 if app.IndoorTemp == '1' else 262/262, 17/202)
 	LargeText:
 		text: app.Obs['outTemp'][0] + app.Obs['outTemp'][1]
 		pos_hint: {'x': 131/262 if app.IndoorTemp == '1' else 65.5/262, 'y': 126/202}
@@ -289,7 +290,7 @@ ScreenManager:
 		size_hint: (65.5/262, 22/202)
 	SmallText:
 		text: app.Obs['outTempMax'][2]
-		pos_hint: {'x': 196.5/262 if app.IndoorTemp == '1' else 131/262, 'y': 82/202} 
+		pos_hint: {'x': 196.5/262 if app.IndoorTemp == '1' else 131/262, 'y': 82/202}
 		size_hint: (65.5/262, 22/202)
 
 	## 'Feels like' temperature
@@ -312,7 +313,7 @@ ScreenManager:
 
 	## 'Feels like' icon and text
 	Image:
-		source: 'icons/feelsLike/' + app.Obs['FeelsLike'][3] + '.png'
+		source: 'icons/feelsLike/' + root.feelsLike + '.png'
 		pos_hint: {'x': 7/262, 'y': 6/202}
 		size_hint: (38/262, 29/202)
 	SmallText:
@@ -380,7 +381,7 @@ ScreenManager:
 
     ## Current Beaufort scale text and icon
     Image:
-        source: 'icons/windSpeed/' + app.Obs['WindSpd'][3] + '.png'
+        source: 'icons/windSpeed/' + root.meanWindSpd + '.png'
 		keep_ratio: 0
 	    allow_stretch: 1
 		pos_hint: {'x': 18/262, 'y': 28/202}
@@ -393,7 +394,7 @@ ScreenManager:
 
     ## Current average wind direction
     Image:
-        source: 'icons/windDir/' + app.Obs['WindDir'][2] + '.png'
+        source: 'icons/windDir/' + root.meanWindDir + '.png'
 		keep_ratio: 0
 	    allow_stretch: 1
 		pos_hint: {'x': 216/262, 'y': 28/202}
@@ -406,7 +407,7 @@ ScreenManager:
 
     ## Rapid wind direction arrow
     Image:
-        source: 'icons/windRose/' + str(round(root.WindRoseDir)) + '.png'
+        source: 'icons/windRose/' + str(round(root.rapidWindDir)) + '.png'
 		keep_ratio: 0
 	    allow_stretch: 1
 		pos_hint: {'x': 65/262, 'y': 26/202}
@@ -450,7 +451,7 @@ ScreenManager:
 	## Solar radiation
 	MediumText:
 		text: app.Obs['Radiation'][0] + app.Obs['Radiation'][1]
-		pos_hint: {'x': 3/262, 'y': 129/202}
+		pos_hint: {'x': 3/262, 'y': 130/202}
 		size_hint: (105/262, 33/202)
 
 	## UV Index
@@ -459,7 +460,7 @@ ScreenManager:
 		pos_hint: {'x': 154/262, 'y': 129/202}
 		size_hint: (52.5/262, 33/202)
 	Image:
-		source: 'icons/uv/' + app.Obs['UVIndex'][2] + '.png'
+		source: 'icons/uv/' + root.uvIcon + '.png'
 		pos_hint: {'x': 206.5/262, 'y': 129/202}
 		size_hint: (52.5/262, 33/202)
 
@@ -624,9 +625,6 @@ ScreenManager:
     MediumText
         text: root.realtimeClock
         font_name: 'fonts/SystemSanFranciscoDisplayRegular.ttf'
-        halign: 'center'
-        valign: 'center'
-        font_size: '20sp'
         pos_hint: {'x': 0/262, 'y': 0/202}
 		size_hint: (262/262, 46/202)
 
@@ -653,47 +651,47 @@ ScreenManager:
 			'[color=c8c8c8ff]Last Strike[/color]' if app.Obs['StrikeDeltaT'][4] == '-' else \
 			'[color=c8c8c8ff]Strike Detected![/color]' if app.Obs['StrikeDeltaT'][4] < 360 else \
 			'[color=c8c8c8ff]Last Strike[/color]'
-		pos_hint: {'x': 93/262, 'y': 168/202}
-		size_hint: (166/262, 18/202)
+		pos_hint: {'x': 83/262, 'y': 168/202}
+		size_hint: (176/262, 18/202)
 	LargeText:
 		text: app.Obs['StrikeDeltaT'][0]
-		pos_hint: {'x': 93/262, 'y': 139/202}
+		pos_hint: {'x': 83/262, 'y': 139/202}
 		size_hint: (80/262 if app.Obs['StrikeDeltaT'][2] == '-' else 40/262, 28/202)
 	BoldText:
 		text: app.Obs['StrikeDeltaT'][1]
 		font_size: '9pt'
-		pos_hint: {'x': 93/262, 'y': 120.5/202}
+		pos_hint: {'x': 83/262, 'y': 120.5/202}
 		size_hint: (80/262 if app.Obs['StrikeDeltaT'][2] == '-' else 40/262, 25/202)
 	LargeText:
 		text: app.Obs['StrikeDeltaT'][2]
         opacity: 0 if app.Obs['StrikeDeltaT'][2] == '-' else 1
-		pos_hint: {'x': 133/262, 'y': 139/202}
+		pos_hint: {'x': 123/262, 'y': 139/202}
 		size_hint: (40/262, 28/202)
 	BoldText:
 		text: app.Obs['StrikeDeltaT'][3]
 		font_size: '9pt'
 		opacity: 0 if app.Obs['StrikeDeltaT'][2] == '-' else 1
-		pos_hint: {'x': 133/262, 'y': 120.5/202}
+		pos_hint: {'x': 123/262, 'y': 120.5/202}
 		size_hint: (40/262, 25/202)
 	SmallText:
 		text: '[color=f05e40ff]ago[/color]'
-		pos_hint: {'x': 93/262, 'y': 106/202}
+		pos_hint: {'x': 83/262, 'y': 106/202}
 		size_hint: (80/262, 18/202)
 
 	## Last strike distance
 	LargeText:
 		text: app.Obs['StrikeDist'][0]
-		pos_hint: {'x': 179/262, 'y': 139/202}
-		size_hint: (80/262, 28/202)
+		pos_hint: {'x': 169/262, 'y': 139/202}
+		size_hint: (90/262, 28/202)
 	BoldText:
 		text: app.Obs['StrikeDist'][1]
 		font_size: '9pt'
-		pos_hint: {'x': 179/262, 'y': 120.5/202}
-		size_hint: (80/262, 25/202)
+		pos_hint: {'x': 169/262, 'y': 120.5/202}
+		size_hint: (90/262, 25/202)
 	SmallText:
 		text: '[color=f05e40ff]away[/color]'
-		pos_hint: {'x': 179/262, 'y': 106/202}
-		size_hint: (80/262, 18/202)
+		pos_hint: {'x': 169/262, 'y': 106/202}
+		size_hint: (90/262, 18/202)
 
 	## Last three hour lightning strikes
 	MediumText:
@@ -739,13 +737,10 @@ ScreenManager:
 				x: root.xLightningBolt
 		canvas.after:
 			PopMatrix
-		source:
-			'icons/lightning/lightningBolt.png' if app.Obs['StrikeDeltaT'][4] == '-' else \
-			'icons/lightning/lightningBoltStrike.png' if app.Obs['StrikeDeltaT'][4] < 360 else \
-			'icons/lightning/lightningBolt.png'
+		source: 'icons/lightning/' + root.lightningBoltIcon + '.png'
 		keep_ratio: 0
 		allow_stretch: 1
-		pos_hint: {'x': 14/262, 'y': 120/202}
+		pos_hint: {'x': 9/262, 'y': 120/202}
 		size_hint: (65/262, 68/202)
 
 <LightningButton>:
@@ -767,7 +762,7 @@ ScreenManager:
 
 	## Current pressure arrow
 	Image:
-		source: 'icons/barometer/' + app.Obs['Pres'][2] + '.png'
+		source: 'icons/barometer/' + str(root.barometerArrow) + '.png'
 		keep_ratio: 0
 	    allow_stretch: 1
 		pos_hint: {'x': 46/262, 'y': 18/202}
@@ -855,7 +850,7 @@ ScreenManager:
             text: 'Console version: [color=9aba2fff]' + app.config['System']['Version'] + '[/color]'
             size_hint: (1,0.1)
             pos_hint: {'x': 0, 'y': 0.71}
-            
+
 ## =============================================================================
 ## UPDATE NOTIFICATION
 ## =============================================================================
@@ -875,4 +870,4 @@ ScreenManager:
         BoldText:
             text: '[color=9aba2fff]' + app.Version['Latest'] + '[/color]'
             size_hint: (1,0.2)
-            pos_hint: {'x': 0.05, 'y': 0.31}            
+            pos_hint: {'x': 0.05, 'y': 0.31}

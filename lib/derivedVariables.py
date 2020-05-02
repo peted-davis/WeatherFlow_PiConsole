@@ -1,15 +1,15 @@
 """ Returns the derived weather variables required by the Raspberry Pi Python
-console for Weather Flow Smart Home Weather Stations. Copyright (C) 2018-2020
-Peter Davis
+console for WeatherFlow Tempest and Smart Home Weather stations.
+Copyright (C) 2018-2020 Peter Davis
 
 This program is free software: you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
 Foundation, either version 3 of the License, or (at your option) any later
 version.
 
-This program is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
-PARTICULAR PURPOSE. See the GNU General Public License for more details.
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License along with
 this program. If not, see <http://www.gnu.org/licenses/>.
@@ -1018,15 +1018,3 @@ def UVIndex(uvLevel):
         # # Latest Sky observation time is greater than 5 minutes old
         # else:
             # self.Obs['StatusIcon'] = 'Error'
-
-
-
-
-
-
-
-
-
-
-
-
