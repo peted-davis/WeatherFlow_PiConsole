@@ -79,7 +79,7 @@ class WeatherFlowClientProtocol(WebSocketClientProtocol,TimeoutMixin):
         print("Websocket connection open")
         self.factory._proto = self
         self.factory.resetDelay()
-        self.setTimeout(90)
+        self.setTimeout(300)
 
     def onMessage(self,payload,isBinary):
         Message = json.loads(payload.decode('utf8'))
