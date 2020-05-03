@@ -964,12 +964,12 @@ def UVIndex(uvLevel):
     Level   = ['None','Low','Moderate','High','Very High','Extreme']
 
     # Define UV index colours
-    Grey   = [100/255,100/255,100/255,1]
-    Green  = [155/255,188/255, 47/255,1]
-    Yellow = [230/255,162/255, 65/255,1]
-    Orange = [216/255,112/255, 64/255,1]
-    Red    = [230/255, 75/255, 36/255,1]
-    Violet = [134/255,128/255,188/255,1]
+    Grey   = '#646464'
+    Green  = '#558B2F'
+    Yellow = '#F9A825'
+    Orange = '#EF6C00'
+    Red    = '#B71C1C'
+    Violet = '#6A1B9A'
     Color  = [Grey,Green,Yellow,Orange,Red,Violet]
 
     # Set the UV index
@@ -1034,18 +1034,17 @@ def peakSunHours(Radiation,peakSun,Astro,Device,Config):
       
     # Define daily solar potential text
     if peakSun[0]/daylightFactor == 0:
-        peakSun.append('[color=646464]None[/color]')
+        peakSun.append('[color=4575B4FF]None[/color]')
     elif peakSun[0]/daylightFactor < 2:
-        peakSun.append('[color=9BBC2F]Limited[/color]')
+        peakSun.append('[color=ABD9E9FF]Limited[/color]')
     elif peakSun[0]/daylightFactor < 4:
-        peakSun.append('[color=E6A241]Moderate[/color]')
+        peakSun.append('[color=FFFFBFFF]Moderate[/color]')
     elif peakSun[0]/daylightFactor < 6:
-        peakSun.append('[color=E64B24]Good[/color]')
+        peakSun.append('[color=FDAE61FF]Good[/color]')
     else:
-        peakSun.append('[color=8680BC]Excellent[/color]')
+        peakSun.append('[color=D73027FF]Excellent[/color]')    
 
     print(peakSun[0]/daylightFactor)
-    print(peakSun)
 
     # Return Peak Sun Hours
     return peakSun 

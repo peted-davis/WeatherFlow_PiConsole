@@ -236,13 +236,13 @@ class wfpiconsole(App):
         forecast.Download(self.MetData,self.config)
 
         # Generate Sager Weathercaster forecast
-        #Thread(target=sagerForecast.Generate, args=(self.Sager,self.config), name="Sager").start()
+        Thread(target=sagerForecast.Generate, args=(self.Sager,self.config), name="Sager").start()
 
         # Initialise websocket connection
         self.WebsocketConnect()
 
         # Check for latest version
-        Clock.schedule_once(partial(system.checkVersion,self.Version,self.config,updateNotif))
+        #Clock.schedule_once(partial(system.checkVersion,self.Version,self.config,updateNotif))
 
         # Schedule function calls
         Clock.schedule_interval(self.UpdateMethods,1.0)
@@ -464,8 +464,8 @@ class wfpiconsole(App):
                 forecast.ExtractDarkSky(self.MetData,self.config)
                 self.MetData['Time'] = Now
 
-        # Once sunset has passed, calculate new sunrise/sunset times
-        if Now > self.Astro['Sunset'][0]:
+        # Once dusk has passed, calculate new sunrise/sunset times
+        if Now >= self.Astro['Dusk'][0]:
             self.Astro = astro.SunriseSunset(self.Astro,self.config)
 
         # Once moonset has passed, calculate new moonrise/moonset times

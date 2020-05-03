@@ -15,10 +15,13 @@
 ## You should have received a copy of the GNU General Public License along with
 ## this program. If not, see <http://www.gnu.org/licenses/>.
 
+## Import required modules
+#:import NoTransition kivy.uix.screenmanager.NoTransition
+#:import utils kivy.utils
+
 ## =============================================================================
 ## SCREEN MANAGER
 ## =============================================================================
-#:import NoTransition kivy.uix.screenmanager.NoTransition
 ScreenManager:
 	transition: NoTransition()
     CurrentConditions:
@@ -59,7 +62,7 @@ ScreenManager:
 
 <BoldText@Label>
 	font_name: 'fonts/SystemSanFranciscoDisplayBold.ttf'
-	font_size: '14sp'
+	font_size: '13sp'
 	text_size: self.size
 	font_hinting: None
 	markup: 1
@@ -442,42 +445,57 @@ ScreenManager:
 ## SUNRISE/SUNSET WIDGET
 ## =============================================================================
 <SunriseSunsetPanel>:
-	Image:
+    Image:
 		source: 'background/sunriseSunset.png'
 		size_hint: (1,1)
 		keep_ratio: 0
-		allow_stretch: 1
-        
-        ## Day/Night bar with dawn/dusk and sunrise/sunset lines
-        canvas:
+		allow_stretch: 1   
+
+    ## Day/Night bar with dawn/dusk and sunrise/sunset lines
+    BoxLayout:
+        pos_hint: {'x': 13/262, 'y': 100/202}   
+        size_hint: [236/262, 10/202]
+        canvas.after:
             Color:
                 rgba: [100/255,100/255,100/255,1]
             Rectangle:
-                pos: [13, 91+9.6]
-                size: [236, 9.6]
+                pos: self.pos
+                size: self.size
+    BoxLayout:
+        pos_hint: {'x': (13+app.Astro['Dawn'][2]*236)/262, 'y': 100/202}   
+        size_hint: [(app.Astro['Dusk'][2]*236)/262, 10/202]
+        canvas.after:
             Color:
                 rgba: [0/255,164/255,180/255,100/255]
             Rectangle:
-                pos: [13+app.Astro['Dawn'][2]*236, 91+9.6]
-                size: [app.Astro['Dusk'][2]*236, 9.6]     
+                pos: self.pos
+                size: self.size            
+    BoxLayout:
+        pos_hint: {'x': (13+app.Astro['Sunrise'][2]*236)/262, 'y': 100/202}   
+        size_hint: [(app.Astro['Sunset'][2]*236)/262, 10/202]
+        canvas.after:
             Color:
                 rgba: [0/255,164/255,180/255,200/255]
             Rectangle:
-                pos: [13+app.Astro['Sunrise'][2]*236, 91+9.6]
-                size: [app.Astro['Sunset'][2]*236, 9.6] 
+                pos: self.pos
+                size: self.size
+    BoxLayout:
+        pos_hint: {'x': 13/262, 'y': 98/202}   
+        size_hint: [236/262, 14/202]
+        canvas.after:
             Color:
-                rgba: [230/255, 75/255, 36/255,app.Astro['sunIcon'][1]]
+                rgba: [230/255,75/255,36/255,app.Astro['sunIcon'][1]]
             Line:
-                width: 1.1
-                rectangle: [13 + app.Astro['sunIconPosition']*236, 89+9.6, 1.1, 13.6]
-                
+                width: 1.2
+                rectangle: [self.x + app.Astro['sunIconPosition']*self.width, self.y, 1, self.height]                
+ 
     ## Sun Icon
     Image:
 		source: 'icons/sun/' + app.Astro['sunIcon'][0] + '.png'
 		keep_ratio: 0
 	    allow_stretch: 1
-		pos_hint: {'x': (4.5+app.Astro['sunIconPosition']*236)/262, 'y': 88/202}             
-		size_hint: (17/262, 17/202)
+		pos_hint: {'x': (4.5+app.Astro['sunIconPosition']*236)/262, 'y': 96/202}             
+		size_hint: (18/262, 18/202)
     
 	## Solar radiation
 	MediumText:
@@ -486,18 +504,23 @@ ScreenManager:
 		size_hint: (105/262, 33/202)
 
 	## UV Index
+    BoldText:
+		text: 'UV Index'
+        color: [200/255,200/255,200/255,1]
+		pos_hint: {'x': 125/262, 'y': 167.5/202}
+		size_hint: (120/262, 12/202)
 	MediumText:
 		text: app.Obs['UVIndex'][0]
-		pos_hint: {'x': 147.5/262, 'y': 146/202}
-		size_hint: (75/262, 18.5/202)
+		pos_hint: {'x': 125/262, 'y': 130/202}
+		size_hint: (40/262, 33/202)
 	BoldText:
 		text: app.Obs['UVIndex'][2]
-		pos_hint: {'x': 147.5/262, 'y': 128/202}
+		pos_hint: {'x': 170/262, 'y': 139/202}
 		size_hint: (75/262, 17/202)
         color: [20/255,20/255,20/255,1]
         canvas.before:
             Color:
-                rgba: app.Obs['UVIndex'][3] if app.Obs['UVIndex'][3] != '-' else [20/255,20/255,20/255,1]
+                rgba: utils.rgba(app.Obs['UVIndex'][3]) if app.Obs['UVIndex'][3] != '-' else [20/255,20/255,20/255,1]
             RoundedRectangle:
                 pos: [self.pos[0],self.pos[1]-2]
                 size: self.size
@@ -508,14 +531,13 @@ ScreenManager:
 		text: 'Sunrise'
         color: [200/255,200/255,200/255,1]
         halign: 'left'
-        valign: 'bottom'
-		pos_hint: {'x': 13/262, 'y': 106.6/202}
-		size_hint: (80/262, 20/202)
+		pos_hint: {'x': 13/262, 'y': 118/202}
+		size_hint: (80/262, 15/202)
 	SmallText:
 		text: app.Astro['Sunrise'][1]
         halign: 'left'
         valign: 'top'
-		pos_hint: {'x': 13/262, 'y': 69/202}
+		pos_hint: {'x': 13/262, 'y': 72/202}
 		size_hint: (80/262, 20/202)
 
 	## Sunset time
@@ -523,30 +545,43 @@ ScreenManager:
 		text: 'Sunset'
         color: [200/255,200/255,200/255,1]
         halign: 'right'
-        valign: 'bottom'
-		pos_hint: {'x': 169/262, 'y': 106.6/202}
-		size_hint: (80/262, 20/202)
+		pos_hint: {'x': 169/262, 'y': 118/202}
+		size_hint: (80/262, 15/202)
 	SmallText:
 		text: app.Astro['Sunset'][1]
         halign: 'right'
         valign: 'top'
-		pos_hint: {'x': 169/262, 'y': 69/202}
+		pos_hint: {'x': 169/262, 'y': 72/202}
 		size_hint: (80/262, 20/202)
 
 	## Time remaining until sunrise or sunset
     BoldText:
 		text: app.Astro['sunEvent'][3]
         color: [200/255,200/255,200/255,1]
-		pos_hint: {'x': 22/262, 'y': 52/202}
-		size_hint: (80/262, 18/202)
+		pos_hint: {'x': 22/262, 'y': 59/202}
+		size_hint: (80/262, 15/202)
+    BoldText:
+		text: 'hrs'
+        color: [1,1,1,1]
+		pos_hint: {'x': 22/262, 'y': 46/202}
+		size_hint: (40/262, 15/202) 
+    BoldText:
+		text: 'mins'
+        color: [1,1,1,1]
+		pos_hint: {'x': 62/262, 'y': 46/202}
+		size_hint: (40/262, 15/202)       
 	MediumText:
-		text: app.Astro['sunEvent'][1] + ' : ' + app.Astro['sunEvent'][2]
-		pos_hint: {'x': 22/262, 'y': 21/202}
-		size_hint: (80/262, 21/202)
-	##LargeText:
-##		text: app.Astro['sunEvent'][2]
-##		pos_hint: {'x': 62/262, 'y': 26/202}
-##		size_hint: (40/262, 28/202)
+		text: app.Astro['sunEvent'][1]
+		pos_hint: {'x': 22/262, 'y': 23/202}
+		size_hint: (40/262, 21/202)       
+	MediumText:
+		text: app.Astro['sunEvent'][2]
+		pos_hint: {'x': 62/262, 'y': 23/202}
+		size_hint: (40/262, 21/202)  
+    MediumText:
+		text: ':'
+		pos_hint: {'x': 22/262, 'y': 23/202}
+		size_hint: (80/262, 21/202)       
 	SmallText:
 		text: 'Till ' + app.Astro['sunEvent'][0] 
 		pos_hint: {'x': 22/262, 'y': 3/202}
@@ -554,18 +589,24 @@ ScreenManager:
         
     ## Peak Sun Hours
     BoldText:
-		text: 'Peak Sun Hours'
+		text: 'Peak Sun'
+        valign: 'bottom'
         color: [200/255,200/255,200/255,1]
-		pos_hint: {'x': 135/262, 'y': 52/202}
-		size_hint: (123/262, 18/202)  
-	LargeText:
+		pos_hint: {'x': 150/262, 'y': 59/202}
+		size_hint: (80/262, 15/202) 
+    BoldText:
+		text: 'Hours'
+        color: [200/255,200/255,200/255,1]
+		pos_hint: {'x': 150/262, 'y': 46/202}
+		size_hint: (80/262, 15/202)  
+	MediumText:
 		text: app.Obs['peakSun'][0]
-		pos_hint: {'x': 135/262, 'y': 20/202}
-		size_hint: (123/262, 33/202) 
+		pos_hint: {'x': 150/262, 'y': 23/202}
+		size_hint: (80/262, 21/202) 
     SmallText:
 		text: 'Solar: ' + app.Obs['peakSun'][4] 
-		pos_hint: {'x': 135/262, 'y': 3/202}
-		size_hint: (123/262, 18/202)
+		pos_hint: {'x': 130/262, 'y': 3/202}
+		size_hint: (120/262, 18/202)
 
 <SunriseSunsetButton>:
 	Button:
