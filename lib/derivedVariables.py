@@ -150,9 +150,6 @@ def SLP(Pres,Config):
     elif Config['Station']['TempestHeight']:
         Height = Config['Station']['TempestHeight']
 
-    # Extract required meteorological fields
-    Psta = Pres[0]
-
     # Define required constants
     P0 = 1013.25
     Rd = 287.05
@@ -161,11 +158,12 @@ def SLP(Pres,Config):
     T0 = 288.15
     Elev = float(Elevation) + float(Height)
 
-    # Calculate sea level pressure
-    SLP = Psta * (1 + ((P0/Psta)**((Rd*GammaS)/g)) * ((GammaS*Elev)/T0))**(g/(Rd*GammaS))
-
-    # Return Sea Level Pressure
-    return [SLP,'mb','{:.1f}'.format(SLP)]
+    # Calculate and return sea level pressure
+    if not math.isnan(Pres[0]):
+        SLP = Pres[0] * (1 + ((P0/Pres[0])**((Rd*GammaS)/g)) * ((GammaS*Elev)/T0))**(g/(Rd*GammaS))
+        return [SLP,'mb','{:.1f}'.format(SLP)]
+    else:
+        return [NaN,'mb','-']
 
 def SLPTrend(Pres,Time,Data3h,Config):
 
@@ -235,6 +233,8 @@ def SLPTrend(Pres,Time,Data3h,Config):
             Tendency = 'Rainy conditions likely'
         else:
             Tendency = 'Becoming clearer and cooler'
+    else:
+        Tendency = '-'
 
     # Return pressure trend
     return [Trend,'mb/hr',TrendTxt,Tendency]

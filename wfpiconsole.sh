@@ -140,7 +140,7 @@ updatePackages() {
             else
                 msg="OPTIONAL: There are $updatesToInstall updated packages to install. Do you wish to install them? This step is not required, but is highly recommended to keep your Raspberry Pi up-to-date and secure"
             fi
-            if (whiptail --backtitle "$backtitle" --title "$title" --yesno "$msg" ${r} ${c}); then
+            if (whiptail --backtitle "$backtitle" --title "$title" --yesno --defaultno "$msg" ${r} ${c}); then
 
                 # Apply updates using apt-get. Return error if updates cannot be
                 #installed
