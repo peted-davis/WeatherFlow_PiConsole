@@ -558,30 +558,28 @@ ScreenManager:
     BoldText:
 		text: app.Astro['sunEvent'][3]
         color: [200/255,200/255,200/255,1]
-		pos_hint: {'x': 22/262, 'y': 59/202}
-		size_hint: (80/262, 15/202)
+		pos_hint: {'x': 22/262, 'y': 50/202}
+		size_hint: (80/262, 15/202)     
+	MediumText:
+		text: app.Astro['sunEvent'][1]
+		pos_hint: {'x': 5/262, 'y': 26/202}
+		size_hint: (30/262, 21/202)
     BoldText:
 		text: 'hrs'
         color: [1,1,1,1]
-		pos_hint: {'x': 22/262, 'y': 46/202}
-		size_hint: (40/262, 15/202) 
-    BoldText:
-		text: 'mins'
-        color: [1,1,1,1]
-		pos_hint: {'x': 62/262, 'y': 46/202}
-		size_hint: (40/262, 15/202)       
-	MediumText:
-		text: app.Astro['sunEvent'][1]
-		pos_hint: {'x': 22/262, 'y': 23/202}
-		size_hint: (40/262, 21/202)       
+        font_size: '10sp'
+		pos_hint: {'x': 35/262, 'y': 22/202}
+		size_hint: (20/262, 15/202) 
 	MediumText:
 		text: app.Astro['sunEvent'][2]
-		pos_hint: {'x': 62/262, 'y': 23/202}
-		size_hint: (40/262, 21/202)  
-    MediumText:
-		text: ':'
-		pos_hint: {'x': 22/262, 'y': 23/202}
-		size_hint: (80/262, 21/202)       
+		pos_hint: {'x': 55/262, 'y': 26/202}
+		size_hint: (30/262, 21/202)  
+    BoldText:
+		text: 'mins'
+        font_size: '10dp'
+        color: [1,1,1,1]
+		pos_hint: {'x': 79/262, 'y': 22/202}
+		size_hint: (40/262, 15/202)               
 	SmallText:
 		text: 'Till ' + app.Astro['sunEvent'][0] 
 		pos_hint: {'x': 22/262, 'y': 3/202}
@@ -589,19 +587,14 @@ ScreenManager:
         
     ## Peak Sun Hours
     BoldText:
-		text: 'Peak Sun'
+		text: 'Peak Sun Hours'
         valign: 'bottom'
         color: [200/255,200/255,200/255,1]
-		pos_hint: {'x': 150/262, 'y': 59/202}
-		size_hint: (80/262, 15/202) 
-    BoldText:
-		text: 'Hours'
-        color: [200/255,200/255,200/255,1]
-		pos_hint: {'x': 150/262, 'y': 46/202}
-		size_hint: (80/262, 15/202)  
+		pos_hint: {'x': 130/262, 'y': 50/202}
+		size_hint: (120/262, 15/202) 
 	MediumText:
 		text: app.Obs['peakSun'][0]
-		pos_hint: {'x': 150/262, 'y': 23/202}
+		pos_hint: {'x': 150/262, 'y': 25/202}
 		size_hint: (80/262, 21/202) 
     SmallText:
 		text: 'Solar: ' + app.Obs['peakSun'][4] 

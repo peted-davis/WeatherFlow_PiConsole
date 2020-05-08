@@ -236,7 +236,7 @@ class wfpiconsole(App):
         forecast.Download(self.MetData,self.config)
 
         # Generate Sager Weathercaster forecast
-        Thread(target=sagerForecast.Generate, args=(self.Sager,self.config), name="Sager").start()
+        #Thread(target=sagerForecast.Generate, args=(self.Sager,self.config), name="Sager").start()
 
         # Initialise websocket connection
         self.WebsocketConnect()
