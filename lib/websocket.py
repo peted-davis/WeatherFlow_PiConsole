@@ -16,13 +16,56 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 """
 
 # Import required library modules
-from lib import derivedVariables   as derive
-from lib import observationFormat  as observation
-from lib import requestAPI
+from lib         import derivedVariables   as derive
+from lib         import observationFormat  as observation
+from lib         import requestAPI
+from kivy.clock  import mainthread
 import time
 
 # Define global variables
 NaN = float('NaN')
+
+@mainthread    
+def updateDisplay(derivedObs,Console,Type):
+
+    """ Updates console display in mainthread using new variables derived from 
+    latest websocket message
+
+	INPUTS:
+		derivedObs			Derived variables from latest Websocket message
+		Console             Console object
+        Type                Type of latest Websocket message
+	""" 
+
+    # Update display with new derived observations
+    for Key,Value in derivedObs.items():
+        Console.Obs[Key] = Value
+        
+    # Animate RainRate if RainfallPanel is active
+    if Type in ['Tempest','Sky'] and hasattr(Console,'RainfallPanel'):
+        Console.RainfallPanel.RainRateAnimation()
+        
+    # Animate wind rose arrow if WindSpeedPanel panel is active
+    if Type == 'rapidWind' and hasattr(Console,'WindSpeedPanel'):
+        Console.WindSpeedPanel.WindRoseAnimation()   
+
+    # If required, open secondary lightning panel to show strike has been
+    # detected
+    if Type == 'Strike' and Console.config['Display']['LightningPanel'] == '1':
+        for ii,Button in enumerate(Console.CurrentConditions.buttonList):
+            if "Lightning" in Button[2]:
+                Console.CurrentConditions.SwitchPanel([],Button)
+
+                # Wait for lightning panel to be instantiated
+                while not hasattr(Console,'LightningPanel'):
+                    time.sleep(0.1)
+
+    # Set and animate lightning bolt icon if LightningPanel panel is active
+    if Type == 'Strike' and hasattr(Console,'LightningPanel'):
+        Console.LightningPanel.setLightningBoltIcon()    
+        
+    # Return Console object
+    return Console 
 
 def Tempest(Msg,Console):
 
@@ -122,63 +165,43 @@ def Tempest(Msg,Console):
     MaxGust       = observation.Units(MaxGust,Console.config['Units']['Wind'])
     FeelsLike     = observation.Units(FeelsLike,Console.config['Units']['Temp'])
 
-    # Define Kivy label binds
-    Console.Obs['outTemp']       = observation.Format(Temp,'Temp')
-    Console.Obs['outTempMax']    = observation.Format(MaxTemp,'Temp')
-    Console.Obs['outTempMin']    = observation.Format(MinTemp,'Temp')
-    Console.Obs['DewPoint']      = observation.Format(DewPoint,'Temp')
-    Console.Obs['FeelsLike']     = observation.Format(FeelsLike,'Temp')
-    Console.Obs['Pres']          = observation.Format(SLP,'Pressure')
-    Console.Obs['MaxPres']       = observation.Format(MaxPres,'Pressure')
-    Console.Obs['MinPres']       = observation.Format(MinPres,'Pressure')
-    Console.Obs['PresTrend']     = observation.Format(PresTrend,'Pressure')
-    Console.Obs['StrikeDeltaT']  = observation.Format(StrikeDeltaT,'TimeDelta')
-    Console.Obs['StrikeDist']    = observation.Format(StrikeDist,'StrikeDistance')
-    Console.Obs['StrikeFreq']    = observation.Format(StrikeFreq,'StrikeFrequency')
-    Console.Obs['Strikes3hr']    = observation.Format(Strikes3hr,'StrikeCount')
-    Console.Obs['StrikesToday']  = observation.Format(StrikeCount['Today'],'StrikeCount')
-    Console.Obs['StrikesMonth']  = observation.Format(StrikeCount['Month'],'StrikeCount')
-    Console.Obs['StrikesYear']   = observation.Format(StrikeCount['Year'],'StrikeCount')
-    Console.Obs['Humidity']      = observation.Format(Humidity,'Humidity')
-    Console.Obs['Battery']       = observation.Format(Battery,'Battery')
-    Console.Obs['FeelsLike']     = observation.Format(FeelsLike,'Temp')
-    Console.Obs['RainRate']      = observation.Format(RainRate,'Precip')
-    Console.Obs['TodayRain']     = observation.Format(TodayRain,'Precip')
-    Console.Obs['YesterdayRain'] = observation.Format(YesterdayRain,'Precip')
-    Console.Obs['MonthRain']     = observation.Format(MonthRain,'Precip')
-    Console.Obs['YearRain']      = observation.Format(YearRain,'Precip')
-    Console.Obs['WindSpd']       = observation.Format(WindSpd,'Wind')
-    Console.Obs['WindGust']      = observation.Format(WindGust,'Wind')
-    Console.Obs['AvgWind']       = observation.Format(AvgWind,'Wind')
-    Console.Obs['MaxGust']       = observation.Format(MaxGust,'Wind')
-    Console.Obs['WindDir']       = observation.Format(WindDir,'Direction')
-    Console.Obs['Radiation']     = observation.Format(Radiation,'Radiation')
-    Console.Obs['Battery']       = observation.Format(Battery,'Battery')
-    Console.Obs['UVIndex']       = observation.Format(UVIndex,'UV')
-
-    # Animate RainRate if RainfallPanel is active
-    if hasattr(Console,'RainfallPanel'):
-        Console.RainfallPanel.RainRateAnimation()
-
-    # Set mean wind speed and direction icons if WindSpeedPanel is active
-    if hasattr(Console,'WindSpeedPanel'):
-        Console.WindSpeedPanel.meanWindIcons()
-
-    # Set UV Index icon if Sunrise/Sunset panel is active
-    if hasattr(Console,'SunriseSunsetPanel'):
-        Console.SunriseSunsetPanel.setUVIcon()
-
-    # Set current pressure arrow if BarometerPanel is active
-    if hasattr(Console,'BarometerPanel'):
-        Console.BarometerPanel.setArrow()
-
-    # Set "Feels Like" icon if TemperaturePanel is active
-    if hasattr(Console,'TemperaturePanel'):
-        Console.TemperaturePanel.feelsLikeIcon()
-
-    # Set lightning bolt icon if LightningPanel panel is active
-    if hasattr(Console,'LightningPanel'):
-        Console.LightningPanel.setLightningBoltIcon()
+    # Store derived TEMPEST observations in dictionary
+    derivedObs                  = {}
+    derivedObs['outTemp']       = observation.Format(Temp,'Temp')
+    derivedObs['outTempMax']    = observation.Format(MaxTemp,'Temp')
+    derivedObs['outTempMin']    = observation.Format(MinTemp,'Temp')
+    derivedObs['DewPoint']      = observation.Format(DewPoint,'Temp')
+    derivedObs['FeelsLike']     = observation.Format(FeelsLike,'Temp')
+    derivedObs['Pres']          = observation.Format(SLP,'Pressure')
+    derivedObs['MaxPres']       = observation.Format(MaxPres,'Pressure')
+    derivedObs['MinPres']       = observation.Format(MinPres,'Pressure')
+    derivedObs['PresTrend']     = observation.Format(PresTrend,'Pressure')
+    derivedObs['StrikeDeltaT']  = observation.Format(StrikeDeltaT,'TimeDelta')
+    derivedObs['StrikeDist']    = observation.Format(StrikeDist,'StrikeDistance')
+    derivedObs['StrikeFreq']    = observation.Format(StrikeFreq,'StrikeFrequency')
+    derivedObs['Strikes3hr']    = observation.Format(Strikes3hr,'StrikeCount')
+    derivedObs['StrikesToday']  = observation.Format(StrikeCount['Today'],'StrikeCount')
+    derivedObs['StrikesMonth']  = observation.Format(StrikeCount['Month'],'StrikeCount')
+    derivedObs['StrikesYear']   = observation.Format(StrikeCount['Year'],'StrikeCount')
+    derivedObs['Humidity']      = observation.Format(Humidity,'Humidity')
+    derivedObs['Battery']       = observation.Format(Battery,'Battery')
+    derivedObs['FeelsLike']     = observation.Format(FeelsLike,'Temp')
+    derivedObs['RainRate']      = observation.Format(RainRate,'Precip')
+    derivedObs['TodayRain']     = observation.Format(TodayRain,'Precip')
+    derivedObs['YesterdayRain'] = observation.Format(YesterdayRain,'Precip')
+    derivedObs['MonthRain']     = observation.Format(MonthRain,'Precip')
+    derivedObs['YearRain']      = observation.Format(YearRain,'Precip')
+    derivedObs['WindSpd']       = observation.Format(WindSpd,'Wind')
+    derivedObs['WindGust']      = observation.Format(WindGust,'Wind')
+    derivedObs['AvgWind']       = observation.Format(AvgWind,'Wind')
+    derivedObs['MaxGust']       = observation.Format(MaxGust,'Wind')
+    derivedObs['WindDir']       = observation.Format(WindDir,'Direction')
+    derivedObs['Radiation']     = observation.Format(Radiation,'Radiation')
+    derivedObs['Battery']       = observation.Format(Battery,'Battery')
+    derivedObs['UVIndex']       = observation.Format(UVIndex,'UV')
+    
+    # Update console display with derived TEMPEST observations in mainthread
+    updateDisplay(derivedObs,Console,'Tempest')
 
     # Return Console object
     return Console
@@ -255,38 +278,26 @@ def Sky(Msg,Console):
     MaxGust       = observation.Units(MaxGust,Console.config['Units']['Wind'])
     FeelsLike     = observation.Units(FeelsLike,Console.config['Units']['Temp'])
 
-    # Define Kivy label binds
-    Console.Obs['FeelsLike']     = observation.Format(FeelsLike,'Temp')
-    Console.Obs['RainRate']      = observation.Format(RainRate,'Precip')
-    Console.Obs['TodayRain']     = observation.Format(TodayRain,'Precip')
-    Console.Obs['YesterdayRain'] = observation.Format(YesterdayRain,'Precip')
-    Console.Obs['MonthRain']     = observation.Format(MonthRain,'Precip')
-    Console.Obs['YearRain']      = observation.Format(YearRain,'Precip')
-    Console.Obs['WindSpd']       = observation.Format(WindSpd,'Wind')
-    Console.Obs['WindGust']      = observation.Format(WindGust,'Wind')
-    Console.Obs['AvgWind']       = observation.Format(AvgWind,'Wind')
-    Console.Obs['MaxGust']       = observation.Format(MaxGust,'Wind')
-    Console.Obs['WindDir']       = observation.Format(WindDir,'Direction')
-    Console.Obs['Radiation']     = observation.Format(Radiation,'Radiation')
-    Console.Obs['Battery']       = observation.Format(Battery,'Battery')
-    Console.Obs['peakSun']       = observation.Format(peakSun,'peakSun')
-    Console.Obs['UVIndex']       = observation.Format(UVIndex,'UV')
-
-    # Animate RainRate if RainfallPanel is active
-    if hasattr(Console,'RainfallPanel'):
-        Console.RainfallPanel.RainRateAnimation()
-
-    # Set mean wind speed and direction icons if WindSpeedPanel is active
-    if hasattr(Console,'WindSpeedPanel'):
-        Console.WindSpeedPanel.meanWindIcons()
-
-    # Set UV Index icon if Sunrise/Sunset panel is active
-    if hasattr(Console,'SunriseSunsetPanel'):
-        Console.SunriseSunsetPanel.setUVIcon()
-
-    # Set "Feels Like" icon if TemperaturePanel is active
-    if hasattr(Console,'TemperaturePanel'):
-        Console.TemperaturePanel.feelsLikeIcon()
+    # Store derived SKY observations in dictionary
+    derivedObs                  = {}
+    derivedObs['FeelsLike']     = observation.Format(FeelsLike,'Temp')
+    derivedObs['RainRate']      = observation.Format(RainRate,'Precip')
+    derivedObs['TodayRain']     = observation.Format(TodayRain,'Precip')
+    derivedObs['YesterdayRain'] = observation.Format(YesterdayRain,'Precip')
+    derivedObs['MonthRain']     = observation.Format(MonthRain,'Precip')
+    derivedObs['YearRain']      = observation.Format(YearRain,'Precip')
+    derivedObs['WindSpd']       = observation.Format(WindSpd,'Wind')
+    derivedObs['WindGust']      = observation.Format(WindGust,'Wind')
+    derivedObs['AvgWind']       = observation.Format(AvgWind,'Wind')
+    derivedObs['MaxGust']       = observation.Format(MaxGust,'Wind')
+    derivedObs['WindDir']       = observation.Format(WindDir,'Direction')
+    derivedObs['Radiation']     = observation.Format(Radiation,'Radiation')
+    derivedObs['Battery']       = observation.Format(Battery,'Battery')
+    derivedObs['peakSun']       = observation.Format(peakSun,'peakSun')
+    derivedObs['UVIndex']       = observation.Format(UVIndex,'UV')
+    
+    # Update console display with derived SKY observations in mainthread
+    updateDisplay(derivedObs,Console,'Sky')
 
     # Return Console object
     return Console
@@ -364,37 +375,29 @@ def outdoorAir(Msg,Console):
     PresTrend   = observation.Units(PresTrend,Console.config['Units']['Pressure'])
     StrikeDist  = observation.Units(StrikeDist,Console.config['Units']['Distance'])
 
-    # Define Kivy label binds
-    Console.Obs['outTemp']      = observation.Format(Temp,'Temp')
-    Console.Obs['outTempMax']   = observation.Format(MaxTemp,'Temp')
-    Console.Obs['outTempMin']   = observation.Format(MinTemp,'Temp')
-    Console.Obs['DewPoint']     = observation.Format(DewPoint,'Temp')
-    Console.Obs['FeelsLike']    = observation.Format(FeelsLike,'Temp')
-    Console.Obs['Pres']         = observation.Format(SLP,'Pressure')
-    Console.Obs['MaxPres']      = observation.Format(MaxPres,'Pressure')
-    Console.Obs['MinPres']      = observation.Format(MinPres,'Pressure')
-    Console.Obs['PresTrend']    = observation.Format(PresTrend,'Pressure')
-    Console.Obs['StrikeDeltaT'] = observation.Format(StrikeDeltaT,'TimeDelta')
-    Console.Obs['StrikeDist']   = observation.Format(StrikeDist,'StrikeDistance')
-    Console.Obs['StrikeFreq']   = observation.Format(StrikeFreq,'StrikeFrequency')
-    Console.Obs['Strikes3hr']   = observation.Format(Strikes3hr,'StrikeCount')
-    Console.Obs['StrikesToday'] = observation.Format(StrikeCount['Today'],'StrikeCount')
-    Console.Obs['StrikesMonth'] = observation.Format(StrikeCount['Month'],'StrikeCount')
-    Console.Obs['StrikesYear']  = observation.Format(StrikeCount['Year'],'StrikeCount')
-    Console.Obs['Humidity']     = observation.Format(Humidity,'Humidity')
-    Console.Obs['Battery']      = observation.Format(Battery,'Battery')
-
-    # Set current pressure arrow if BarometerPanel is active
-    if hasattr(Console,'BarometerPanel'):
-        Console.BarometerPanel.setArrow()
-
-    # Set "Feels Like" icon if TemperaturePanel is active
-    if hasattr(Console,'TemperaturePanel'):
-        Console.TemperaturePanel.feelsLikeIcon()
-
-    # Set lightning bolt icon if LightningPanel panel is active
-    if hasattr(Console,'LightningPanel'):
-        Console.LightningPanel.setLightningBoltIcon()
+    # Store derived Outdoor AIR observations in dictionary
+    derivedObs                 = {}
+    derivedObs['outTemp']      = observation.Format(Temp,'Temp')
+    derivedObs['outTempMax']   = observation.Format(MaxTemp,'Temp')
+    derivedObs['outTempMin']   = observation.Format(MinTemp,'Temp')
+    derivedObs['DewPoint']     = observation.Format(DewPoint,'Temp')
+    derivedObs['FeelsLike']    = observation.Format(FeelsLike,'Temp')
+    derivedObs['Pres']         = observation.Format(SLP,'Pressure')
+    derivedObs['MaxPres']      = observation.Format(MaxPres,'Pressure')
+    derivedObs['MinPres']      = observation.Format(MinPres,'Pressure')
+    derivedObs['PresTrend']    = observation.Format(PresTrend,'Pressure')
+    derivedObs['StrikeDeltaT'] = observation.Format(StrikeDeltaT,'TimeDelta')
+    derivedObs['StrikeDist']   = observation.Format(StrikeDist,'StrikeDistance')
+    derivedObs['StrikeFreq']   = observation.Format(StrikeFreq,'StrikeFrequency')
+    derivedObs['Strikes3hr']   = observation.Format(Strikes3hr,'StrikeCount')
+    derivedObs['StrikesToday'] = observation.Format(StrikeCount['Today'],'StrikeCount')
+    derivedObs['StrikesMonth'] = observation.Format(StrikeCount['Month'],'StrikeCount')
+    derivedObs['StrikesYear']  = observation.Format(StrikeCount['Year'],'StrikeCount')
+    derivedObs['Humidity']     = observation.Format(Humidity,'Humidity')
+    derivedObs['Battery']      = observation.Format(Battery,'Battery')
+    
+    # Update console display with derived Outdoor AIR observations in mainthread
+    updateDisplay(derivedObs,Console,'outdoorAir')
 
     # Return Console object
     return Console
@@ -411,7 +414,7 @@ def indoorAir(Msg,Console):
     # Replace missing observations in latest AIR Websocket JSON with NaN
     Ob = [x if x != None else NaN for x in Msg['obs'][0]]
 
-    # Extract indoor AIR device ID
+    # Extract Indoor AIR device ID
     Device = Console.config['Station']['InAirID']
 
     # Extract required observations from latest indoor AIR Websocket JSON
@@ -425,7 +428,7 @@ def indoorAir(Msg,Console):
     minTemp = Console.Obs['inTempMin']
     maxTemp = Console.Obs['inTempMax']
 
-    # Calculate derived variables from indoor AIR observations
+    # Calculate derived variables from Indoor AIR observations
     MaxTemp, MinTemp = derive.TempMaxMin(Time,Temp,maxTemp,minTemp,Device,Console.config)
 
     # Convert observation units as required
@@ -433,11 +436,15 @@ def indoorAir(Msg,Console):
     MaxTemp = observation.Units(MaxTemp,Console.config['Units']['Temp'])
     MinTemp = observation.Units(MinTemp,Console.config['Units']['Temp'])
 
-    # Define Kivy label binds
-    Console.Obs['inTemp']    = observation.Format(Temp,'Temp')
-    Console.Obs['inTempMax'] = observation.Format(MaxTemp,'Temp')
-    Console.Obs['inTempMin'] = observation.Format(MinTemp,'Temp')
+    # Store derived Indoor AIR observations in Data dictionary
+    derivedObs              = {}
+    derivedObs['inTemp']    = observation.Format(Temp,'Temp')
+    derivedObs['inTempMax'] = observation.Format(MaxTemp,'Temp')
+    derivedObs['inTempMin'] = observation.Format(MinTemp,'Temp')
 
+    # Update console display with derived Indoor AIR observations in mainthread
+    updateDisplay(derivedObs,Console,'indoorAir')
+    
     # Return Console object
     return Console
 
@@ -483,14 +490,14 @@ def rapidWind(Msg,Console):
     WindSpd = observation.Units(WindSpd,Console.config['Units']['Wind'])
     WindDir = observation.Units(WindDir,'degrees')
 
-    # Define Kivy label binds
-    Console.Obs['rapidShift'] = WindDir[0] - WindDirOld[0]
-    Console.Obs['rapidSpd']   = observation.Format(WindSpd,'Wind')
-    Console.Obs['rapidDir']   = observation.Format(WindDir,'Direction')
-
-    # Animate wind rose arrow if WindSpeedPanel panel is active
-    if hasattr(Console,'WindSpeedPanel'):
-        Console.WindSpeedPanel.WindRoseAnimation()
+    # Store derived Rapid Wind observations dictionary
+    derivedObs               = {}
+    derivedObs['rapidShift'] = WindDir[0] - WindDirOld[0]
+    derivedObs['rapidSpd']   = observation.Format(WindSpd,'Wind')
+    derivedObs['rapidDir']   = observation.Format(WindDir,'Direction')
+    
+    # Update console display with derived Rapid Wind observations in mainthread
+    updateDisplay(derivedObs,Console,'rapidWind')
 
     # Return Console object
     return Console
@@ -518,25 +525,13 @@ def evtStrike(Msg,Console):
     # Convert observation units as required
     StrikeDist = observation.Units(StrikeDist,Console.config['Units']['Distance'])
 
-    # Define Kivy label binds
-    Console.Obs['StrikeDeltaT'] = observation.Format(StrikeDeltaT,'TimeDelta')
-    Console.Obs['StrikeDist']   = observation.Format(StrikeDist,'StrikeDistance')
-
-    # If required, open secondary lightning panel to show strike has been
-    # detected
-    if Console.config['Display']['LightningPanel'] == '1':
-        for ii,Button in enumerate(Console.CurrentConditions.buttonList):
-            if "Lightning" in Button[2]:
-                Console.CurrentConditions.SwitchPanel([],Button)
-
-                # Wait for lightning panel to be instantiated
-                while not hasattr(Console,'LightningPanel'):
-                    time.sleep(0.1)
-
-    # Set and animate lightning bolt icon if LightningPanel panel is active
-    if hasattr(Console,'LightningPanel'):
-        Console.LightningPanel.setLightningBoltIcon()
-        Console.LightningPanel.LightningBoltAnim()
+    # Store derived evt_strike observations dictionary
+    derivedObs                 = {}
+    derivedObs['StrikeDeltaT'] = observation.Format(StrikeDeltaT,'TimeDelta')
+    derivedObs['StrikeDist']   = observation.Format(StrikeDist,'StrikeDistance')
+    
+    # Update console display with derived evt_strike observations in mainthread
+    updateDisplay(derivedObs,Console,'Strike')
 
     # Return Console object
     return Console
