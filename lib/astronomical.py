@@ -250,7 +250,7 @@ def sunTransit(astroData, Config, *largs):
     
     # Calculate sun icon position on daytime/nightime bar
     secondsMidnight = (Now.replace(microsecond=0) - Now.replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds()
-    astroData['sunIconPosition'] = (secondsMidnight/86400)
+    astroData['sunIconPosition'] = secondsMidnight/86400
     
     # If time is before dawn, calculate number of nighttime hours remaining
     if Now < astroData['Dawn'][0]:
@@ -261,7 +261,7 @@ def sunTransit(astroData, Config, *largs):
         minutes,seconds = divmod(remainder,60)
         
         # Define Kivy Label binds
-        astroData['sunEvent']   = ['[color=00A4B4FF]Dawn[/color]','{:02.0f}'.format(hours),'{:02.0f}'.format(minutes),'Night time']
+        astroData['sunEvent']   = ['[color=00A4B4FF]Dawn[/color]','{:02.0f}'.format(hours),'{:02.0f}'.format(minutes),'Nighttime']
         astroData['sunIcon'][0] = '-'
         astroData['sunIcon'][1] = 1
 

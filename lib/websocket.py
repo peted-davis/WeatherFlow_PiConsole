@@ -28,7 +28,7 @@ NaN = float('NaN')
 @mainthread    
 def updateDisplay(derivedObs,Console,Type):
 
-    """ Updates console display in mainthread using new variables derived from 
+    """ Updates console display using mainthread with new variables derived from 
     latest websocket message
 
 	INPUTS:

@@ -1034,17 +1034,15 @@ def peakSunHours(Radiation,peakSun,Astro,Device,Config):
       
     # Define daily solar potential text
     if peakSun[0]/daylightFactor == 0:
-        peakSun.append('[color=4575B4FF]None[/color]')
+        peakSun.append('[color=#646464ff]None[/color]')
     elif peakSun[0]/daylightFactor < 2:
-        peakSun.append('[color=ABD9E9FF]Limited[/color]')
+        peakSun.append('[color=#4575b4ff]Limited[/color]')
     elif peakSun[0]/daylightFactor < 4:
-        peakSun.append('[color=FFFFBFFF]Moderate[/color]')
+        peakSun.append('[color=#fee090ff]Moderate[/color]')
     elif peakSun[0]/daylightFactor < 6:
-        peakSun.append('[color=FDAE61FF]Good[/color]')
+        peakSun.append('[color=#f46d43ff]Good[/color]')
     else:
-        peakSun.append('[color=D73027FF]Excellent[/color]')    
-
-    print(peakSun[0]/daylightFactor)
+        peakSun.append('[color=#d73027ff]Excellent[/color]')    
 
     # Return Peak Sun Hours
     return peakSun 
