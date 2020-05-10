@@ -17,7 +17,7 @@
 
 ## Import required modules
 #:import NoTransition kivy.uix.screenmanager.NoTransition
-#:import utils kivy.utils
+#:import Factory      kivy.factory.Factory
 
 ## =============================================================================
 ## SCREEN MANAGER
@@ -74,7 +74,6 @@ ScreenManager:
 ## =============================================================================
 ## CURRRENT CONDITIONS SCREEN
 ## =============================================================================
-#:import Factory kivy.factory.Factory
 <CurrentConditions>:
 	name: 'CurrentConditions'
 	orientation: 'vertical'
@@ -502,6 +501,11 @@ ScreenManager:
         size_hint: (18/262, 18/202)
 
 	## Solar radiation
+    BoldText:
+		text: 'Radiation'
+        color: [200/255,200/255,200/255,1]
+		pos_hint: {'x': 3/262, 'y': 166/202}
+		size_hint: (105/262, 15/202)
 	MediumText:
 		text: app.Obs['Radiation'][0] + app.Obs['Radiation'][1]
 		pos_hint: {'x': 3/262, 'y': 130/202}
@@ -511,8 +515,8 @@ ScreenManager:
     BoldText:
 		text: 'UV Index'
         color: [200/255,200/255,200/255,1]
-		pos_hint: {'x': 125/262, 'y': 167.5/202}
-		size_hint: (120/262, 12/202)
+		pos_hint: {'x': 125/262, 'y': 166/202}
+		size_hint: (120/262, 15/202)
 	MediumText:
 		text: app.Obs['UVIndex'][0]
 		pos_hint: {'x': 125/262, 'y': 130/202}
@@ -566,24 +570,24 @@ ScreenManager:
 		size_hint: (80/262, 15/202)
 	MediumText:
 		text: app.Astro['sunEvent'][1]
-		pos_hint: {'x': 11/262, 'y': 26/202}
+		pos_hint: {'x': 14/262, 'y': 26/202}
 		size_hint: (30/262, 21/202)
     BoldText:
 		text: 'hrs'
         color: [1,1,1,1]
         font_size: '10sp'
-		pos_hint: {'x': 41/262, 'y': 22/202}
+		pos_hint: {'x': 44/262, 'y': 22/202}
 		size_hint: (20/262, 15/202)
 	MediumText:
 		text: app.Astro['sunEvent'][2]
-		pos_hint: {'x': 61/262, 'y': 26/202}
+		pos_hint: {'x': 64/262, 'y': 26/202}
 		size_hint: (30/262, 21/202)
     BoldText:
 		text: 'mins'
         font_size: '10dp'
         color: [1,1,1,1]
-		pos_hint: {'x': 85/262, 'y': 22/202}
-		size_hint: (40/262, 15/202)
+		pos_hint: {'x': 94/262, 'y': 22/202}
+		size_hint: (28/262, 15/202)
 	SmallText:
 		text: 'Till ' + app.Astro['sunEvent'][0]
 		pos_hint: {'x': 28/262, 'y': 3/202}
