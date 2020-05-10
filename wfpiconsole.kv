@@ -15,10 +15,14 @@
 ## You should have received a copy of the GNU General Public License along with
 ## this program. If not, see <http://www.gnu.org/licenses/>.
 
+## Import required modules
+#:import NoTransition kivy.uix.screenmanager.NoTransition
+#:import Factory      kivy.factory.Factory
+#:import utils        kivy.utils
+
 ## =============================================================================
 ## SCREEN MANAGER
 ## =============================================================================
-#:import NoTransition kivy.uix.screenmanager.NoTransition
 ScreenManager:
 	transition: NoTransition()
     CurrentConditions:
@@ -59,7 +63,7 @@ ScreenManager:
 
 <BoldText@Label>
 	font_name: 'fonts/SystemSanFranciscoDisplayBold.ttf'
-	font_size: '14sp'
+	font_size: '13sp'
 	text_size: self.size
 	font_hinting: None
 	markup: 1
@@ -71,7 +75,6 @@ ScreenManager:
 ## =============================================================================
 ## CURRRENT CONDITIONS SCREEN
 ## =============================================================================
-#:import Factory kivy.factory.Factory
 <CurrentConditions>:
 	name: 'CurrentConditions'
 	orientation: 'vertical'
@@ -313,7 +316,7 @@ ScreenManager:
 
 	## 'Feels like' icon and text
 	Image:
-		source: 'icons/feelsLike/' + root.feelsLike + '.png'
+		source: 'icons/feelsLike/' + app.Obs['FeelsLike'][3] + '.png'
 		pos_hint: {'x': 7/262, 'y': 6/202}
 		size_hint: (38/262, 29/202)
 	SmallText:
@@ -381,7 +384,7 @@ ScreenManager:
 
     ## Current Beaufort scale text and icon
     Image:
-        source: 'icons/windSpeed/' + root.meanWindSpd + '.png'
+        source: 'icons/windSpeed/' + app.Obs['WindSpd'][3] + '.png'
 		keep_ratio: 0
 	    allow_stretch: 1
 		pos_hint: {'x': 18/262, 'y': 28/202}
@@ -394,7 +397,7 @@ ScreenManager:
 
     ## Current average wind direction
     Image:
-        source: 'icons/windDir/' + root.meanWindDir + '.png'
+        source: 'icons/windDir/' + app.Obs['WindDir'][2] + '.png'
 		keep_ratio: 0
 	    allow_stretch: 1
 		pos_hint: {'x': 216/262, 'y': 28/202}
@@ -442,57 +445,170 @@ ScreenManager:
 ## SUNRISE/SUNSET WIDGET
 ## =============================================================================
 <SunriseSunsetPanel>:
-	Image:
+    Image:
 		source: 'background/sunriseSunset.png'
 		size_hint: (1,1)
 		keep_ratio: 0
 		allow_stretch: 1
 
+    ## Night bar
+    BoxLayout:
+        pos_hint: {'x': 13/262, 'y': 96/202}
+        size_hint: [236/262, 10/202]
+        canvas.after:
+            Color:
+                rgba: [100/255,100/255,100/255,1]
+            Rectangle:
+                pos: self.pos
+                size: self.size
+
+    ## Dawn/Dusk bar
+    BoxLayout:
+        pos_hint: {'x': (13+app.Astro['Dawn'][2]*236)/262, 'y': 96/202}
+        size_hint: [(app.Astro['Dusk'][2]*236)/262, 10/202]
+        canvas.after:
+            Color:
+                rgba: [29/255,74/255,87/255,1]
+            Rectangle:
+                pos: self.pos
+                size: self.size
+
+    ## Sunrise/sunset bar
+    BoxLayout:
+        pos_hint: {'x': (13+app.Astro['Sunrise'][2]*236)/262, 'y': 96/202}
+        size_hint: [(app.Astro['Sunset'][2]*236)/262, 10/202]
+        canvas.after:
+            Color:
+                rgba: [0/255,113/255,123/255,1]
+            Rectangle:
+                pos: self.pos
+                size: self.size
+
+    ## Sun bar and icon position
+    BoxLayout:
+        pos_hint: {'x': 13/262, 'y': 94/202}
+        size_hint: [236/262, 14/202]
+        canvas.after:
+            Color:
+                rgba: [230/255,75/255,36/255,app.Astro['sunIcon'][1]]
+            Line:
+                width: 1.2
+                rectangle: [self.x + app.Astro['sunIconPosition']*self.width, self.y, 1, self.height]
+    Image:
+        source: 'icons/sun/' + app.Astro['sunIcon'][0] + '.png'
+        keep_ratio: 0
+        allow_stretch: 1
+        pos_hint: {'x': (4+app.Astro['sunIconPosition']*236)/262, 'y': 92.5/202}
+        size_hint: (18/262, 18/202)
+
 	## Solar radiation
+    BoldText:
+		text: 'Radiation'
+        color: [200/255,200/255,200/255,1]
+		pos_hint: {'x': 3/262, 'y': 166/202}
+		size_hint: (105/262, 15/202)
 	MediumText:
 		text: app.Obs['Radiation'][0] + app.Obs['Radiation'][1]
 		pos_hint: {'x': 3/262, 'y': 130/202}
 		size_hint: (105/262, 33/202)
 
 	## UV Index
+    BoldText:
+		text: 'UV Index'
+        color: [200/255,200/255,200/255,1]
+		pos_hint: {'x': 125/262, 'y': 166/202}
+		size_hint: (120/262, 15/202)
 	MediumText:
 		text: app.Obs['UVIndex'][0]
-		pos_hint: {'x': 154/262, 'y': 129/202}
-		size_hint: (52.5/262, 33/202)
-	Image:
-		source: 'icons/uv/' + root.uvIcon + '.png'
-		pos_hint: {'x': 206.5/262, 'y': 129/202}
-		size_hint: (52.5/262, 33/202)
+		pos_hint: {'x': 125/262, 'y': 130/202}
+		size_hint: (40/262, 33/202)
+	BoldText:
+		text: app.Obs['UVIndex'][2]
+		pos_hint: {'x': 170/262, 'y': 139/202}
+		size_hint: (75/262, 17/202)
+        color: [20/255,20/255,20/255,1]
+        canvas.before:
+            Color:
+                rgba: utils.rgba(app.Obs['UVIndex'][3]) if app.Obs['UVIndex'][3] != '-' else [20/255,20/255,20/255,1]
+            RoundedRectangle:
+                pos: [self.pos[0],self.pos[1]-2]
+                size: self.size
+                radius: [5,]
 
 	## Sunrise time
+    BoldText:
+		text: 'Sunrise'
+        color: [200/255,200/255,200/255,1]
+        halign: 'left'
+		pos_hint: {'x': 13/262, 'y': 114/202}
+		size_hint: (80/262, 15/202)
 	SmallText:
 		text: app.Astro['Sunrise'][1]
-		pos_hint: {'x': 7/262, 'y': 3/202}
-		size_hint: (80/262, 18/202)
+        halign: 'left'
+        valign: 'top'
+		pos_hint: {'x': 13/262, 'y': 68/202}
+		size_hint: (80/262, 20/202)
 
 	## Sunset time
+    BoldText:
+		text: 'Sunset'
+        color: [200/255,200/255,200/255,1]
+        halign: 'right'
+		pos_hint: {'x': 169/262, 'y': 114/202}
+		size_hint: (80/262, 15/202)
 	SmallText:
 		text: app.Astro['Sunset'][1]
-		pos_hint: {'x': 175/262, 'y': 3/202}
-		size_hint: (80/262, 18/202)
-
-	## Sun transit icon
-	Image:
-		source: 'icons/sun/' + app.Astro['SunAngle'] + '.png'
-		keep_ratio: 0
-	    allow_stretch: 1
-		pos_hint: {'x': 40/262, 'y': 36.5/202}
-		size_hint: (182/262, 99/202)
+        halign: 'right'
+        valign: 'top'
+		pos_hint: {'x': 169/262, 'y': 68/202}
+		size_hint: (80/262, 20/202)
 
 	## Time remaining until sunrise or sunset
-	LargeText:
-		text: app.Astro['sunEvent'][1] + ':' + app.Astro['sunEvent'][2]
-		pos_hint: {'x': 91/262, 'y': 51/202}
-		size_hint: (80/262, 28/202)
+    BoldText:
+		text: app.Astro['sunEvent'][3]
+        color: [200/255,200/255,200/255,1]
+		pos_hint: {'x': 24/262, 'y': 50/202}
+		size_hint: (80/262, 15/202)
+	MediumText:
+		text: app.Astro['sunEvent'][1]
+		pos_hint: {'x': 10/262, 'y': 26/202}
+		size_hint: (30/262, 21/202)
+    BoldText:
+		text: 'hrs'
+        color: [1,1,1,1]
+        font_size: '10sp'
+		pos_hint: {'x': 40/262, 'y': 22/202}
+		size_hint: (20/262, 15/202)
+	MediumText:
+		text: app.Astro['sunEvent'][2]
+		pos_hint: {'x': 60/262, 'y': 26/202}
+		size_hint: (30/262, 21/202)
+    BoldText:
+		text: 'mins'
+        font_size: '10dp'
+        color: [1,1,1,1]
+		pos_hint: {'x': 90/262, 'y': 22/202}
+		size_hint: (28/262, 15/202)
 	SmallText:
-		text: app.Astro['sunEvent'][0]
-		pos_hint: {'x': 91/262, 'y': 33/202}
+		text: 'Till ' + app.Astro['sunEvent'][0]
+		pos_hint: {'x': 24/262, 'y': 3/202}
 		size_hint: (80/262, 18/202)
+
+    ## Peak Sun Hours
+    BoldText:
+		text: 'Peak Sun Hours'
+        valign: 'bottom'
+        color: [200/255,200/255,200/255,1]
+		pos_hint: {'x': 132/262, 'y': 50/202}
+		size_hint: (120/262, 15/202)
+	MediumText:
+		text: app.Obs['peakSun'][0]
+		pos_hint: {'x': 152/262, 'y': 25/202}
+		size_hint: (80/262, 21/202)
+    SmallText:
+		text: 'Solar: ' + app.Obs['peakSun'][4]
+		pos_hint: {'x': 132/262, 'y': 3/202}
+		size_hint: (120/262, 18/202)
 
 <SunriseSunsetButton>:
 	Button:
@@ -737,7 +853,10 @@ ScreenManager:
 				x: root.xLightningBolt
 		canvas.after:
 			PopMatrix
-		source: 'icons/lightning/' + root.lightningBoltIcon + '.png'
+		source:
+			'icons/lightning/lightningBolt.png' if app.Obs['StrikeDeltaT'][4] == '-' else \
+			'icons/lightning/lightningBoltStrike.png' if app.Obs['StrikeDeltaT'][4] < 360 else \
+			'icons/lightning/lightningBolt.png'
 		keep_ratio: 0
 		allow_stretch: 1
 		pos_hint: {'x': 9/262, 'y': 120/202}
@@ -762,7 +881,7 @@ ScreenManager:
 
 	## Current pressure arrow
 	Image:
-		source: 'icons/barometer/' + str(root.barometerArrow) + '.png'
+		source: 'icons/barometer/' + str(app.Obs['Pres'][2]) + '.png'
 		keep_ratio: 0
 	    allow_stretch: 1
 		pos_hint: {'x': 46/262, 'y': 18/202}

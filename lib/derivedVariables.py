@@ -264,7 +264,7 @@ def SLPMaxMin(Time,Pres,maxPres,minPres,Device,Config):
     Now = datetime.now(pytz.utc).astimezone(Tz)
 
     # Code initialising. Download all data for current day using Weatherflow
-    # API and daily maximum and minimum pressure
+    # API and calculate daily maximum and minimum pressure
     if maxPres[0] == '-':
 
         # Download pressure data from the current day
@@ -349,7 +349,7 @@ def TempMaxMin(Time,Temp,maxTemp,minTemp,Device,Config):
     Now = datetime.now(pytz.utc).astimezone(Tz)
 
     # Code initialising. Download all data for current day using Weatherflow
-    # API and daily maximum and minimum temperature
+    # API and calculate daily maximum and minimum temperature
     if maxTemp[0] == '-':
 
         # Download temperature data from the current day
@@ -469,15 +469,15 @@ def StrikeFrequency(obTime,Data3h,Config):
     if len(activeStrikes) > 0:
         strikeFrequency3h = [np.nanmean(activeStrikes),'/min']
     else:
-        strikeFrequency3h = [0,'/min']
+        strikeFrequency3h = [np.nanmean([0]),'/min']
 
     # Calculate average strike frequency over the last 10 minutes
-    Count3h = Count3h[np.where(Time >= obTime[0]-600)]
-    activeStrikes = Count3h[Count3h>0]
+    Count10m = Count3h[np.where(Time >= obTime[0]-600)]
+    activeStrikes = Count10m[Count10m>0]
     if len(activeStrikes) > 0:
         strikeFrequency10m = [np.nanmean(activeStrikes),'/min']
     else:
-        strikeFrequency10m = [0,'/min']
+        strikeFrequency10m = [np.nanmean([0]),'/min']
 
     # Return strikeFrequency for last 10 minutes and last three hours
     strikeFrequency = strikeFrequency10m + strikeFrequency3h
@@ -894,11 +894,7 @@ def CardinalWindDirection(windDir,windSpd=[1,'mps']):
 	OUTPUT:
         cardinalWind        Cardinal wind direction
 	"""
-
-
-    #print(windSpd)
-    #print(windDir)
-
+    
     # Define all possible cardinal wind directions and descriptions
     Direction = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW','N']
     Description = ['Due North','North NE','North East','East NE','Due East','East SE','South East','South SE',
@@ -920,7 +916,6 @@ def CardinalWindDirection(windDir,windSpd=[1,'mps']):
         cardinalWind = [windDir[0],windDir[1],Direction,Description]
 
     # Return cardinal wind direction and description
-    #print(cardinalWind)
     return cardinalWind
 
 def BeaufortScale(windSpd):
@@ -964,20 +959,93 @@ def UVIndex(uvLevel):
         uvIndex             UV index
 	"""
 
-    # Define UV cutoffs and UV index levels
-    Cutoffs = [1,3,6,8,11]
-    Index = ['0','1','2','3','4','5']
+    # Define UV Index cutoffs and level descriptions
+    Cutoffs = [0,3,6,8,11]
+    Level   = ['None','Low','Moderate','High','Very High','Extreme']
+
+    # Define UV index colours
+    Grey   = '#646464'
+    Green  = '#558B2F'
+    Yellow = '#F9A825'
+    Orange = '#EF6C00'
+    Red    = '#B71C1C'
+    Violet = '#6A1B9A'
+    Color  = [Grey,Green,Yellow,Orange,Red,Violet]
 
     # Set the UV index
     if math.isnan(uvLevel[0]):
-        uvIndex = [uvLevel[0],'index','-']
+        uvIndex = [uvLevel[0],'index','-',White]
     else:
-        Ind = bisect.bisect(Cutoffs,uvLevel[0])
-        uvIndex = [round(uvLevel[0],1),'index',Index[Ind]]
+        if uvLevel[0] > 0:
+            Ind = bisect.bisect(Cutoffs,round(uvLevel[0],1))
+        else:
+            Ind = 0
+        uvIndex = [round(uvLevel[0],1),'index',Level[Ind],Color[Ind]]
 
     # Return UV Index icon
     return uvIndex
+    
+def peakSunHours(Radiation,peakSun,Astro,Device,Config):
 
+    # Define current time in station timezone
+    Tz = pytz.timezone(Config['Station']['Timezone'])
+    Now = datetime.now(pytz.utc).astimezone(Tz)
+
+    # Code initialising. Download all data for current day using Weatherflow
+    # API and calculate Peak Sun Hours
+    if peakSun[0] == '-':
+
+        # Download rainfall data for current day
+        Data = requestAPI.weatherflow.Today(Device,Config)
+
+        # Calculate Peak Sun Hours. Return NaN if API call has failed
+        if requestAPI.weatherflow.verifyResponse(Data,'obs'):
+            Data = Data.json()['obs']
+            if Config['Station']['SkyID']:
+                Radiation = [item[10] if item[10] != None else NaN for item in Data]
+            elif Config['Station']['TempestID']:
+                Radiation = [item[11] if item[11] != None else NaN for item in Data]
+            kwh = sum([item*1/60 for item in Radiation])
+            peakSun = [kwh/1000,'hrs',kwh,Now]
+        else:
+            peakSun = [NaN,'hrs',NaN,Now]
+        
+    # At midnight, reset Peak Sun Hours
+    elif Now.date() > peakSun[3].date():
+    
+        # Calculate Peak Sun Hours
+        kwh = Radiation[0] * 1/60
+        peakSun = [kwh/1000,'hrs',kwh,Now]
+
+    # Add current Radiation value to Peak Sun Hours
+    else:
+        
+        # Calculate Peak Sun Hours
+        kwh = peakSun[2] + (Radiation[0] * 1/60)
+        peakSun = [kwh/1000,'hrs',kwh,Now]
+        
+    # Calculate proportion of daylight hours that have passed    
+    daylightTotal  = (Astro['Sunset'][0] - Astro['Sunrise'][0]).total_seconds()
+    if Astro['Sunrise'][0] <= Now <= Astro['Sunset'][0]:   
+        daylightElapsed = (Now - Astro['Sunrise'][0]).total_seconds()
+    else:  
+        daylightElapsed = daylightTotal  
+    daylightFactor = daylightElapsed/daylightTotal
+      
+    # Define daily solar potential text
+    if peakSun[0]/daylightFactor == 0:
+        peakSun.append('[color=#646464ff]None[/color]')
+    elif peakSun[0]/daylightFactor < 2:
+        peakSun.append('[color=#4575b4ff]Limited[/color]')
+    elif peakSun[0]/daylightFactor < 4:
+        peakSun.append('[color=#fee090ff]Moderate[/color]')
+    elif peakSun[0]/daylightFactor < 6:
+        peakSun.append('[color=#f46d43ff]Good[/color]')
+    else:
+        peakSun.append('[color=#d73027ff]Excellent[/color]')    
+
+    # Return Peak Sun Hours
+    return peakSun 
 
 # # CHECK STATUS OF SKY AND AIR MODULES
 # # --------------------------------------------------------------------------

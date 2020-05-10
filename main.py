@@ -179,28 +179,28 @@ from kivy.uix.label          import Label
 class wfpiconsole(App):
 
     # Define App class dictionary properties
-    Obs = DictProperty      ([('rapidSpd','--'),       ('rapidDir','----'),     ('rapidShift','-'),
-                              ('WindSpd','-----'),     ('WindGust','--'),       ('WindDir','---'),
-                              ('AvgWind','--'),        ('MaxGust','--'),        ('RainRate','---'),
-                              ('TodayRain','--'),      ('YesterdayRain','--'),  ('MonthRain','--'),
-                              ('YearRain','--'),       ('Radiation','----'),    ('UVIndex','----'),
-                              ('outTemp','--'),        ('outTempMin','---'),    ('outTempMax','---'),
-                              ('inTemp','--'),         ('inTempMin','---'),     ('inTempMax','---'),
-                              ('Humidity','--'),       ('DewPoint','--'),       ('Pres','---'),
-                              ('MaxPres','---'),       ('MinPres','---'),       ('PresTrend','----'),
-                              ('FeelsLike','----'),    ('StrikeDeltaT','-----'),('StrikeDist','--'),
-                              ('StrikeFreq','----'),   ('Strikes3hr','-'),      ('StrikesToday','-'),
-                              ('StrikesMonth','-'),    ('StrikesYear','-')
+    Obs = DictProperty      ([('rapidSpd','--'),       ('rapidDir','----'),    ('rapidShift','-'),
+                              ('WindSpd','-----'),     ('WindGust','--'),      ('WindDir','---'),
+                              ('AvgWind','--'),        ('MaxGust','--'),       ('RainRate','---'),
+                              ('TodayRain','--'),      ('YesterdayRain','--'), ('MonthRain','--'),
+                              ('YearRain','--'),       ('Radiation','----'),   ('UVIndex','----'),
+                              ('peakSun','-----'),     ('outTemp','--'),       ('outTempMin','---'),    
+                              ('outTempMax','---'),    ('inTemp','--'),        ('inTempMin','---'),     
+                              ('inTempMax','---'),     ('Humidity','--'),      ('DewPoint','--'),       
+                              ('Pres','---'),          ('MaxPres','---'),      ('MinPres','---'),       
+                              ('PresTrend','----'),    ('FeelsLike','----'),   ('StrikeDeltaT','-----'),
+                              ('StrikeDist','--'),     ('StrikeFreq','----'),  ('Strikes3hr','-'),      
+                              ('StrikesToday','-'),    ('StrikesMonth','-'),   ('StrikesYear','-')
                              ])
-    Astro = DictProperty    ([('Sunrise',['-','-']),   ('Sunset',['-','-']), ('sunEvent',['-','-','-']),
-                              ('SunAngle','-'),        ('ValidDate','--'),   ('Moonrise',['-','-']),
-                              ('Moonset',['-','-']),   ('NewMoon','--'),     ('FullMoon','--'),
-                              ('Phase','---')
+    Astro = DictProperty    ([('Sunrise',['-','-',0]), ('Sunset',['-','-',0]), ('Dawn',['-','-',0]),
+                              ('Dusk',['-','-',0]),    ('sunEvent','----'),    ('sunIcon',['-',0]),
+                              ('sunIconPosition',0),   ('Moonrise',['-','-']), ('Moonset',['-','-']),
+                              ('NewMoon','--'),        ('FullMoon','--'),      ('Phase','---'),
                              ])
-    MetData = DictProperty  ([('Weather','Building'),   ('Temp','--'),         ('Precip','--'),
-                              ('WindSpd','--'),         ('WindDir','--'),      ('Valid','--')
+    MetData = DictProperty  ([('Weather','Building'),  ('Temp','--'),          ('Precip','--'),
+                              ('WindSpd','--'),        ('WindDir','--'),       ('Valid','--')
                              ])
-    Sager = DictProperty    ([('Forecast','--'),('Issued','--')])
+    Sager = DictProperty    ([('Forecast','--'),       ('Issued','--')])
     Version = DictProperty  ([('Latest','-')])
 
     # Define App class configParser properties
@@ -464,8 +464,8 @@ class wfpiconsole(App):
                 forecast.ExtractDarkSky(self.MetData,self.config)
                 self.MetData['Time'] = Now
 
-        # Once sunset has passed, calculate new sunrise/sunset times
-        if Now > self.Astro['Sunset'][0]:
+        # Once dusk has passed, calculate new sunrise/sunset times
+        if Now >= self.Astro['Dusk'][0]:
             self.Astro = astro.SunriseSunset(self.Astro,self.config)
 
         # Once moonset has passed, calculate new moonrise/moonset times
@@ -576,21 +576,10 @@ class SagerButton(RelativeLayout):
 # ==============================================================================
 class TemperaturePanel(RelativeLayout):
 
-    # Define TemperaturePanel class properties
-    feelsLike = StringProperty('-')
-
-    # INITIALISE 'TemperaturePanel' RELATIVE LAYOUT CLASS
-    # --------------------------------------------------------------------------
+    # Initialise 'TemperaturePanel' relative layout class
     def __init__(self,**kwargs):
         super(TemperaturePanel,self).__init__(**kwargs)
         App.get_running_app().TemperaturePanel = self
-        self.feelsLikeIcon()
-
-    # SET "FEELS LIKE" ICON (uses mainthread)
-    # --------------------------------------------------------------------------
-    @mainthread
-    def feelsLikeIcon(self):
-        self.feelsLike = App.get_running_app().Obs['FeelsLike'][3]
 
 class TemperatureButton(RelativeLayout):
     pass
@@ -602,16 +591,12 @@ class WindSpeedPanel(RelativeLayout):
 
     # Define WindSpeedPanel class properties
     rapidWindDir = NumericProperty(0)
-    meanWindDir = StringProperty('-')
-    meanWindSpd = StringProperty('-')
 
     # INITIALISE 'WindSpeedPanel' RELATIVE LAYOUT CLASS
     # --------------------------------------------------------------------------
     def __init__(self,**kwargs):
         super(WindSpeedPanel,self).__init__(**kwargs)
-        Clock.schedule_once(lambda dt: self.meanWindIcons())
         App.get_running_app().WindSpeedPanel = self
-        self.meanWindIcons()
 
     # ANIMATE WIND ROSE DIRECTION ARROW (uses mainthread)
     # --------------------------------------------------------------------------
@@ -643,13 +628,6 @@ class WindSpeedPanel(RelativeLayout):
         if rapidWindDir == 359.9:
             item.rapidWindDir = 0
 
-    # SET MEAN WIND SPEED AND DIRECTION ICONS (uses mainthread)
-    # --------------------------------------------------------------------------
-    @mainthread
-    def meanWindIcons(self):
-        self.meanWindDir = App.get_running_app().Obs['WindDir'][2]
-        self.meanWindSpd = App.get_running_app().Obs['WindSpd'][3]
-
 class WindSpeedButton(RelativeLayout):
     pass
 
@@ -658,21 +636,10 @@ class WindSpeedButton(RelativeLayout):
 # ==============================================================================
 class SunriseSunsetPanel(RelativeLayout):
 
-    # Define SunriseSunsetPanel class properties
-    uvIcon = StringProperty('-')
-
-    # INITIALISE 'SunriseSunsetPanel' RELATIVE LAYOUT CLASS
-    # --------------------------------------------------------------------------
+    # Initialise 'SunriseSunsetPanel' relative layout class
     def __init__(self,**kwargs):
         super(SunriseSunsetPanel,self).__init__(**kwargs)
         App.get_running_app().SunriseSunsetPanel = self
-        self.setUVIcon()
-
-    # SET CURRENT UV INDEX ICON (uses mainthread)
-    # --------------------------------------------------------------------------
-    @mainthread
-    def setUVIcon(self):
-        self.uvIcon = App.get_running_app().Obs['UVIndex'][2]
 
 class SunriseSunsetButton(RelativeLayout):
     pass
@@ -686,7 +653,6 @@ class MoonPhasePanel(RelativeLayout):
     def __init__(self,**kwargs):
         super(MoonPhasePanel,self).__init__(**kwargs)
         App.get_running_app().MoonPhasePanel = self
-
 
 class MoonPhaseButton(RelativeLayout):
     pass
@@ -788,14 +754,12 @@ class LightningPanel(RelativeLayout):
 
     # Define LightningPanel class properties
     xLightningBolt = NumericProperty(0)
-    lightningBoltIcon = StringProperty('lightningBolt')
 
     # INITIALISE 'LightningPanel' RELATIVE LAYOUT CLASS
     # --------------------------------------------------------------------------
     def __init__(self,**kwargs):
         super(LightningPanel,self).__init__(**kwargs)
         App.get_running_app().LightningPanel = self
-        self.setLightningBoltIcon()
 
     # ANIMATE LIGHTNING BOLT ICON WHEN STRIKE IS DETECTED
     # --------------------------------------------------------------------------
@@ -803,16 +767,6 @@ class LightningPanel(RelativeLayout):
     def LightningBoltAnim(self):
         Anim = Animation(xLightningBolt=10,t='out_quad',d=0.02) + Animation(xLightningBolt=0,t='out_elastic',d=0.5)
         Anim.start(self)
-
-    # SET LIGHTNING BOLT ICON (uses mainthread)
-    # --------------------------------------------------------------------------
-    @mainthread
-    def setLightningBoltIcon(self):
-        if App.get_running_app().Obs['StrikeDeltaT'][4] != '-':
-            if App.get_running_app().Obs['StrikeDeltaT'][4] < 360:
-                self.lightningBoltIcon = 'lightningBoltStrike'
-            else:
-                self.lightningBoltIcon = 'lightningBolt'
 
 class LightningButton(RelativeLayout):
     pass
@@ -822,21 +776,10 @@ class LightningButton(RelativeLayout):
 # ==============================================================================
 class BarometerPanel(RelativeLayout):
 
-    # Define BarometerPanel class properties
-    barometerArrow = StringProperty('-')
-
-    # INITIALISE 'BarometerPanel' RELATIVE LAYOUT CLASS
-    # --------------------------------------------------------------------------
+    # Initialise 'BarometerPanel' relative layout class
     def __init__(self,**kwargs):
         super(BarometerPanel,self).__init__(**kwargs)
         App.get_running_app().BarometerPanel = self
-        self.setArrow()
-
-    # SET BAROMETER ARROW FOR CURRENT PRESSURE (uses mainthread)
-    # --------------------------------------------------------------------------
-    @mainthread
-    def setArrow(self):
-        self.barometerArrow = App.get_running_app().Obs['Pres'][2]
 
 class BarometerButton(RelativeLayout):
     pass
