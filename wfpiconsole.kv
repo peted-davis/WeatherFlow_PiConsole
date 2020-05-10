@@ -479,7 +479,7 @@ ScreenManager:
         size_hint: [(app.Astro['Sunset'][2]*236)/262, 10/202]
         canvas.after:
             Color:
-                rgba: [22/255,151/255,163/255,1]
+                rgba: [0/255,113/255,123/255,1]
             Rectangle:
                 pos: self.pos
                 size: self.size
@@ -567,31 +567,31 @@ ScreenManager:
     BoldText:
 		text: app.Astro['sunEvent'][3]
         color: [200/255,200/255,200/255,1]
-		pos_hint: {'x': 28/262, 'y': 50/202}
+		pos_hint: {'x': 24/262, 'y': 50/202}
 		size_hint: (80/262, 15/202)
 	MediumText:
 		text: app.Astro['sunEvent'][1]
-		pos_hint: {'x': 14/262, 'y': 26/202}
+		pos_hint: {'x': 10/262, 'y': 26/202}
 		size_hint: (30/262, 21/202)
     BoldText:
 		text: 'hrs'
         color: [1,1,1,1]
         font_size: '10sp'
-		pos_hint: {'x': 44/262, 'y': 22/202}
+		pos_hint: {'x': 40/262, 'y': 22/202}
 		size_hint: (20/262, 15/202)
 	MediumText:
 		text: app.Astro['sunEvent'][2]
-		pos_hint: {'x': 64/262, 'y': 26/202}
+		pos_hint: {'x': 60/262, 'y': 26/202}
 		size_hint: (30/262, 21/202)
     BoldText:
 		text: 'mins'
         font_size: '10dp'
         color: [1,1,1,1]
-		pos_hint: {'x': 94/262, 'y': 22/202}
+		pos_hint: {'x': 90/262, 'y': 22/202}
 		size_hint: (28/262, 15/202)
 	SmallText:
 		text: 'Till ' + app.Astro['sunEvent'][0]
-		pos_hint: {'x': 28/262, 'y': 3/202}
+		pos_hint: {'x': 24/262, 'y': 3/202}
 		size_hint: (80/262, 18/202)
 
     ## Peak Sun Hours
@@ -599,15 +599,15 @@ ScreenManager:
 		text: 'Peak Sun Hours'
         valign: 'bottom'
         color: [200/255,200/255,200/255,1]
-		pos_hint: {'x': 136/262, 'y': 50/202}
+		pos_hint: {'x': 132/262, 'y': 50/202}
 		size_hint: (120/262, 15/202)
 	MediumText:
 		text: app.Obs['peakSun'][0]
-		pos_hint: {'x': 156/262, 'y': 25/202}
+		pos_hint: {'x': 152/262, 'y': 25/202}
 		size_hint: (80/262, 21/202)
     SmallText:
 		text: 'Solar: ' + app.Obs['peakSun'][4]
-		pos_hint: {'x': 136/262, 'y': 3/202}
+		pos_hint: {'x': 132/262, 'y': 3/202}
 		size_hint: (120/262, 18/202)
 
 <SunriseSunsetButton>:
