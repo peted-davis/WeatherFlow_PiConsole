@@ -126,7 +126,7 @@ from kivy.animation   import Animation
 from kivy.factory     import Factory
 from kivy.metrics     import dp
 from kivy.config      import ConfigParser
-from kivy.clock       import Clock, mainthread
+from kivy.clock       import Clock
 from kivy.app         import App
 
 # ==============================================================================
@@ -184,12 +184,12 @@ class wfpiconsole(App):
                               ('AvgWind','--'),        ('MaxGust','--'),       ('RainRate','---'),
                               ('TodayRain','--'),      ('YesterdayRain','--'), ('MonthRain','--'),
                               ('YearRain','--'),       ('Radiation','----'),   ('UVIndex','----'),
-                              ('peakSun','-----'),     ('outTemp','--'),       ('outTempMin','---'),    
-                              ('outTempMax','---'),    ('inTemp','--'),        ('inTempMin','---'),     
-                              ('inTempMax','---'),     ('Humidity','--'),      ('DewPoint','--'),       
-                              ('Pres','---'),          ('MaxPres','---'),      ('MinPres','---'),       
+                              ('peakSun','-----'),     ('outTemp','--'),       ('outTempMin','---'),
+                              ('outTempMax','---'),    ('inTemp','--'),        ('inTempMin','---'),
+                              ('inTempMax','---'),     ('Humidity','--'),      ('DewPoint','--'),
+                              ('Pres','---'),          ('MaxPres','---'),      ('MinPres','---'),
                               ('PresTrend','----'),    ('FeelsLike','----'),   ('StrikeDeltaT','-----'),
-                              ('StrikeDist','--'),     ('StrikeFreq','----'),  ('Strikes3hr','-'),      
+                              ('StrikeDist','--'),     ('StrikeFreq','----'),  ('Strikes3hr','-'),
                               ('StrikesToday','-'),    ('StrikesMonth','-'),   ('StrikesYear','-')
                              ])
     Astro = DictProperty    ([('Sunrise',['-','-',0]), ('Sunset',['-','-',0]), ('Dawn',['-','-',0]),
@@ -509,7 +509,6 @@ class CurrentConditions(Screen):
 
     # SWITCH BETWEEN DIFFERENT PANELS ON CURRENT CONDITIONS SCREEN
     # --------------------------------------------------------------------------
-    @mainthread
     def SwitchPanel(self,Instance,manButton=None):
 
         # Determine ID of button that has been pressed
@@ -600,7 +599,6 @@ class WindSpeedPanel(RelativeLayout):
 
     # ANIMATE WIND ROSE DIRECTION ARROW (uses mainthread)
     # --------------------------------------------------------------------------
-    @mainthread
     def WindRoseAnimation(self):
 
         # Get current wind direction, old wind direction and change in wind
@@ -677,7 +675,6 @@ class RainfallPanel(RelativeLayout):
 
     # ANIMATE RAIN RATE ICON
     # --------------------------------------------------------------------------
-    @mainthread
     def RainRateAnimation(self):
 
         # Get current rain rate and convert to float
@@ -763,7 +760,6 @@ class LightningPanel(RelativeLayout):
 
     # ANIMATE LIGHTNING BOLT ICON WHEN STRIKE IS DETECTED
     # --------------------------------------------------------------------------
-    @mainthread
     def LightningBoltAnim(self):
         Anim = Animation(xLightningBolt=10,t='out_quad',d=0.02) + Animation(xLightningBolt=0,t='out_elastic',d=0.5)
         Anim.start(self)

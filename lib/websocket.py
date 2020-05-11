@@ -25,29 +25,29 @@ import time
 # Define global variables
 NaN = float('NaN')
 
-@mainthread    
+@mainthread
 def updateDisplay(derivedObs,Console,Type):
 
-    """ Updates console display using mainthread with new variables derived from 
+    """ Updates console display using mainthread with new variables derived from
     latest websocket message
 
 	INPUTS:
 		derivedObs			Derived variables from latest Websocket message
 		Console             Console object
         Type                Type of latest Websocket message
-	""" 
+	"""
 
     # Update display with new derived observations
     for Key,Value in derivedObs.items():
         Console.Obs[Key] = Value
-        
+
     # Animate RainRate if RainfallPanel is active
     if Type in ['Tempest','Sky'] and hasattr(Console,'RainfallPanel'):
         Console.RainfallPanel.RainRateAnimation()
-        
+
     # Animate wind rose arrow if WindSpeedPanel panel is active
     if Type == 'rapidWind' and hasattr(Console,'WindSpeedPanel'):
-        Console.WindSpeedPanel.WindRoseAnimation()   
+        Console.WindSpeedPanel.WindRoseAnimation()
 
     # If required, open secondary lightning panel to show strike has been
     # detected
@@ -56,16 +56,12 @@ def updateDisplay(derivedObs,Console,Type):
             if "Lightning" in Button[2]:
                 Console.CurrentConditions.SwitchPanel([],Button)
 
-                # Wait for lightning panel to be instantiated
-                while not hasattr(Console,'LightningPanel'):
-                    time.sleep(0.1)
-
-    # Set and animate lightning bolt icon if LightningPanel panel is active
+    # Animate lightning bolt icon if LightningPanel panel is active
     if Type == 'Strike' and hasattr(Console,'LightningPanel'):
-        Console.LightningPanel.setLightningBoltIcon()    
-        
+        Console.LightningPanel.LightningBoltAnim()
+
     # Return Console object
-    return Console 
+    return Console
 
 def Tempest(Msg,Console):
 
@@ -199,7 +195,7 @@ def Tempest(Msg,Console):
     derivedObs['Radiation']     = observation.Format(Radiation,'Radiation')
     derivedObs['Battery']       = observation.Format(Battery,'Battery')
     derivedObs['UVIndex']       = observation.Format(UVIndex,'UV')
-    
+
     # Update console display with derived TEMPEST observations in mainthread
     updateDisplay(derivedObs,Console,'Tempest')
 
@@ -250,7 +246,7 @@ def Sky(Msg,Console):
                  'Yesterday': Console.Obs['YesterdayRain'],
                  'Month':     Console.Obs['MonthRain'],
                  'Year':      Console.Obs['YearRain']}
-    peakSun   = Console.Obs['peakSun']             
+    peakSun   = Console.Obs['peakSun']
     avgWind   = Console.Obs['AvgWind']
     maxGust   = Console.Obs['MaxGust']
 
@@ -295,7 +291,7 @@ def Sky(Msg,Console):
     derivedObs['Battery']       = observation.Format(Battery,'Battery')
     derivedObs['peakSun']       = observation.Format(peakSun,'peakSun')
     derivedObs['UVIndex']       = observation.Format(UVIndex,'UV')
-    
+
     # Update console display with derived SKY observations in mainthread
     updateDisplay(derivedObs,Console,'Sky')
 
@@ -395,7 +391,7 @@ def outdoorAir(Msg,Console):
     derivedObs['StrikesYear']  = observation.Format(StrikeCount['Year'],'StrikeCount')
     derivedObs['Humidity']     = observation.Format(Humidity,'Humidity')
     derivedObs['Battery']      = observation.Format(Battery,'Battery')
-    
+
     # Update console display with derived Outdoor AIR observations in mainthread
     updateDisplay(derivedObs,Console,'outdoorAir')
 
@@ -444,7 +440,7 @@ def indoorAir(Msg,Console):
 
     # Update console display with derived Indoor AIR observations in mainthread
     updateDisplay(derivedObs,Console,'indoorAir')
-    
+
     # Return Console object
     return Console
 
@@ -495,7 +491,7 @@ def rapidWind(Msg,Console):
     derivedObs['rapidShift'] = WindDir[0] - WindDirOld[0]
     derivedObs['rapidSpd']   = observation.Format(WindSpd,'Wind')
     derivedObs['rapidDir']   = observation.Format(WindDir,'Direction')
-    
+
     # Update console display with derived Rapid Wind observations in mainthread
     updateDisplay(derivedObs,Console,'rapidWind')
 
@@ -529,7 +525,7 @@ def evtStrike(Msg,Console):
     derivedObs                 = {}
     derivedObs['StrikeDeltaT'] = observation.Format(StrikeDeltaT,'TimeDelta')
     derivedObs['StrikeDist']   = observation.Format(StrikeDist,'StrikeDistance')
-    
+
     # Update console display with derived evt_strike observations in mainthread
     updateDisplay(derivedObs,Console,'Strike')
 
