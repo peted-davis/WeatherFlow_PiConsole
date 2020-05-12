@@ -126,7 +126,7 @@ from kivy.animation   import Animation
 from kivy.factory     import Factory
 from kivy.metrics     import dp
 from kivy.config      import ConfigParser
-from kivy.clock       import Clock
+from kivy.clock       import Clock, mainthread
 from kivy.app         import App
 
 # ==============================================================================
@@ -599,6 +599,7 @@ class WindSpeedPanel(RelativeLayout):
 
     # ANIMATE WIND ROSE DIRECTION ARROW (uses mainthread)
     # --------------------------------------------------------------------------
+    @mainthread
     def WindRoseAnimation(self):
 
         # Get current wind direction, old wind direction and change in wind
@@ -610,21 +611,24 @@ class WindSpeedPanel(RelativeLayout):
         # Animate Wind Rose at constant speed between old and new Rapid-Wind
         # wind direction
         if windShift >= -180 and windShift <= 180:
-            Anim = Animation(rapidWindDir=newDirec,duration=2*abs(windShift)/360)
-            Anim.start(self)
+            self.Anim = Animation(rapidWindDir=newDirec,duration=2*abs(windShift)/360)
+            self.Anim.bind(on_progress=self.fixDiscontinuity)
+            self.Anim.start(self)
         elif windShift > 180:
-            Anim = Animation(rapidWindDir=0.1,duration=2*oldDirec/360) + Animation(rapidWindDir=newDirec,duration=2*(360-newDirec)/360)
-            Anim.start(self)
+            self.Anim = Animation(rapidWindDir=0,duration=2*oldDirec/360) + Animation(rapidWindDir=newDirec,duration=2*(360-newDirec)/360)
+            self.Anim.bind(on_progress=self.fixDiscontinuity)
+            self.Anim.start(self)
         elif windShift < -180:
-            Anim = Animation(rapidWindDir=359.9,duration=2*(360-oldDirec)/360) + Animation(rapidWindDir=newDirec,duration=2*newDirec/360)
-            Anim.start(self)
+            self.Anim = Animation(rapidWindDir=360,duration=2*(360-oldDirec)/360) + Animation(rapidWindDir=newDirec,duration=2*newDirec/360)
+            self.Anim.bind(on_progress=self.fixDiscontinuity)
+            self.Anim.start(self)
 
     # Fix Wind Rose angle at 0/360 degree discontinuity
-    def on_rapidWindDir(self,item,rapidWindDir):
-        if rapidWindDir == 0.1:
-            item.rapidWindDir = 360
-        if rapidWindDir == 359.9:
-            item.rapidWindDir = 0
+    def fixDiscontinuity(self,*args):
+        if self.rapidWindDir <= 0:
+            self.rapidWindDir = 359.9
+        if self.rapidWindDir >= 360:
+            self.rapidWindDir = 0.1
 
 class WindSpeedButton(RelativeLayout):
     pass
@@ -675,6 +679,7 @@ class RainfallPanel(RelativeLayout):
 
     # ANIMATE RAIN RATE ICON
     # --------------------------------------------------------------------------
+    @mainthread
     def RainRateAnimation(self):
 
         # Get current rain rate and convert to float
@@ -705,15 +710,16 @@ class RainfallPanel(RelativeLayout):
                 delattr(self,'Anim')
         else:
             if not hasattr(self,'Anim'):
-                self.Anim = Animation(xRainAnim=-0.875,duration=12)
+                self.Anim  = Animation(xRainAnim=-0.875,duration=12)
                 self.Anim += Animation(xRainAnim=-0.875,duration=12)
+                self.Anim.bind(on_progress=self.loopRainAnimation)
                 self.Anim.repeat = True
                 self.Anim.start(self)
 
     # Loop RainRate animation in the x direction
-    def on_xRainAnim(self,item,xRainAnim):
-        if round(xRainAnim,3) == -0.875:
-            item.xRainAnim = 0
+    def loopRainAnimation(self,*args):
+        if round(self.xRainAnim,3) <= -0.875:
+            self.xRainAnim = 0
 
     # DEFINE DATE AND TIME IN STATION TIMEZONE
     # --------------------------------------------------------------------------
@@ -760,6 +766,7 @@ class LightningPanel(RelativeLayout):
 
     # ANIMATE LIGHTNING BOLT ICON WHEN STRIKE IS DETECTED
     # --------------------------------------------------------------------------
+    @mainthread
     def LightningBoltAnim(self):
         Anim = Animation(xLightningBolt=10,t='out_quad',d=0.02) + Animation(xLightningBolt=0,t='out_elastic',d=0.5)
         Anim.start(self)
