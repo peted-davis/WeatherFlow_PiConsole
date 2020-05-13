@@ -76,14 +76,23 @@ from autobahn.twisted.websocket import WebSocketClientProtocol, WebSocketClientF
 class WeatherFlowClientProtocol(WebSocketClientProtocol,TimeoutMixin):
 
     def onOpen(self):
+
+        # Reset websocket reconnection delay and start timeout counter 
         print("Websocket connection open")
         self.factory._proto = self
         self.factory.resetDelay()
         self.setTimeout(300)
+        
+        # Set flags for required API calls after Websocket connection
+        self.factory._app.flagAPI = [1,1,1,1]
 
     def onMessage(self,payload,isBinary):
+    
+        # Decode message and pass to Websocket functions for processing
         Message = json.loads(payload.decode('utf8'))
         self.factory._app.WebsocketDecodeMessage(Message)
+        
+        # Reset websocket timeout
         self.resetTimeout()
 
     def timeoutConnection(self):
@@ -236,13 +245,13 @@ class wfpiconsole(App):
         forecast.Download(self.MetData,self.config)
 
         # Generate Sager Weathercaster forecast
-        Thread(target=sagerForecast.Generate, args=(self.Sager,self.config), name="Sager").start()
+        #Thread(target=sagerForecast.Generate, args=(self.Sager,self.config), name="Sager").start()
 
         # Initialise websocket connection
         self.WebsocketConnect()
 
         # Check for latest version
-        Clock.schedule_once(partial(system.checkVersion,self.Version,self.config,updateNotif))
+        #Clock.schedule_once(partial(system.checkVersion,self.Version,self.config,updateNotif))
 
         # Schedule function calls
         Clock.schedule_interval(self.UpdateMethods,1.0)
