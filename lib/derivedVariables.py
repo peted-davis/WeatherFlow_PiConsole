@@ -800,7 +800,8 @@ def MeanWindSpeed(windSpd,avgWind,Device,Config,flagAPI):
 
     # At midnight, reset daily averaged wind speed
     if Now.date() > avgWind[4].date():
-        AvgWind = [windSpd[0],'mps',windSpd[0],1,Now]
+        Length = 1
+        updatedAvg = windSpd[0]
 
     # Update current daily averaged wind speed with new wind speed observation
     else:
