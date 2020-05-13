@@ -970,7 +970,7 @@ def UVIndex(uvLevel):
     Orange = '#EF6C00'
     Red    = '#B71C1C'
     Violet = '#6A1B9A'
-    Color  = [Grey,Green,Yellow,Orange,Red,Violet]
+    Color  = [Grey,Green,Yellow,Orange,Red,Grey]
 
     # Set the UV index
     if math.isnan(uvLevel[0]):
