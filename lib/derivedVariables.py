@@ -970,11 +970,11 @@ def UVIndex(uvLevel):
     Orange = '#EF6C00'
     Red    = '#B71C1C'
     Violet = '#6A1B9A'
-    Color  = [Grey,Green,Yellow,Orange,Red,Grey]
+    Color  = [Grey,Green,Yellow,Orange,Red,Violet]
 
     # Set the UV index
     if math.isnan(uvLevel[0]):
-        uvIndex = [uvLevel[0],'index','-',White]
+        uvIndex = [uvLevel[0],'index','-',Grey]
     else:
         if uvLevel[0] > 0:
             Ind = bisect.bisect(Cutoffs,round(uvLevel[0],1))
