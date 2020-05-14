@@ -115,6 +115,7 @@ def Tempest(Msg,wfpiconsole):
                    'Yesterday': wfpiconsole.Obs['YesterdayRain'],
                    'Month':     wfpiconsole.Obs['MonthRain'],
                    'Year':      wfpiconsole.Obs['YearRain']}
+    peakSun     = wfpiconsole.Obs['peakSun']
     avgWind     = wfpiconsole.Obs['AvgWind']
     maxGust     = wfpiconsole.Obs['MaxGust']
 
@@ -129,7 +130,7 @@ def Tempest(Msg,wfpiconsole):
     MaxTemp, MinTemp = derive.TempMaxMin(Time,Temp,maxTemp,minTemp,Device,Config,flagAPI)
     MaxPres, MinPres = derive.SLPMaxMin(Time,Pres,maxPres,minPres,Device,Config,flagAPI)
     StrikeCount      = derive.StrikeCount(Strikes,StrikeCount,Device,Config,flagAPI)
-    StrikeFreq       = derive.StrikeFrequency(Time,Data3h,flagAPI)
+    StrikeFreq       = derive.StrikeFrequency(Time,Data3h,Config)
     StrikeDeltaT     = derive.StrikeDeltaT(StrikeTime)
     FeelsLike        = derive.FeelsLike(Temp,Humidity,WindSpd,Config)
     RainRate         = derive.RainRate(Rain)
