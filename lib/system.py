@@ -30,14 +30,14 @@ def checkVersion(verData,Config,updateNotif,*largs):
     """ Checks current version of the PiConsole against the latest available
     version on Github
 
-	INPUTS:
+    INPUTS:
         verData                 Dictionary holding version information
-		Config                  Station configuration
+        Config                  Station configuration
         updateNotif             Instance of the updateNotif widget
 
-	OUTPUT:
+    OUTPUT:
         verData                 Dictionary holding version information
-	"""
+    """
 
     # Get version information from Github API
     Data = requestAPI.github.version(Config)

@@ -77,21 +77,21 @@ class WeatherFlowClientProtocol(WebSocketClientProtocol,TimeoutMixin):
 
     def onOpen(self):
 
-        # Reset websocket reconnection delay and start timeout counter 
+        # Reset websocket reconnection delay and start timeout counter
         print("Websocket connection open")
         self.factory._proto = self
         self.factory.resetDelay()
         self.setTimeout(300)
-        
+
         # Set flags for required API calls after Websocket connection
         self.factory._app.flagAPI = [1,1,1,1]
 
     def onMessage(self,payload,isBinary):
-    
+
         # Decode message and pass to Websocket functions for processing
         Message = json.loads(payload.decode('utf8'))
         self.factory._app.WebsocketDecodeMessage(Message)
-        
+
         # Reset websocket timeout
         self.resetTimeout()
 

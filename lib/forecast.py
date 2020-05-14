@@ -1,6 +1,6 @@
-""" Returns the UK MetOffice or DarkSky forecast variables required by the 
-Raspberry Pi Python console for WeatherFlow Tempest and Smart Home Weather 
-stations. 
+""" Returns the UK MetOffice or DarkSky forecast variables required by the
+Raspberry Pi Python console for WeatherFlow Tempest and Smart Home Weather
+stations.
 Copyright (C) 2018-2020 Peter Davis
 
 This program is free software: you can redistribute it and/or modify it under
@@ -8,8 +8,8 @@ the terms of the GNU General Public License as published by the Free Software
 Foundation, either version 3 of the License, or (at your option) any later
 version.
 
-This program is distributed in the hope that it will be useful, but WITHOUT 
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License along with
@@ -31,61 +31,61 @@ def Download(metData,Config):
 
     """ Download the weather forecast from either the UK MetOffice or
     DarkSky
-	
-	INPUTS: 
-		metData				Dictionary holding weather forecast data
-		Config              Station configuration
-		
-	OUTPUT: 
+
+    INPUTS:
         metData             Dictionary holding weather forecast data
-	"""
+        Config              Station configuration
+
+    OUTPUT:
+        metData             Dictionary holding weather forecast data
+    """
 
     # If Station is located in Great Britain, download latest
     # MetOffice three-hourly forecast
     if Config['Station']['Country'] == 'GB':
-    
+
         # Download latest three-hourly forecast
         Data = requestAPI.forecast.metOffice(Config)
-        
+
         # Verify API response and extract forecast
         if requestAPI.forecast.verifyResponse(Data,'SiteRep'):
             metData['Dict'] = Data.json()
         else:
             Clock.schedule_once(lambda dt: Download(metData,Config),600)
             if not 'Dict' in metData:
-                metData['Dict'] = {}  
+                metData['Dict'] = {}
         ExtractMetOffice(metData,Config)
 
     # If station is located outside of Great Britain, download the latest
     # DarkSky hourly forecast
     elif Config['Keys']['DarkSky']:
-    
+
         # Download latest three-hourly forecast
         Data = requestAPI.forecast.darkSky(Config)
-    
+
         # Verify API response and extract forecast
         if requestAPI.forecast.verifyResponse(Data,'hourly'):
             metData['Dict'] = Data.json()
         else:
             Clock.schedule_once(lambda dt: Download(metData,Config),600)
             if not 'Dict' in metData:
-                metData['Dict'] = {}  
+                metData['Dict'] = {}
         ExtractDarkSky(metData,Config)
-    
+
     # Return metData dictionary
     return metData
 
 def ExtractMetOffice(metData,Config):
 
     """ Parse the weather forecast from the UK MetOffice
-	
-	INPUTS: 
-		metData				Dictionary holding weather forecast data
-		Config              Station configuration
-		
-	OUTPUT: 
+
+    INPUTS:
         metData             Dictionary holding weather forecast data
-	"""
+        Config              Station configuration
+
+    OUTPUT:
+        metData             Dictionary holding weather forecast data
+    """
 
     # Get current time in station time zone
     Tz = pytz.timezone(Config['Station']['Timezone'])
@@ -96,7 +96,7 @@ def ExtractMetOffice(metData,Config):
     # forecast is unavailable
     try:
         Issued  = str(metData['Dict']['SiteRep']['DV']['dataDate'][11:-4])
-        metDict = (metData['Dict']['SiteRep']['DV']['Location']['Period'])       
+        metDict = (metData['Dict']['SiteRep']['DV']['Location']['Period'])
     except KeyError:
         metData['Time']    = Now
         metData['Temp']    = '--'
@@ -108,7 +108,7 @@ def ExtractMetOffice(metData,Config):
 
         # Attempt to download forecast again in 10 minutes and return
         # metData dictionary
-        Clock.schedule_once(lambda dt: Download(metData,Config),600)       
+        Clock.schedule_once(lambda dt: Download(metData,Config),600)
         return metData
 
     # Extract date of all available forecasts, and retrieve forecast for
@@ -146,21 +146,21 @@ def ExtractMetOffice(metData,Config):
     metData['WindSpd'] = ['{:.0f}'.format(WindSpd[0]),WindSpd[1]]
     metData['Weather'] = Weather
     metData['Precip']  = Precip[0]
-    
+
     # Return metData dictionary
     return metData
 
 def ExtractDarkSky(metData,Config):
 
     """ Parse the weather forecast from DarkSky
-	
-	INPUTS: 
-		metData				Dictionary holding weather forecast data
-		Config              Station configuration
-		
-	OUTPUT: 
+
+    INPUTS:
         metData             Dictionary holding weather forecast data
-	"""
+        Config              Station configuration
+
+    OUTPUT:
+        metData             Dictionary holding weather forecast data
+    """
 
     # Get current time in station time zone
     Tz = pytz.timezone(Config['Station']['Timezone'])
@@ -183,7 +183,7 @@ def ExtractDarkSky(metData,Config):
 
         # Attempt to download forecast again in 10 minutes and return
         # metData dictionary
-        Clock.schedule_once(lambda dt: Download(metData,Config),600)  
+        Clock.schedule_once(lambda dt: Download(metData,Config),600)
         return metData
 
     # Extract 'valid from' time of all available hourly forecasts, and
@@ -240,6 +240,6 @@ def ExtractDarkSky(metData,Config):
         metData['Weather'] = '2'
     else:
         metData['Weather'] = 'ForecastUnavailable'
-    
-    # Return metData dictionary    
-    return metData    
+
+    # Return metData dictionary
+    return metData

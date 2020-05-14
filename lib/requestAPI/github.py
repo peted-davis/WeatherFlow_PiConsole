@@ -1,5 +1,5 @@
-""" Returns Github API requests required by the Raspberry Pi Python console 
-for WeatherFlow Tempest and Smart Home Weather stations. 
+""" Returns Github API requests required by the Raspberry Pi Python console
+for WeatherFlow Tempest and Smart Home Weather stations.
 Copyright (C) 2018-2020 Peter Davis
 
 This program is free software: you can redistribute it and/or modify it under
@@ -7,8 +7,8 @@ the terms of the GNU General Public License as published by the Free Software
 Foundation, either version 3 of the License, or (at your option) any later
 version.
 
-This program is distributed in the hope that it will be useful, but WITHOUT 
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License along with
@@ -20,9 +20,9 @@ import requests
 
 def verifyResponse(Response,Field):
 
-    """ Verifies the validity of the API response response 
-    
-    INPUTS: 
+    """ Verifies the validity of the API response response
+
+    INPUTS:
         Response        Response from API request
         Field           Field in API that is required to confirm validity
 
@@ -50,16 +50,16 @@ def verifyResponse(Response,Field):
 
 def version(Config):
 
-    """ API Request to retrieve the latest PiConsole version info from Github 
-	
-	INPUTS: 
+    """ API Request to retrieve the latest PiConsole version info from Github
+
+    INPUTS:
         Device              Device type (AIR/SKY/TEMPEST)
         endTime             End time of three hour window as a UNIX timestamp
-		Config              Station configuration
+        Config              Station configuration
 
-	OUTPUT:
+    OUTPUT:
         Response            API response containing latest three-hourly forecast
-	"""
+    """
 
     # Get latest version info from Github
     header = {'Accept': 'application/vnd.github.v3+json'}

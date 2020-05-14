@@ -44,13 +44,13 @@ def DewPoint(Temp,Humidity):
 
     """ Calculate the dew point from the temperature and relative humidity
 
-	INPUTS:
-		Temp				Temperature from AIR module         [C]
-		Humidity			Relative humidity from AIR module   [%]
+    INPUTS:
+        Temp                Temperature from AIR module         [C]
+        Humidity            Relative humidity from AIR module   [%]
 
-	OUTPUT:
+    OUTPUT:
         DewPoint            Dew point                           [C]
-	"""
+    """
 
     # Calculate dew point unless humidity equals zero
     if Humidity[0] != 0:
@@ -70,15 +70,15 @@ def FeelsLike(Temp,Humidity,windSpd,Config):
     """ Calculate the Feels Like temperature from the temperature, relative
     humidity, and wind speed
 
-	INPUTS:
-		Temp				Temperature from AIR module         [C]
-		Humidity			Relative humidity from AIR module   [%]
+    INPUTS:
+        Temp                Temperature from AIR module         [C]
+        Humidity            Relative humidity from AIR module   [%]
         windSpd             Wind speed from SKY module          [m/s]
         Config              Station configuration
 
-	OUTPUT:
+    OUTPUT:
         FeelsLike           Feels Like temperature              [C]
-	"""
+    """
 
     # Convert observation units as required
     TempF   = [Temp[0]*9/5 + 32,'f']
@@ -130,13 +130,13 @@ def SLP(Pres,Config):
 
     """ Calculate the sea level pressure from the station pressure
 
-	INPUTS:
-		Pres				Station pressure from AIR module    [mb]
+    INPUTS:
+        Pres                Station pressure from AIR module    [mb]
         Config              Station configuration
 
-	OUTPUT:
+    OUTPUT:
         SLP                 Sea level pressure                  [mb]
-	"""
+    """
 
     # Extract required configuration variables
     Elevation = Config['Station']['Elevation']
@@ -162,14 +162,14 @@ def SLPTrend(Pres,Time,Data3h,Config):
     """ Calculate the pressure trend from the sea level pressure over the last
         three hours
 
-	INPUTS:
-		Pres				Current station pressure from AIR module    [mb]
+    INPUTS:
+        Pres                Current station pressure from AIR module    [mb]
         Data3h              Data from previous 3 hours from AIR module
         Config              Station configuration
 
-	OUTPUT:
+    OUTPUT:
         SLP                 Sea level pressure                          [mb]
-	"""
+    """
 
     # Extract pressure observation from three hours ago based on device type.
     # Return NaN for pressure trend if API call has failed
@@ -235,8 +235,8 @@ def SLPMaxMin(Time,Pres,maxPres,minPres,Device,Config,flagAPI):
 
     """ Calculate maximum and minimum pressure since midnight station time
 
-	INPUTS:
-		Time			    Current observation time        [s]
+    INPUTS:
+        Time                Current observation time        [s]
         Temp                Current pressure                [mb]
         maxPres             Current maximum pressure        [mb]
         minPres             Current minimum pressure        [mb]
@@ -244,10 +244,10 @@ def SLPMaxMin(Time,Pres,maxPres,minPres,Device,Config,flagAPI):
         Config              Station configuration
         flagAPI             Flag for required API calls
 
-	OUTPUT:
+    OUTPUT:
         MaxTemp             Maximum pressure                [mb]
         MinTemp             Minumum pressure                [mb]
-	"""
+    """
 
     # Calculate sea level pressure
     SLP = derive.SLP(Pres,Config)
@@ -322,8 +322,8 @@ def TempMaxMin(Time,Temp,maxTemp,minTemp,Device,Config,flagAPI):
     """ Calculate maximum and minimum temperature for specified device since
         midnight station time
 
-	INPUTS:
-		Time				Current observation time                    [s]
+    INPUTS:
+        Time                Current observation time                    [s]
         Temp                Current outdoor temperature                 [deg C]
         maxTemp             Current maximum outdoor temperature         [deg C]
         minTemp             Current minimum outdoor temperature         [deg C]
@@ -331,10 +331,10 @@ def TempMaxMin(Time,Temp,maxTemp,minTemp,Device,Config,flagAPI):
         Config              Station configuration
         flagAPI             Flag for required API calls
 
-	OUTPUT:
+    OUTPUT:
         MaxTemp             Maximum outdoor temperature                 [deg C]
         MinTemp             Minumum outdoot temperature                 [deg C]
-	"""
+    """
 
     # Define current time in station timezone
     Tz = pytz.timezone(Config['Station']['Timezone'])
@@ -403,12 +403,12 @@ def StrikeDeltaT(StrikeTime):
 
     """ Calculate time since last lightning strike
 
-	INPUTS:
-		StrikeTime			Time of last lightning strike               [s]
+    INPUTS:
+        StrikeTime          Time of last lightning strike               [s]
 
-	OUTPUT:
+    OUTPUT:
         StrikeDeltaT        Time since last lightning strike            [s]
-	"""
+    """
 
     # Calculate time since last lightning strike
     Now = int(time.time())
@@ -423,15 +423,15 @@ def StrikeFrequency(obTime,Data3h,Config):
     """ Calculate lightning strike frequency over the previous 10 minutes and
         three hours
 
-	INPUTS:
+    INPUTS:
         obTime              Time of latest observation
-		Data3h              Data from previous 3 hours from AIR module
+        Data3h              Data from previous 3 hours from AIR module
         Config              Station configuration
 
-	OUTPUT:
+    OUTPUT:
         strikeFrequency     Strike frequency over the previous 10       [Count]
                             minutes and three hours
-	"""
+    """
 
     # Extract lightning strike count over the last three hours. Return NaN for
     # strikeFrequency if API call has failed
@@ -471,8 +471,8 @@ def StrikeCount(Count,strikeCount,Device,Config,flagAPI):
 
     """ Calculate the number of lightning strikes for the last day/month/year
 
-	INPUTS:
-		Count			    Number of lightning strikes in the past minute  [Count]
+    INPUTS:
+        Count               Number of lightning strikes in the past minute  [Count]
         strikeCount         Dictionary containing fields:
             Today               Number of lightning strikes today           [Count]
             Yesterday           Number of lightning strikes in last month   [Count]
@@ -481,12 +481,12 @@ def StrikeCount(Count,strikeCount,Device,Config,flagAPI):
         Config              Station configuration
         flagAPI             Flag for required API calls
 
-	OUTPUT:
+    OUTPUT:
         strikeCount         Dictionary containing fields:
             Today               Number of lightning strikes today           [Count]
             Yesterday           Number of lightning strikes in last month   [Count]
             Year                Number of lightning strikes in last year    [Count]
-	"""
+    """
 
     # Define current time in station timezone
     Tz = pytz.timezone(Config['Station']['Timezone'])
@@ -587,12 +587,12 @@ def RainRate(rainAccum):
 
     """ Calculate the average windspeed since midnight station time
 
-	INPUTS:
-		windSpd				Current 1 minute rain accumulation             [mm]
+    INPUTS:
+        windSpd             Current 1 minute rain accumulation             [mm]
 
-	OUTPUT:
+    OUTPUT:
         rainRate            Current instantaneous rain rate                [mm/hr]
-	"""
+    """
 
     # Calculate instantaneous rain rate from instantaneous rain accumulation
     Rate = rainAccum[0]*60
@@ -622,8 +622,8 @@ def RainAccumulation(Rain,rainAccum,Device,Config,flagAPI):
 
     """ Calculate the rain accumulation for today/yesterday/month/year
 
-	INPUTS:
-		rain			    Rain accumulation for the current minute        [mm]
+    INPUTS:
+        rain                Rain accumulation for the current minute        [mm]
         rainAccum           Dictionary containing fields:
             Today               Rain accumulation for the current day       [mm]
             Yesterday           Rain accumulation yesterday                 [mm]
@@ -633,13 +633,13 @@ def RainAccumulation(Rain,rainAccum,Device,Config,flagAPI):
         Config              Station configuration
         flagAPI             Flag for required API calls
 
-	OUTPUT:
+    OUTPUT:
         rainAccum           Dictionary containing fields:
             Today               Rain accumulation for the current day       [mm]
             Yesterday           Rain accumulation yesterday                 [mm]
             Month               Rain accumulation for the current month     [mm]
             Year                Rain accumulation for the current year      [mm]
-	"""
+    """
 
     # Define current time in station timezone
     Tz = pytz.timezone(Config['Station']['Timezone'])
@@ -760,16 +760,16 @@ def MeanWindSpeed(windSpd,avgWind,Device,Config,flagAPI):
 
     """ Calculate the average windspeed since midnight station time
 
-	INPUTS:
-		windSpd				Current wind speed                             [m/s]
+    INPUTS:
+        windSpd             Current wind speed                             [m/s]
         avgWind             Current average wind speed since midnight      [m/s]
         Device              Device ID
         Config              Station configuration
         flagAPI             Flag for required API calls
 
-	OUTPUT:
+    OUTPUT:
         AvgWind             Average wind speed since midnight              [m/s]
-	"""
+    """
 
     # Define current time in station timezone
     Tz = pytz.timezone(Config['Station']['Timezone'])
@@ -820,16 +820,16 @@ def MaxWindGust(windGust,maxGust,Device,Config,flagAPI):
 
     """ Calculate the maximum wind gust since midnight station time
 
-	INPUTS:
-		windGust			Current wind gust                              [m/s]
+    INPUTS:
+        windGust            Current wind gust                              [m/s]
         maxGust             Current maximum wind gust since midnight       [m/s]
         Device              Device ID
         Config              Station configuration
         flagAPI             Flag for required API calls
 
-	OUTPUT:
+    OUTPUT:
         maxGust             Maximum wind gust since midnight               [m/s]
-	"""
+    """
 
     # Define current time in station timezone
     Tz = pytz.timezone(Config['Station']['Timezone'])
@@ -880,13 +880,13 @@ def CardinalWindDirection(windDir,windSpd=[1,'mps']):
     """ Defines the cardinal wind direction from the current wind direction in
         degrees. Sets the wind direction as "Calm" if current wind speed is zero
 
-	INPUTS:
-		windDir				Current wind direction                     [degrees]
+    INPUTS:
+        windDir             Current wind direction                     [degrees]
         windSpd             Current wind speed                             [m/s]
 
-	OUTPUT:
+    OUTPUT:
         cardinalWind        Cardinal wind direction
-	"""
+    """
 
     # Define all possible cardinal wind directions and descriptions
     Direction = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW','N']
@@ -915,12 +915,12 @@ def BeaufortScale(windSpd):
 
     """ Defines the Beaufort scale value from the current wind speed
 
-	INPUTS:
+    INPUTS:
         windSpd             Current wind speed                             [m/s]
 
-	OUTPUT:
+    OUTPUT:
         beaufortScale       Beaufort Scale speed, description, and icon
-	"""
+    """
 
     # Define Beaufort scale cutoffs and Force numbers
     Cutoffs = [0.5,1.5,3.3,5.5,7.9,10.7,13.8,17.1,20.7,24.4,28.4,32.6]
@@ -945,12 +945,12 @@ def UVIndex(uvLevel):
 
     """ Defines the UV index from the current UV level
 
-	INPUTS:
+    INPUTS:
         uvLevel             Current UV level                               [m/s]
 
-	OUTPUT:
+    OUTPUT:
         uvIndex             UV index
-	"""
+    """
 
     # Define UV Index cutoffs and level descriptions
     Cutoffs = [0,3,6,8,11]
@@ -982,17 +982,17 @@ def peakSunHours(Radiation,peakSun,Astro,Device,Config,flagAPI):
 
     """ Calculate peak sun hours since midnight and daily solar potential
 
-	INPUTS:
-		Radiation			Current solar radiation                        [W/m^2]
+    INPUTS:
+        Radiation           Current solar radiation                        [W/m^2]
         maxGust             Current peak sun hours since midnight          [hours]
         Astro               Dictionary containing sunrise/sunset info
         Device              Device ID
         Config              Station configuration
         flagAPI             Flag for required API calls
 
-	OUTPUT:
+    OUTPUT:
         peakSun             Peak sun hours since midnight and solar potential
-	"""
+    """
 
     # Define current time in station timezone
     Tz = pytz.timezone(Config['Station']['Timezone'])
@@ -1001,6 +1001,8 @@ def peakSunHours(Radiation,peakSun,Astro,Device,Config,flagAPI):
     # Code initialising. Download all data for current day using Weatherflow
     # API and calculate Peak Sun Hours
     if peakSun[0] == '-' or flagAPI:
+    
+        print("DOING PEAK SUN API")
 
         # Download rainfall data for current day
         Data = requestAPI.weatherflow.Today(Device,Config)
@@ -1024,8 +1026,10 @@ def peakSunHours(Radiation,peakSun,Astro,Device,Config,flagAPI):
 
     # Add current Radiation value to Peak Sun Hours
     else:
-        kwh = peakSun[2] + (Radiation[0] * 1/60) if not math.isnan(Radiation[0]) else peakSun[2]
+        kwh = peakSun[2] + Radiation[0]*1/60 if not math.isnan(Radiation[0]) else peakSun[2]
         peakSun = [kwh/1000,'hrs',kwh,Now]
+        if math.isnan(Radiation[0]):
+            print("Radiation is NaN")
 
     # Calculate proportion of daylight hours that have passed
     daylightTotal  = (Astro['Sunset'][0] - Astro['Sunrise'][0]).total_seconds()

@@ -1,5 +1,5 @@
-""" Returns the astronomical variables required by the Raspberry Pi Python 
-console for WeatherFlow Tempest and Smart Home Weather stations. 
+""" Returns the astronomical variables required by the Raspberry Pi Python
+console for WeatherFlow Tempest and Smart Home Weather stations.
 Copyright (C) 2018-2020 Peter Davis
 
 This program is free software: you can redistribute it and/or modify it under
@@ -7,8 +7,8 @@ the terms of the GNU General Public License as published by the Free Software
 Foundation, either version 3 of the License, or (at your option) any later
 version.
 
-This program is distributed in the hope that it will be useful, but WITHOUT 
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License along with
@@ -33,7 +33,7 @@ def SunriseSunset(astroData,Config):
         astroData           Dictionary holding sunrise and sunset data
     """
 
-    # Define Sunrise/Sunset observer properties to match the United States Naval 
+    # Define Sunrise/Sunset observer properties to match the United States Naval
     # Observatory Astronomical Almanac
     Tz = pytz.timezone(Config['Station']['Timezone'])
     Observer          = ephem.Observer()
@@ -49,14 +49,14 @@ def SunriseSunset(astroData,Config):
         UTC = datetime.now(pytz.utc)
         Midnight = datetime(UTC.year,UTC.month,UTC.day,0,0,0)
         Observer.date = Midnight.strftime('%Y/%m/%d %H:%M:%S')
-                
+
     # Dusk has passed. Calculate sunset/sunrise times for tomorrow starting at
     # time of last Dusk in UTC
     else:
 
         # Set Observer time to last Sunset time in UTC
         Dusk = astroData['Dusk'][0].astimezone(pytz.utc) + timedelta(minutes=1)
-        Observer.date = Dusk.strftime('%Y/%m/%d %H:%M:%S')    
+        Observer.date = Dusk.strftime('%Y/%m/%d %H:%M:%S')
 
     # Calculate Dawn time in UTC
     Observer.horizon = '-6'
@@ -72,7 +72,7 @@ def SunriseSunset(astroData,Config):
     Observer.horizon = '-0:34'
     Sunset           = Observer.next_setting(ephem.Sun())
     Sunset           = pytz.utc.localize(Sunset.datetime().replace(second=0,microsecond=0))
-    
+
     # Calculate Dusk time in UTC
     Observer.horizon = '-6'
     Dusk             = Observer.next_setting(ephem.Sun(), use_center=True)
@@ -83,8 +83,8 @@ def SunriseSunset(astroData,Config):
     astroData['Sunrise'][0] = Sunrise.astimezone(Tz)
     astroData['Sunset'][0]  = Sunset.astimezone(Tz)
     astroData['Dusk'][0]    = Dusk.astimezone(Tz)
-    
-    # Calculate length and position of the dawn/dusk and sunrise/sunset 
+
+    # Calculate length and position of the dawn/dusk and sunrise/sunset
     # lines on the day/night bar
     dawnMidnight    = (astroData['Dawn'][0].hour*3600    + astroData['Dawn'][0].minute*60)
     sunriseMidnight = (astroData['Sunrise'][0].hour*3600 + astroData['Sunrise'][0].minute*60)
@@ -247,42 +247,42 @@ def sunTransit(astroData, Config, *largs):
     # Get current time in station time zone
     Tz = pytz.timezone(Config['Station']['Timezone'])
     Now = datetime.now(pytz.utc).astimezone(Tz)
-    
+
     # Calculate sun icon position on daytime/nightime bar
     secondsMidnight = (Now.replace(microsecond=0) - Now.replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds()
     astroData['sunIconPosition'] = secondsMidnight/86400
-    
+
     # If time is before dawn, calculate number of nighttime hours remaining
     if Now < astroData['Dawn'][0]:
-        
-        # Determine number of nighttime hours remaining 
+
+        # Determine number of nighttime hours remaining
         secondsToDawn   = (astroData['Dawn'][0] - Now.replace(second=0,microsecond=0)).total_seconds()
         hours,remainder = divmod(secondsToDawn,3600)
         minutes,seconds = divmod(remainder,60)
-        
+
         # Define Kivy Label binds
         astroData['sunEvent']   = ['[color=00A4B4FF]Dawn[/color]','{:02.0f}'.format(hours),'{:02.0f}'.format(minutes),'Nighttime']
         astroData['sunIcon'][0] = '-'
         astroData['sunIcon'][1] = 1
 
     # If time is before sunrise, calculate number of dawn hours remaining
-    elif Now < astroData['Sunrise'][0]:    
-    
-        # Determine number of nighttime hours remaining 
+    elif Now < astroData['Sunrise'][0]:
+
+        # Determine number of nighttime hours remaining
         secondsToSunrise = (astroData['Sunrise'][0] - Now.replace(second=0,microsecond=0)).total_seconds()
         hours,remainder  = divmod(secondsToSunrise,3600)
         minutes,seconds  = divmod(remainder,60)
-        
+
         # Define Kivy Label binds
         astroData['sunEvent']   = ['[color=FF8841FF]Sunrise[/color]','{:02.0f}'.format(hours),'{:02.0f}'.format(minutes),'Dawn']
         astroData['sunIcon'][0] = '-'
         astroData['sunIcon'][1] = 1
 
-    # If time is between sunrise and sunset, calculate number of daylight hours 
-    # remaining 
+    # If time is between sunrise and sunset, calculate number of daylight hours
+    # remaining
     elif Now >= astroData['Sunrise'][0] and Now < astroData['Sunset'][0]:
 
-        # Determine number of daylight hours remaining 
+        # Determine number of daylight hours remaining
         secondsToSunset = (astroData['Sunset'][0] - Now.replace(second=0,microsecond=0)).total_seconds()
         hours,remainder = divmod(secondsToSunset,3600)
         minutes,seconds = divmod(remainder,60)

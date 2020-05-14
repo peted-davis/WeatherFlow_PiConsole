@@ -24,89 +24,89 @@
 ## SCREEN MANAGER
 ## =============================================================================
 ScreenManager:
-	transition: NoTransition()
+    transition: NoTransition()
     CurrentConditions:
-		id: CurrentConditions
+        id: CurrentConditions
 
 ## =============================================================================
 ## CUSTOM LABELS
 ## =============================================================================
 <LargeText@Label>
-	font_name: 'fonts/SystemSanFranciscoDisplayThin.ttf'
-	font_size: '30sp'
-	text_size: self.size
-	markup: 1
-	valign: 'center'
-	halign: 'center'
-	size_hint: (None,None)
-	color: [0.84,0.84,0.84,1]
+    font_name: 'fonts/SystemSanFranciscoDisplayThin.ttf'
+    font_size: '30sp'
+    text_size: self.size
+    markup: 1
+    valign: 'center'
+    halign: 'center'
+    size_hint: (None,None)
+    color: [0.84,0.84,0.84,1]
 
 <MediumText@Label>
-	font_name: 'fonts/SystemSanFranciscoDisplayThin.ttf'
-	font_size: '20sp'
-	text_size: self.size
-	markup: 1
-	valign: 'center'
-	halign: 'center'
-	size_hint: (None,None)
-	color: [0.84,0.84,0.84,1]
+    font_name: 'fonts/SystemSanFranciscoDisplayThin.ttf'
+    font_size: '20sp'
+    text_size: self.size
+    markup: 1
+    valign: 'center'
+    halign: 'center'
+    size_hint: (None,None)
+    color: [0.84,0.84,0.84,1]
 
 <SmallText@Label>
-	font_name: 'fonts/Helvetica.ttf'
-	font_size: '15sp'
-	text_size: self.size
-	markup: 1
-	valign: 'center'
-	halign: 'center'
-	size_hint: (None,None)
-	color: [0.84,0.84,0.84,1]
+    font_name: 'fonts/Helvetica.ttf'
+    font_size: '15sp'
+    text_size: self.size
+    markup: 1
+    valign: 'center'
+    halign: 'center'
+    size_hint: (None,None)
+    color: [0.84,0.84,0.84,1]
 
 <BoldText@Label>
-	font_name: 'fonts/SystemSanFranciscoDisplayBold.ttf'
-	font_size: '13sp'
-	text_size: self.size
-	font_hinting: None
-	markup: 1
-	halign: 'center'
-	valign: 'center'
-	size_hint: (None,None)
-	color: [0.84,0.84,0.84,1]
+    font_name: 'fonts/SystemSanFranciscoDisplayBold.ttf'
+    font_size: '13sp'
+    text_size: self.size
+    font_hinting: None
+    markup: 1
+    halign: 'center'
+    valign: 'center'
+    size_hint: (None,None)
+    color: [0.84,0.84,0.84,1]
 
 ## =============================================================================
 ## CURRRENT CONDITIONS SCREEN
 ## =============================================================================
 <CurrentConditions>:
-	name: 'CurrentConditions'
-	orientation: 'vertical'
-	canvas.before:
-		Color:
+    name: 'CurrentConditions'
+    orientation: 'vertical'
+    canvas.before:
+        Color:
             rgba: 0, 0, 0, 1
         Rectangle:
             pos: self.pos
             size: self.size
-	BoxLayout:
-		padding: ['2dp', '2dp', '2dp', '0dp']
-		spacing: '4dp'
-		orientation: 'vertical'
-		BoxLayout:
-			spacing: '4dp'
-			orientation: 'vertical'
-			BoxLayout:
-				spacing: '5dp'
-				BoxLayout:
-					id: PanelOne
-				BoxLayout:
-					id: PanelTwo
-				BoxLayout:
-					id: PanelThree
-			BoxLayout:
-				spacing: '5dp'
-				BoxLayout:
-					id: PanelFour
-				BoxLayout:
-					id: PanelFive
-				BoxLayout:
-					id: PanelSix
+    BoxLayout:
+        padding: ['2dp', '2dp', '2dp', '0dp']
+        spacing: '4dp'
+        orientation: 'vertical'
+        BoxLayout:
+            spacing: '4dp'
+            orientation: 'vertical'
+            BoxLayout:
+                spacing: '5dp'
+                BoxLayout:
+                    id: PanelOne
+                BoxLayout:
+                    id: PanelTwo
+                BoxLayout:
+                    id: PanelThree
+            BoxLayout:
+                spacing: '5dp'
+                BoxLayout:
+                    id: PanelFour
+                BoxLayout:
+                    id: PanelFive
+                BoxLayout:
+                    id: PanelSix
         BoxLayout:
             spacing: '4dp'
             height: '30dp'
@@ -140,316 +140,316 @@ ScreenManager:
 ## METOFFICE/DARKSKY FORECAST PANEL AND BUTTON
 ## =============================================================================
 <ForecastPanel>:
-	Image:
-		source: 'background/forecast.png'
-		size_hint: (1,1)
-		keep_ratio: 0
-		allow_stretch: 1
+    Image:
+        source: 'background/forecast.png'
+        size_hint: (1,1)
+        keep_ratio: 0
+        allow_stretch: 1
 
     ## Forecast temperature
-	LargeText:
-		text: app.MetData['Temp'][0] + app.MetData['Temp'][1]
-		halign: 'left'
-		pos_hint: {'x': 6/262, 'y': 134/202}
-		size_hint: (170/262, 31/202)
+    LargeText:
+        text: app.MetData['Temp'][0] + app.MetData['Temp'][1]
+        halign: 'left'
+        pos_hint: {'x': 6/262, 'y': 134/202}
+        size_hint: (170/262, 31/202)
 
     ## Forecast precipitation
-	LargeText:
-		text: app.MetData['Precip'] + ' %'
-		halign: 'left'
-		pos_hint: {'x': 6/262, 'y': 78/202}
-		size_hint: (170/262, 31/202)
+    LargeText:
+        text: app.MetData['Precip'] + ' %'
+        halign: 'left'
+        pos_hint: {'x': 6/262, 'y': 78/202}
+        size_hint: (170/262, 31/202)
 
     ## Forecast windspeed
-	LargeText:
-		text: app.MetData['WindSpd'][0] + ' ' + app.MetData['WindSpd'][1] + ' ' + app.MetData['WindDir']
-		halign: 'left'
-		pos_hint: {'x': 6/262, 'y': 21/202}
-		size_hint: (200/262, 31/202)
+    LargeText:
+        text: app.MetData['WindSpd'][0] + ' ' + app.MetData['WindSpd'][1] + ' ' + app.MetData['WindDir']
+        halign: 'left'
+        pos_hint: {'x': 6/262, 'y': 21/202}
+        size_hint: (200/262, 31/202)
 
     ## Forecast location, valid, and issued time
-	SmallText:
-		text: (app.config['Station']['ForecastLocn'] +';' if len(app.config['Station']['ForecastLocn']) <= 18 else '') + ' Valid until ' + app.MetData['Valid']
-		halign: 'right'
-		pos_hint: {'x': 6/262, 'y': 3/202}
-		size_hint: (252/262, 16/202)
+    SmallText:
+        text: (app.config['Station']['ForecastLocn'] +';' if len(app.config['Station']['ForecastLocn']) <= 18 else '') + ' Valid until ' + app.MetData['Valid']
+        halign: 'right'
+        pos_hint: {'x': 6/262, 'y': 3/202}
+        size_hint: (252/262, 16/202)
 
     ## Current weather icon
-	Image:
-		source: 'icons/weather/' + app.MetData['Weather'] + '.png'
+    Image:
+        source: 'icons/weather/' + app.MetData['Weather'] + '.png'
         keep_ratio: 0
-		allow_stretch: 1
-		pos_hint: {'x': 123/262, 'y': 58/202}
-		size_hint: (115/262, 115/202)
+        allow_stretch: 1
+        pos_hint: {'x': 123/262, 'y': 58/202}
+        size_hint: (115/262, 115/202)
 
 <ForecastButton>:
-	Button:
-		id: 'ForecastButton'
+    Button:
+        id: 'ForecastButton'
         background_normal: 'buttons/forecast.png'
         background_down: 'buttons/forecastPressed.png'
-		on_release: app.CurrentConditions.SwitchPanel(self)
+        on_release: app.CurrentConditions.SwitchPanel(self)
 
 ## =============================================================================
 ## SAGER FORECAST PANEL AND BUTTON
 ## =============================================================================
 <SagerPanel>:
-	Image:
-		source: 'background/sagerForecast.png'
-		size_hint: (1,1)
-		keep_ratio: 0
-		allow_stretch: 1
+    Image:
+        source: 'background/sagerForecast.png'
+        size_hint: (1,1)
+        keep_ratio: 0
+        allow_stretch: 1
 
     ## Sager Weathercaster forecast
-	MediumText:
-		text: app.Sager['Forecast']
+    MediumText:
+        text: app.Sager['Forecast']
         font_name: 'fonts/Helvetica.ttf'
-		pos_hint: {'x': 6/262, 'y': 21/202}
-		size_hint: (250/262, 157/202)
+        pos_hint: {'x': 6/262, 'y': 21/202}
+        size_hint: (250/262, 157/202)
 
     ## Forecast issue time
-	SmallText:
-		text: 'Forecast issued: ' + app.Sager['Issued']
-		halign: 'right'
-		pos_hint: {'x': 6/262, 'y': 3/202}
-		size_hint: (252/262, 16/202)
+    SmallText:
+        text: 'Forecast issued: ' + app.Sager['Issued']
+        halign: 'right'
+        pos_hint: {'x': 6/262, 'y': 3/202}
+        size_hint: (252/262, 16/202)
 
 <SagerButton>:
-	Button:
-		id: 'SagerButton'
+    Button:
+        id: 'SagerButton'
         background_normal: 'buttons/sager.png'
         background_down: 'buttons/sagerPressed.png'
-		on_release: app.CurrentConditions.SwitchPanel(self)
+        on_release: app.CurrentConditions.SwitchPanel(self)
 
 ## =============================================================================
 ## TEMPERATURE WIDGET
 ## =============================================================================
 <TemperaturePanel>:
-	Image:
-		source: 'background/temperature.png'
-		size_hint: (1,1)
-		keep_ratio: 0
-		allow_stretch: 1
+    Image:
+        source: 'background/temperature.png'
+        size_hint: (1,1)
+        keep_ratio: 0
+        allow_stretch: 1
 
-	## Indoor temperature
+    ## Indoor temperature
     BoldText:
-		text: '[color=c8c8c8ff]Indoor[/color]'
-		pos_hint: {'x': 0/262, 'y': 166/202}
-		size_hint: (131/262, 17/202)
+        text: '[color=c8c8c8ff]Indoor[/color]'
+        pos_hint: {'x': 0/262, 'y': 166/202}
+        size_hint: (131/262, 17/202)
         opacity: 1 if app.IndoorTemp == '1' else 0
-	LargeText:
-		text: app.Obs['inTemp'][0] + app.Obs['inTemp'][1]
-		pos_hint: {'x': 0/262, 'y': 126/202}
-		size_hint: (131/262, 38/202)
+    LargeText:
+        text: app.Obs['inTemp'][0] + app.Obs['inTemp'][1]
+        pos_hint: {'x': 0/262, 'y': 126/202}
+        size_hint: (131/262, 38/202)
         opacity: 1 if app.IndoorTemp == '1' else 0
 
-	## Indoor temperature minimum
-	MediumText:
-		text: '[color=00a4b4ff]' + app.Obs['inTempMin'][0] + '[size=15sp]' + app.Obs['inTempMin'][1] + '[/color][/size]'
-		pos_hint: {'x': 0/262, 'y': 104/202}
-		size_hint: (65.5/262, 22/202)
+    ## Indoor temperature minimum
+    MediumText:
+        text: '[color=00a4b4ff]' + app.Obs['inTempMin'][0] + '[size=15sp]' + app.Obs['inTempMin'][1] + '[/color][/size]'
+        pos_hint: {'x': 0/262, 'y': 104/202}
+        size_hint: (65.5/262, 22/202)
         opacity: 1 if app.IndoorTemp == '1' else 0
     SmallText:
-		text: app.Obs['inTempMin'][2]
-		pos_hint: {'x': 0/262, 'y': 82/202}
-		size_hint: (65.5/262, 22/202)
+        text: app.Obs['inTempMin'][2]
+        pos_hint: {'x': 0/262, 'y': 82/202}
+        size_hint: (65.5/262, 22/202)
         opacity: 1 if app.IndoorTemp == '1' else 0
 
-	## Indoor temperature maximum
-	MediumText:
-		text: '[color=f05e40ff]' + app.Obs['inTempMax'][0] + '[size=15sp]' + app.Obs['inTempMax'][1] + '[/color][/size]'
-		pos_hint: {'x': 65.5/262, 'y': 104/202}
-		size_hint: (65.5/262, 22/202)
+    ## Indoor temperature maximum
+    MediumText:
+        text: '[color=f05e40ff]' + app.Obs['inTempMax'][0] + '[size=15sp]' + app.Obs['inTempMax'][1] + '[/color][/size]'
+        pos_hint: {'x': 65.5/262, 'y': 104/202}
+        size_hint: (65.5/262, 22/202)
         opacity: 1 if app.IndoorTemp == '1' else 0
     SmallText:
         text: app.Obs['inTempMax'][2]
-		pos_hint: {'x': 65.5/262, 'y': 82/202}
-		size_hint: (65.5/262, 22/202)
+        pos_hint: {'x': 65.5/262, 'y': 82/202}
+        size_hint: (65.5/262, 22/202)
         opacity: 1 if app.IndoorTemp == '1' else 0
 
-	## Outdoor temperature
+    ## Outdoor temperature
     BoldText:
-		text: '[color=c8c8c8ff]Outdoor[/color]'
-		pos_hint: {'x': 131/262 if app.IndoorTemp == '1' else 0/262, 'y': 166/202}
-		size_hint: (131/262 if app.IndoorTemp == '1' else 262/262, 17/202)
-	LargeText:
-		text: app.Obs['outTemp'][0] + app.Obs['outTemp'][1]
-		pos_hint: {'x': 131/262 if app.IndoorTemp == '1' else 65.5/262, 'y': 126/202}
-		size_hint: (131/262, 38/202)
+        text: '[color=c8c8c8ff]Outdoor[/color]'
+        pos_hint: {'x': 131/262 if app.IndoorTemp == '1' else 0/262, 'y': 166/202}
+        size_hint: (131/262 if app.IndoorTemp == '1' else 262/262, 17/202)
+    LargeText:
+        text: app.Obs['outTemp'][0] + app.Obs['outTemp'][1]
+        pos_hint: {'x': 131/262 if app.IndoorTemp == '1' else 65.5/262, 'y': 126/202}
+        size_hint: (131/262, 38/202)
 
-	## Outdoor temperature minimum
-	MediumText:
-		text: '[color=00a4b4ff]' + app.Obs['outTempMin'][0] + '[size=15sp]' + app.Obs['outTempMin'][1] + '[/color][/size]'
-		pos_hint: {'x': 131/262 if app.IndoorTemp == '1' else 65.5/262, 'y': 104/202}
-		size_hint: (65.5/262, 22/202)
-	SmallText:
-		text: app.Obs['outTempMin'][2]
-		pos_hint: {'x': 131/262 if app.IndoorTemp == '1' else 65.5/262, 'y': 82/202}
-		size_hint: (65.5/262, 22/202)
+    ## Outdoor temperature minimum
+    MediumText:
+        text: '[color=00a4b4ff]' + app.Obs['outTempMin'][0] + '[size=15sp]' + app.Obs['outTempMin'][1] + '[/color][/size]'
+        pos_hint: {'x': 131/262 if app.IndoorTemp == '1' else 65.5/262, 'y': 104/202}
+        size_hint: (65.5/262, 22/202)
+    SmallText:
+        text: app.Obs['outTempMin'][2]
+        pos_hint: {'x': 131/262 if app.IndoorTemp == '1' else 65.5/262, 'y': 82/202}
+        size_hint: (65.5/262, 22/202)
 
-	## Outdoor temperature maximum
-	MediumText:
-		text: '[color=f05e40ff]' + app.Obs['outTempMax'][0] + '[size=15sp]' + app.Obs['outTempMax'][1] + '[/color][/size]'
-		pos_hint: {'x': 196.5/262 if app.IndoorTemp == '1' else 131/262, 'y': 104/202}
-		size_hint: (65.5/262, 22/202)
-	SmallText:
-		text: app.Obs['outTempMax'][2]
-		pos_hint: {'x': 196.5/262 if app.IndoorTemp == '1' else 131/262, 'y': 82/202}
-		size_hint: (65.5/262, 22/202)
+    ## Outdoor temperature maximum
+    MediumText:
+        text: '[color=f05e40ff]' + app.Obs['outTempMax'][0] + '[size=15sp]' + app.Obs['outTempMax'][1] + '[/color][/size]'
+        pos_hint: {'x': 196.5/262 if app.IndoorTemp == '1' else 131/262, 'y': 104/202}
+        size_hint: (65.5/262, 22/202)
+    SmallText:
+        text: app.Obs['outTempMax'][2]
+        pos_hint: {'x': 196.5/262 if app.IndoorTemp == '1' else 131/262, 'y': 82/202}
+        size_hint: (65.5/262, 22/202)
 
-	## 'Feels like' temperature
-	MediumText:
-		text: app.Obs['FeelsLike'][0] + app.Obs['FeelsLike'][1]
-		pos_hint: {'x': 0/262, 'y': 35/202}
-		size_hint: (87.330/262, 29/202)
+    ## 'Feels like' temperature
+    MediumText:
+        text: app.Obs['FeelsLike'][0] + app.Obs['FeelsLike'][1]
+        pos_hint: {'x': 0/262, 'y': 35/202}
+        size_hint: (87.330/262, 29/202)
 
-	## Outdoor humidity
-	MediumText:
-		text: app.Obs['Humidity'][0] + app.Obs['Humidity'][1]
-		pos_hint: {'x': 87.330/262, 'y': 35/202}
-		size_hint: (87.330/262, 29/202)
+    ## Outdoor humidity
+    MediumText:
+        text: app.Obs['Humidity'][0] + app.Obs['Humidity'][1]
+        pos_hint: {'x': 87.330/262, 'y': 35/202}
+        size_hint: (87.330/262, 29/202)
 
-	## Dew point
-	MediumText:
-		text: app.Obs['DewPoint'][0] + app.Obs['DewPoint'][1]
-		pos_hint: {'x': 174.660/262, 'y': 35/202}
-		size_hint: (87.330/262, 29/202)
+    ## Dew point
+    MediumText:
+        text: app.Obs['DewPoint'][0] + app.Obs['DewPoint'][1]
+        pos_hint: {'x': 174.660/262, 'y': 35/202}
+        size_hint: (87.330/262, 29/202)
 
-	## 'Feels like' icon and text
-	Image:
-		source: 'icons/feelsLike/' + app.Obs['FeelsLike'][3] + '.png'
-		pos_hint: {'x': 7/262, 'y': 6/202}
-		size_hint: (38/262, 29/202)
-	SmallText:
-		text: app.Obs['FeelsLike'][2]
-		halign: 'left'
-		pos_hint: {'x': 49/262, 'y': 3/202}
-		size_hint: (200/262, 27/202)
+    ## 'Feels like' icon and text
+    Image:
+        source: 'icons/feelsLike/' + app.Obs['FeelsLike'][3] + '.png'
+        pos_hint: {'x': 7/262, 'y': 6/202}
+        size_hint: (38/262, 29/202)
+    SmallText:
+        text: app.Obs['FeelsLike'][2]
+        halign: 'left'
+        pos_hint: {'x': 49/262, 'y': 3/202}
+        size_hint: (200/262, 27/202)
 
 <TemperatureButton>:
-	Button:
-		id: 'TemperatureButton'
+    Button:
+        id: 'TemperatureButton'
         background_normal: 'buttons/temperature.png'
         background_down: 'buttons/temperaturePressed.png'
-		on_release: app.CurrentConditions.SwitchPanel(self)
+        on_release: app.CurrentConditions.SwitchPanel(self)
 
 ## =============================================================================
 ## WIND SPEED AND DIRECTION WIDGET
 ## =============================================================================
 <WindSpeedPanel>:
-	Image:
-		source: 'background/windSpeed.png'
-		size_hint: (1,1)
-		keep_ratio: 0
-		allow_stretch: 1
+    Image:
+        source: 'background/windSpeed.png'
+        size_hint: (1,1)
+        keep_ratio: 0
+        allow_stretch: 1
 
     ## Current average wind speed
     LargeText:
         text: app.Obs['WindSpd'][0]
         pos_hint: {'x': 3/262, 'y': 93/202}
-		size_hint: (60/262, 33/202)
+        size_hint: (60/262, 33/202)
     MediumText:
         text: app.Obs['WindSpd'][1]
         pos_hint: {'x': 3/262, 'y': 75/202}
-		size_hint: (60/262, 24/202)
+        size_hint: (60/262, 24/202)
 
     ## Daily averaged wind speed
     SmallText:
         text: 'Avg [color=ff8837ff]' + app.Obs['AvgWind'][0] + '[/color] ' + app.Obs['AvgWind'][1]
         pos_hint: {'x': 3/262, 'y': 162/202}
-		size_hint: (101/262, 17/202)
+        size_hint: (101/262, 17/202)
     SmallText:
         text: 'Wind'
         pos_hint: {'x': 3/262, 'y': 145/202}
-		size_hint: (101/262, 17/202)
+        size_hint: (101/262, 17/202)
 
     ## Current wind gust
     LargeText:
         text: app.Obs['WindGust'][0]
         pos_hint: {'x': 201/262, 'y': 93/202}
-		size_hint: (60/262, 33/202)
+        size_hint: (60/262, 33/202)
     MediumText:
         text: app.Obs['WindGust'][1]
         pos_hint: {'x': 201/262, 'y': 75/202}
-		size_hint: (60/262, 24/202)
+        size_hint: (60/262, 24/202)
 
     ## Maximum wind gust
     SmallText:
         text: 'Max [color=ff8837ff]' + app.Obs['MaxGust'][0] + '[/color] ' + app.Obs['MaxGust'][1]
         pos_hint: {'x': 159/262, 'y': 162/202}
-		size_hint: (101/262, 17/202)
+        size_hint: (101/262, 17/202)
     SmallText:
         text: 'Gust'
         pos_hint: {'x': 159/262, 'y': 145/202}
-		size_hint: (101/262, 17/202)
+        size_hint: (101/262, 17/202)
 
     ## Current Beaufort scale text and icon
     Image:
         source: 'icons/windSpeed/' + app.Obs['WindSpd'][3] + '.png'
-		keep_ratio: 0
-	    allow_stretch: 1
-		pos_hint: {'x': 18/262, 'y': 28/202}
-		size_hint: (30/262, 30/202)
+        keep_ratio: 0
+        allow_stretch: 1
+        pos_hint: {'x': 18/262, 'y': 28/202}
+        size_hint: (30/262, 30/202)
     SmallText:
         text: app.Obs['WindSpd'][4]
         halign: 'left'
         pos_hint: {'x': 6/262, 'y': 5/202}
-		size_hint: (126/262, 17/202)
+        size_hint: (126/262, 17/202)
 
     ## Current average wind direction
     Image:
         source: 'icons/windDir/' + app.Obs['WindDir'][2] + '.png'
-		keep_ratio: 0
-	    allow_stretch: 1
-		pos_hint: {'x': 216/262, 'y': 28/202}
-		size_hint: (30/262, 30/202)
+        keep_ratio: 0
+        allow_stretch: 1
+        pos_hint: {'x': 216/262, 'y': 28/202}
+        size_hint: (30/262, 30/202)
     SmallText:
         text: 'Direction: [color=9aba2fff]' + app.Obs['WindDir'][0] + app.Obs['WindDir'][1] + '[/color]'
         halign: 'right'
         pos_hint: {'x': 119/262, 'y': 5/202}
-		size_hint: (135/262, 17/202)
+        size_hint: (135/262, 17/202)
 
     ## Rapid wind direction arrow
     Image:
         source: 'icons/windRose/' + str(round(root.rapidWindDir)) + '.png'
-		keep_ratio: 0
-	    allow_stretch: 1
-		pos_hint: {'x': 65/262, 'y': 26/202}
-		size_hint: (134/262, 134/202)
+        keep_ratio: 0
+        allow_stretch: 1
+        pos_hint: {'x': 65/262, 'y': 26/202}
+        size_hint: (134/262, 134/202)
 
     ## Rapid wind direction in degrees
     MediumText:
         text: app.Obs['rapidDir'][0] + app.Obs['rapidDir'][1]
         pos_hint: {'x': 102/262, 'y': 112/202}
-		size_hint: (60/262, 24/202)
+        size_hint: (60/262, 24/202)
 
     ## Rapid wind speed
     MediumText:
         text: app.Obs['rapidSpd'][0] + ' [size=15sp]' + app.Obs['rapidSpd'][1] + '[/size]'
         pos_hint: {'x': 92/262, 'y': 86/202}
-		size_hint: (80/262, 24/202)
+        size_hint: (80/262, 24/202)
 
     ## Rapid wind direction text
     SmallText:
         text: app.Obs['rapidDir'][3]
         pos_hint: {'x': 92/262, 'y': 60/202}
-		size_hint: (80/262, 24/202)
+        size_hint: (80/262, 24/202)
 
 <WindSpeedButton>:
-	Button:
-		id: 'WindSpeedButton'
+    Button:
+        id: 'WindSpeedButton'
         background_normal: 'buttons/wind.png'
         background_down: 'buttons/windPressed.png'
-		on_release: app.CurrentConditions.SwitchPanel(self)
+        on_release: app.CurrentConditions.SwitchPanel(self)
 
 ## =============================================================================
 ## SUNRISE/SUNSET WIDGET
 ## =============================================================================
 <SunriseSunsetPanel>:
     Image:
-		source: 'background/sunriseSunset.png'
-		size_hint: (1,1)
-		keep_ratio: 0
-		allow_stretch: 1
+        source: 'background/sunriseSunset.png'
+        size_hint: (1,1)
+        keep_ratio: 0
+        allow_stretch: 1
 
     ## Night bar
     BoxLayout:
@@ -501,31 +501,31 @@ ScreenManager:
         pos_hint: {'x': (4+app.Astro['sunIconPosition']*236)/262, 'y': 92.5/202}
         size_hint: (18/262, 18/202)
 
-	## Solar radiation
+    ## Solar radiation
     BoldText:
-		text: 'Radiation'
+        text: 'Radiation'
         color: [200/255,200/255,200/255,1]
-		pos_hint: {'x': 3/262, 'y': 166/202}
-		size_hint: (105/262, 15/202)
-	MediumText:
-		text: app.Obs['Radiation'][0] + app.Obs['Radiation'][1]
-		pos_hint: {'x': 3/262, 'y': 130/202}
-		size_hint: (105/262, 33/202)
+        pos_hint: {'x': 3/262, 'y': 166/202}
+        size_hint: (105/262, 15/202)
+    MediumText:
+        text: app.Obs['Radiation'][0] + app.Obs['Radiation'][1]
+        pos_hint: {'x': 3/262, 'y': 130/202}
+        size_hint: (105/262, 33/202)
 
-	## UV Index
+    ## UV Index
     BoldText:
-		text: 'UV Index'
+        text: 'UV Index'
         color: [200/255,200/255,200/255,1]
-		pos_hint: {'x': 125/262, 'y': 166/202}
-		size_hint: (120/262, 15/202)
-	MediumText:
-		text: app.Obs['UVIndex'][0]
-		pos_hint: {'x': 125/262, 'y': 130/202}
-		size_hint: (40/262, 33/202)
-	BoldText:
-		text: app.Obs['UVIndex'][2]
-		pos_hint: {'x': 170/262, 'y': 139/202}
-		size_hint: (75/262, 17/202)
+        pos_hint: {'x': 125/262, 'y': 166/202}
+        size_hint: (120/262, 15/202)
+    MediumText:
+        text: app.Obs['UVIndex'][0]
+        pos_hint: {'x': 125/262, 'y': 130/202}
+        size_hint: (40/262, 33/202)
+    BoldText:
+        text: app.Obs['UVIndex'][2]
+        pos_hint: {'x': 170/262, 'y': 139/202}
+        size_hint: (75/262, 17/202)
         color: [20/255,20/255,20/255,1]
         canvas.before:
             Color:
@@ -535,424 +535,424 @@ ScreenManager:
                 size: self.size
                 radius: [5,]
 
-	## Sunrise time
+    ## Sunrise time
     BoldText:
-		text: 'Sunrise'
+        text: 'Sunrise'
         color: [200/255,200/255,200/255,1]
         halign: 'left'
-		pos_hint: {'x': 13/262, 'y': 114/202}
-		size_hint: (80/262, 15/202)
-	SmallText:
-		text: app.Astro['Sunrise'][1]
+        pos_hint: {'x': 13/262, 'y': 114/202}
+        size_hint: (80/262, 15/202)
+    SmallText:
+        text: app.Astro['Sunrise'][1]
         halign: 'left'
         valign: 'top'
-		pos_hint: {'x': 13/262, 'y': 68/202}
-		size_hint: (80/262, 20/202)
+        pos_hint: {'x': 13/262, 'y': 68/202}
+        size_hint: (80/262, 20/202)
 
-	## Sunset time
+    ## Sunset time
     BoldText:
-		text: 'Sunset'
+        text: 'Sunset'
         color: [200/255,200/255,200/255,1]
         halign: 'right'
-		pos_hint: {'x': 169/262, 'y': 114/202}
-		size_hint: (80/262, 15/202)
-	SmallText:
-		text: app.Astro['Sunset'][1]
+        pos_hint: {'x': 169/262, 'y': 114/202}
+        size_hint: (80/262, 15/202)
+    SmallText:
+        text: app.Astro['Sunset'][1]
         halign: 'right'
         valign: 'top'
-		pos_hint: {'x': 169/262, 'y': 68/202}
-		size_hint: (80/262, 20/202)
+        pos_hint: {'x': 169/262, 'y': 68/202}
+        size_hint: (80/262, 20/202)
 
-	## Time remaining until sunrise or sunset
+    ## Time remaining until sunrise or sunset
     BoldText:
-		text: app.Astro['sunEvent'][3]
+        text: app.Astro['sunEvent'][3]
         color: [200/255,200/255,200/255,1]
-		pos_hint: {'x': 24/262, 'y': 50/202}
-		size_hint: (80/262, 15/202)
-	MediumText:
-		text: app.Astro['sunEvent'][1]
-		pos_hint: {'x': 10/262, 'y': 26/202}
-		size_hint: (30/262, 21/202)
+        pos_hint: {'x': 24/262, 'y': 50/202}
+        size_hint: (80/262, 15/202)
+    MediumText:
+        text: app.Astro['sunEvent'][1]
+        pos_hint: {'x': 10/262, 'y': 26/202}
+        size_hint: (30/262, 21/202)
     BoldText:
-		text: 'hrs'
+        text: 'hrs'
         color: [1,1,1,1]
         font_size: '10sp'
-		pos_hint: {'x': 40/262, 'y': 22/202}
-		size_hint: (20/262, 15/202)
-	MediumText:
-		text: app.Astro['sunEvent'][2]
-		pos_hint: {'x': 60/262, 'y': 26/202}
-		size_hint: (30/262, 21/202)
+        pos_hint: {'x': 40/262, 'y': 22/202}
+        size_hint: (20/262, 15/202)
+    MediumText:
+        text: app.Astro['sunEvent'][2]
+        pos_hint: {'x': 60/262, 'y': 26/202}
+        size_hint: (30/262, 21/202)
     BoldText:
-		text: 'mins'
+        text: 'mins'
         font_size: '10dp'
         color: [1,1,1,1]
-		pos_hint: {'x': 90/262, 'y': 22/202}
-		size_hint: (28/262, 15/202)
-	SmallText:
-		text: 'Till ' + app.Astro['sunEvent'][0]
-		pos_hint: {'x': 24/262, 'y': 3/202}
-		size_hint: (80/262, 18/202)
+        pos_hint: {'x': 90/262, 'y': 22/202}
+        size_hint: (28/262, 15/202)
+    SmallText:
+        text: 'Till ' + app.Astro['sunEvent'][0]
+        pos_hint: {'x': 24/262, 'y': 3/202}
+        size_hint: (80/262, 18/202)
 
     ## Peak Sun Hours
     BoldText:
-		text: 'Peak Sun Hours'
+        text: 'Peak Sun Hours'
         valign: 'bottom'
         color: [200/255,200/255,200/255,1]
-		pos_hint: {'x': 132/262, 'y': 50/202}
-		size_hint: (120/262, 15/202)
-	MediumText:
-		text: app.Obs['peakSun'][0]
-		pos_hint: {'x': 152/262, 'y': 25/202}
-		size_hint: (80/262, 21/202)
+        pos_hint: {'x': 132/262, 'y': 50/202}
+        size_hint: (120/262, 15/202)
+    MediumText:
+        text: app.Obs['peakSun'][0]
+        pos_hint: {'x': 152/262, 'y': 25/202}
+        size_hint: (80/262, 21/202)
     SmallText:
-		text: 'Solar: ' + app.Obs['peakSun'][4]
-		pos_hint: {'x': 132/262, 'y': 3/202}
-		size_hint: (120/262, 18/202)
+        text: 'Solar: ' + app.Obs['peakSun'][4]
+        pos_hint: {'x': 132/262, 'y': 3/202}
+        size_hint: (120/262, 18/202)
 
 <SunriseSunsetButton>:
-	Button:
-		id: 'SunriseButton'
+    Button:
+        id: 'SunriseButton'
         background_normal: 'buttons/sun.png'
         background_down: 'buttons/sunPressed.png'
-		on_release: app.CurrentConditions.SwitchPanel(self)
+        on_release: app.CurrentConditions.SwitchPanel(self)
 
 ## =============================================================================
 ## MOON PHASE WIDGET
 ## =============================================================================
 <MoonPhasePanel>
-	Image:
-		source: 'background/moonPhase.png'
-		size_hint: (1,1)
-		keep_ratio: 0
-		allow_stretch: 1
+    Image:
+        source: 'background/moonPhase.png'
+        size_hint: (1,1)
+        keep_ratio: 0
+        allow_stretch: 1
 
-	## Moonrise time
-	SmallText
-		text: app.Astro['Moonrise'][1]
-		pos_hint: {'x': 5/262, 'y': 3/202}
-		size_hint: (80/262, 18/202)
+    ## Moonrise time
+    SmallText
+        text: app.Astro['Moonrise'][1]
+        pos_hint: {'x': 5/262, 'y': 3/202}
+        size_hint: (80/262, 18/202)
 
-	## Moonset time
-	SmallText
-		text: app.Astro['Moonset'][1]
-		pos_hint: {'x': 177/262, 'y': 3/202}
-		size_hint: (80/262, 18/202)
+    ## Moonset time
+    SmallText
+        text: app.Astro['Moonset'][1]
+        pos_hint: {'x': 177/262, 'y': 3/202}
+        size_hint: (80/262, 18/202)
 
-	## Next new moon
-	SmallText
-		text: app.Astro['NewMoon'][0]
-		pos_hint: {'x': 6/262, 'y': 138/202}
-		size_hint: (70/262, 18/202)
+    ## Next new moon
+    SmallText
+        text: app.Astro['NewMoon'][0]
+        pos_hint: {'x': 6/262, 'y': 138/202}
+        size_hint: (70/262, 18/202)
 
-	## Next full moon
-	SmallText
-		text: app.Astro['FullMoon'][0]
-		pos_hint: {'x': 186/262, 'y': 138/202}
-		size_hint: (70/262, 18/202)
+    ## Next full moon
+    SmallText
+        text: app.Astro['FullMoon'][0]
+        pos_hint: {'x': 186/262, 'y': 138/202}
+        size_hint: (70/262, 18/202)
 
-	## Moon phase icon
-	Image:
-		source: 'icons/moon/' + app.Astro['Phase'][0] + '.png'
-		keep_ratio: 0
-		allow_stretch: 1
-		pos_hint: {'x': 108/262, 'y': 93/202}
-		size_hint: (46/262, 46/202)
+    ## Moon phase icon
+    Image:
+        source: 'icons/moon/' + app.Astro['Phase'][0] + '.png'
+        keep_ratio: 0
+        allow_stretch: 1
+        pos_hint: {'x': 108/262, 'y': 93/202}
+        size_hint: (46/262, 46/202)
 
-	## Moon phase text
-	SmallText
-		text: app.Astro['Phase'][1]
-		pos_hint: {'x': 75/262, 'y': 70/202}
-		size_hint: (112/262, 18/202)
+    ## Moon phase text
+    SmallText
+        text: app.Astro['Phase'][1]
+        pos_hint: {'x': 75/262, 'y': 70/202}
+        size_hint: (112/262, 18/202)
 
-	## Moon illuminance text
-	SmallText
-		text: app.Astro['Phase'][2] + '% Illumin.'
-		pos_hint: {'x': 86/262, 'y': 50/202}
-		size_hint: (90/262, 18/202)
+    ## Moon illuminance text
+    SmallText
+        text: app.Astro['Phase'][2] + '% Illumin.'
+        pos_hint: {'x': 86/262, 'y': 50/202}
+        size_hint: (90/262, 18/202)
 
 <MoonPhaseButton>:
-	Button:
-		id: 'MoonPhaseButton'
+    Button:
+        id: 'MoonPhaseButton'
         background_normal: 'buttons/moon.png'
         background_down: 'buttons/moonPressed.png'
-		on_release: app.CurrentConditions.SwitchPanel(self)
+        on_release: app.CurrentConditions.SwitchPanel(self)
 
 ## =============================================================================
 ## RAINFALL WIDGET
 ## =============================================================================
 <RainfallPanel>
-	Image:
-		source: 'background/rainfall.png'
-		size_hint: (1,1)
-		keep_ratio: 0
-		allow_stretch: 1
+    Image:
+        source: 'background/rainfall.png'
+        size_hint: (1,1)
+        keep_ratio: 0
+        allow_stretch: 1
 
-	## Current rain rate and text
-	SmallText:
-		text: app.Obs['RainRate'][2]
-		pos_hint: {'x': 1/262, 'y': 55/202}
-		size_hint: (176/262, 18/202)
-	SmallText:
-		text: app.Obs['RainRate'][0] + app.Obs['RainRate'][1]
-		pos_hint: {'x': 175/262, 'y': 55/202}
-		size_hint: (86/262, 18/202)
+    ## Current rain rate and text
+    SmallText:
+        text: app.Obs['RainRate'][2]
+        pos_hint: {'x': 1/262, 'y': 55/202}
+        size_hint: (176/262, 18/202)
+    SmallText:
+        text: app.Obs['RainRate'][0] + app.Obs['RainRate'][1]
+        pos_hint: {'x': 175/262, 'y': 55/202}
+        size_hint: (86/262, 18/202)
 
-	## Rainfall intensity animation
-	StencilView:
-		pos_hint: {'x': 202/262, 'y': 81/202}
-		size_hint: (33/262, 108/202)
-		FloatLayout:
-			width: self.parent.height*(264/108)
+    ## Rainfall intensity animation
+    StencilView:
+        pos_hint: {'x': 202/262, 'y': 81/202}
+        size_hint: (33/262, 108/202)
+        FloatLayout:
+            width: self.parent.height*(264/108)
             height: self.parent.height
-			pos: self.parent.pos
-			Image:
-				source: 'icons/rainfall/Water.png'
-				keep_ratio: 0
-				allow_stretch: 1
-				size_hint: (1,1)
-				pos_hint: {'x': root.xRainAnim, 'y': root.yRainAnim}
+            pos: self.parent.pos
+            Image:
+                source: 'icons/rainfall/Water.png'
+                keep_ratio: 0
+                allow_stretch: 1
+                size_hint: (1,1)
+                pos_hint: {'x': root.xRainAnim, 'y': root.yRainAnim}
 
-	## Total daily rainfall
-	MediumText
-		text: app.Obs['TodayRain'][0] + '[size=15sp]' + app.Obs['TodayRain'][1] + '[/size]'
-		pos_hint: {'x': 1/262, 'y': 128/202}
-		size_hint: (88/262, 32/202)
+    ## Total daily rainfall
+    MediumText
+        text: app.Obs['TodayRain'][0] + '[size=15sp]' + app.Obs['TodayRain'][1] + '[/size]'
+        pos_hint: {'x': 1/262, 'y': 128/202}
+        size_hint: (88/262, 32/202)
 
-	## Total yesterday rainfall
-	MediumText
-		text: app.Obs['YesterdayRain'][0] + '[size=15sp]' + app.Obs['YesterdayRain'][1] + '[/size]'
-		pos_hint: {'x': 89/262, 'y': 128/202}
-		size_hint: (88/262, 32/202)
+    ## Total yesterday rainfall
+    MediumText
+        text: app.Obs['YesterdayRain'][0] + '[size=15sp]' + app.Obs['YesterdayRain'][1] + '[/size]'
+        pos_hint: {'x': 89/262, 'y': 128/202}
+        size_hint: (88/262, 32/202)
 
-	## Total monthly rainfall
-	MediumText
-		text: app.Obs['MonthRain'][0] + '[size=15sp]' + app.Obs['MonthRain'][1] + '[/size]'
-		pos_hint: {'x': 1/262, 'y': 73/202}
-		size_hint: (88/262, 32/202)
+    ## Total monthly rainfall
+    MediumText
+        text: app.Obs['MonthRain'][0] + '[size=15sp]' + app.Obs['MonthRain'][1] + '[/size]'
+        pos_hint: {'x': 1/262, 'y': 73/202}
+        size_hint: (88/262, 32/202)
 
-	## Total yearly rainfall
-	MediumText
-		text: app.Obs['YearRain'][0] + '[size=15sp]' + app.Obs['YearRain'][1] + '[/size]'
-		pos_hint: {'x': 89/262, 'y': 73/202}
-		size_hint: (88/262, 32/202)
+    ## Total yearly rainfall
+    MediumText
+        text: app.Obs['YearRain'][0] + '[size=15sp]' + app.Obs['YearRain'][1] + '[/size]'
+        pos_hint: {'x': 89/262, 'y': 73/202}
+        size_hint: (88/262, 32/202)
 
     ## Time and date
     MediumText
         text: root.realtimeClock
         font_name: 'fonts/SystemSanFranciscoDisplayRegular.ttf'
         pos_hint: {'x': 0/262, 'y': 0/202}
-		size_hint: (262/262, 46/202)
+        size_hint: (262/262, 46/202)
 
 <RainfallButton>:
-	Button:
-		id: 'RainfallButton'
+    Button:
+        id: 'RainfallButton'
         background_normal: 'buttons/rainfall.png'
         background_down: 'buttons/rainfallPressed.png'
-		on_release: app.CurrentConditions.SwitchPanel(self)
+        on_release: app.CurrentConditions.SwitchPanel(self)
 
 ## =============================================================================
 ## LIGHTNING WIDGET
 ## =============================================================================
 <LightningPanel>
-	Image:
-		source: 'background/lightning.png'
-		size_hint: (1,1)
-		keep_ratio: 0
-		allow_stretch: 1
+    Image:
+        source: 'background/lightning.png'
+        size_hint: (1,1)
+        keep_ratio: 0
+        allow_stretch: 1
 
-	## Last strike time
-	BoldText:
-		text:
-			'[color=c8c8c8ff]Last Strike[/color]' if app.Obs['StrikeDeltaT'][4] == '-' else \
-			'[color=c8c8c8ff]Strike Detected![/color]' if app.Obs['StrikeDeltaT'][4] < 360 else \
-			'[color=c8c8c8ff]Last Strike[/color]'
-		pos_hint: {'x': 83/262, 'y': 168/202}
-		size_hint: (176/262, 18/202)
-	LargeText:
-		text: app.Obs['StrikeDeltaT'][0]
-		pos_hint: {'x': 83/262, 'y': 139/202}
-		size_hint: (80/262 if app.Obs['StrikeDeltaT'][2] == '-' else 40/262, 28/202)
-	BoldText:
-		text: app.Obs['StrikeDeltaT'][1]
-		font_size: '9pt'
-		pos_hint: {'x': 83/262, 'y': 120.5/202}
-		size_hint: (80/262 if app.Obs['StrikeDeltaT'][2] == '-' else 40/262, 25/202)
-	LargeText:
-		text: app.Obs['StrikeDeltaT'][2]
+    ## Last strike time
+    BoldText:
+        text:
+            '[color=c8c8c8ff]Last Strike[/color]' if app.Obs['StrikeDeltaT'][4] == '-' else \
+            '[color=c8c8c8ff]Strike Detected![/color]' if app.Obs['StrikeDeltaT'][4] < 360 else \
+            '[color=c8c8c8ff]Last Strike[/color]'
+        pos_hint: {'x': 83/262, 'y': 168/202}
+        size_hint: (176/262, 18/202)
+    LargeText:
+        text: app.Obs['StrikeDeltaT'][0]
+        pos_hint: {'x': 83/262, 'y': 139/202}
+        size_hint: (80/262 if app.Obs['StrikeDeltaT'][2] == '-' else 40/262, 28/202)
+    BoldText:
+        text: app.Obs['StrikeDeltaT'][1]
+        font_size: '9pt'
+        pos_hint: {'x': 83/262, 'y': 120.5/202}
+        size_hint: (80/262 if app.Obs['StrikeDeltaT'][2] == '-' else 40/262, 25/202)
+    LargeText:
+        text: app.Obs['StrikeDeltaT'][2]
         opacity: 0 if app.Obs['StrikeDeltaT'][2] == '-' else 1
-		pos_hint: {'x': 123/262, 'y': 139/202}
-		size_hint: (40/262, 28/202)
-	BoldText:
-		text: app.Obs['StrikeDeltaT'][3]
-		font_size: '9pt'
-		opacity: 0 if app.Obs['StrikeDeltaT'][2] == '-' else 1
-		pos_hint: {'x': 123/262, 'y': 120.5/202}
-		size_hint: (40/262, 25/202)
-	SmallText:
-		text: '[color=f05e40ff]ago[/color]'
-		pos_hint: {'x': 83/262, 'y': 106/202}
-		size_hint: (80/262, 18/202)
+        pos_hint: {'x': 123/262, 'y': 139/202}
+        size_hint: (40/262, 28/202)
+    BoldText:
+        text: app.Obs['StrikeDeltaT'][3]
+        font_size: '9pt'
+        opacity: 0 if app.Obs['StrikeDeltaT'][2] == '-' else 1
+        pos_hint: {'x': 123/262, 'y': 120.5/202}
+        size_hint: (40/262, 25/202)
+    SmallText:
+        text: '[color=f05e40ff]ago[/color]'
+        pos_hint: {'x': 83/262, 'y': 106/202}
+        size_hint: (80/262, 18/202)
 
-	## Last strike distance
-	LargeText:
-		text: app.Obs['StrikeDist'][0]
-		pos_hint: {'x': 169/262, 'y': 139/202}
-		size_hint: (90/262, 28/202)
-	BoldText:
-		text: app.Obs['StrikeDist'][1]
-		font_size: '9pt'
-		pos_hint: {'x': 169/262, 'y': 120.5/202}
-		size_hint: (90/262, 25/202)
-	SmallText:
-		text: '[color=f05e40ff]away[/color]'
-		pos_hint: {'x': 169/262, 'y': 106/202}
-		size_hint: (90/262, 18/202)
+    ## Last strike distance
+    LargeText:
+        text: app.Obs['StrikeDist'][0]
+        pos_hint: {'x': 169/262, 'y': 139/202}
+        size_hint: (90/262, 28/202)
+    BoldText:
+        text: app.Obs['StrikeDist'][1]
+        font_size: '9pt'
+        pos_hint: {'x': 169/262, 'y': 120.5/202}
+        size_hint: (90/262, 25/202)
+    SmallText:
+        text: '[color=f05e40ff]away[/color]'
+        pos_hint: {'x': 169/262, 'y': 106/202}
+        size_hint: (90/262, 18/202)
 
-	## Last three hour lightning strikes
-	MediumText:
-		text: app.Obs['Strikes3hr'][0]
-		pos_hint: {'x': 6/262, 'y': 45/202}
-		size_hint: (60/262, 24/202)
+    ## Last three hour lightning strikes
+    MediumText:
+        text: app.Obs['Strikes3hr'][0]
+        pos_hint: {'x': 6/262, 'y': 45/202}
+        size_hint: (60/262, 24/202)
 
-	## Total daily lightning strikes
-	MediumText:
-		text: app.Obs['StrikesToday'][0]
-		pos_hint: {'x': 78/262, 'y': 45/202}
-		size_hint: (60/262, 24/202)
+    ## Total daily lightning strikes
+    MediumText:
+        text: app.Obs['StrikesToday'][0]
+        pos_hint: {'x': 78/262, 'y': 45/202}
+        size_hint: (60/262, 24/202)
 
-	## Total monthly lightning strikes
-	MediumText:
-		text: app.Obs['StrikesMonth'][0]
-		pos_hint: {'x': 6/262, 'y': 3/202}
-		size_hint: (60/262, 24/202)
+    ## Total monthly lightning strikes
+    MediumText:
+        text: app.Obs['StrikesMonth'][0]
+        pos_hint: {'x': 6/262, 'y': 3/202}
+        size_hint: (60/262, 24/202)
 
-	## Total yearly lightning strikes
-	MediumText:
-		text: app.Obs['StrikesYear'][0]
-		pos_hint: {'x': 78/262, 'y': 3/202}
-		size_hint: (60/262, 24/202)
+    ## Total yearly lightning strikes
+    MediumText:
+        text: app.Obs['StrikesYear'][0]
+        pos_hint: {'x': 78/262, 'y': 3/202}
+        size_hint: (60/262, 24/202)
 
-	## Strike frequency last ten minutes
-	MediumText:
-		text: app.Obs['StrikeFreq'][0] + app.Obs['StrikeFreq'][1]
-		pos_hint: {'x': 150/262, 'y': 45/202}
-		size_hint: (100/262, 24/202)
+    ## Strike frequency last ten minutes
+    MediumText:
+        text: app.Obs['StrikeFreq'][0] + app.Obs['StrikeFreq'][1]
+        pos_hint: {'x': 150/262, 'y': 45/202}
+        size_hint: (100/262, 24/202)
 
-	## Strike frequency last three hours
-	MediumText:
-		text: app.Obs['StrikeFreq'][2] + app.Obs['StrikeFreq'][3]
-		pos_hint: {'x': 150/262, 'y': 3/202}
-		size_hint: (100/262, 24/202)
+    ## Strike frequency last three hours
+    MediumText:
+        text: app.Obs['StrikeFreq'][2] + app.Obs['StrikeFreq'][3]
+        pos_hint: {'x': 150/262, 'y': 3/202}
+        size_hint: (100/262, 24/202)
 
-	## Lightning bolt icon
-	Image:
-		canvas.before:
-			PushMatrix
-			Translate:
-				x: root.xLightningBolt
-		canvas.after:
-			PopMatrix
-		source:
-			'icons/lightning/lightningBolt.png' if app.Obs['StrikeDeltaT'][4] == '-' else \
-			'icons/lightning/lightningBoltStrike.png' if app.Obs['StrikeDeltaT'][4] < 360 else \
-			'icons/lightning/lightningBolt.png'
-		keep_ratio: 0
-		allow_stretch: 1
-		pos_hint: {'x': 9/262, 'y': 120/202}
-		size_hint: (65/262, 68/202)
+    ## Lightning bolt icon
+    Image:
+        canvas.before:
+            PushMatrix
+            Translate:
+                x: root.xLightningBolt
+        canvas.after:
+            PopMatrix
+        source:
+            'icons/lightning/lightningBolt.png' if app.Obs['StrikeDeltaT'][4] == '-' else \
+            'icons/lightning/lightningBoltStrike.png' if app.Obs['StrikeDeltaT'][4] < 360 else \
+            'icons/lightning/lightningBolt.png'
+        keep_ratio: 0
+        allow_stretch: 1
+        pos_hint: {'x': 9/262, 'y': 120/202}
+        size_hint: (65/262, 68/202)
 
 <LightningButton>:
-	Button:
-		id: 'LightningButton'
+    Button:
+        id: 'LightningButton'
         background_normal: 'buttons/lightning.png'
         background_down: 'buttons/lightningPressed.png'
-		on_release: app.CurrentConditions.SwitchPanel(self)
+        on_release: app.CurrentConditions.SwitchPanel(self)
 
 ## =============================================================================
 ## BAROMETER WIDGET
 ## =============================================================================
 <BarometerPanel>:
-	Image:
-		source: 'background/barometer.png'
-		size_hint: (1,1)
-		keep_ratio: 0
-		allow_stretch: 1
+    Image:
+        source: 'background/barometer.png'
+        size_hint: (1,1)
+        keep_ratio: 0
+        allow_stretch: 1
 
-	## Current pressure arrow
-	Image:
-		source: 'icons/barometer/' + str(app.Obs['Pres'][2]) + '.png'
-		keep_ratio: 0
-	    allow_stretch: 1
-		pos_hint: {'x': 46/262, 'y': 18/202}
-		size_hint: (168/262, 84/202)
+    ## Current pressure arrow
+    Image:
+        source: 'icons/barometer/' + str(app.Obs['Pres'][2]) + '.png'
+        keep_ratio: 0
+        allow_stretch: 1
+        pos_hint: {'x': 46/262, 'y': 18/202}
+        size_hint: (168/262, 84/202)
 
-	## Maximum and minimum pressure on pressure dial
-	BoldText:
-		text: app.BarometerMin
-		pos_hint: {'x': 29/262, 'y': 2/202}
-		size_hint: (40/262, 19/202)
-	BoldText:
-		text: app.BarometerMax
-		pos_hint: {'x': 191/262, 'y': 2/202}
-		size_hint: (40/262, 19/202)
+    ## Maximum and minimum pressure on pressure dial
+    BoldText:
+        text: app.BarometerMin
+        pos_hint: {'x': 29/262, 'y': 2/202}
+        size_hint: (40/262, 19/202)
+    BoldText:
+        text: app.BarometerMax
+        pos_hint: {'x': 191/262, 'y': 2/202}
+        size_hint: (40/262, 19/202)
 
-	## Current pressure
-	BoldText:
-		text: '[color=c8c8c8ff] SLP [/color]'
-		pos_hint: {'x': 80/262, 'y': 57/202}
-		size_hint: (100/262, 28/202)
-	LargeText:
-		text: app.Obs['Pres'][0]
-		pos_hint: {'x': 80/262, 'y': 34/202}
-		size_hint: (100/262, 28/202)
-	SmallText:
-		text: app.Obs['Pres'][1]
-		pos_hint: {'x': 80/262, 'y': 14/202}
-		size_hint: (100/262, 24/202)
+    ## Current pressure
+    BoldText:
+        text: '[color=c8c8c8ff] SLP [/color]'
+        pos_hint: {'x': 80/262, 'y': 57/202}
+        size_hint: (100/262, 28/202)
+    LargeText:
+        text: app.Obs['Pres'][0]
+        pos_hint: {'x': 80/262, 'y': 34/202}
+        size_hint: (100/262, 28/202)
+    SmallText:
+        text: app.Obs['Pres'][1]
+        pos_hint: {'x': 80/262, 'y': 14/202}
+        size_hint: (100/262, 24/202)
 
-	## Current pressure trend
-	SmallText:
-		text: app.Obs['PresTrend'][2]
-		pos_hint: {'x': 155/262, 'y': 146/202}
-		size_hint: (96/262, 16/202)
-	SmallText:
-		text: app.Obs['PresTrend'][0] + app.Obs['PresTrend'][1]
-		pos_hint: {'x': 155/262, 'y': 130/202}
-		size_hint: (96/262, 16/202)
+    ## Current pressure trend
+    SmallText:
+        text: app.Obs['PresTrend'][2]
+        pos_hint: {'x': 155/262, 'y': 146/202}
+        size_hint: (96/262, 16/202)
+    SmallText:
+        text: app.Obs['PresTrend'][0] + app.Obs['PresTrend'][1]
+        pos_hint: {'x': 155/262, 'y': 130/202}
+        size_hint: (96/262, 16/202)
 
-	## Weather tendency
-	SmallText:
-		text: app.Obs['PresTrend'][3]
-		pos_hint: {'x': 21/262, 'y': 108/202}
-		size_hint: (220/262, 16/202)
+    ## Weather tendency
+    SmallText:
+        text: app.Obs['PresTrend'][3]
+        pos_hint: {'x': 21/262, 'y': 108/202}
+        size_hint: (220/262, 16/202)
 
-	## 24 Hour pressure low
-	SmallText:
-		text: '[color=00a4b4ff]' + app.Obs['MinPres'][0] + '[/color]'
-		pos_hint: {'x': 3/262, 'y': 146/202}
-		size_hint: (70/262, 16/202)
-	SmallText:
-		text: app.Obs['MinPres'][2]
-		pos_hint: {'x': 3/262, 'y': 130/202}
-		size_hint: (70/262, 16/202)
+    ## 24 Hour pressure low
+    SmallText:
+        text: '[color=00a4b4ff]' + app.Obs['MinPres'][0] + '[/color]'
+        pos_hint: {'x': 3/262, 'y': 146/202}
+        size_hint: (70/262, 16/202)
+    SmallText:
+        text: app.Obs['MinPres'][2]
+        pos_hint: {'x': 3/262, 'y': 130/202}
+        size_hint: (70/262, 16/202)
 
-	## 24 Hour pressure high
-	SmallText:
-		text: '[color=f05e40ff]' + app.Obs['MaxPres'][0] + '[/color]'
-		pos_hint: {'x': 73/262, 'y': 146/202}
-		size_hint: (70/262, 16/202)
-	SmallText:
-		text: app.Obs['MaxPres'][2]
-		pos_hint: {'x': 73/262, 'y': 130/202}
-		size_hint: (70/262, 16/202)
+    ## 24 Hour pressure high
+    SmallText:
+        text: '[color=f05e40ff]' + app.Obs['MaxPres'][0] + '[/color]'
+        pos_hint: {'x': 73/262, 'y': 146/202}
+        size_hint: (70/262, 16/202)
+    SmallText:
+        text: app.Obs['MaxPres'][2]
+        pos_hint: {'x': 73/262, 'y': 130/202}
+        size_hint: (70/262, 16/202)
 
 <BarometerButton>:
-	Button:
-		id: 'BarometerButton'
+    Button:
+        id: 'BarometerButton'
         background_normal: 'buttons/barometer.png'
         background_down: 'buttons/barometerPressed.png'
-		on_release: app.CurrentConditions.SwitchPanel(self)
+        on_release: app.CurrentConditions.SwitchPanel(self)
 
 ## =============================================================================
 ## CREDITS SREEN

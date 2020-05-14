@@ -7,8 +7,8 @@ the terms of the GNU General Public License as published by the Free Software
 Foundation, either version 3 of the License, or (at your option) any later
 version.
 
-This program is distributed in the hope that it will be useful, but WITHOUT 
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License along with
@@ -23,13 +23,13 @@ def Units(Obs,Unit):
 
     """ Sets the required observation units
 
-	INPUTS:
-		Obs				Observations with current units
-		Unit			Required output unit
+    INPUTS:
+        Obs             Observations with current units
+        Unit            Required output unit
 
-	OUTPUT:
+    OUTPUT:
         cObs            Observation converted into required unit
-	"""
+    """
 
     # Convert temperature observations
     cObs = Obs[:]
@@ -144,13 +144,13 @@ def Format(Obs,Type):
 
     """ Formats the observation for display on the console
 
-	INPUTS:
-		Obs				Observations with units
-		Type			Observation type
+    INPUTS:
+        Obs             Observations with units
+        Type            Observation type
 
-	OUTPUT:
+    OUTPUT:
         cObs            Formatted observation based on specified type
-	"""
+    """
 
     # Format temperature observations
     cObs = Obs[:]
@@ -284,7 +284,7 @@ def Format(Obs,Type):
                     cObs[ii-1] = '-'
                 else:
                     cObs[ii-1] = '{:.1f}'.format(cObs[ii-1])
-                    
+
     # Format Peak Sun Hours observations
     elif Type == 'peakSun':
         for ii,psh in enumerate(Obs):
@@ -292,7 +292,7 @@ def Format(Obs,Type):
                 if math.isnan(cObs[ii-1]):
                     cObs[ii-1] = '-'
                 else:
-                    cObs[ii-1] = '{:.2f}'.format(cObs[ii-1])    
+                    cObs[ii-1] = '{:.2f}'.format(cObs[ii-1])
 
     # Format battery voltage observations
     elif Type == 'Battery':
@@ -337,7 +337,7 @@ def Format(Obs,Type):
                     if math.isnan(cObs[ii-1]):
                         cObs[ii-1] = '-'
                         cObs[ii] = ' /min'
-                    elif cObs[ii-1].tolist().is_integer():  
+                    elif cObs[ii-1].tolist().is_integer():
                         cObs[ii-1] = '{:.0f}'.format(cObs[ii-1])
                         cObs[ii] = ' /min'
                     else:

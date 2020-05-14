@@ -31,11 +31,11 @@ def updateDisplay(derivedObs,wfpiconsole,Type):
     """ Updates wfpiconsole display using mainthread with new variables derived from
     latest websocket message
 
-	INPUTS:
-		derivedObs			Derived variables from latest Websocket message
-		wfpiconsole         wfpiconsole object
+    INPUTS:
+        derivedObs          Derived variables from latest Websocket message
+        wfpiconsole         wfpiconsole object
         Type                Derived variable module type
-	"""
+    """
 
     # Update display with new derived observations
     for Key,Value in derivedObs.items():
@@ -67,10 +67,10 @@ def Tempest(Msg,wfpiconsole):
 
     """ Handles Websocket messages received from TEMPEST module
 
-	INPUTS:
-		Msg				    Websocket messages received from TEMPEST module
-		wfpiconsole         wfpiconsole object
-	"""
+    INPUTS:
+        Msg                 Websocket messages received from TEMPEST module
+        wfpiconsole         wfpiconsole object
+    """
 
     # Replace missing observations from latest SKY Websocket JSON with NaN
     Ob = [x if x != None else NaN for x in Msg['obs'][0]]
@@ -214,10 +214,10 @@ def Sky(Msg,wfpiconsole):
 
     """ Handles Websocket messages received from SKY module
 
-	INPUTS:
-		Msg				    Websocket messages received from SKY module
-		wfpiconsole         wfpiconsole object
-	"""
+    INPUTS:
+        Msg                 Websocket messages received from SKY module
+        wfpiconsole         wfpiconsole object
+    """
 
     # Replace missing observations from latest SKY Websocket JSON with NaN
     Ob = [x if x != None else NaN for x in Msg['obs'][0]]
@@ -315,10 +315,10 @@ def outdoorAir(Msg,wfpiconsole):
 
     """ Handles Websocket messages received from outdoor AIR module
 
-	INPUTS:
-		Msg				    Websocket messages received from outdoor AIR module
-		wfpiconsole         wfpiconsole object
-	"""
+    INPUTS:
+        Msg                 Websocket messages received from outdoor AIR module
+        wfpiconsole         wfpiconsole object
+    """
 
     # Replace missing observations in latest outdoor AIR Websocket JSON with NaN
     Ob = [x if x != None else NaN for x in Msg['obs'][0]]
@@ -421,10 +421,10 @@ def indoorAir(Msg,wfpiconsole):
 
     """ Handles Websocket messages received from indoor AIR module
 
-	INPUTS:
-		Msg				    Websocket messages received from indoor AIR module
-		wfpiconsole         wfpiconsole object
-	"""
+    INPUTS:
+        Msg                 Websocket messages received from indoor AIR module
+        wfpiconsole         wfpiconsole object
+    """
 
     # Replace missing observations in latest AIR Websocket JSON with NaN
     Ob = [x if x != None else NaN for x in Msg['obs'][0]]
@@ -474,10 +474,10 @@ def rapidWind(Msg,wfpiconsole):
     """ Handles RapidWind Websocket messages received from either SKY or TEMPEST
         module
 
-	INPUTS:
-		Msg				    Websocket messages received from SKY or TEMPEST
-		wfpiconsole         wfpiconsole object
-	"""
+    INPUTS:
+        Msg                 Websocket messages received from SKY or TEMPEST
+        wfpiconsole         wfpiconsole object
+    """
 
     # Replace missing observations from Rapid Wind Websocket JSON
     # with NaN
@@ -528,10 +528,10 @@ def evtStrike(Msg,wfpiconsole):
     """ Handles lightning strike event Websocket messages received from either
         AIR or TEMPEST module
 
-	INPUTS:
-		Msg				    Websocket messages received from AIR or TEMPEST
-		wfpiconsole         wfpiconsole object
-	"""
+    INPUTS:
+        Msg                 Websocket messages received from AIR or TEMPEST
+        wfpiconsole         wfpiconsole object
+    """
 
     # Extract required observations from latest evt_strike Websocket JSON
     StrikeTime = [Msg['evt'][0],'s']
