@@ -25,11 +25,10 @@ import time
 # Define global variables
 NaN = float('NaN')
 
-@mainthread
 def updateDisplay(derivedObs,wfpiconsole,Type):
 
-    """ Updates wfpiconsole display using mainthread with new variables derived from
-    latest websocket message
+    """ Updates wfpiconsole display using mainthread functions with new
+    variables derived from latest websocket message
 
     INPUTS:
         derivedObs          Derived variables from latest Websocket message
@@ -41,24 +40,26 @@ def updateDisplay(derivedObs,wfpiconsole,Type):
     for Key,Value in derivedObs.items():
         wfpiconsole.Obs[Key] = Value
 
-    # Animate RainRate if RainfallPanel is active
+    # Set "Feels Like" icon if TemperaturePanel is active
+    if Type in ['Tempest','outdoorAir']  and hasattr(wfpiconsole,'TemperaturePanel'):
+        wfpiconsole.TemperaturePanel.setFeelsLikeIcon()
+
+    # Set wind speed and direction icons if WindSpeedPanel panel is active
+    if Type in ['Tempest','Sky'] and hasattr(wfpiconsole,'WindSpeedPanel'):
+        wfpiconsole.WindSpeedPanel.setWindIcons()
+
+    # Set current UV index background color if SunriseSunsetPanel is active
+    if Type in ['Tempest','Sky'] and hasattr(wfpiconsole,'SunriseSunsetPanel'):
+        wfpiconsole.SunriseSunsetPanel.setUVBackground()
+
+    # Animate rain rate level if RainfallPanel is active
     if Type in ['Tempest','Sky'] and hasattr(wfpiconsole,'RainfallPanel'):
-        wfpiconsole.RainfallPanel.RainRateAnimation()
+        wfpiconsole.RainfallPanel.animateRainRate()
 
-    # Animate wind rose arrow if WindSpeedPanel panel is active
-    if Type == 'rapidWind' and hasattr(wfpiconsole,'WindSpeedPanel'):
-        wfpiconsole.WindSpeedPanel.WindRoseAnimation()
-
-    # If required, open secondary lightning panel to show strike has been
-    # detected
-    if Type == 'Strike' and wfpiconsole.config['Display']['LightningPanel'] == '1':
-        for ii,Button in enumerate(wfpiconsole.CurrentConditions.buttonList):
-            if "Lightning" in Button[2]:
-                wfpiconsole.CurrentConditions.SwitchPanel([],Button)
-
-    # Animate lightning bolt icon if LightningPanel panel is active
-    if Type == 'Strike' and hasattr(wfpiconsole,'LightningPanel'):
-        wfpiconsole.LightningPanel.LightningBoltAnim()
+    # Set barometer arrow to current sea level pressure if BarometerPanel is
+    # active
+    if Type in ['Tempest','outdoorAir'] and hasattr(wfpiconsole,'BarometerPanel'):
+        wfpiconsole.BarometerPanel.setBarometerArrow()
 
     # Return wfpiconsole object
     return wfpiconsole
@@ -201,7 +202,7 @@ def Tempest(Msg,wfpiconsole):
     derivedObs['peakSun']       = observation.Format(peakSun,'peakSun')
     derivedObs['UVIndex']       = observation.Format(UVIndex,'UV')
 
-    # Update wfpiconsole display with derived TEMPEST observations in mainthread
+    # Update wfpiconsole display with derived TEMPEST observations
     updateDisplay(derivedObs,wfpiconsole,'Tempest')
 
     # Set flags for required API calls
@@ -302,7 +303,7 @@ def Sky(Msg,wfpiconsole):
     derivedObs['peakSun']       = observation.Format(peakSun,'peakSun')
     derivedObs['UVIndex']       = observation.Format(UVIndex,'UV')
 
-    # Update wfpiconsole display with derived SKY observations in mainthread
+    # Update wfpiconsole display with derived SKY observations
     updateDisplay(derivedObs,wfpiconsole,'Sky')
 
     # Set flags for required API calls
@@ -408,7 +409,7 @@ def outdoorAir(Msg,wfpiconsole):
     derivedObs['Humidity']     = observation.Format(Humidity,'Humidity')
     derivedObs['Battery']      = observation.Format(Battery,'Battery')
 
-    # Update wfpiconsole display with derived outdoor AIR observations in mainthread
+    # Update wfpiconsole display with derived outdoor AIR observations
     updateDisplay(derivedObs,wfpiconsole,'outdoorAir')
 
     # Set flags for required API calls
@@ -431,7 +432,7 @@ def indoorAir(Msg,wfpiconsole):
 
     # Extract indoor AIR device ID and API flag, and station configuration
     # object
-    Device  = wfpiconsole.config['Station']['OutAirID']
+    Device  = wfpiconsole.config['Station']['indoorID']
     flagAPI = wfpiconsole.flagAPI[3]
     Config  = wfpiconsole.config
 
@@ -460,7 +461,7 @@ def indoorAir(Msg,wfpiconsole):
     derivedObs['inTempMax'] = observation.Format(MaxTemp,'Temp')
     derivedObs['inTempMin'] = observation.Format(MinTemp,'Temp')
 
-    # Update wfpiconsole display with derived indoor AIR observations in mainthread
+    # Update wfpiconsole display with derived indoor AIR observations
     updateDisplay(derivedObs,wfpiconsole,'indoorAir')
 
     # Set flags for required API calls
@@ -517,8 +518,12 @@ def rapidWind(Msg,wfpiconsole):
     derivedObs['rapidSpd']   = observation.Format(WindSpd,'Wind')
     derivedObs['rapidDir']   = observation.Format(WindDir,'Direction')
 
-    # Update wfpiconsole display with derived Rapid Wind observations in mainthread
+    # Update wfpiconsole display with derived Rapid Wind observations
     updateDisplay(derivedObs,wfpiconsole,'rapidWind')
+
+    # Animate wind rose arrow if WindSpeedPanel panel is active
+    if hasattr(wfpiconsole,'WindSpeedPanel'):
+        wfpiconsole.WindSpeedPanel.animateWindRose()
 
     # Return wfpiconsole object
     return wfpiconsole
@@ -551,8 +556,24 @@ def evtStrike(Msg,wfpiconsole):
     derivedObs['StrikeDeltaT'] = observation.Format(StrikeDeltaT,'TimeDelta')
     derivedObs['StrikeDist']   = observation.Format(StrikeDist,'StrikeDistance')
 
-    # Update wfpiconsole display with derived evt_strike observations in mainthread
+    # Update wfpiconsole display with derived evt_strike observations
     updateDisplay(derivedObs,wfpiconsole,'Strike')
+
+    # If required, open secondary lightning panel to show strike has been
+    # detected
+    if wfpiconsole.config['Display']['LightningPanel'] == '1':
+        for ii,Button in enumerate(wfpiconsole.CurrentConditions.buttonList):
+            if "Lightning" in Button[2]:
+                wfpiconsole.CurrentConditions.SwitchPanel([],Button)
+
+                # Wait for lightning panel to be instantiated
+                while not hasattr(wfpiconsole,'LightningPanel'):
+                    time.sleep(0.1)
+
+    # Set and animate lightning bolt icon if LightningPanel panel is active
+    if hasattr(wfpiconsole,'LightningPanel'):
+        wfpiconsole.LightningPanel.setlightningBoltIcon()
+        wfpiconsole.LightningPanel.animatelightningBoltIcon()
 
     # Return wfpiconsole object
     return wfpiconsole

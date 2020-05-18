@@ -319,19 +319,6 @@ class wfpiconsole(App):
             self.config.set('System','BarometerMax',Max[Units.index(value)])
             self.config.set('System','BarometerMin',Min[Units.index(value)])
 
-        # Update display when any units are changed
-        if section == 'Units' or section == 'FeelsLike':
-            if self.config['Station']['TempestID']:
-                Thread(target=websocket.Tempest, args=(self.Obs['TempestMsg'],self), name='Tempest').start()
-                Thread(target=websocket.rapidWind, args=(self.Obs['RapidMsg'],self), name="rapidWind").start()
-            if self.config['Station']['SkyID']:
-                Thread(target=websocket.Sky, args=(self.Obs['SkyMsg'],self), name="Sky").start()
-                Thread(target=websocket.rapidWind, args=(self.Obs['RapidMsg'],self), name="rapidWind").start()
-            if self.config['Station']['OutAirID']:
-                Thread(target=websocket.outdoorAir, args=(self.Obs['outAirMsg'],self), name="outdoorAir").start()
-            if self.config['Station']['InAirID']:
-                Thread(target=websocket.indoorAir, args=(self.Obs['inAirMsg'],self), name="indoorAir").start()
-
         # Update primary and secondary panels displayed on CurrentConditions
         # screen
         if section in ['PrimaryPanels','SecondaryPanels']:
@@ -584,10 +571,19 @@ class SagerButton(RelativeLayout):
 # ==============================================================================
 class TemperaturePanel(RelativeLayout):
 
+    # Define TemperaturePanel class properties
+    feelsLikeIcon = StringProperty('-')
+
     # Initialise 'TemperaturePanel' relative layout class
     def __init__(self,**kwargs):
         super(TemperaturePanel,self).__init__(**kwargs)
         App.get_running_app().TemperaturePanel = self
+        self.setFeelsLikeIcon()
+
+    # Set "Feels Like" icon
+    @mainthread
+    def setFeelsLikeIcon(self):
+        self.feelsLikeIcon = App.get_running_app().Obs['FeelsLike'][3]
 
 class TemperatureButton(RelativeLayout):
     pass
@@ -599,17 +595,18 @@ class WindSpeedPanel(RelativeLayout):
 
     # Define WindSpeedPanel class properties
     rapidWindDir = NumericProperty(0)
+    windDirIcon  = StringProperty('-')
+    windSpdIcon  = StringProperty('-')
 
-    # INITIALISE 'WindSpeedPanel' RELATIVE LAYOUT CLASS
-    # --------------------------------------------------------------------------
+    # Initialise 'WindSpeedPanel' relative layout class
     def __init__(self,**kwargs):
         super(WindSpeedPanel,self).__init__(**kwargs)
         App.get_running_app().WindSpeedPanel = self
+        self.setWindIcons()
 
-    # ANIMATE WIND ROSE DIRECTION ARROW (uses mainthread)
-    # --------------------------------------------------------------------------
+    # Animate rapid wind rose
     @mainthread
-    def WindRoseAnimation(self):
+    def animateWindRose(self):
 
         # Get current wind direction, old wind direction and change in wind
         # direction over last Rapid-Wind period
@@ -620,24 +617,27 @@ class WindSpeedPanel(RelativeLayout):
         # Animate Wind Rose at constant speed between old and new Rapid-Wind
         # wind direction
         if windShift >= -180 and windShift <= 180:
-            self.Anim = Animation(rapidWindDir=newDirec,duration=2*abs(windShift)/360)
-            self.Anim.bind(on_progress=self.fixDiscontinuity)
-            self.Anim.start(self)
+            Anim = Animation(rapidWindDir=newDirec,duration=2*abs(windShift)/360)
+            Anim.start(self)
         elif windShift > 180:
-            self.Anim = Animation(rapidWindDir=0,duration=2*oldDirec/360) + Animation(rapidWindDir=newDirec,duration=2*(360-newDirec)/360)
-            self.Anim.bind(on_progress=self.fixDiscontinuity)
-            self.Anim.start(self)
+            Anim = Animation(rapidWindDir=0.1,duration=2*oldDirec/360) + Animation(rapidWindDir=newDirec,duration=2*(360-newDirec)/360)
+            Anim.start(self)
         elif windShift < -180:
-            self.Anim = Animation(rapidWindDir=360,duration=2*(360-oldDirec)/360) + Animation(rapidWindDir=newDirec,duration=2*newDirec/360)
-            self.Anim.bind(on_progress=self.fixDiscontinuity)
-            self.Anim.start(self)
+            Anim = Animation(rapidWindDir=359.9,duration=2*(360-oldDirec)/360) + Animation(rapidWindDir=newDirec,duration=2*newDirec/360)
+            Anim.start(self)
 
     # Fix Wind Rose angle at 0/360 degree discontinuity
-    def fixDiscontinuity(self,*args):
-        if self.rapidWindDir <= 0:
-            self.rapidWindDir = 359.9
-        if self.rapidWindDir >= 360:
-            self.rapidWindDir = 0.1
+    def on_rapidWindDir(self,item,rapidWindDir):
+        if rapidWindDir == 0.1:
+            item.rapidWindDir = 360
+        if rapidWindDir == 359.9:
+            item.rapidWindDir = 0
+
+    # Set mean windspeed and direction icons
+    @mainthread
+    def setWindIcons(self):
+        self.windDirIcon = App.get_running_app().Obs['WindDir'][2]
+        self.windSpdIcon = App.get_running_app().Obs['WindSpd'][3]
 
 class WindSpeedButton(RelativeLayout):
     pass
@@ -647,10 +647,19 @@ class WindSpeedButton(RelativeLayout):
 # ==============================================================================
 class SunriseSunsetPanel(RelativeLayout):
 
+    # Define SunriseSunsetPanel class properties
+    uvBackground = StringProperty('-')
+
     # Initialise 'SunriseSunsetPanel' relative layout class
     def __init__(self,**kwargs):
         super(SunriseSunsetPanel,self).__init__(**kwargs)
         App.get_running_app().SunriseSunsetPanel = self
+        self.setUVBackground()
+
+    # Set current UV index backgroud
+    @mainthread
+    def setUVBackground(self):
+        self.uvBackground = App.get_running_app().Obs['UVIndex'][3]
 
 class SunriseSunsetButton(RelativeLayout):
     pass
@@ -675,21 +684,19 @@ class RainfallPanel(RelativeLayout):
 
     # Define RainfallPanel class properties
     realtimeClock = StringProperty('--')
-    xRainAnim     = NumericProperty(0)
-    yRainAnim     = NumericProperty(-1)
+    rainRatePosX  = NumericProperty(+0)
+    rainRatePosY  = NumericProperty(-1)
 
-    # INITIALISE 'RainfallPanel' RELATIVE LAYOUT CLASS
-    # --------------------------------------------------------------------------
+    # Initialise 'RainfallPanel' relative layout class
     def __init__(self,**kwargs):
         super(RainfallPanel,self).__init__(**kwargs)
         App.get_running_app().RainfallPanel = self
-        self.RainRateAnimation()
-        self.Clock(None)
+        Clock.schedule_once(self.Clock)
+        self.animateRainRate()
 
-    # ANIMATE RAIN RATE ICON
-    # --------------------------------------------------------------------------
+    # Animate rain rate level
     @mainthread
-    def RainRateAnimation(self):
+    def animateRainRate(self):
 
         # Get current rain rate and convert to float
         if App.get_running_app().Obs['RainRate'][0] == '-':
@@ -703,14 +710,14 @@ class RainfallPanel(RelativeLayout):
 
         # Set RainRate level y position
         if RainRate == 0:
-            self.yRainAnim = x0
+            self.rainRatePosY = x0
         elif RainRate < 50.0:
             A = (xt-x0)/t**0.5 * RainRate**0.5 + x0
             B = (xt-x0)/t**0.3 * RainRate**0.3 + x0
             C = (1 + math.tanh(RainRate-3))/2
-            self.yRainAnim = (A + C * (B-A))
+            self.rainRatePosY = (A + C * (B-A))
         else:
-            self.yRainAnim = xt
+            self.rainRatePosY = xt
 
         # Animate RainRate level x position
         if RainRate == 0:
@@ -719,19 +726,18 @@ class RainfallPanel(RelativeLayout):
                 delattr(self,'Anim')
         else:
             if not hasattr(self,'Anim'):
-                self.Anim  = Animation(xRainAnim=-0.875,duration=12)
-                self.Anim += Animation(xRainAnim=-0.875,duration=12)
+                self.Anim  = Animation(rainRatePosX=-0.875,duration=12)
+                self.Anim += Animation(rainRatePosX=-0.875,duration=12)
                 self.Anim.bind(on_progress=self.loopRainAnimation)
                 self.Anim.repeat = True
                 self.Anim.start(self)
 
     # Loop RainRate animation in the x direction
-    def loopRainAnimation(self,*args):
-        if round(self.xRainAnim,3) <= -0.875:
-            self.xRainAnim = 0
+    def on_xRainAnim(self,item,rainRatePosX):
+        if round(rainRatePosX,3) == -0.875:
+            item.rainRatePosX = 0
 
-    # DEFINE DATE AND TIME IN STATION TIMEZONE
-    # --------------------------------------------------------------------------
+    # Define realtime clock in station timezone
     def Clock(self,dt):
 
         # Define time and date format based on user settings
@@ -752,9 +758,11 @@ class RainfallPanel(RelativeLayout):
         Tz = pytz.timezone(App.get_running_app().config['Station']['Timezone'])
         Now = datetime.now(pytz.utc).astimezone(Tz)
 
-        # Format realtimeClock
+        # Format realtime Clock
         self.realtimeClock = Now.strftime(DateFormat + '\n' + TimeFormat)
-        Clock.schedule_once(self.Clock,1)
+
+        # Schedule realtime Clock
+        Clock.schedule_once(self.Clock,1.0)
 
 class RainfallButton(RelativeLayout):
     pass
@@ -765,19 +773,28 @@ class RainfallButton(RelativeLayout):
 class LightningPanel(RelativeLayout):
 
     # Define LightningPanel class properties
-    xLightningBolt = NumericProperty(0)
+    lightningBoltPosX = NumericProperty(0)
+    lightningBoltIcon = StringProperty('lightningBolt')
 
-    # INITIALISE 'LightningPanel' RELATIVE LAYOUT CLASS
-    # --------------------------------------------------------------------------
+    # Initialise 'LightningPanel' relative layout class
     def __init__(self,**kwargs):
         super(LightningPanel,self).__init__(**kwargs)
         App.get_running_app().LightningPanel = self
+        self.setLightningBoltIcon()
 
-    # ANIMATE LIGHTNING BOLT ICON WHEN STRIKE IS DETECTED
-    # --------------------------------------------------------------------------
+    # Set lightning bolt icon
     @mainthread
-    def LightningBoltAnim(self):
-        Anim = Animation(xLightningBolt=10,t='out_quad',d=0.02) + Animation(xLightningBolt=0,t='out_elastic',d=0.5)
+    def setlightningBoltIcon(self):
+        if App.get_running_app().Obs['StrikeDeltaT'][4] != '-':
+            if App.get_running_app().Obs['StrikeDeltaT'][4] < 360:
+                self.lightningBoltIcon = 'lightningBoltStrike'
+            else:
+                self.lightningBoltIcon = 'lightningBolt'
+
+    # Animate lightning bolt icon
+    @mainthread
+    def animatelightningBoltIcon(self):
+        Anim = Animation(lightningBoltPosX=10,t='out_quad',d=0.02) + Animation(lightningBoltPosX=0,t='out_elastic',d=0.5)
         Anim.start(self)
 
 class LightningButton(RelativeLayout):
@@ -788,10 +805,19 @@ class LightningButton(RelativeLayout):
 # ==============================================================================
 class BarometerPanel(RelativeLayout):
 
+    # Define BarometerPanel class properties
+    barometerArrow = StringProperty('-')
+
     # Initialise 'BarometerPanel' relative layout class
     def __init__(self,**kwargs):
         super(BarometerPanel,self).__init__(**kwargs)
         App.get_running_app().BarometerPanel = self
+        self.setBarometerArrow()
+
+    # Set Barometer arrow to current sea level pressure
+    @mainthread
+    def setBarometerArrow(self):
+        self.barometerArrow = App.get_running_app().Obs['Pres'][2]
 
 class BarometerButton(RelativeLayout):
     pass

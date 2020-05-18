@@ -316,7 +316,7 @@ ScreenManager:
 
     ## 'Feels like' icon and text
     Image:
-        source: 'icons/feelsLike/' + app.Obs['FeelsLike'][3] + '.png'
+        source: 'icons/feelsLike/' + root.feelsLikeIcon + '.png'
         pos_hint: {'x': 7/262, 'y': 6/202}
         size_hint: (38/262, 29/202)
     SmallText:
@@ -384,7 +384,7 @@ ScreenManager:
 
     ## Current Beaufort scale text and icon
     Image:
-        source: 'icons/windSpeed/' + app.Obs['WindSpd'][3] + '.png'
+        source: 'icons/windSpeed/' + root.windSpdIcon + '.png'
         keep_ratio: 0
         allow_stretch: 1
         pos_hint: {'x': 18/262, 'y': 28/202}
@@ -397,7 +397,7 @@ ScreenManager:
 
     ## Current average wind direction
     Image:
-        source: 'icons/windDir/' + app.Obs['WindDir'][2] + '.png'
+        source: 'icons/windDir/' + root.windDirIcon + '.png'
         keep_ratio: 0
         allow_stretch: 1
         pos_hint: {'x': 216/262, 'y': 28/202}
@@ -529,7 +529,7 @@ ScreenManager:
         color: [20/255,20/255,20/255,1]
         canvas.before:
             Color:
-                rgba: utils.rgba(app.Obs['UVIndex'][3]) if app.Obs['UVIndex'][3] != '-' else [20/255,20/255,20/255,1]
+                rgba: utils.rgba(root.uvBackground) if root.uvBackground != '-' else [20/255,20/255,20/255,1]
             RoundedRectangle:
                 pos: [self.pos[0],self.pos[1]-2]
                 size: self.size
@@ -698,7 +698,7 @@ ScreenManager:
         pos_hint: {'x': 175/262, 'y': 55/202}
         size_hint: (86/262, 18/202)
 
-    ## Rainfall intensity animation
+    ## Rain rate animation
     StencilView:
         pos_hint: {'x': 202/262, 'y': 81/202}
         size_hint: (33/262, 108/202)
@@ -711,7 +711,7 @@ ScreenManager:
                 keep_ratio: 0
                 allow_stretch: 1
                 size_hint: (1,1)
-                pos_hint: {'x': root.xRainAnim, 'y': root.yRainAnim}
+                pos_hint: {'x': root.rainRatePosX, 'y': root.rainRatePosY}
 
     ## Total daily rainfall
     MediumText
@@ -850,13 +850,10 @@ ScreenManager:
         canvas.before:
             PushMatrix
             Translate:
-                x: root.xLightningBolt
+                x: root.lightningBoltPosX
         canvas.after:
             PopMatrix
-        source:
-            'icons/lightning/lightningBolt.png' if app.Obs['StrikeDeltaT'][4] == '-' else \
-            'icons/lightning/lightningBoltStrike.png' if app.Obs['StrikeDeltaT'][4] < 360 else \
-            'icons/lightning/lightningBolt.png'
+        source: 'icons/lightning/' + root.lightningBoltIcon + '.png'
         keep_ratio: 0
         allow_stretch: 1
         pos_hint: {'x': 9/262, 'y': 120/202}
@@ -881,7 +878,7 @@ ScreenManager:
 
     ## Current pressure arrow
     Image:
-        source: 'icons/barometer/' + str(app.Obs['Pres'][2]) + '.png'
+        source: 'icons/barometer/' + root.barometerArrow + '.png'
         keep_ratio: 0
         allow_stretch: 1
         pos_hint: {'x': 46/262, 'y': 18/202}

@@ -268,7 +268,7 @@ def SLPMaxMin(Time,Pres,maxPres,minPres,Device,Config,flagAPI):
 
             # Extract data from API call based on device type
             Data = Data.json()['obs']
-            Time = [[item[0],'s'] for item in Data if item[0] != None]
+            Time = [item[0] for item in Data if item[0] != None]
             if Config['Station']['OutAirID']:
                 Pres = [[item[1],'mb'] for item in Data if item[1] != None]
             elif Config['Station']['TempestID']:
@@ -278,8 +278,8 @@ def SLPMaxMin(Time,Pres,maxPres,minPres,Device,Config,flagAPI):
             SLP = [derive.SLP(P,Config) for P in Pres]
 
             # Define maximum and minimum pressure
-            MaxPres = [max(SLP)[0],'mb',datetime.fromtimestamp(Time[SLP.index(max(SLP))][0],Tz).strftime('%H:%M'),max(SLP)[0],Now]
-            MinPres = [min(SLP)[0],'mb',datetime.fromtimestamp(Time[SLP.index(min(SLP))][0],Tz).strftime('%H:%M'),min(SLP)[0],Now]
+            MaxPres = [max(SLP)[0],'mb',datetime.fromtimestamp(Time[SLP.index(max(SLP))],Tz).strftime('%H:%M'),max(SLP)[0],Now]
+            MinPres = [min(SLP)[0],'mb',datetime.fromtimestamp(Time[SLP.index(min(SLP))],Tz).strftime('%H:%M'),min(SLP)[0],Now]
         else:
             MaxPres = [NaN,'mb','-',NaN,Now]
             MinPres = [NaN,'mb','-',NaN,Now]
@@ -1001,10 +1001,10 @@ def peakSunHours(Radiation,peakSun,Astro,Device,Config,flagAPI):
     # Code initialising. Download all data for current day using Weatherflow
     # API and calculate Peak Sun Hours
     if peakSun[0] == '-' or flagAPI:
-    
+
         print("DOING PEAK SUN API")
 
-        # Download rainfall data for current day
+        # Download solar radiation data for current day
         Data = requestAPI.weatherflow.Today(Device,Config)
 
         # Calculate Peak Sun Hours. Return NaN if API call has failed
@@ -1014,25 +1014,26 @@ def peakSunHours(Radiation,peakSun,Astro,Device,Config,flagAPI):
                 Radiation = [item[10] for item in Data if item[10] != None]
             elif Config['Station']['TempestID']:
                 Radiation = [item[11] for item in Data if item[11] != None]
-            kwh = sum([item*1/60 for item in Radiation])
-            peakSun = [kwh/1000,'hrs',kwh,Now]
+            watthrs = sum([item*1/60 for item in Radiation])
+            peakSun = [watthrs/1000,'hrs',watthrs,Now]
         else:
             peakSun = [NaN,'hrs',NaN,Now]
 
     # At midnight, reset Peak Sun Hours
     elif Now.date() > peakSun[3].date():
-        kwh = Radiation[0] * 1/60
-        peakSun = [kwh/1000,'hrs',kwh,Now]
+        watthrs = Radiation[0] * 1/60
+        peakSun = [watthrs/1000,'hrs',watthrs,Now]
 
     # Add current Radiation value to Peak Sun Hours
     else:
-        kwh = peakSun[2] + Radiation[0]*1/60 if not math.isnan(Radiation[0]) else peakSun[2]
-        peakSun = [kwh/1000,'hrs',kwh,Now]
+        watthrs = peakSun[2] + Radiation[0]*1/60 if not math.isnan(Radiation[0]) else peakSun[2]
+        peakSun = [watthrs/1000,'hrs',watthrs,Now]
         if math.isnan(Radiation[0]):
             print("Radiation is NaN")
 
     # Calculate proportion of daylight hours that have passed
     daylightTotal  = (Astro['Sunset'][0] - Astro['Sunrise'][0]).total_seconds()
+
     if Astro['Sunrise'][0] <= Now <= Astro['Sunset'][0]:
         daylightElapsed = (Now - Astro['Sunrise'][0]).total_seconds()
     else:
