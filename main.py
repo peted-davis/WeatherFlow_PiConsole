@@ -402,25 +402,19 @@ class wfpiconsole(App):
                                           ' "device_id":' + self.config['Station']['InAirID'] + ',' +
                                           ' "id":"IndoorAir"}')
 
-        # Extract observations from obs_st websocket message and animate
-        # RainRate icon if required
+        # Extract observations from obs_st websocket message
         elif Type == 'obs_st':
             Thread(target=websocket.Tempest, args=(Msg,self), name="Tempest").start()
 
-        # Extract observations from obs_sky websocket message and animate
-        # RainRate icon if required
+        # Extract observations from obs_sky websocket message
         elif Type == 'obs_sky':
             Thread(target=websocket.Sky, args=(Msg,self), name="Sky").start()
 
         # Extract observations from obs_air websocket message based on device
         # ID
         elif Type == 'obs_air':
-
-            # Extract observations from Indoor Air
             if self.config['Station']['InAirID'] and Msg['device_id'] == int(self.config['Station']['InAirID']):
                 Thread(target=websocket.indoorAir, args=(Msg,self), name="indoorAir").start()
-
-            # Extract observations from Outdoor Air
             if self.config['Station']['OutAirID'] and Msg['device_id'] == int(self.config['Station']['OutAirID']):
                 Thread(target=websocket.outdoorAir, args=(Msg,self), name="outdoorAir").start()
 
@@ -428,11 +422,8 @@ class wfpiconsole(App):
         elif Type == 'rapid_wind':
             Thread(target=websocket.rapidWind, args=(Msg,self), name="rapidWind").start()
 
-        # Extract observations from evt_strike websocket message. Open lightning
-        # panel to show strike has been detected if required
+        # Extract observations from evt_strike websocket message
         elif Type == 'evt_strike':
-
-            # Extract observations from evt_strike websocket message
             Thread(target=websocket.evtStrike, args=(Msg,self), name="evt_strike").start()
 
     # UPDATE 'WeatherFlowPiConsole' APP CLASS METHODS AT REQUIRED INTERVALS
@@ -505,7 +496,8 @@ class CurrentConditions(Screen):
 
     # SWITCH BETWEEN DIFFERENT PANELS ON CURRENT CONDITIONS SCREEN
     # --------------------------------------------------------------------------
-    def SwitchPanel(self,Instance,manButton=None):
+    @mainthread
+    def SwitchPanel(self,Instance,overideButton=None):
 
         # Determine ID of button that has been pressed
         for id,Object in App.get_running_app().CurrentConditions.ids.items():
@@ -513,7 +505,7 @@ class CurrentConditions(Screen):
                 if Object == Instance.parent.parent:
                     break
             else:
-                if Object == manButton:
+                if Object == overideButton:
                     break
 
         # Extract entry in buttonList that correponds to the button that has
@@ -728,12 +720,11 @@ class RainfallPanel(RelativeLayout):
             if not hasattr(self,'Anim'):
                 self.Anim  = Animation(rainRatePosX=-0.875,duration=12)
                 self.Anim += Animation(rainRatePosX=-0.875,duration=12)
-                self.Anim.bind(on_progress=self.loopRainAnimation)
                 self.Anim.repeat = True
                 self.Anim.start(self)
 
     # Loop RainRate animation in the x direction
-    def on_xRainAnim(self,item,rainRatePosX):
+    def on_rainRatePosX(self,item,rainRatePosX):
         if round(rainRatePosX,3) == -0.875:
             item.rainRatePosX = 0
 
@@ -784,7 +775,7 @@ class LightningPanel(RelativeLayout):
 
     # Set lightning bolt icon
     @mainthread
-    def setlightningBoltIcon(self):
+    def setLightningBoltIcon(self):
         if App.get_running_app().Obs['StrikeDeltaT'][4] != '-':
             if App.get_running_app().Obs['StrikeDeltaT'][4] < 360:
                 self.lightningBoltIcon = 'lightningBoltStrike'
@@ -793,7 +784,7 @@ class LightningPanel(RelativeLayout):
 
     # Animate lightning bolt icon
     @mainthread
-    def animatelightningBoltIcon(self):
+    def animateLightningBoltIcon(self):
         Anim = Animation(lightningBoltPosX=10,t='out_quad',d=0.02) + Animation(lightningBoltPosX=0,t='out_elastic',d=0.5)
         Anim.start(self)
 

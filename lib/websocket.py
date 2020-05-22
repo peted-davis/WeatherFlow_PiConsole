@@ -55,6 +55,10 @@ def updateDisplay(derivedObs,wfpiconsole,Type):
     # Animate rain rate level if RainfallPanel is active
     if Type in ['Tempest','Sky'] and hasattr(wfpiconsole,'RainfallPanel'):
         wfpiconsole.RainfallPanel.animateRainRate()
+        
+    # Set lightning bolt icon if LightningPanel is active    
+    if Type in ['Tempest','outdoorAir']  and hasattr(wfpiconsole,'LightningPanel'):
+        wfpiconsole.LightningPanel.setLightningBoltIcon()
 
     # Set barometer arrow to current sea level pressure if BarometerPanel is
     # active
@@ -572,8 +576,8 @@ def evtStrike(Msg,wfpiconsole):
 
     # Set and animate lightning bolt icon if LightningPanel panel is active
     if hasattr(wfpiconsole,'LightningPanel'):
-        wfpiconsole.LightningPanel.setlightningBoltIcon()
-        wfpiconsole.LightningPanel.animatelightningBoltIcon()
+        wfpiconsole.LightningPanel.setLightningBoltIcon()
+        wfpiconsole.LightningPanel.animateLightningBoltIcon()
 
     # Return wfpiconsole object
     return wfpiconsole
