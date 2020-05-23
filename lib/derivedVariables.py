@@ -259,7 +259,7 @@ def SLPMaxMin(Time,Pres,maxPres,minPres,Device,Config,flagAPI):
     # Set time format based on user configuration
     if Config['Display']['TimeFormat'] == '12 hr':
         if Config['System']['Hardware'] != 'Other':
-            Format = '%-I:%M %p'
+            Format = '%-I:%M %P'
         else:
             Format = '%I:%M %p'
     else:
@@ -352,7 +352,7 @@ def TempMaxMin(Time,Temp,maxTemp,minTemp,Device,Config,flagAPI):
     # Set time format based on user configuration
     if Config['Display']['TimeFormat'] == '12 hr':
         if Config['System']['Hardware'] != 'Other':
-            Format = '%-I:%M %p'
+            Format = '%-I:%M %P'
         else:
             Format = '%I:%M %p'
     else:
@@ -1041,8 +1041,6 @@ def peakSunHours(Radiation,peakSun,Astro,Device,Config,flagAPI):
     # Code initialising. Download all data for current day using Weatherflow
     # API and calculate Peak Sun Hours
     if peakSun[0] == '-' or flagAPI:
-
-        print("DOING PEAK SUN API")
 
         # Download solar radiation data for current day
         Data = requestAPI.weatherflow.Today(Device,Config)

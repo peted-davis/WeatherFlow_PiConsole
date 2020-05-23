@@ -196,7 +196,7 @@ def Format(astroData,Config,Type):
     # Set time format based on user configuration
     if Config['Display']['TimeFormat'] == '12 hr':
         if Config['System']['Hardware'] != 'Other':
-            Format = '%-I:%M %p'
+            Format = '%-I:%M %P'
         else:
             Format = '%I:%M %p'
     else:
