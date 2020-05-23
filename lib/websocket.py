@@ -436,7 +436,7 @@ def indoorAir(Msg,wfpiconsole):
 
     # Extract indoor AIR device ID and API flag, and station configuration
     # object
-    Device  = wfpiconsole.config['Station']['indoorID']
+    Device  = wfpiconsole.config['Station']['InAirID']
     flagAPI = wfpiconsole.flagAPI[3]
     Config  = wfpiconsole.config
 
