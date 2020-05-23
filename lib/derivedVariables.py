@@ -44,16 +44,16 @@ def DewPoint(Temp,Humidity):
 
     """ Calculate the dew point from the temperature and relative humidity
 
-	INPUTS:
-		Temp				Temperature from AIR module         [C]
-		Humidity			Relative humidity from AIR module   [%]
+    INPUTS:
+        Temp                Temperature from AIR module         [C]
+        Humidity            Relative humidity from AIR module   [%]
 
-	OUTPUT:
+    OUTPUT:
         DewPoint            Dew point                           [C]
-	"""
+    """
 
     # Calculate dew point unless humidity equals zero
-    if Humidity != 0:
+    if Humidity[0] != 0:
         A = 17.625
         B = 243.04
         N = B*(math.log(Humidity[0]/100.0) + (A*Temp[0])/(B+Temp[0]))
@@ -70,78 +70,73 @@ def FeelsLike(Temp,Humidity,windSpd,Config):
     """ Calculate the Feels Like temperature from the temperature, relative
     humidity, and wind speed
 
-	INPUTS:
-		Temp				Temperature from AIR module         [C]
-		Humidity			Relative humidity from AIR module   [%]
+    INPUTS:
+        Temp                Temperature from AIR module         [C]
+        Humidity            Relative humidity from AIR module   [%]
         windSpd             Wind speed from SKY module          [m/s]
         Config              Station configuration
 
-	OUTPUT:
+    OUTPUT:
         FeelsLike           Feels Like temperature              [C]
-	"""
+    """
 
-    # Calculate 'Feels Like' temperature unless temperature, humidity, or
-    # windspeed is None
-    if None not in [Temp,Humidity,windSpd]:
+    # Convert observation units as required
+    TempF   = [Temp[0]*9/5 + 32,'f']
+    WindMPH = [windSpd[0]*2.2369362920544,'mph']
+    WindKPH = [windSpd[0]*3.6,'kph']
 
-        # Convert observation units as required
-        TempF   = [Temp[0]*9/5 + 32,'f']
-        WindMPH = [windSpd[0]*2.2369362920544,'mph']
-        WindKPH = [windSpd[0]*3.6,'kph']
+    # If temperature or humidity is NaN, set Feels Like temperature to NaN
+    if math.isnan(Temp[0]) or math.isnan(Humidity[0]):
+        FeelsLike = [NaN,'c']
 
-        # If temperature is less than 10 degrees celcius and wind speed is
-        # higher than 3 mph, calculate wind chill using the Joint Action
-        # Group for Temperature Indices formula
-        if Temp[0] <= 10 and WindMPH[0] > 3:
+    # If temperature is less than 10 degrees celcius and wind speed is higher
+    # than 3 mph, calculate wind chill using the Joint Action Group for
+    # Temperature Indices formula
+    elif Temp[0] <= 10 and WindMPH[0] > 3:
+        WindChill = 13.12 + 0.6215*Temp[0] - 11.37*(WindKPH[0])**0.16 + 0.3965*Temp[0]*(WindKPH[0])**0.16
+        FeelsLike = [WindChill,'c']
 
-            # Calculate wind chill
-            WindChill = 13.12 + 0.6215*Temp[0] - 11.37*(WindKPH[0])**0.16 + 0.3965*Temp[0]*(WindKPH[0])**0.16
-            FeelsLike = [WindChill,'c']
+    # If temperature is at or above 80 degress farenheit (26.67 C), and humidity
+    # is at or above 40%, calculate the Heat Index
+    elif TempF[0] >= 80 and Humidity[0] >= 40:
+        HeatIndex = -42.379 + (2.04901523*TempF[0]) + (10.1433127*Humidity[0]) - (0.22475541*TempF[0]*Humidity[0]) - (6.83783e-3*TempF[0]**2) - (5.481717e-2*Humidity[0]**2) + (1.22874e-3*TempF[0]**2*Humidity[0]) + (8.5282e-4*TempF[0]*Humidity[0]**2) - (1.99e-6*TempF[0]**2*Humidity[0]**2)
+        FeelsLike = [(HeatIndex-32)*5/9,'c']
 
-        # If temperature is at or above 80 degress farenheit (26.67 C), and
-        # humidity is at or above 40%, calculate the Heat Index
-        elif TempF[0] >= 80 and Humidity[0] >= 40:
+    # Else set Feels Like temperature to observed temperature
+    else:
+        FeelsLike = Temp
 
-            # Calculate Heat Index
-            HeatIndex = -42.379 + (2.04901523*TempF[0]) + (10.1433127*Humidity[0]) - (0.22475541*TempF[0]*Humidity[0]) - (6.83783e-3*TempF[0]**2) - (5.481717e-2*Humidity[0]**2) + (1.22874e-3*TempF[0]**2*Humidity[0]) + (8.5282e-4*TempF[0]*Humidity[0]**2) - (1.99e-6*TempF[0]**2*Humidity[0]**2)
-            FeelsLike = [(HeatIndex-32)*5/9,'c']
+    # Define 'FeelsLike' temperature cutoffs
+    Cutoffs = [float(item) for item in list(Config['FeelsLike'].values())]
 
-        # Else set 'Feels Like' temperature to observed temperature
-        else:
-            FeelsLike = Temp
-
-        # Define 'FeelsLike' temperature cutoffs
-        Cutoffs = [float(item) for item in list(Config['FeelsLike'].values())]
-
-        # Define 'FeelsLike temperature text and icon
-        Description = ['Feeling extremely cold', 'Feeling freezing cold', 'Feeling very cold',
-                       'Feeling cold', 'Feeling mild', 'Feeling warm', 'Feeling hot',
-                       'Feeling very hot', 'Feeling extremely hot']
-        Icon =        ['ExtremelyCold', 'FreezingCold', 'VeryCold', 'Cold', 'Mild', 'Warm',
-                       'Hot', 'VeryHot', 'ExtremelyHot']
+    # Define 'FeelsLike temperature text and icon
+    Description = ['Feeling extremely cold', 'Feeling freezing cold', 'Feeling very cold',
+                   'Feeling cold', 'Feeling mild', 'Feeling warm', 'Feeling hot',
+                   'Feeling very hot', 'Feeling extremely hot', '-']
+    Icon =        ['ExtremelyCold', 'FreezingCold', 'VeryCold', 'Cold', 'Mild', 'Warm',
+                   'Hot', 'VeryHot', 'ExtremelyHot', '-']
+    if not math.isnan(FeelsLike[0]):
         if Config['Units']['Temp'] == 'f':
             Ind = bisect.bisect(Cutoffs,FeelsLike[0]* 9/5 + 32)
         else:
             Ind = bisect.bisect(Cutoffs,FeelsLike[0])
-        FeelsLike = [FeelsLike[0],FeelsLike[1],Description[Ind],Icon[Ind]]
-
     else:
-        FeelsLike = [NaN,'c','-','-']
+        Ind = 9
 
     # Return 'Feels Like' temperature
-    return FeelsLike
+    return [FeelsLike[0],FeelsLike[1],Description[Ind],Icon[Ind]]
 
 def SLP(Pres,Config):
 
     """ Calculate the sea level pressure from the station pressure
 
-	INPUTS:
-		Pres				Station pressure from AIR module    [mb]
+    INPUTS:
+        Pres                Station pressure from AIR module    [mb]
         Config              Station configuration
 
-	OUTPUT:
+    OUTPUT:
         SLP                 Sea level pressure                  [mb]
-	"""
+    """
 
     # Extract required configuration variables
     Elevation = Config['Station']['Elevation']
@@ -149,9 +144,6 @@ def SLP(Pres,Config):
         Height = Config['Station']['OutAirHeight']
     elif Config['Station']['TempestHeight']:
         Height = Config['Station']['TempestHeight']
-
-    # Extract required meteorological fields
-    Psta = Pres[0]
 
     # Define required constants
     P0 = 1013.25
@@ -161,25 +153,23 @@ def SLP(Pres,Config):
     T0 = 288.15
     Elev = float(Elevation) + float(Height)
 
-    # Calculate sea level pressure
-    SLP = Psta * (1 + ((P0/Psta)**((Rd*GammaS)/g)) * ((GammaS*Elev)/T0))**(g/(Rd*GammaS))
-
-    # Return Sea Level Pressure
-    return [SLP,'mb','{:.1f}'.format(SLP)]
+    # Calculate and return sea level pressure
+    SLP = Pres[0] * (1 + ((P0/Pres[0])**((Rd*GammaS)/g)) * ((GammaS*Elev)/T0))**(g/(Rd*GammaS))
+    return [SLP,'mb','-' if math.isnan(SLP) else '{:.1f}'.format(SLP)]
 
 def SLPTrend(Pres,Time,Data3h,Config):
 
     """ Calculate the pressure trend from the sea level pressure over the last
         three hours
 
-	INPUTS:
-		Pres				Current station pressure from AIR module    [mb]
+    INPUTS:
+        Pres                Current station pressure from AIR module    [mb]
         Data3h              Data from previous 3 hours from AIR module
         Config              Station configuration
 
-	OUTPUT:
+    OUTPUT:
         SLP                 Sea level pressure                          [mb]
-	"""
+    """
 
     # Extract pressure observation from three hours ago based on device type.
     # Return NaN for pressure trend if API call has failed
@@ -235,26 +225,29 @@ def SLPTrend(Pres,Time,Data3h,Config):
             Tendency = 'Rainy conditions likely'
         else:
             Tendency = 'Becoming clearer and cooler'
+    else:
+        Tendency = '-'
 
     # Return pressure trend
     return [Trend,'mb/hr',TrendTxt,Tendency]
 
-def SLPMaxMin(Time,Pres,maxPres,minPres,Device,Config):
+def SLPMaxMin(Time,Pres,maxPres,minPres,Device,Config,flagAPI):
 
     """ Calculate maximum and minimum pressure since midnight station time
 
-	INPUTS:
-		Time			 Current observation time        [s]
-        Temp             Current pressure                [mb]
-        maxPres          Current maximum pressure        [mb]
-        minPres          Current minimum pressure        [mb]
-        Device           Device ID
-        Config           Station configuration
+    INPUTS:
+        Time                Current observation time        [s]
+        Temp                Current pressure                [mb]
+        maxPres             Current maximum pressure        [mb]
+        minPres             Current minimum pressure        [mb]
+        Device              Device ID
+        Config              Station configuration
+        flagAPI             Flag for required API calls
 
-	OUTPUT:
+    OUTPUT:
         MaxTemp             Maximum pressure                [mb]
         MinTemp             Minumum pressure                [mb]
-	"""
+    """
 
     # Calculate sea level pressure
     SLP = derive.SLP(Pres,Config)
@@ -262,10 +255,19 @@ def SLPMaxMin(Time,Pres,maxPres,minPres,Device,Config):
     # Define current time in station timezone
     Tz = pytz.timezone(Config['Station']['Timezone'])
     Now = datetime.now(pytz.utc).astimezone(Tz)
+    
+    # Set time format based on user configuration
+    if Config['Display']['TimeFormat'] == '12 hr':
+        if Config['System']['Hardware'] != 'Other':
+            Format = '%-I:%M %P'
+        else:
+            Format = '%I:%M %p'
+    else:
+        Format = '%H:%M'
 
     # Code initialising. Download all data for current day using Weatherflow
-    # API and daily maximum and minimum pressure
-    if maxPres[0] == '-':
+    # API and calculate daily maximum and minimum pressure
+    if maxPres[0] == '-' or flagAPI:
 
         # Download pressure data from the current day
         Data = requestAPI.weatherflow.Today(Device,Config)
@@ -275,33 +277,31 @@ def SLPMaxMin(Time,Pres,maxPres,minPres,Device,Config):
 
             # Extract data from API call based on device type
             Data = Data.json()['obs']
-            Time = [[item[0],'s'] if item[0]  != None else NaN for item in Data]
+            Time = [item[0] for item in Data if item[0] != None]
             if Config['Station']['OutAirID']:
-                Pres = [[item[1],'mb'] if item[1] != None else [NaN,'mb'] for item in Data]
+                Pres = [[item[1],'mb'] for item in Data if item[1] != None]
             elif Config['Station']['TempestID']:
-                Pres = [[item[6],'mb'] if item[6] != None else [NaN,'mb'] for item in Data]
+                Pres = [[item[6],'mb'] for item in Data if item[6] != None]
 
             # Calculate sea level pressure
             SLP = [derive.SLP(P,Config) for P in Pres]
 
-            # Define maximum and minimum pressure
-            MaxPres = [max(SLP)[0],'mb',datetime.fromtimestamp(Time[SLP.index(max(SLP))][0],Tz).strftime('%H:%M'),max(SLP)[0],Now]
-            MinPres = [min(SLP)[0],'mb',datetime.fromtimestamp(Time[SLP.index(min(SLP))][0],Tz).strftime('%H:%M'),min(SLP)[0],Now]
-
-        # API call has failed. Return NaN
+            # Define maximum and minimum pressure. 
+            MaxPres = [max(SLP)[0],'mb',datetime.fromtimestamp(Time[SLP.index(max(SLP))],Tz).strftime(Format),max(SLP)[0],Now]
+            MinPres = [min(SLP)[0],'mb',datetime.fromtimestamp(Time[SLP.index(min(SLP))],Tz).strftime(Format),min(SLP)[0],Now]
         else:
             MaxPres = [NaN,'mb','-',NaN,Now]
             MinPres = [NaN,'mb','-',NaN,Now]
 
-        # Return required variables
+        # Return maximum and minimum pressure
         return MaxPres,MinPres
 
     # At midnight reset maximum and minimum pressure
     if Now.date() > maxPres[4].date():
 
         # Reset maximum and minimum pressure
-        MaxPres = [SLP[0],'mb',datetime.fromtimestamp(Time[0],Tz).strftime('%H:%M'),SLP[0],Now]
-        MinPres = [SLP[0],'mb',datetime.fromtimestamp(Time[0],Tz).strftime('%H:%M'),SLP[0],Now]
+        MaxPres = [SLP[0],'mb',datetime.fromtimestamp(Time[0],Tz).strftime(Format),SLP[0],Now]
+        MinPres = [SLP[0],'mb',datetime.fromtimestamp(Time[0],Tz).strftime(Format),SLP[0],Now]
 
         # Return required variables
         return MaxPres,MinPres
@@ -309,14 +309,14 @@ def SLPMaxMin(Time,Pres,maxPres,minPres,Device,Config):
     # Current pressure is greater than maximum recorded pressure. Update
     # maximum pressure
     if SLP[0] > maxPres[3]:
-        MaxPres = [SLP[0],'mb',datetime.fromtimestamp(Time[0],Tz).strftime('%H:%M'),SLP[0],Now]
+        MaxPres = [SLP[0],'mb',datetime.fromtimestamp(Time[0],Tz).strftime(Format),SLP[0],Now]
         MinPres = [minPres[3],'mb',minPres[2],minPres[3],Now]
 
     # Current pressure is less than minimum recorded pressure. Update
     # minimum pressure and time
     elif SLP[0] < minPres[3]:
         MaxPres = [maxPres[3],'mb',maxPres[2],maxPres[3],Now]
-        MinPres = [SLP[0],'mb',datetime.fromtimestamp(Time[0],Tz).strftime('%H:%M'),SLP[0],Now]
+        MinPres = [SLP[0],'mb',datetime.fromtimestamp(Time[0],Tz).strftime(Format),SLP[0],Now]
 
     # Maximum and minimum pressure unchanged. Return existing values
     else:
@@ -326,31 +326,41 @@ def SLPMaxMin(Time,Pres,maxPres,minPres,Device,Config):
     # Return required variables
     return MaxPres,MinPres
 
-def TempMaxMin(Time,Temp,maxTemp,minTemp,Device,Config):
+def TempMaxMin(Time,Temp,maxTemp,minTemp,Device,Config,flagAPI):
 
     """ Calculate maximum and minimum temperature for specified device since
         midnight station time
 
-	INPUTS:
-		Time				Current observation time                    [s]
+    INPUTS:
+        Time                Current observation time                    [s]
         Temp                Current outdoor temperature                 [deg C]
         maxTemp             Current maximum outdoor temperature         [deg C]
         minTemp             Current minimum outdoor temperature         [deg C]
         Device              Device ID
         Config              Station configuration
+        flagAPI             Flag for required API calls
 
-	OUTPUT:
+    OUTPUT:
         MaxTemp             Maximum outdoor temperature                 [deg C]
         MinTemp             Minumum outdoot temperature                 [deg C]
-	"""
+    """
 
     # Define current time in station timezone
     Tz = pytz.timezone(Config['Station']['Timezone'])
     Now = datetime.now(pytz.utc).astimezone(Tz)
+    
+    # Set time format based on user configuration
+    if Config['Display']['TimeFormat'] == '12 hr':
+        if Config['System']['Hardware'] != 'Other':
+            Format = '%-I:%M %P'
+        else:
+            Format = '%I:%M %p'
+    else:
+        Format = '%H:%M'
 
     # Code initialising. Download all data for current day using Weatherflow
-    # API and daily maximum and minimum temperature
-    if maxTemp[0] == '-':
+    # API and calculate daily maximum and minimum temperature
+    if maxTemp[0] == '-' or flagAPI:
 
         # Download temperature data from the current day
         Data = requestAPI.weatherflow.Today(Device,Config)
@@ -361,32 +371,28 @@ def TempMaxMin(Time,Temp,maxTemp,minTemp,Device,Config):
 
             # Extract data from API call based on specified device ID
             Data = Data.json()['obs']
-            Time = [[item[0],'s'] if item[0] != None else NaN for item in Data]
+            Time = [[item[0],'s'] for item in Data if item[0] != None]
             if Device == Config['Station']['TempestID']:
-                Temp = [[item[7],'c'] if item[7] != None else [NaN,'c'] for item in Data]
-            elif Device == Config['Station']['OutAirID']:
-                Temp = [[item[2],'c'] if item[2] != None else [NaN,'c'] for item in Data]
-            elif Device == Config['Station']['InAirID']:
-                Temp = [[item[2],'c'] if item[2] != None else [NaN,'c'] for item in Data]
+                Temp = [[item[7],'c'] for item in Data if item[7] != None]
+            elif Device in {Config['Station']['OutAirID'], Config['Station']['InAirID']}:
+                Temp = [[item[2],'c'] for item in Data if item[2] != None]
 
             # Define maximum and minimum temperature and time
-            MaxTemp = [max(Temp)[0],'c',datetime.fromtimestamp(Time[Temp.index(max(Temp))][0],Tz).strftime('%H:%M'),max(Temp)[0],Now]
-            MinTemp = [min(Temp)[0],'c',datetime.fromtimestamp(Time[Temp.index(min(Temp))][0],Tz).strftime('%H:%M'),min(Temp)[0],Now]
-
-        # API call has failed. Return NaN
+            MaxTemp = [max(Temp)[0],'c',datetime.fromtimestamp(Time[Temp.index(max(Temp))][0],Tz).strftime(Format),max(Temp)[0],Now]
+            MinTemp = [min(Temp)[0],'c',datetime.fromtimestamp(Time[Temp.index(min(Temp))][0],Tz).strftime(Format),min(Temp)[0],Now]
         else:
             MaxTemp = [NaN,'c','-',NaN,Now]
             MinTemp = [NaN,'c','-',NaN,Now]
 
-        # Return required variables
+        # Return maximum and minimum temperature
         return MaxTemp,MinTemp
 
     # At midnight reset maximum and minimum temperature
     if Now.date() > maxTemp[4].date():
 
         # Reset maximum and minimum temperature
-        MaxTemp = [Temp[0],'c',datetime.fromtimestamp(Time[0],Tz).strftime('%H:%M'),Temp[0],Now]
-        MinTemp = [Temp[0],'c',datetime.fromtimestamp(Time[0],Tz).strftime('%H:%M'),Temp[0],Now]
+        MaxTemp = [Temp[0],'c',datetime.fromtimestamp(Time[0],Tz).strftime(Format),Temp[0],Now]
+        MinTemp = [Temp[0],'c',datetime.fromtimestamp(Time[0],Tz).strftime(Format),Temp[0],Now]
 
         # Return required variables
         return MaxTemp,MinTemp
@@ -394,14 +400,14 @@ def TempMaxMin(Time,Temp,maxTemp,minTemp,Device,Config):
     # Current temperature is greater than maximum recorded temperature. Update
     # maximum temperature and time
     if Temp[0] > maxTemp[3]:
-        MaxTemp = [Temp[0],'c',datetime.fromtimestamp(Time[0],Tz).strftime('%H:%M'),Temp[0],Now]
+        MaxTemp = [Temp[0],'c',datetime.fromtimestamp(Time[0],Tz).strftime(Format),Temp[0],Now]
         MinTemp = [minTemp[3],'c',minTemp[2],minTemp[3],Now]
 
     # Current temperature is less than minimum recorded temperature. Update
     # minimum temperature and time
     elif Temp[0] < minTemp[3]:
         MaxTemp = [maxTemp[3],'c',maxTemp[2],maxTemp[3],Now]
-        MinTemp = [Temp[0],'c',datetime.fromtimestamp(Time[0],Tz).strftime('%H:%M'),Temp[0],Now]
+        MinTemp = [Temp[0],'c',datetime.fromtimestamp(Time[0],Tz).strftime(Format),Temp[0],Now]
 
     # Maximum and minimum temperature unchanged. Return existing values
     else:
@@ -415,12 +421,12 @@ def StrikeDeltaT(StrikeTime):
 
     """ Calculate time since last lightning strike
 
-	INPUTS:
-		StrikeTime			Time of last lightning strike               [s]
+    INPUTS:
+        StrikeTime          Time of last lightning strike               [s]
 
-	OUTPUT:
+    OUTPUT:
         StrikeDeltaT        Time since last lightning strike            [s]
-	"""
+    """
 
     # Calculate time since last lightning strike
     Now = int(time.time())
@@ -435,73 +441,70 @@ def StrikeFrequency(obTime,Data3h,Config):
     """ Calculate lightning strike frequency over the previous 10 minutes and
         three hours
 
-	INPUTS:
+    INPUTS:
         obTime              Time of latest observation
-		Data3h              Data from previous 3 hours from AIR module
+        Data3h              Data from previous 3 hours from AIR module
         Config              Station configuration
 
-	OUTPUT:
+    OUTPUT:
         strikeFrequency     Strike frequency over the previous 10       [Count]
                             minutes and three hours
-	"""
+    """
 
     # Extract lightning strike count over the last three hours. Return NaN for
     # strikeFrequency if API call has failed
     if requestAPI.weatherflow.verifyResponse(Data3h,'obs'):
         Data3h  = Data3h.json()['obs']
-        Time    = [item[0] if item[0] != None else NaN for item in Data3h]
+        Time    = [item[0] for item in Data3h if item[0] != None]
         if Config['Station']['OutAirID']:
-            Count3h = [item[4] if item[4] != None else NaN for item in Data3h]
+            Count3h = [item[4] for item in Data3h if item[4] != None]
         elif Config['Station']['TempestID']:
-            Count3h = [item[15] if item[15] != None else NaN for item in Data3h]
+            Count3h = [item[15] for item in Data3h if item[15] != None]
     else:
-        strikeFrequency = [NaN,'/min',NaN,'/min']
-        return strikeFrequency
+        return [NaN,'/min',NaN,'/min']
 
     # Convert lists to Numpy arrays
     Count3h = np.array(Count3h,dtype=np.float32)
     Time    = np.array(Time,   dtype=np.float64)
-    Time    = Time   [~np.isnan(Count3h)]
-    Count3h = Count3h[~np.isnan(Count3h)]
 
     # Calculate average strike frequency over the last three hours
     activeStrikes = Count3h[Count3h>0]
     if len(activeStrikes) > 0:
         strikeFrequency3h = [np.nanmean(activeStrikes),'/min']
     else:
-        strikeFrequency3h = [0,'/min']
+        strikeFrequency3h = [np.nanmean([0]),'/min']
 
     # Calculate average strike frequency over the last 10 minutes
-    Count3h = Count3h[np.where(Time >= obTime[0]-600)]
-    activeStrikes = Count3h[Count3h>0]
+    Count10m = Count3h[np.where(Time >= obTime[0]-600)]
+    activeStrikes = Count10m[Count10m>0]
     if len(activeStrikes) > 0:
         strikeFrequency10m = [np.nanmean(activeStrikes),'/min']
     else:
-        strikeFrequency10m = [0,'/min']
+        strikeFrequency10m = [np.nanmean([0]),'/min']
 
     # Return strikeFrequency for last 10 minutes and last three hours
-    strikeFrequency = strikeFrequency10m + strikeFrequency3h
-    return strikeFrequency
+    return strikeFrequency10m + strikeFrequency3h
 
-def StrikeCount(Count,strikeCount,Device,Config):
+def StrikeCount(Count,strikeCount,Device,Config,flagAPI):
 
     """ Calculate the number of lightning strikes for the last day/month/year
 
-	INPUTS:
-		Count			Number of lightning strikes in the past minute  [Count]
-        strikeCount     Dictionary containing fields:
-            Today           Number of lightning strikes today           [Count]
-            Yesterday       Number of lightning strikes in last month   [Count]
-            Year            Number of lightning strikes in last year    [Count]
+    INPUTS:
+        Count               Number of lightning strikes in the past minute  [Count]
+        strikeCount         Dictionary containing fields:
+            Today               Number of lightning strikes today           [Count]
+            Yesterday           Number of lightning strikes in last month   [Count]
+            Year                Number of lightning strikes in last year    [Count]
         Device              Device ID
         Config              Station configuration
+        flagAPI             Flag for required API calls
 
-	OUTPUT:
-        strikeCount     Dictionary containing fields:
-            Today           Number of lightning strikes today           [Count]
-            Yesterday       Number of lightning strikes in last month   [Count]
-            Year            Number of lightning strikes in last year    [Count]
-	"""
+    OUTPUT:
+        strikeCount         Dictionary containing fields:
+            Today               Number of lightning strikes today           [Count]
+            Yesterday           Number of lightning strikes in last month   [Count]
+            Year                Number of lightning strikes in last year    [Count]
+    """
 
     # Define current time in station timezone
     Tz = pytz.timezone(Config['Station']['Timezone'])
@@ -509,7 +512,7 @@ def StrikeCount(Count,strikeCount,Device,Config):
 
     # Code initialising. Download all data for current day using Weatherflow
     # API and calculate total daily lightning strikes
-    if strikeCount['Today'][0] == '-':
+    if strikeCount['Today'][0] == '-' or flagAPI:
 
         # Download lightning strike data from the current day
         Data = requestAPI.weatherflow.Today(Device,Config)
@@ -519,16 +522,16 @@ def StrikeCount(Count,strikeCount,Device,Config):
         if requestAPI.weatherflow.verifyResponse(Data,'obs'):
             Data = Data.json()['obs']
             if Config['Station']['OutAirID']:
-                Strikes = [item[4] if item[4] != None else NaN for item in Data]
+                Strikes = [item[4] for item in Data if item[4] != None]
             elif Config['Station']['TempestID']:
-                Strikes = [item[15] if item[15] != None else NaN for item in Data]
+                Strikes = [item[15] for item in Data if item[15] != None]
             todayStrikes = [sum(x for x in Strikes),'count',sum(x for x in Strikes),Now]
         else:
             todayStrikes = [NaN,'count',NaN,Now]
 
     # Code initialising. Download all data for current month using
     # Weatherflow API and calculate total monthly lightning strikes
-    if strikeCount['Month'][0] == '-':
+    if strikeCount['Month'][0] == '-' or flagAPI:
 
         # Download lightning strike data from the current month
         Data = requestAPI.weatherflow.Month(Device,Config)
@@ -538,16 +541,22 @@ def StrikeCount(Count,strikeCount,Device,Config):
         if requestAPI.weatherflow.verifyResponse(Data,'obs'):
             Data = Data.json()['obs']
             if Config['Station']['OutAirID']:
-                Strikes = [item[4] if item[4] != None else NaN for item in Data]
+                Strikes = [item[4] for item in Data if item[4] != None]
             elif Config['Station']['TempestID']:
-                Strikes = [item[15] if item[15] != None else NaN for item in Data]
+                Strikes = [item[15] for item in Data if item[15] != None]
             monthStrikes = [sum(x for x in Strikes),'count',sum(x for x in Strikes),Now]
         else:
             monthStrikes = [NaN,'count',NaN,Now]
+            
+        # Adjust monthly lightning strike total for strikes that have been 
+        # recorded today
+        if not math.isnan(todayStrikes[0]):
+            monthStrikes[0] += todayStrikes[0]
+            monthStrikes[2] += todayStrikes[2]    
 
     # Code initialising. Download all data for current year using
     # Weatherflow API and calculate total yearly lightning strikes
-    if strikeCount['Year'][0] == '-':
+    if strikeCount['Year'][0] == '-' or flagAPI:
 
         # Download lightning strike data from the current year
         Data = requestAPI.weatherflow.Year(Device,Config)
@@ -557,62 +566,71 @@ def StrikeCount(Count,strikeCount,Device,Config):
         if requestAPI.weatherflow.verifyResponse(Data,'obs'):
             Data = Data.json()['obs']
             if Config['Station']['OutAirID']:
-                Strikes = [item[4] if item[4] != None else NaN for item in Data]
+                Strikes = [item[4] for item in Data if item[4] != None]
             elif Config['Station']['TempestID']:
-                Strikes = [item[15] if item[15] != None else NaN for item in Data]
+                Strikes = [item[15] for item in Data if item[15] != None]
             yearStrikes = [sum(x for x in Strikes),'count',sum(x for x in Strikes),Now]
         else:
             yearStrikes = [NaN,'count',NaN,Now]
+            
+        # Adjust monthly lightning strike total for strikes that have been 
+        # recorded today
+        if not math.isnan(todayStrikes[0]):
+            yearStrikes[0] += todayStrikes[0]
+            yearStrikes[2] += todayStrikes[2]      
 
         # Return Daily, Monthly, and Yearly lightning strike counts
-        strikeCount = {'Today':todayStrikes, 'Month':monthStrikes, 'Year':yearStrikes}
-        return strikeCount
+        return {'Today':todayStrikes, 'Month':monthStrikes, 'Year':yearStrikes}
 
     # At midnight, reset daily lightning strike count to zero, else return
     # current daily lightning strike count.
     if Now.date() > strikeCount['Today'][3].date():
-        todayStrikes = [0,'count',0,Now]
+        todayStrikes = [Count[0],'count',Count[0],Now]
     else:
-        StrikeCount = strikeCount['Today'][2]+Count[0]
-        todayStrikes = [StrikeCount,'count',StrikeCount,Now]
+        currentCount = strikeCount['Today'][2]
+        updatedCount = currentCount + Count[0] if not math.isnan(Count[0]) else currentCount
+        todayStrikes = [updatedCount,'count',updatedCount,Now]
 
-    # At end of month, reset monthly lightning strike count to zero, else
-    # return current monthly lightning strike count
+    # At end of month, reset monthly lightning strike count to zero, else return
+    # current monthly lightning strike count
     if Now.month > strikeCount['Month'][3].month:
-        monthStrikes = [0,'count',0,Now]
+        monthStrikes = [Count[0],'count',Count[0],Now]
     else:
-        StrikeCount = strikeCount['Month'][2]+Count[0]
-        monthStrikes = [StrikeCount,'count',StrikeCount,Now]
+        currentCount = strikeCount['Month'][2]
+        updatedCount = currentCount + Count[0] if not math.isnan(Count[0]) else currentCount
+        monthStrikes = [updatedCount,'count',updatedCount,Now]
 
-    # At end of year, reset monthly and yearly lightning strike counts to
-    # zero, else return current monthly and yearly lightning strike count
+    # At end of year, reset monthly and yearly lightning strike counts to zero,
+    # else return current yearly lightning strike count
     if Now.year > strikeCount['Year'][3].year:
-        monthStrikes = [0,'count',0,Now]
-        yearStrikes = [0,'count',0,Now]
+        monthStrikes = [Count[0],'count',Count[0],Now]
+        yearStrikes  = [Count[0],'count',Count[0],Now]
     else:
-        StrikeCount = strikeCount['Year'][2]+Count[0]
-        yearStrikes = [StrikeCount,'count',StrikeCount,Now]
+        currentCount = strikeCount['Year'][2]
+        updatedCount = currentCount + Count[0] if not math.isnan(Count[0]) else currentCount
+        yearStrikes = [updatedCount,'count',updatedCount,Now]
 
     # Return Daily, Monthly, and Yearly lightning strike accumulation totals
-    strikeCount = {'Today':todayStrikes, 'Month':monthStrikes, 'Year':yearStrikes}
-    return strikeCount
+    return {'Today':todayStrikes, 'Month':monthStrikes, 'Year':yearStrikes}
 
 def RainRate(rainAccum):
 
     """ Calculate the average windspeed since midnight station time
 
-	INPUTS:
-		windSpd				Current 1 minute rain accumulation             [mm]
+    INPUTS:
+        windSpd             Current 1 minute rain accumulation             [mm]
 
-	OUTPUT:
+    OUTPUT:
         rainRate            Current instantaneous rain rate                [mm/hr]
-	"""
+    """
 
     # Calculate instantaneous rain rate from instantaneous rain accumulation
     Rate = rainAccum[0]*60
 
     # Define rain rate text based on calculated
-    if Rate == 0:
+    if math.isnan(Rate):
+        RateText = '-'
+    elif Rate == 0:
         RateText = 'Currently Dry'
     elif Rate < 0.25:
         RateText = 'Very Light Rain'
@@ -628,30 +646,30 @@ def RainRate(rainAccum):
         RateText = 'Extreme Rain'
 
     # Return instantaneous rain rate and text
-    rainRate = [Rate,'mm/hr',RateText,Rate]
-    return rainRate
+    return [Rate,'mm/hr',RateText,Rate]
 
-def RainAccumulation(Rain,rainAccum,Device,Config):
+def RainAccumulation(Rain,rainAccum,Device,Config,flagAPI):
 
     """ Calculate the rain accumulation for today/yesterday/month/year
 
-	INPUTS:
-		rain			Rain accumulation for the current minute        [mm]
-        rainAccum       Dictionary containing fields:
-            Today           Rain accumulation for the current day       [mm]
-            Yesterday       Rain accumulation yesterday                 [mm]
-            Month           Rain accumulation for the current month     [mm]
-            Year            Rain accumulation for the current year      [mm]
+    INPUTS:
+        rain                Rain accumulation for the current minute        [mm]
+        rainAccum           Dictionary containing fields:
+            Today               Rain accumulation for the current day       [mm]
+            Yesterday           Rain accumulation yesterday                 [mm]
+            Month               Rain accumulation for the current month     [mm]
+            Year                Rain accumulation for the current year      [mm]
         Device              Device ID
         Config              Station configuration
+        flagAPI             Flag for required API calls
 
-	OUTPUT:
-        rainAccum       Dictionary containing fields:
-            Today           Rain accumulation for the current day       [mm]
-            Yesterday       Rain accumulation yesterday                 [mm]
-            Month           Rain accumulation for the current month     [mm]
-            Year            Rain accumulation for the current year      [mm]
-	"""
+    OUTPUT:
+        rainAccum           Dictionary containing fields:
+            Today               Rain accumulation for the current day       [mm]
+            Yesterday           Rain accumulation yesterday                 [mm]
+            Month               Rain accumulation for the current month     [mm]
+            Year                Rain accumulation for the current year      [mm]
+    """
 
     # Define current time in station timezone
     Tz = pytz.timezone(Config['Station']['Timezone'])
@@ -659,7 +677,7 @@ def RainAccumulation(Rain,rainAccum,Device,Config):
 
     # Code initialising. Download all data for current day using Weatherflow
     # API and calculate total daily rainfall
-    if rainAccum['Today'][0] == '-':
+    if rainAccum['Today'][0] == '-' or flagAPI:
 
         # Download rainfall data for current day
         Data = requestAPI.weatherflow.Today(Device,Config)
@@ -667,17 +685,17 @@ def RainAccumulation(Rain,rainAccum,Device,Config):
         # Calculate daily rainfall total. Return NaN if API call has failed
         if requestAPI.weatherflow.verifyResponse(Data,'obs'):
             Data = Data.json()['obs']
-            if Config['Station']['OutAirID']:
-                Rain = [[item[3],'mm'] if item[3] != None else NaN for item in Data]
+            if Config['Station']['SkyID']:
+                Rain = [item[3] for item in Data if item[3] != None]
             elif Config['Station']['TempestID']:
-                Rain = [[item[12],'mm'] if item[12] != None else NaN for item in Data]
-            TodayRain = [sum([x for x,y in Rain]),'mm',sum([x for x,y in Rain]),Now]
+                Rain = [item[12] for item in Data if item[12] != None]
+            TodayRain = [sum(x for x in Rain),'mm',sum(x for x in Rain),Now]
         else:
             TodayRain = [NaN,'mm',NaN,Now]
 
     # Code initialising. Download all data for yesterday using Weatherflow
     # API and calculate total daily rainfall
-    if rainAccum['Yesterday'][0] == '-':
+    if rainAccum['Yesterday'][0] == '-' or flagAPI:
 
         # Download rainfall data for yesterday
         Data = requestAPI.weatherflow.Yesterday(Device,Config)
@@ -686,17 +704,17 @@ def RainAccumulation(Rain,rainAccum,Device,Config):
         # failed
         if requestAPI.weatherflow.verifyResponse(Data,'obs'):
             Data = Data.json()['obs']
-            if Config['Station']['OutAirID']:
-                Rain = [[item[3],'mm'] if item[3] != None else NaN for item in Data]
+            if Config['Station']['SkyID']:
+                Rain = [item[3] for item in Data if item[3] != None]
             elif Config['Station']['TempestID']:
-                Rain = [[item[12],'mm'] if item[12] != None else NaN for item in Data]
-            YesterdayRain = [sum([x for x,y in Rain]),'mm',sum([x for x,y in Rain]),Now]
+                Rain = [item[12] for item in Data if item[12] != None]
+            YesterdayRain = [sum(x for x in Rain),'mm',sum(x for x in Rain),Now]
         else:
             YesterdayRain = [NaN,'mm',NaN,Now]
 
     # Code initialising. Download all data for current month using
     # Weatherflow API and calculate total monthly rainfall
-    if rainAccum['Month'][0] == '-':
+    if rainAccum['Month'][0] == '-' or flagAPI:
 
         # Download rainfall data for last Month
         Data = requestAPI.weatherflow.Month(Device,Config)
@@ -705,17 +723,22 @@ def RainAccumulation(Rain,rainAccum,Device,Config):
         # failed
         if requestAPI.weatherflow.verifyResponse(Data,'obs'):
             Data = Data.json()['obs']
-            if Config['Station']['OutAirID']:
-                Rain = [[item[3],'mm'] if item[3] != None else NaN for item in Data]
+            if Config['Station']['SkyID']:
+                Rain = [item[3] for item in Data if item[3] != None]
             elif Config['Station']['TempestID']:
-                Rain = [[item[12],'mm'] if item[12] != None else NaN for item in Data]
-            MonthRain = [sum([x for x,y in Rain]),'mm',sum([x for x,y in Rain]),Now]
+                Rain = [item[12] for item in Data if item[12] != None]
+            MonthRain = [sum(x for x in Rain),'mm',sum(x for x in Rain),Now]
         else:
             MonthRain = [NaN,'mm',NaN,Now]
-
+            
+        # Adjust monthly rainfall total for rain that has fallen today
+        if not math.isnan(TodayRain[0]):
+            MonthRain[0] += TodayRain[0]
+            MonthRain[2] += TodayRain[2]
+        
     # Code initialising. Download all data for current year using
     # Weatherflow API and calculate total yearly rainfall
-    if rainAccum['Year'][0] == '-':
+    if rainAccum['Year'][0] == '-' or flagAPI:
 
         # Download rainfall data for last Month
         Data = requestAPI.weatherflow.Year(Device,Config)
@@ -723,26 +746,32 @@ def RainAccumulation(Rain,rainAccum,Device,Config):
         # Calculate yearly rainfall total. Return NaN if API call has failed
         if requestAPI.weatherflow.verifyResponse(Data,'obs'):
             Data = Data.json()['obs']
-            if Config['Station']['OutAirID']:
-                Rain = [[item[3],'mm'] if item[3] != None else NaN for item in Data]
+            if Config['Station']['SkyID']:
+                Rain = [item[3] for item in Data if item[3] != None]
             elif Config['Station']['TempestID']:
-                Rain = [[item[12],'mm'] if item[12] != None else NaN for item in Data]
-            YearRain = [sum([x for x,y in Rain]),'mm',sum([x for x,y in Rain]),Now]
+                Rain = [item[12] for item in Data if item[12] != None]
+            YearRain = [sum(x for x in Rain),'mm',sum(x for x in Rain),Now]
         else:
             YearRain = [NaN,'mm',NaN,Now]
-
+            
+        # Adjust yearly rainfall total for rain that has fallen today
+        if not math.isnan(TodayRain[0]):
+            YearRain[0] += TodayRain[0]
+            YearRain[2] += TodayRain[2]
+        
         # Return Daily, Monthly, and Yearly rainfall accumulation totals
-        rainAccum = {'Today':TodayRain, 'Yesterday':YesterdayRain, 'Month':MonthRain, 'Year':YearRain}
-        return rainAccum
+        return {'Today':TodayRain, 'Yesterday':YesterdayRain, 'Month':MonthRain, 'Year':YearRain}
 
-    # At midnight, reset daily rainfall accumulation to zero, else add
-    # current rainfall to current daily rainfall accumulation
+    # At midnight, update yesterday rainfall and reset daily rainfall
+    # accumulation to zero. Else add current rainfall to current daily rainfall
+    # accumulation and set yesterday rainfall as unchanged
     if Now.date() > rainAccum['Today'][3].date():
-        TodayRain = [Rain[0],'mm',Rain[0],Now]
         YesterdayRain = [rainAccum['Today'][2],'mm',rainAccum['Today'][2],Now]
+        TodayRain     = [Rain[0],'mm',Rain[0],Now]
     else:
-        RainAccum = rainAccum['Today'][2]+Rain[0]
-        TodayRain = [RainAccum,'mm',RainAccum,Now]
+        currentAccum  = rainAccum['Today'][2]
+        updatedAccum  = currentAccum + Rain[0] if not math.isnan(Rain[0]) else currentAccum
+        TodayRain     = [updatedAccum,'mm',updatedAccum,Now]
         YesterdayRain = [rainAccum['Yesterday'][2],'mm',rainAccum['Yesterday'][2],Now]
 
     # At end of month, reset monthly rainfall accumulation to zero, else add
@@ -750,56 +779,57 @@ def RainAccumulation(Rain,rainAccum,Device,Config):
     if Now.month > rainAccum['Month'][3].month:
         MonthRain = [Rain[0],'mm',Rain[0],Now]
     else:
-        RainAccum = rainAccum['Month'][2]+Rain[0]
-        MonthRain = [RainAccum,'mm',RainAccum,Now]
+        currentAccum = rainAccum['Month'][2]
+        updatedAccum = currentAccum + Rain[0] if not math.isnan(Rain[0]) else currentAccum
+        MonthRain    = [updatedAccum,'mm',updatedAccum,Now]
 
     # At end of year, reset monthly and yearly rainfall accumulation to zero,
     # else add current rainfall to current yearly rainfall accumulation
     if Now.year > rainAccum['Year'][3].year:
-        YearRain = [Rain[0],'mm',Rain[0],Now]
+        YearRain  = [Rain[0],'mm',Rain[0],Now]
         MonthRain = [Rain[0],'mm',Rain[0],Now]
     else:
-        RainAccum = rainAccum['Year'][2]+Rain[0]
-        YearRain = [RainAccum,'mm',RainAccum,Now]
+        currentAccum = rainAccum['Year'][2]
+        updatedAccum = currentAccum + Rain[0] if not math.isnan(Rain[0]) else currentAccum
+        YearRain     = [updatedAccum,'mm',updatedAccum,Now]
 
     # Return Daily, Monthly, and Yearly rainfall accumulation totals
-    rainAccum = {'Today':TodayRain, 'Yesterday':YesterdayRain, 'Month':MonthRain, 'Year':YearRain}
-    return rainAccum
+    return {'Today':TodayRain, 'Yesterday':YesterdayRain, 'Month':MonthRain, 'Year':YearRain}
 
-def MeanWindSpeed(windSpd,avgWind,Device,Config):
+def MeanWindSpeed(windSpd,avgWind,Device,Config,flagAPI):
 
     """ Calculate the average windspeed since midnight station time
 
-	INPUTS:
-		windSpd				Current wind speed                             [m/s]
+    INPUTS:
+        windSpd             Current wind speed                             [m/s]
         avgWind             Current average wind speed since midnight      [m/s]
         Device              Device ID
         Config              Station configuration
+        flagAPI             Flag for required API calls
 
-	OUTPUT:
+    OUTPUT:
         AvgWind             Average wind speed since midnight              [m/s]
-	"""
+    """
 
     # Define current time in station timezone
     Tz = pytz.timezone(Config['Station']['Timezone'])
     Now = datetime.now(pytz.utc).astimezone(Tz)
 
-    # Code initialising. Download all data for current day using Weatherflow
-    # API and calculate daily mean windspeed
-    if avgWind[0] == '-':
+    # Code initialising. Download all data for current day using Weatherflow API
+    # and calculate daily mean windspeed
+    if avgWind[0] == '-' or flagAPI:
 
         # Download windspeed data for current day
         Data = requestAPI.weatherflow.Today(Device,Config)
 
-        # Calculate daily averaged wind speed. Return NaN if API call has
-        # failed
+        # Calculate daily averaged wind speed. Return NaN if API call has failed
         if requestAPI.weatherflow.verifyResponse(Data,'obs'):
             Data = Data.json()['obs']
-            if Config['Station']['OutAirID']:
-                windSpd = [[item[5],'mps'] for item in Data if item[5] != None]
+            if Config['Station']['SkyID']:
+                windSpd = [item[5] for item in Data if item[5] != None]
             elif Config['Station']['TempestID']:
-                windSpd = [[item[2],'mps'] for item in Data if item[2] != None]
-            Sum = sum([x for x,y in windSpd])
+                windSpd = [item[2] for item in Data if item[2] != None]
+            Sum = sum(x for x in windSpd)
             Length = len(windSpd)
             AvgWind = [Sum/Length,'mps',Sum/Length,Length,Now]
         else:
@@ -810,32 +840,36 @@ def MeanWindSpeed(windSpd,avgWind,Device,Config):
 
     # At midnight, reset daily averaged wind speed
     if Now.date() > avgWind[4].date():
-        AvgWind = [windSpd[0],'mps',windSpd[0],1,Now]
+        Length = 1
+        updatedAvg = windSpd[0]
 
-    # Update current daily averaged wind speed with new wind speed
-    # observation
+    # Update current daily averaged wind speed with new wind speed observation
     else:
-        Len = avgWind[3] + 1
-        CurrentAvg = avgWind[2]
-        NewAvg = (Len-1)/Len * CurrentAvg + 1/Len * windSpd[0]
-        AvgWind = [NewAvg,'mps',NewAvg,Len,Now]
+        Length = avgWind[3] + 1
+        currentAvg = avgWind[2]
+        if not math.isnan(windSpd[0]):
+            updatedAvg = (Length-1)/Length * currentAvg + 1/Length * windSpd[0]
+        else:
+            updatedAvg = currentAvg
+            Length     = Length - 1
 
     # Return daily averaged wind speed
-    return AvgWind
+    return [updatedAvg,'mps',updatedAvg,Length,Now]
 
-def MaxWindGust(windGust,maxGust,Device,Config):
+def MaxWindGust(windGust,maxGust,Device,Config,flagAPI):
 
     """ Calculate the maximum wind gust since midnight station time
 
-	INPUTS:
-		windGust			Current wind gust                              [m/s]
+    INPUTS:
+        windGust            Current wind gust                              [m/s]
         maxGust             Current maximum wind gust since midnight       [m/s]
         Device              Device ID
         Config              Station configuration
+        flagAPI             Flag for required API calls
 
-	OUTPUT:
+    OUTPUT:
         maxGust             Maximum wind gust since midnight               [m/s]
-	"""
+    """
 
     # Define current time in station timezone
     Tz = pytz.timezone(Config['Station']['Timezone'])
@@ -843,20 +877,19 @@ def MaxWindGust(windGust,maxGust,Device,Config):
 
     # Code initialising. Download all data for current day using Weatherflow
     # API and calculate daily maximum wind gust
-    if maxGust == '--':
+    if maxGust == '--' or flagAPI:
 
         # Download windspeed data for current day
         Data = requestAPI.weatherflow.Today(Device,Config)
 
-        # Calculate daily maximum wind gust. Return NaN if API call has
-        # failed
+        # Calculate daily maximum wind gust. Return NaN if API call has failed
         if requestAPI.weatherflow.verifyResponse(Data,'obs'):
             Data = Data.json()['obs']
-            if Config['Station']['OutAirID']:
-                windGust = [[item[6],'mps'] for item in Data if item[6] != None]
+            if Config['Station']['SkyID']:
+                windGust = [item[6] for item in Data if item[6] != None]
             elif Config['Station']['TempestID']:
-                windGust = [[item[3],'mps'] for item in Data if item[3] != None]
-            maxGust  = [max([x for x,y in windGust]),'mps',max([x for x,y in windGust]),Now]
+                windGust = [item[3] for item in Data if item[3] != None]
+            maxGust  = [max(x for x in windGust),'mps',max(x for x in windGust),Now]
         else:
             maxGust = [NaN,'mps',NaN,Now]
 
@@ -887,17 +920,13 @@ def CardinalWindDirection(windDir,windSpd=[1,'mps']):
     """ Defines the cardinal wind direction from the current wind direction in
         degrees. Sets the wind direction as "Calm" if current wind speed is zero
 
-	INPUTS:
-		windDir				Current wind direction                     [degrees]
+    INPUTS:
+        windDir             Current wind direction                     [degrees]
         windSpd             Current wind speed                             [m/s]
 
-	OUTPUT:
+    OUTPUT:
         cardinalWind        Cardinal wind direction
-	"""
-
-
-    #print(windSpd)
-    #print(windDir)
+    """
 
     # Define all possible cardinal wind directions and descriptions
     Direction = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW','N']
@@ -920,19 +949,18 @@ def CardinalWindDirection(windDir,windSpd=[1,'mps']):
         cardinalWind = [windDir[0],windDir[1],Direction,Description]
 
     # Return cardinal wind direction and description
-    #print(cardinalWind)
     return cardinalWind
 
 def BeaufortScale(windSpd):
 
     """ Defines the Beaufort scale value from the current wind speed
 
-	INPUTS:
+    INPUTS:
         windSpd             Current wind speed                             [m/s]
 
-	OUTPUT:
+    OUTPUT:
         beaufortScale       Beaufort Scale speed, description, and icon
-	"""
+    """
 
     # Define Beaufort scale cutoffs and Force numbers
     Cutoffs = [0.5,1.5,3.3,5.5,7.9,10.7,13.8,17.1,20.7,24.4,28.4,32.6]
@@ -957,27 +985,115 @@ def UVIndex(uvLevel):
 
     """ Defines the UV index from the current UV level
 
-	INPUTS:
+    INPUTS:
         uvLevel             Current UV level                               [m/s]
 
-	OUTPUT:
+    OUTPUT:
         uvIndex             UV index
-	"""
+    """
 
-    # Define UV cutoffs and UV index levels
-    Cutoffs = [1,3,6,8,11]
-    Index = ['0','1','2','3','4','5']
+    # Define UV Index cutoffs and level descriptions
+    Cutoffs = [0,3,6,8,11]
+    Level   = ['None','Low','Moderate','High','Very High','Extreme']
+
+    # Define UV index colours
+    Grey   = '#646464'
+    Green  = '#558B2F'
+    Yellow = '#F9A825'
+    Orange = '#EF6C00'
+    Red    = '#B71C1C'
+    Violet = '#6A1B9A'
+    Color  = [Grey,Green,Yellow,Orange,Red,Violet]
 
     # Set the UV index
     if math.isnan(uvLevel[0]):
-        uvIndex = [uvLevel[0],'index','-']
+        uvIndex = [uvLevel[0],'index','-',Grey]
     else:
-        Ind = bisect.bisect(Cutoffs,uvLevel[0])
-        uvIndex = [round(uvLevel[0],1),'index',Index[Ind]]
+        if uvLevel[0] > 0:
+            Ind = bisect.bisect(Cutoffs,round(uvLevel[0],1))
+        else:
+            Ind = 0
+        uvIndex = [round(uvLevel[0],1),'index',Level[Ind],Color[Ind]]
 
     # Return UV Index icon
     return uvIndex
 
+def peakSunHours(Radiation,peakSun,Astro,Device,Config,flagAPI):
+
+    """ Calculate peak sun hours since midnight and daily solar potential
+
+    INPUTS:
+        Radiation           Current solar radiation                        [W/m^2]
+        maxGust             Current peak sun hours since midnight          [hours]
+        Astro               Dictionary containing sunrise/sunset info
+        Device              Device ID
+        Config              Station configuration
+        flagAPI             Flag for required API calls
+
+    OUTPUT:
+        peakSun             Peak sun hours since midnight and solar potential
+    """
+
+    # Define current time in station timezone
+    Tz = pytz.timezone(Config['Station']['Timezone'])
+    Now = datetime.now(pytz.utc).astimezone(Tz)
+
+    # Code initialising. Download all data for current day using Weatherflow
+    # API and calculate Peak Sun Hours
+    if peakSun[0] == '-' or flagAPI:
+
+        # Download solar radiation data for current day
+        Data = requestAPI.weatherflow.Today(Device,Config)
+
+        # Calculate Peak Sun Hours. Return NaN if API call has failed
+        if requestAPI.weatherflow.verifyResponse(Data,'obs'):
+            Data = Data.json()['obs']
+            if Config['Station']['SkyID']:
+                Radiation = [item[10] for item in Data if item[10] != None]
+            elif Config['Station']['TempestID']:
+                Radiation = [item[11] for item in Data if item[11] != None]
+            watthrs = sum([item*1/60 for item in Radiation])
+            peakSun = [watthrs/1000,'hrs',watthrs,Now]
+        else:
+            peakSun = [NaN,'hrs',NaN,Now]
+
+    # At midnight, reset Peak Sun Hours
+    elif Now.date() > peakSun[3].date():
+        watthrs = Radiation[0] * 1/60
+        peakSun = [watthrs/1000,'hrs',watthrs,Now]
+
+    # Add current Radiation value to Peak Sun Hours
+    else:
+        watthrs = peakSun[2] + Radiation[0]*1/60 if not math.isnan(Radiation[0]) else peakSun[2]
+        peakSun = [watthrs/1000,'hrs',watthrs,Now]
+        if math.isnan(Radiation[0]):
+            print("Radiation is NaN")
+
+    # Calculate proportion of daylight hours that have passed
+    daylightTotal  = (Astro['Sunset'][0] - Astro['Sunrise'][0]).total_seconds()
+
+    if Astro['Sunrise'][0] <= Now <= Astro['Sunset'][0]:
+        daylightElapsed = (Now - Astro['Sunrise'][0]).total_seconds()
+    else:
+        daylightElapsed = daylightTotal
+    daylightFactor = daylightElapsed/daylightTotal
+
+    # Define daily solar potential text
+    if math.isnan(peakSun[0]):
+        peakSun.append('-')
+    if peakSun[0]/daylightFactor == 0:
+        peakSun.append('[color=#646464ff]None[/color]')
+    elif peakSun[0]/daylightFactor < 2:
+        peakSun.append('[color=#4575b4ff]Limited[/color]')
+    elif peakSun[0]/daylightFactor < 4:
+        peakSun.append('[color=#fee090ff]Moderate[/color]')
+    elif peakSun[0]/daylightFactor < 6:
+        peakSun.append('[color=#f46d43ff]Good[/color]')
+    else:
+        peakSun.append('[color=#d73027ff]Excellent[/color]')
+
+    # Return Peak Sun Hours
+    return peakSun
 
 # # CHECK STATUS OF SKY AND AIR MODULES
 # # --------------------------------------------------------------------------

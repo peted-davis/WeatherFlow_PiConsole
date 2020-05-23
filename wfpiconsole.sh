@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Automated installer and updater for the WeatherFlow PiConsole. Modified
-# heavily from the PiHole and PiVPN installers. 
+# heavily from the PiHole and PiVPN installers.
 # Copyright (C) 2018-2020 Peter Davis
 
 # This program is free software: you can redistribute it and/or modify it under
@@ -140,7 +140,7 @@ updatePackages() {
             else
                 msg="OPTIONAL: There are $updatesToInstall updated packages to install. Do you wish to install them? This step is not required, but is highly recommended to keep your Raspberry Pi up-to-date and secure"
             fi
-            if (whiptail --backtitle "$backtitle" --title "$title" --yesno "$msg" ${r} ${c}); then
+            if (whiptail --backtitle "$backtitle" --title "$title" --yesno --defaultno "$msg" ${r} ${c}); then
 
                 # Apply updates using apt-get. Return error if updates cannot be
                 #installed
@@ -253,7 +253,7 @@ installPythonModules() {
             fi
         fi
     done
-    
+
     # Check if required Cython version is installed
     local str="Checking for Python module cython"
     printf "  %b %s %s..." "${INFO}" "${str}" "${Module}"
@@ -268,7 +268,7 @@ installPythonModules() {
     else
         printf "%b  %b %s (will be installed)\\n" "${OVER}" "${INFO}" "${str}"
         local requireCython=true
-    fi        
+    fi
 
     # Only install dependent Python modules that are missing from the system to
     # avoid unecessary downloading
@@ -450,13 +450,13 @@ getLatestPatch() {
     # Get info on latest patch from Github API and extract latest version
     # number using jq JSON tools
     patchInfo=$(curl -s 'https://api.github.com/repos/peted-davis/WeatherFlow_PiConsole/tags' -H 'Accept: application/vnd.github.v3+json')
-    patchVer=$(echo "$patchInfo" | jq -r '.[0].name')    
+    patchVer=$(echo "$patchInfo" | jq -r '.[0].name')
 
     # Download latest patch for the WeatherFlow PiConsole
     local str="Patching the WeatherFlow PiConsole to ${COL_LIGHT_GREEN}${patchVer}${COL_NC}"
     printf "\\n  %b %b..." "${INFO}" "${str}"
     curl -sL $WFPICONSOLE_PATCH --create-dirs -o $DLDIR/wfpiconsole.tar.gz
-    
+
     # Install latest patch
     installLatestVersion
 }
@@ -481,9 +481,9 @@ installLatestVersion() {
         cleanUp
         exit 1
     fi
-    
+
     # Ensure console directory is owned by the correct user
-    consoleOwner=$(stat -c "%U" $CONSOLEDIR) 
+    consoleOwner=$(stat -c "%U" $CONSOLEDIR)
     if [ "$consoleOwner" != "$USER" ]; then
         sudo chown -fR $USER $CONSOLEDIR
         sudo chgrp -fR $USER $CONSOLEDIR
@@ -589,7 +589,7 @@ processStarting() {
             printf "  ==============================\\n"
             printf "  Patching WeatherFlow PiConsole\\n"
             printf "  ==============================\\n\\n"
-            ;;        
+            ;;
     # Display autostart-enable starting dialogue
         autostart-enable)
             printf "\\n"
@@ -636,7 +636,7 @@ processComplete() {
             printf "  Restart the console with: 'wfpiconsole start' \\n"
             printf "  or 'wfpiconsole autostart-enable'             \\n"
             printf "  ============================================= \\n\\n"
-            ;;          
+            ;;
     # Display autostart-enable complete dialogue
         autostart-enable)
             printf "  ==================================================== \\n"

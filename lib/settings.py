@@ -1,5 +1,5 @@
-""" Defines the settings screen JSON object required by the Raspberry Pi Python 
-console for WeatherFlow Tempest and Smart Home Weather stations. 
+""" Defines the settings screen JSON object required by the Raspberry Pi Python
+console for WeatherFlow Tempest and Smart Home Weather stations.
 Copyright (C) 2018-2020 Peter Davis
 
 This program is free software: you can redistribute it and/or modify it under
@@ -7,8 +7,8 @@ the terms of the GNU General Public License as published by the Free Software
 Foundation, either version 3 of the License, or (at your option) any later
 version.
 
-This program is distributed in the hope that it will be useful, but WITHOUT 
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License along with
@@ -21,12 +21,12 @@ import json
 def JSON(Section):
 
     """ Defines the settings screen JSON object for specified section
-    
-    INPUTS			
-        Section             Settings section 
-    
+
+    INPUTS
+        Section             Settings section
+
     OUTPUTS
-        Data                JSON object containing settings for specified 
+        Data                JSON object containing settings for specified
                             section
     """
 
@@ -57,35 +57,35 @@ def JSON(Section):
                  {'type':'FixedOptions', 'options':['metric','imperial'],'title':'Other',
                   'desc':'Set console other units', 'section':'Units', 'key':'Other'}
                 ]
-    elif 'Primary' in Section:           
+    elif 'Primary' in Section:
         Data =  [
-                 {'type':'ScrollOptions', 'options':['Forecast','Sager','Temperature','WindSpeed','SunriseSunset','MoonPhase','Rainfall','Lightning','Barometer'],'title':'Panel One', 
+                 {'type':'ScrollOptions', 'options':['Forecast','Sager','Temperature','WindSpeed','SunriseSunset','MoonPhase','Rainfall','Lightning','Barometer'],'title':'Panel One',
                   'desc':'Set primary display for Panel One', 'section':'PrimaryPanels', 'key':'PanelOne'},
-                 {'type':'ScrollOptions', 'options':['Forecast','Sager','Temperature','WindSpeed','SunriseSunset','MoonPhase','Rainfall','Lightning','Barometer'],'title':'Panel Two', 
-                  'desc':'Set primary display for Panel Two', 'section':'PrimaryPanels', 'key':'PanelTwo'},  
-                 {'type':'ScrollOptions', 'options':['Forecast','Sager','Temperature','WindSpeed','SunriseSunset','MoonPhase','Rainfall','Lightning','Barometer'],'title':'Panel Three', 
-                  'desc':'Set primary display for Panel Three', 'section':'PrimaryPanels', 'key':'PanelThree'}, 
-                 {'type':'ScrollOptions', 'options':['Forecast','Sager','Temperature','WindSpeed','SunriseSunset','MoonPhase','Rainfall','Lightning','Barometer'],'title':'Panel Four', 
-                  'desc':'Set primary display for Panel Four', 'section':'PrimaryPanels', 'key':'PanelFour'}, 
-                 {'type':'ScrollOptions', 'options':['Forecast','Sager','Temperature','WindSpeed','SunriseSunset','MoonPhase','Rainfall','Lightning','Barometer'],'title':'Panel Five', 
-                  'desc':'Set primary display for Panel Five', 'section':'PrimaryPanels', 'key':'PanelFive'}, 
-                 {'type':'ScrollOptions', 'options':['Forecast','Sager','Temperature','WindSpeed','SunriseSunset','MoonPhase','Rainfall','Lightning','Barometer'],'title':'Panel Six', 
-                  'desc':'Set primary display for Panel Six', 'section':'PrimaryPanels', 'key':'PanelSix'} 
+                 {'type':'ScrollOptions', 'options':['Forecast','Sager','Temperature','WindSpeed','SunriseSunset','MoonPhase','Rainfall','Lightning','Barometer'],'title':'Panel Two',
+                  'desc':'Set primary display for Panel Two', 'section':'PrimaryPanels', 'key':'PanelTwo'},
+                 {'type':'ScrollOptions', 'options':['Forecast','Sager','Temperature','WindSpeed','SunriseSunset','MoonPhase','Rainfall','Lightning','Barometer'],'title':'Panel Three',
+                  'desc':'Set primary display for Panel Three', 'section':'PrimaryPanels', 'key':'PanelThree'},
+                 {'type':'ScrollOptions', 'options':['Forecast','Sager','Temperature','WindSpeed','SunriseSunset','MoonPhase','Rainfall','Lightning','Barometer'],'title':'Panel Four',
+                  'desc':'Set primary display for Panel Four', 'section':'PrimaryPanels', 'key':'PanelFour'},
+                 {'type':'ScrollOptions', 'options':['Forecast','Sager','Temperature','WindSpeed','SunriseSunset','MoonPhase','Rainfall','Lightning','Barometer'],'title':'Panel Five',
+                  'desc':'Set primary display for Panel Five', 'section':'PrimaryPanels', 'key':'PanelFive'},
+                 {'type':'ScrollOptions', 'options':['Forecast','Sager','Temperature','WindSpeed','SunriseSunset','MoonPhase','Rainfall','Lightning','Barometer'],'title':'Panel Six',
+                  'desc':'Set primary display for Panel Six', 'section':'PrimaryPanels', 'key':'PanelSix'}
                 ]
-    elif 'Secondary' in Section:            
+    elif 'Secondary' in Section:
         Data =  [
-                 {'type':'ScrollOptions', 'options':['None','Forecast','Sager','Temperature','WindSpeed','SunriseSunset','MoonPhase','Rainfall','Lightning','Barometer'],'title':'Panel One', 
+                 {'type':'ScrollOptions', 'options':['None','Forecast','Sager','Temperature','WindSpeed','SunriseSunset','MoonPhase','Rainfall','Lightning','Barometer'],'title':'Panel One',
                   'desc':'Set secondary display for Panel One', 'section':'SecondaryPanels', 'key':'PanelOne'},
-                 {'type':'ScrollOptions', 'options':['None','Forecast','Sager','Temperature','WindSpeed','SunriseSunset','MoonPhase','Rainfall','Lightning','Barometer'],'title':'Panel Two', 
-                  'desc':'Set secondary display for Panel Two', 'section':'SecondaryPanels', 'key':'PanelTwo'},  
-                 {'type':'ScrollOptions', 'options':['None','Forecast','Sager','Temperature','WindSpeed','SunriseSunset','MoonPhase','Rainfall','Lightning','Barometer'],'title':'Panel Three', 
-                  'desc':'Set secondary display for Panel Three', 'section':'SecondaryPanels', 'key':'PanelThree'}, 
-                 {'type':'ScrollOptions', 'options':['None','Forecast','Sager','Temperature','WindSpeed','SunriseSunset','MoonPhase','Rainfall','Lightning','Barometer'],'title':'Panel Four', 
-                  'desc':'Set secondary display for Panel Four', 'section':'SecondaryPanels', 'key':'PanelFour'}, 
-                 {'type':'ScrollOptions', 'options':['None','Forecast','Sager','Temperature','WindSpeed','SunriseSunset','MoonPhase','Rainfall','Lightning','Barometer'],'title':'Panel Five', 
-                  'desc':'Set secondary display for Panel Five', 'section':'SecondaryPanels', 'key':'PanelFive'}, 
-                 {'type':'ScrollOptions', 'options':['None','Forecast','Sager','Temperature','WindSpeed','SunriseSunset','MoonPhase','Rainfall','Lightning','Barometer'],'title':'Panel Six', 
-                  'desc':'Set secondary display for Panel Six', 'section':'SecondaryPanels', 'key':'PanelSix'}   
+                 {'type':'ScrollOptions', 'options':['None','Forecast','Sager','Temperature','WindSpeed','SunriseSunset','MoonPhase','Rainfall','Lightning','Barometer'],'title':'Panel Two',
+                  'desc':'Set secondary display for Panel Two', 'section':'SecondaryPanels', 'key':'PanelTwo'},
+                 {'type':'ScrollOptions', 'options':['None','Forecast','Sager','Temperature','WindSpeed','SunriseSunset','MoonPhase','Rainfall','Lightning','Barometer'],'title':'Panel Three',
+                  'desc':'Set secondary display for Panel Three', 'section':'SecondaryPanels', 'key':'PanelThree'},
+                 {'type':'ScrollOptions', 'options':['None','Forecast','Sager','Temperature','WindSpeed','SunriseSunset','MoonPhase','Rainfall','Lightning','Barometer'],'title':'Panel Four',
+                  'desc':'Set secondary display for Panel Four', 'section':'SecondaryPanels', 'key':'PanelFour'},
+                 {'type':'ScrollOptions', 'options':['None','Forecast','Sager','Temperature','WindSpeed','SunriseSunset','MoonPhase','Rainfall','Lightning','Barometer'],'title':'Panel Five',
+                  'desc':'Set secondary display for Panel Five', 'section':'SecondaryPanels', 'key':'PanelFive'},
+                 {'type':'ScrollOptions', 'options':['None','Forecast','Sager','Temperature','WindSpeed','SunriseSunset','MoonPhase','Rainfall','Lightning','Barometer'],'title':'Panel Six',
+                  'desc':'Set secondary display for Panel Six', 'section':'SecondaryPanels', 'key':'PanelSix'}
                 ]
     elif 'FeelsLike' in Section:
         Data =  [

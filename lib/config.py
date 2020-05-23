@@ -1,5 +1,5 @@
-""" Defines the configuration .ini files required by the Raspberry Pi Python 
-console for WeatherFlow Tempest and Smart Home Weather stations. 
+""" Defines the configuration .ini files required by the Raspberry Pi Python
+console for WeatherFlow Tempest and Smart Home Weather stations.
 Copyright (C) 2018-2020 Peter Davis
 
 This program is free software: you can redistribute it and/or modify it under
@@ -7,8 +7,8 @@ the terms of the GNU General Public License as published by the Free Software
 Foundation, either version 3 of the License, or (at your option) any later
 version.
 
-This program is distributed in the hope that it will be useful, but WITHOUT 
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License along with
@@ -28,7 +28,7 @@ import sys
 import os
 
 # Define wfpiconsole version number
-Version = 'v3.2'
+Version = 'v3.3'
 
 # Define required variables
 TEMPEST       = False
@@ -121,7 +121,7 @@ def update():
     # --------------------------------------------------------------------------
     # Check if version numbers are different
     if version.parse(currentVersion) < version.parse(defaultVersion):
-    
+
         # Print progress dialogue to screen
         print('')
         print('  ===================================================')
@@ -132,7 +132,7 @@ def update():
         print('  Required fields are marked with an asterix (*)     ')
         print('')
 
-        # Loop through all sections in default configuration dictionary. Take 
+        # Loop through all sections in default configuration dictionary. Take
         # existing key values from current configuration file
         for Section in default:
             Changes = False
@@ -168,8 +168,8 @@ def copyConfigKey(newConfig,currentConfig,Section,Key,keyDetails):
     # Copy fixed key from default configuration
     if keyDetails['Type'] == 'fixed':
         Value = keyDetails['Value']
-    
-    # Copy key value from existing configuration. Ignore AIR/SKY module IDs if 
+
+    # Copy key value from existing configuration. Ignore AIR/SKY module IDs if
     # switching to TEMPEST module
     else:
         if (Key == 'SkyID' or Key == 'SkyHeight') and TEMPEST:
@@ -177,9 +177,9 @@ def copyConfigKey(newConfig,currentConfig,Section,Key,keyDetails):
         elif (Key == 'OutAirID' or Key == 'OutAirHeight') and TEMPEST:
             Value = ''
         else:
-            Value = currentConfig[Section][Key]        
-            
-    # Write key value to new configuration        
+            Value = currentConfig[Section][Key]
+
+    # Write key value to new configuration
     newConfig.set(Section,Key,str(Value))
 
 
@@ -295,7 +295,7 @@ def writeConfigKey(Config,Section,Key,keyDetails):
         global GEONAMES
         global METOFFICE
         global LOCATION
-        
+
         # Define local variables
         Value = ''
 
@@ -332,15 +332,15 @@ def writeConfigKey(Config,Section,Key,keyDetails):
                     Config.set('Station','StationID',str(ID))
                 elif 'SUCCESS' in STATION['status']['status_message']:
                     break
-        
+
         # Get Observation metadata from WeatherFlow API
         if keyDetails['Source'] == 'observation' and OBSERVATION is None:
             Template = 'https://swd.weatherflow.com/swd/rest/observations/station/{}?api_key={}'
             URL = Template.format(Config['Station']['StationID'],Config['Keys']['WeatherFlow'])
-            OBSERVATION = requests.get(URL).json()            
-        
-        # Validate Geonames API key and get Station geographical data from 
-        # GeoNames API        
+            OBSERVATION = requests.get(URL).json()
+
+        # Validate Geonames API key and get Station geographical data from
+        # GeoNames API
         if keyDetails['Source'] == 'GeoNames' and GEONAMES is None:
             while True:
                 Template = 'http://api.geonames.org/findNearbyPlaceName?lat={}&lng={}&username={}&radius=10&featureClass=P&maxRows=20&type=json'
@@ -354,13 +354,13 @@ def writeConfigKey(Config,Section,Key,keyDetails):
                             if not ID:
                                 print('    GeoNames API Key cannot be empty. Please try again')
                                 continue
-                            break    
+                            break
                         Config.set('Keys','GeoNames',str(ID))
                 else:
                     break
-                      
-        # Validate MetOffice API key and get MetOffice forecast locations from 
-        # MetOffice API                     
+
+        # Validate MetOffice API key and get MetOffice forecast locations from
+        # MetOffice API
         if keyDetails['Source'] == 'MetOffice' and METOFFICE is None and Config['Station']['Country'] in ['GB']:
             while True:
                 Template = 'http://datapoint.metoffice.gov.uk/public/data/val/wxfcs/all/json/sitelist?&key={}'
@@ -373,13 +373,13 @@ def writeConfigKey(Config,Section,Key,keyDetails):
                         if not ID:
                             print('    MetOffice API Key cannot be empty. Please try again')
                             continue
-                        break    
+                        break
                     Config.set('Keys','MetOffice',str(ID))
                 else:
                     METOFFICE = METOFFICE.json()
                     break
 
-        # Validate TEMPEST module ID and get height above ground of TEMPEST 
+        # Validate TEMPEST module ID and get height above ground of TEMPEST
         # module
         if Section == 'Station':
             if Key == 'TempestHeight' and Config['Station']['TempestID']:
@@ -454,11 +454,11 @@ def writeConfigKey(Config,Section,Key,keyDetails):
                         Config.set('Station','SkyID',str(ID))
                     else:
                         break
-                        
-        # Get UK MetOffice or DarkSky forecast location                
+
+        # Get UK MetOffice or DarkSky forecast location
         if Section == 'Station':
-            if Key == 'ForecastLocn':                
-                if Config['Station']['Country'] == 'GB':       
+            if Key == 'ForecastLocn':
+                if Config['Station']['Country'] == 'GB':
                     MinDist = math.inf
                     for Locn in METOFFICE['Locations']['Location']:
                         ForecastLocn = (float(Locn['latitude']),float(Locn['longitude']))
@@ -479,32 +479,32 @@ def writeConfigKey(Config,Section,Key,keyDetails):
                         Value = Locns[Len.index(Ind)]
                     else:
                         Value = ''
-        
+
         # Get UK MetOffice forecast ID
         if Section == 'Station':
-            if Key == 'MetOfficeID':                
-                if Config['Station']['Country'] == 'GB':  
-                    Value = LOCATION['id']    
+            if Key == 'MetOfficeID':
+                if Config['Station']['Country'] == 'GB':
+                    Value = LOCATION['id']
                 else:
-                    Value = ''        
+                    Value = ''
 
         # Get station latitude/longitude
-        if Section == 'Station':    
+        if Section == 'Station':
             if Key in ['Latitude','Longitude']:
                 Value = STATION['stations'][0][Key.lower()]
 
         # Get station timezone
-        if Section == 'Station':    
+        if Section == 'Station':
             if Key in ['Timezone']:
                 Value = STATION['stations'][0]['timezone']
 
         # Get station elevation
-        if Section == 'Station':    
+        if Section == 'Station':
             if Key in ['Elevation']:
                 Value = STATION['stations'][0]['station_meta']['elevation']
 
         # Get station country code
-        if Section == 'Station':    
+        if Section == 'Station':
             if Key in ['Country']:
                 Value = GEONAMES['geonames'][0]['countryCode']
 
@@ -517,18 +517,18 @@ def writeConfigKey(Config,Section,Key,keyDetails):
         Config.set(Section,Key,str(Value))
 
 def queryUser(Question,Default=None):
-    
+
     """ Ask a yes/no question via raw_input() and return their answer.
 
     INPUTS
         Question                Query string presented to user
         Default                 Presumed answer if the user just hits <Enter>.
-                                It must be "yes", "no" or None 
-                                
+                                It must be "yes", "no" or None
+
     OUTPUT
         Valid                   True for "yes" or False for "no"
     """
-    
+
     # Define valid reponses and prompt based on specified default answer
     valid = {"yes": True, "y": True, "ye": True, "no": False, "n": False}
     if Default is None:
