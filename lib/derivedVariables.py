@@ -255,6 +255,15 @@ def SLPMaxMin(Time,Pres,maxPres,minPres,Device,Config,flagAPI):
     # Define current time in station timezone
     Tz = pytz.timezone(Config['Station']['Timezone'])
     Now = datetime.now(pytz.utc).astimezone(Tz)
+    
+    # Set time format based on user configuration
+    if Config['Display']['TimeFormat'] == '12 hr':
+        if Config['System']['Hardware'] != 'Other':
+            Format = '%-I:%M %p'
+        else:
+            Format = '%I:%M %p'
+    else:
+        Format = '%H:%M'
 
     # Code initialising. Download all data for current day using Weatherflow
     # API and calculate daily maximum and minimum pressure
@@ -277,9 +286,9 @@ def SLPMaxMin(Time,Pres,maxPres,minPres,Device,Config,flagAPI):
             # Calculate sea level pressure
             SLP = [derive.SLP(P,Config) for P in Pres]
 
-            # Define maximum and minimum pressure
-            MaxPres = [max(SLP)[0],'mb',datetime.fromtimestamp(Time[SLP.index(max(SLP))],Tz).strftime('%H:%M'),max(SLP)[0],Now]
-            MinPres = [min(SLP)[0],'mb',datetime.fromtimestamp(Time[SLP.index(min(SLP))],Tz).strftime('%H:%M'),min(SLP)[0],Now]
+            # Define maximum and minimum pressure. 
+            MaxPres = [max(SLP)[0],'mb',datetime.fromtimestamp(Time[SLP.index(max(SLP))],Tz).strftime(Format),max(SLP)[0],Now]
+            MinPres = [min(SLP)[0],'mb',datetime.fromtimestamp(Time[SLP.index(min(SLP))],Tz).strftime(Format),min(SLP)[0],Now]
         else:
             MaxPres = [NaN,'mb','-',NaN,Now]
             MinPres = [NaN,'mb','-',NaN,Now]
@@ -291,8 +300,8 @@ def SLPMaxMin(Time,Pres,maxPres,minPres,Device,Config,flagAPI):
     if Now.date() > maxPres[4].date():
 
         # Reset maximum and minimum pressure
-        MaxPres = [SLP[0],'mb',datetime.fromtimestamp(Time[0],Tz).strftime('%H:%M'),SLP[0],Now]
-        MinPres = [SLP[0],'mb',datetime.fromtimestamp(Time[0],Tz).strftime('%H:%M'),SLP[0],Now]
+        MaxPres = [SLP[0],'mb',datetime.fromtimestamp(Time[0],Tz).strftime(Format),SLP[0],Now]
+        MinPres = [SLP[0],'mb',datetime.fromtimestamp(Time[0],Tz).strftime(Format),SLP[0],Now]
 
         # Return required variables
         return MaxPres,MinPres
@@ -300,14 +309,14 @@ def SLPMaxMin(Time,Pres,maxPres,minPres,Device,Config,flagAPI):
     # Current pressure is greater than maximum recorded pressure. Update
     # maximum pressure
     if SLP[0] > maxPres[3]:
-        MaxPres = [SLP[0],'mb',datetime.fromtimestamp(Time[0],Tz).strftime('%H:%M'),SLP[0],Now]
+        MaxPres = [SLP[0],'mb',datetime.fromtimestamp(Time[0],Tz).strftime(Format),SLP[0],Now]
         MinPres = [minPres[3],'mb',minPres[2],minPres[3],Now]
 
     # Current pressure is less than minimum recorded pressure. Update
     # minimum pressure and time
     elif SLP[0] < minPres[3]:
         MaxPres = [maxPres[3],'mb',maxPres[2],maxPres[3],Now]
-        MinPres = [SLP[0],'mb',datetime.fromtimestamp(Time[0],Tz).strftime('%H:%M'),SLP[0],Now]
+        MinPres = [SLP[0],'mb',datetime.fromtimestamp(Time[0],Tz).strftime(Format),SLP[0],Now]
 
     # Maximum and minimum pressure unchanged. Return existing values
     else:
@@ -339,6 +348,15 @@ def TempMaxMin(Time,Temp,maxTemp,minTemp,Device,Config,flagAPI):
     # Define current time in station timezone
     Tz = pytz.timezone(Config['Station']['Timezone'])
     Now = datetime.now(pytz.utc).astimezone(Tz)
+    
+    # Set time format based on user configuration
+    if Config['Display']['TimeFormat'] == '12 hr':
+        if Config['System']['Hardware'] != 'Other':
+            Format = '%-I:%M %p'
+        else:
+            Format = '%I:%M %p'
+    else:
+        Format = '%H:%M'
 
     # Code initialising. Download all data for current day using Weatherflow
     # API and calculate daily maximum and minimum temperature
@@ -360,8 +378,8 @@ def TempMaxMin(Time,Temp,maxTemp,minTemp,Device,Config,flagAPI):
                 Temp = [[item[2],'c'] for item in Data if item[2] != None]
 
             # Define maximum and minimum temperature and time
-            MaxTemp = [max(Temp)[0],'c',datetime.fromtimestamp(Time[Temp.index(max(Temp))][0],Tz).strftime('%H:%M'),max(Temp)[0],Now]
-            MinTemp = [min(Temp)[0],'c',datetime.fromtimestamp(Time[Temp.index(min(Temp))][0],Tz).strftime('%H:%M'),min(Temp)[0],Now]
+            MaxTemp = [max(Temp)[0],'c',datetime.fromtimestamp(Time[Temp.index(max(Temp))][0],Tz).strftime(Format),max(Temp)[0],Now]
+            MinTemp = [min(Temp)[0],'c',datetime.fromtimestamp(Time[Temp.index(min(Temp))][0],Tz).strftime(Format),min(Temp)[0],Now]
         else:
             MaxTemp = [NaN,'c','-',NaN,Now]
             MinTemp = [NaN,'c','-',NaN,Now]
@@ -373,8 +391,8 @@ def TempMaxMin(Time,Temp,maxTemp,minTemp,Device,Config,flagAPI):
     if Now.date() > maxTemp[4].date():
 
         # Reset maximum and minimum temperature
-        MaxTemp = [Temp[0],'c',datetime.fromtimestamp(Time[0],Tz).strftime('%H:%M'),Temp[0],Now]
-        MinTemp = [Temp[0],'c',datetime.fromtimestamp(Time[0],Tz).strftime('%H:%M'),Temp[0],Now]
+        MaxTemp = [Temp[0],'c',datetime.fromtimestamp(Time[0],Tz).strftime(Format),Temp[0],Now]
+        MinTemp = [Temp[0],'c',datetime.fromtimestamp(Time[0],Tz).strftime(Format),Temp[0],Now]
 
         # Return required variables
         return MaxTemp,MinTemp
@@ -382,14 +400,14 @@ def TempMaxMin(Time,Temp,maxTemp,minTemp,Device,Config,flagAPI):
     # Current temperature is greater than maximum recorded temperature. Update
     # maximum temperature and time
     if Temp[0] > maxTemp[3]:
-        MaxTemp = [Temp[0],'c',datetime.fromtimestamp(Time[0],Tz).strftime('%H:%M'),Temp[0],Now]
+        MaxTemp = [Temp[0],'c',datetime.fromtimestamp(Time[0],Tz).strftime(Format),Temp[0],Now]
         MinTemp = [minTemp[3],'c',minTemp[2],minTemp[3],Now]
 
     # Current temperature is less than minimum recorded temperature. Update
     # minimum temperature and time
     elif Temp[0] < minTemp[3]:
         MaxTemp = [maxTemp[3],'c',maxTemp[2],maxTemp[3],Now]
-        MinTemp = [Temp[0],'c',datetime.fromtimestamp(Time[0],Tz).strftime('%H:%M'),Temp[0],Now]
+        MinTemp = [Temp[0],'c',datetime.fromtimestamp(Time[0],Tz).strftime(Format),Temp[0],Now]
 
     # Maximum and minimum temperature unchanged. Return existing values
     else:
@@ -529,6 +547,12 @@ def StrikeCount(Count,strikeCount,Device,Config,flagAPI):
             monthStrikes = [sum(x for x in Strikes),'count',sum(x for x in Strikes),Now]
         else:
             monthStrikes = [NaN,'count',NaN,Now]
+            
+        # Adjust monthly lightning strike total for strikes that have been 
+        # recorded today
+        if not math.isnan(todayStrikes[0]):
+            monthStrikes[0] += todayStrikes[0]
+            monthStrikes[2] += todayStrikes[2]    
 
     # Code initialising. Download all data for current year using
     # Weatherflow API and calculate total yearly lightning strikes
@@ -548,6 +572,12 @@ def StrikeCount(Count,strikeCount,Device,Config,flagAPI):
             yearStrikes = [sum(x for x in Strikes),'count',sum(x for x in Strikes),Now]
         else:
             yearStrikes = [NaN,'count',NaN,Now]
+            
+        # Adjust monthly lightning strike total for strikes that have been 
+        # recorded today
+        if not math.isnan(todayStrikes[0]):
+            yearStrikes[0] += todayStrikes[0]
+            yearStrikes[2] += todayStrikes[2]      
 
         # Return Daily, Monthly, and Yearly lightning strike counts
         return {'Today':todayStrikes, 'Month':monthStrikes, 'Year':yearStrikes}
@@ -700,7 +730,12 @@ def RainAccumulation(Rain,rainAccum,Device,Config,flagAPI):
             MonthRain = [sum(x for x in Rain),'mm',sum(x for x in Rain),Now]
         else:
             MonthRain = [NaN,'mm',NaN,Now]
-
+            
+        # Adjust monthly rainfall total for rain that has fallen today
+        if not math.isnan(TodayRain[0]):
+            MonthRain[0] += TodayRain[0]
+            MonthRain[2] += TodayRain[2]
+        
     # Code initialising. Download all data for current year using
     # Weatherflow API and calculate total yearly rainfall
     if rainAccum['Year'][0] == '-' or flagAPI:
@@ -718,7 +753,12 @@ def RainAccumulation(Rain,rainAccum,Device,Config,flagAPI):
             YearRain = [sum(x for x in Rain),'mm',sum(x for x in Rain),Now]
         else:
             YearRain = [NaN,'mm',NaN,Now]
-
+            
+        # Adjust yearly rainfall total for rain that has fallen today
+        if not math.isnan(TodayRain[0]):
+            YearRain[0] += TodayRain[0]
+            YearRain[2] += TodayRain[2]
+        
         # Return Daily, Monthly, and Yearly rainfall accumulation totals
         return {'Today':TodayRain, 'Yesterday':YesterdayRain, 'Month':MonthRain, 'Year':YearRain}
 

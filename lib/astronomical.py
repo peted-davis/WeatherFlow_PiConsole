@@ -192,34 +192,43 @@ def Format(astroData,Config,Type):
     # Get current time in Station timezone
     Tz = pytz.timezone(Config['Station']['Timezone'])
     Now = datetime.now(pytz.utc).astimezone(Tz)
+    
+    # Set time format based on user configuration
+    if Config['Display']['TimeFormat'] == '12 hr':
+        if Config['System']['Hardware'] != 'Other':
+            Format = '%-I:%M %p'
+        else:
+            Format = '%I:%M %p'
+    else:
+        Format = '%H:%M'
 
     # Format Sunrise/Sunset data
     if Type == 'Sun':
         if Now.date() == astroData['Sunrise'][0].date():
-            astroData['Sunrise'][1] = astroData['Sunrise'][0].strftime('%H:%M')
-            astroData['Sunset'][1] = astroData['Sunset'][0].strftime('%H:%M')
+            astroData['Sunrise'][1] = astroData['Sunrise'][0].strftime(Format)
+            astroData['Sunset'][1] = astroData['Sunset'][0].strftime(Format)
         else:
-            astroData['Sunrise'][1] = astroData['Sunrise'][0].strftime('%H:%M') + ' (+1)'
-            astroData['Sunset'][1] = astroData['Sunset'][0].strftime('%H:%M') + ' (+1)'
+            astroData['Sunrise'][1] = astroData['Sunrise'][0].strftime(Format) + ' (+1)'
+            astroData['Sunset'][1] = astroData['Sunset'][0].strftime(Format) + ' (+1)'
 
     # Format Moonrise/Moonset data
     elif Type == 'Moon':
 
         # Update Moonrise Kivy Label bind based on date of next moonrise
         if Now.date() == astroData['Moonrise'][0].date():
-            astroData['Moonrise'][1] = astroData['Moonrise'][0].strftime('%H:%M')
+            astroData['Moonrise'][1] = astroData['Moonrise'][0].strftime(Format)
         elif Now.date() < astroData['Moonrise'][0].date():
-            astroData['Moonrise'][1] = astroData['Moonrise'][0].strftime('%H:%M') + ' (+1)'
+            astroData['Moonrise'][1] = astroData['Moonrise'][0].strftime(Format) + ' (+1)'
         else:
-            astroData['Moonrise'][1] = astroData['Moonrise'][0].strftime('%H:%M') + ' (-1)'
+            astroData['Moonrise'][1] = astroData['Moonrise'][0].strftime(Format) + ' (-1)'
 
         # Update Moonset Kivy Label bind based on date of next moonset
         if Now.date() == astroData['Moonset'][0].date():
-            astroData['Moonset'][1] = astroData['Moonset'][0].strftime('%H:%M')
+            astroData['Moonset'][1] = astroData['Moonset'][0].strftime(Format)
         elif Now.date() < astroData['Moonset'][0].date():
-            astroData['Moonset'][1] = astroData['Moonset'][0].strftime('%H:%M') + ' (+1)'
+            astroData['Moonset'][1] = astroData['Moonset'][0].strftime(Format) + ' (+1)'
         else:
-            astroData['Moonset'][1] = astroData['Moonset'][0].strftime('%H:%M') + ' (-1)'
+            astroData['Moonset'][1] = astroData['Moonset'][0].strftime(Format) + ' (-1)'
 
         # Update New Moon Kivy Label bind based on date of next new moon
         if astroData['FullMoon'][1].date() == Now.date():

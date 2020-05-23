@@ -201,9 +201,9 @@ def Month(Device,Config):
     # current month in UTC. Convert UTC time into UNIX timestamp
     startTime = int(Tz.localize(datetime(Now.year,Now.month,1)).timestamp())
 
-    # Convert current time in Station timezone to current time in  UTC.
-    # Convert UTC time into UNIX timestamp
-    endTime = int(Now.timestamp())
+    # Convert midnight today in Station timezone to midnight today in
+    # UTC. Convert UTC time into UNIX timestamp.
+    endTime = int(Tz.localize(datetime(Now.year,Now.month,Now.day)).timestamp())
 
     # Download WeatherFlow data
     Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&api_key={}'
@@ -233,13 +233,13 @@ def Year(Device,Config):
     Tz = pytz.timezone(Config['Station']['Timezone'])
     Now = datetime.now(pytz.utc).astimezone(Tz)
 
-    # Convert start of current year in Station timezone to start of
-    # current year in UTC. Convert UTC time into time timestamp
+    # Convert start of current year in Station timezone to start of current year 
+    # in UTC. Convert UTC time into time timestamp
     startTime = int(Tz.localize(datetime(Now.year,1,1)).timestamp())
 
-    # Convert current time in Station timezone to current time in  UTC.
-    # Convert UTC time into time timestamp
-    endTime = int(Now.timestamp())
+    # Convert midnight today in Station timezone to midnight today in
+    # UTC. Convert UTC time into UNIX timestamp.
+    endTime = int(Tz.localize(datetime(Now.year,Now.month,Now.day)).timestamp())
 
     # Download WeatherFlow data
     Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&api_key={}'

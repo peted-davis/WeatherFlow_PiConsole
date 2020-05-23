@@ -250,6 +250,7 @@ ScreenManager:
         opacity: 1 if app.IndoorTemp == '1' else 0
     SmallText:
         text: app.Obs['inTempMin'][2]
+        font_size: '14sp'
         pos_hint: {'x': 0/262, 'y': 82/202}
         size_hint: (65.5/262, 22/202)
         opacity: 1 if app.IndoorTemp == '1' else 0
@@ -262,6 +263,7 @@ ScreenManager:
         opacity: 1 if app.IndoorTemp == '1' else 0
     SmallText:
         text: app.Obs['inTempMax'][2]
+        font_size: '14sp'
         pos_hint: {'x': 65.5/262, 'y': 82/202}
         size_hint: (65.5/262, 22/202)
         opacity: 1 if app.IndoorTemp == '1' else 0
@@ -283,6 +285,7 @@ ScreenManager:
         size_hint: (65.5/262, 22/202)
     SmallText:
         text: app.Obs['outTempMin'][2]
+        font_size: '14sp'
         pos_hint: {'x': 131/262 if app.IndoorTemp == '1' else 65.5/262, 'y': 82/202}
         size_hint: (65.5/262, 22/202)
 
@@ -293,6 +296,7 @@ ScreenManager:
         size_hint: (65.5/262, 22/202)
     SmallText:
         text: app.Obs['outTempMax'][2]
+        font_size: '14sp'
         pos_hint: {'x': 196.5/262 if app.IndoorTemp == '1' else 131/262, 'y': 82/202}
         size_hint: (65.5/262, 22/202)
 
@@ -931,6 +935,7 @@ ScreenManager:
         size_hint: (70/262, 16/202)
     SmallText:
         text: app.Obs['MinPres'][2]
+        font_size: '14sp'
         pos_hint: {'x': 3/262, 'y': 130/202}
         size_hint: (70/262, 16/202)
 
@@ -941,6 +946,7 @@ ScreenManager:
         size_hint: (70/262, 16/202)
     SmallText:
         text: app.Obs['MaxPres'][2]
+        font_size: '14sp'
         pos_hint: {'x': 73/262, 'y': 130/202}
         size_hint: (70/262, 16/202)
 
