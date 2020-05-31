@@ -206,10 +206,12 @@ def Format(astroData,Config,Type):
     if Type == 'Sun':
         if Now.date() == astroData['Sunrise'][0].date():
             astroData['Sunrise'][1] = astroData['Sunrise'][0].strftime(Format)
-            astroData['Sunset'][1] = astroData['Sunset'][0].strftime(Format)
+            astroData['Sunset'][1]  = astroData['Sunset'][0].strftime(Format)
+            astroData['Reformat']   = 0
         else:
             astroData['Sunrise'][1] = astroData['Sunrise'][0].strftime(Format) + ' (+1)'
-            astroData['Sunset'][1] = astroData['Sunset'][0].strftime(Format) + ' (+1)'
+            astroData['Sunset'][1] = astroData['Sunset'][0].strftime(Format)   + ' (+1)'
+            astroData['Reformat']   = 1
 
     # Format Moonrise/Moonset data
     elif Type == 'Moon':
@@ -259,7 +261,7 @@ def sunTransit(astroData, Config, *largs):
 
     # Calculate sun icon position on daytime/nightime bar
     secondsMidnight = (Now.replace(microsecond=0) - Now.replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds()
-    astroData['sunIconPosition'] = secondsMidnight/86400
+    sunPosition     = secondsMidnight/86400
 
     # If time is before dawn, calculate number of nighttime hours remaining
     if Now < astroData['Dawn'][0]:
@@ -271,8 +273,7 @@ def sunTransit(astroData, Config, *largs):
 
         # Define Kivy Label binds
         astroData['sunEvent']   = ['[color=00A4B4FF]Dawn[/color]','{:02.0f}'.format(hours),'{:02.0f}'.format(minutes),'Nighttime']
-        astroData['sunIcon'][0] = '-'
-        astroData['sunIcon'][1] = 1
+        astroData['sunIcon']    = ['-',1,sunPosition]
 
     # If time is before sunrise, calculate number of dawn hours remaining
     elif Now < astroData['Sunrise'][0]:
@@ -284,8 +285,7 @@ def sunTransit(astroData, Config, *largs):
 
         # Define Kivy Label binds
         astroData['sunEvent']   = ['[color=FF8841FF]Sunrise[/color]','{:02.0f}'.format(hours),'{:02.0f}'.format(minutes),'Dawn']
-        astroData['sunIcon'][0] = '-'
-        astroData['sunIcon'][1] = 1
+        astroData['sunIcon']    = ['-',1,sunPosition]
 
     # If time is between sunrise and sunset, calculate number of daylight hours
     # remaining
@@ -298,8 +298,7 @@ def sunTransit(astroData, Config, *largs):
 
         # Define Kivy Label binds
         astroData['sunEvent']   = ['[color=F05E40FF]Sunset[/color]','{:02.0f}'.format(hours),'{:02.0f}'.format(minutes),'Daytime']
-        astroData['sunIcon'][0] = 'sunUp'
-        astroData['sunIcon'][1] = 0
+        astroData['sunIcon']    = ['sunUp',0,sunPosition]
 
     # If time after sunset, calculate number of dusk hours remaining
     elif Now < astroData['Dusk'][0]:
@@ -311,8 +310,7 @@ def sunTransit(astroData, Config, *largs):
 
         # Define Kivy Label binds
         astroData['sunEvent']   = ['[color=00A4B4FF]Nightfall[/color]','{:02.0f}'.format(hours),'{:02.0f}'.format(minutes),'Dusk']
-        astroData['sunIcon'][0] = '-'
-        astroData['sunIcon'][1] = 1
+        astroData['sunIcon']    = ['-',1,sunPosition]
 
     # Return dictionary containing sun transit data
     return astroData

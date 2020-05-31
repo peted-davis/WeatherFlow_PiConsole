@@ -493,12 +493,12 @@ ScreenManager:
                 rgba: [230/255,75/255,36/255,app.Astro['sunIcon'][1]]
             Line:
                 width: 1.2
-                rectangle: [self.x + app.Astro['sunIconPosition']*self.width, self.y, 1, self.height]
+                rectangle: [self.x + app.Astro['sunIcon'][2]*self.width, self.y, 1, self.height]
     Image:
         source: 'icons/sun/' + app.Astro['sunIcon'][0] + '.png'
         keep_ratio: 0
         allow_stretch: 1
-        pos_hint: {'x': (4+app.Astro['sunIconPosition']*236)/262, 'y': 92.5/202}
+        pos_hint: {'x': (4+app.Astro['sunIcon'][2]*236)/262, 'y': 92.5/202}
         size_hint: (18/262, 18/202)
 
     ## Solar radiation
