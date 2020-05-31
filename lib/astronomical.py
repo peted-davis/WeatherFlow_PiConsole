@@ -210,7 +210,7 @@ def Format(astroData,Config,Type):
             astroData['Reformat']   = 0
         else:
             astroData['Sunrise'][1] = astroData['Sunrise'][0].strftime(Format) + ' (+1)'
-            astroData['Sunset'][1] = astroData['Sunset'][0].strftime(Format)   + ' (+1)'
+            astroData['Sunset'][1]  = astroData['Sunset'][0].strftime(Format)  + ' (+1)'
             astroData['Reformat']   = 1
 
     # Format Moonrise/Moonset data
