@@ -202,9 +202,9 @@ class wfpiconsole(App):
                               ('StrikesToday','-'),    ('StrikesMonth','-'),   ('StrikesYear','-')
                              ])
     Astro = DictProperty    ([('Sunrise',['-','-',0]), ('Sunset',['-','-',0]), ('Dawn',['-','-',0]),
-                              ('Dusk',['-','-',0]),    ('sunEvent','----'),    ('sunIcon',['-',0]),
-                              ('sunIconPosition',0),   ('Moonrise',['-','-']), ('Moonset',['-','-']),
-                              ('NewMoon','--'),        ('FullMoon','--'),      ('Phase','---'),
+                              ('Dusk',['-','-',0]),    ('sunEvent','----'),    ('sunIcon',['-',0,0]),
+                              ('Moonrise',['-','-']),  ('Moonset',['-','-']),  ('NewMoon','--'),
+                              ('FullMoon','--'),       ('Phase','---'),        ('Reformat','-'),
                              ])
     MetData = DictProperty  ([('Weather','Building'),  ('Temp','--'),          ('Precip','--'),
                               ('WindSpd','--'),        ('WindDir','--'),       ('Valid','--')
@@ -459,8 +459,8 @@ class wfpiconsole(App):
         if Now > self.Astro['Moonset'][0]:
             self.Astro = astro.MoonriseMoonset(self.Astro,self.config)
 
-        # At midnight, update Sunset, Sunrise, Moonrise and Moonset Kivy Labels
-        if Now.time() == time(0,0,0):
+        # At midnight, update Sunset, Sunrise, Moonrise and Moonset Kivy Labels 
+        if self.Astro['Reformat'] and Now.replace(second=0).time() == time(0,0,0):
             self.Astro = astro.Format(self.Astro,self.config,"Sun")
             self.Astro = astro.Format(self.Astro,self.config,"Moon")
 
