@@ -27,9 +27,10 @@ ScreenManager:
     transition: NoTransition()
     CurrentConditions:
         id: CurrentConditions
+        name: 'CurrentConditions'
 
 ## =============================================================================
-## CUSTOM LABELS
+## CUSTOM Label
 ## =============================================================================
 <LargeText@Label>
     font_name: 'fonts/SystemSanFranciscoDisplayThin.ttf'
@@ -71,6 +72,38 @@ ScreenManager:
     valign: 'center'
     size_hint: (None,None)
     color: [0.84,0.84,0.84,1]
+
+## =============================================================================
+## CUSTOM TabbedPanelItem AND MainMenuLayout
+## =============================================================================
+<MainMenuTab@TabbedPanelItem>:
+    background_normal: 'atlas://atlas/wfpiconsole/tab_btn'
+    background_down: 'atlas://atlas/wfpiconsole/tab_btn_pressed'
+    canvas.after:
+        Color:
+            rgb: [.3,.3,.3,1]
+        Rectangle:
+            pos: self.right - 1, self.y
+            size: 1, self.height,
+
+<MainMenuLayout@GridLayout>:
+    padding: '12dp'
+    cols: 1
+    canvas.after:
+        Color:
+            rgb: [.3,.3,.3,1]
+        Rectangle:
+            pos: self.x + 1, self.y + 3
+            size: self.width, 1
+
+<StatusColumn@BoldText>:
+    color: [20/255,20/255,20/255,1]
+    canvas.before:
+        Color:
+            rgba: [200/255,200/255,200/255,.8]
+        Rectangle:
+            pos: self.x + 5, self.y
+            size: self.width-10, self.height
 
 ## =============================================================================
 ## CURRRENT CONDITIONS SCREEN
@@ -124,17 +157,13 @@ ScreenManager:
             BoxLayout:
                 id: ButtonSix
             BoxLayout:
-                Button:
-                    id: 'CreditsButton'
-                    background_normal: 'buttons/credits.png'
-                    background_down: 'buttons/creditsPressed.png'
-                    on_release: Factory.Credits().open()
+                id: GraphsButton
             BoxLayout:
                 Button:
-                    id: 'SettingsButton'
-                    background_normal: 'buttons/settings.png'
-                    background_down: 'buttons/settingsPressed.png'
-                    on_release: app.open_settings()
+                    id: 'mainMenuButton'
+                    background_normal: 'buttons/mainMenu.png'
+                    background_down: 'buttons/mainMenuPressed.png'
+                    on_release: Factory.mainMenu().open()
 
 ## =============================================================================
 ## METOFFICE/DARKSKY FORECAST PANEL AND BUTTON
@@ -739,7 +768,7 @@ ScreenManager:
 
     ## Time and date
     MediumText
-        text: root.realtimeClock
+        text: app.System['Date'] + '\n' + app.System['Time']
         font_name: 'fonts/SystemSanFranciscoDisplayRegular.ttf'
         pos_hint: {'x': 0/262, 'y': 0/202}
         size_hint: (262/262, 46/202)
@@ -952,22 +981,6 @@ ScreenManager:
         on_release: app.CurrentConditions.SwitchPanel(self)
 
 ## =============================================================================
-## CREDITS SREEN
-## =============================================================================
-<Credits>:
-    background_color: [0,0,0,0.8]
-    size_hint: (500/800,400/480)
-    Image:
-        source: 'background/credits.png'
-        keep_ratio: 0
-        allow_stretch: 1
-    RelativeLayout:
-        BoldText:
-            text: 'Console version: [color=9aba2fff]' + app.config['System']['Version'] + '[/color]'
-            size_hint: (1,0.1)
-            pos_hint: {'x': 0, 'y': 0.71}
-
-## =============================================================================
 ## UPDATE NOTIFICATION
 ## =============================================================================
 <updateNotif>:
@@ -987,3 +1000,179 @@ ScreenManager:
             text: '[color=9aba2fff]' + app.Version['Latest'] + '[/color]'
             size_hint: (1,0.2)
             pos_hint: {'x': 0.05, 'y': 0.31}
+
+## =============================================================================
+## MAIN MENU
+## =============================================================================
+<mainMenu>:
+    size_hint: (.8, .8)
+    canvas:
+        Color:
+            rgba: 0,0,0,1
+        Rectangle:
+            pos: self.pos
+            size: self.size
+    GridLayout:
+        padding: '12dp'
+        cols: 1
+        size_hint: None, None
+        pos: root.pos
+        size: root.size
+        TabbedPanel:
+            background_color: (0, 0, 0,0)
+            do_default_tab: False
+            tab_pos: 'bottom_left'
+            MainMenuTab:
+                text: 'System'
+                MainMenuLayout:
+                    id: statusPanel
+                    BoxLayout:
+                        orientation: 'vertical'
+                        padding: [dp(0),dp(0),dp(0),dp(10)]
+                        size_hint: (1,.22)
+                        BoldText:
+                            size_hint: (1,1)
+                            font_size: '16dp'
+                            text:'Cambourne'
+                        BoldText: 
+                            size_hint: (1,1)
+                            text: 'Station status: ' + app.Station.Device['stationStatus']                   
+                    GridLayout:
+                        cols: 2
+                        orientation: 'vertical'
+                        padding: [dp(0),dp(0),dp(0),dp(10)]
+                        size_hint: (1,.28)
+                        BoldText:
+                            size_hint: (1,1)
+                            text: 'Station time: ' + app.System['Time']
+                        BoldText:
+                            size_hint: (1,1)
+                            text: 'Station elevation: ' + '{:.2f}'.format(float(app.config['Station']['Elevation'])) + ' m'
+                        BoldText:
+                            size_hint: (1,1)
+                            text: 'Station latitude: ' + '{:.4f}'.format(float(app.config['Station']['Latitude'])) + '\u00B0'
+                        BoldText:
+                            size_hint: (1,1)
+                            text: 'Station Longitude: ' + '{:.4f}'.format(float(app.config['Station']['Longitude'])) + '\u00B0'
+                        BoldText:
+                            size_hint: (1,1)
+                            text: 'Hub firmware: ' + app.Station.Device['hubFirmware']
+                        BoldText:
+                            size_hint: (1,1)
+                            text: 'Console version: [color=00a4b4ff]' + app.config['System']['Version'] + '[/color]'
+                    BoxLayout:
+                        orientation: 'horizontal'
+                        size_hint: (1,.1)
+                        StatusColumn:
+                            size_hint: (.15,1)
+                            text: 'Device'
+                        StatusColumn:
+                            size_hint: (.12,1)
+                            text: 'Status'
+                        StatusColumn:
+                            size_hint: (.22,1)
+                            text: 'Last Observation'
+                        StatusColumn:
+                            size_hint: (.20,1)
+                            text: 'Battery Voltage'
+                        StatusColumn:
+                            size_hint: (.31,1)
+                            text: '24 hr Observation Count'
+            MainMenuTab:
+                text: 'Credits'
+                MainMenuLayout:
+                    BoldText:
+                        size_hint: (1,1)
+                        text:
+                            'Python Console for Weather Flow Tempest and Smart Home Weather Station \n' \
+                            'Code written by Peter Davis. Copyright 2018-2020 \n' \
+                            'GNU General Public License v3.0 \n\n' \
+                            'Graphics inspired by Weather34 Home Weather Station \n' \
+                            'Copyright 2015-2020 Brian Underdown \n' \
+                            'CC Attribution-NonCommercial-NoDerivatives 4.0 International License \n' \
+                            'www.weather34.com/homeweatherstation/ \n\n' \
+                            'Weather forecast data provided by: \n\n' \
+                            'UK MetOffice Datapoint API \n' \
+                            'Contains public sector information licensed under the \n' \
+                            'Open Government Licence \n\n' \
+                            'DarkSky API \n' \
+                            'www.darksky.net \n'
+
+## =============================================================================
+## DEVICE STATUS PANELS
+## =============================================================================
+<tempestStatus>:
+    size_hint: (1,.1)
+    orientation: 'horizontal'
+    BoldText:
+        size_hint: (.15,1)
+        text: 'TEMPEST'
+    BoldText:
+        size_hint: (.12,1)
+        text: app.Station.Device['tempestStatus']
+    BoldText:
+        size_hint: (.22,1)
+        text: app.Station.Device['tempestSampleTime']
+    BoldText:
+        size_hint: (.20,1)
+        text: app.Station.Device['tempestVoltage']
+    BoldText:
+        size_hint: (.31,1)
+        text: '-'
+
+<skyStatus>:
+    size_hint: (1,.1)
+    orientation: 'horizontal'
+    BoldText:
+        size_hint: (.15,1)
+        text: 'SKY'
+    BoldText:
+        size_hint: (.12,1)
+        text: app.Station.Device['skyStatus']
+    BoldText:
+        size_hint: (.22,1)
+        text: app.Station.Device['skySampleTime']
+    BoldText:
+        size_hint: (.20,1)
+        text: app.Station.Device['skyVoltage']
+    BoldText:
+        size_hint: (.31,1)
+        text: app.Station.Device['skyObCount']
+
+<outAirStatus>:
+    size_hint: (1,.1)
+    orientation: 'horizontal'
+    BoldText:
+        size_hint: (.15,1)
+        text: 'Outdoor AIR'
+    BoldText:
+        size_hint: (.12,1)
+        text: app.Station.Device['outAirStatus']
+    BoldText:
+        size_hint: (.22,1)
+        text: app.Station.Device['outAirSampleTime']
+    BoldText:
+        size_hint: (.20,1)
+        text: app.Station.Device['outAirVoltage']
+    BoldText:
+        size_hint: (.31,1)
+        text: app.Station.Device['outAirObCount']
+
+<inAirStatus>:
+    size_hint: (1,.1)
+    orientation: 'horizontal'
+    BoldText:
+        size_hint: (.15,1)
+        text: 'Indoor AIR'
+    BoldText:
+        size_hint: (.12,1)
+        text: app.Station.Device['inAirStatus']
+    BoldText:
+        size_hint: (.22,1)
+        text: app.Station.Device['inAirSampleTime']
+    BoldText:
+        size_hint: (.20,1)
+        text: app.Station.Device['inAirVoltage']
+    BoldText:
+        size_hint: (.31,1)
+        text: '-'
