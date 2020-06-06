@@ -97,7 +97,6 @@ def Tempest(Msg,wfpiconsole):
     Radiation = [Ob[11],' W m[sup]-2[/sup]']
     Rain      = [Ob[12],'mm']
     Strikes   = [Ob[15],'count']
-    Battery   = [Ob[16],' v']
 
     # Extract lightning strike data from the latest AIR Websocket JSON "Summary"
     # object
@@ -189,7 +188,6 @@ def Tempest(Msg,wfpiconsole):
     derivedObs['StrikesMonth']  = observation.Format(StrikeCount['Month'],'StrikeCount')
     derivedObs['StrikesYear']   = observation.Format(StrikeCount['Year'], 'StrikeCount')
     derivedObs['Humidity']      = observation.Format(Humidity,'Humidity')
-    derivedObs['Battery']       = observation.Format(Battery,'Battery')
     derivedObs['FeelsLike']     = observation.Format(FeelsLike,'Temp')
     derivedObs['RainRate']      = observation.Format(RainRate,'Precip')
     derivedObs['TodayRain']     = observation.Format(TodayRain,'Precip')
@@ -202,7 +200,6 @@ def Tempest(Msg,wfpiconsole):
     derivedObs['MaxGust']       = observation.Format(MaxGust,'Wind')
     derivedObs['WindDir']       = observation.Format(WindDir,'Direction')
     derivedObs['Radiation']     = observation.Format(Radiation,'Radiation')
-    derivedObs['Battery']       = observation.Format(Battery,'Battery')
     derivedObs['peakSun']       = observation.Format(peakSun,'peakSun')
     derivedObs['UVIndex']       = observation.Format(UVIndex,'UV')
 
@@ -239,7 +236,6 @@ def Sky(Msg,wfpiconsole):
     WindSpd   = [Ob[5],'mps']
     WindGust  = [Ob[6],'mps']
     WindDir   = [Ob[7],'degrees']
-    Battery   = [Ob[8],'v']
     Radiation = [Ob[10],' W m[sup]-2[/sup]']
 
     # Store latest SKY Websocket message
@@ -303,7 +299,6 @@ def Sky(Msg,wfpiconsole):
     derivedObs['MaxGust']       = observation.Format(MaxGust,'Wind')
     derivedObs['WindDir']       = observation.Format(WindDir,'Direction')
     derivedObs['Radiation']     = observation.Format(Radiation,'Radiation')
-    derivedObs['Battery']       = observation.Format(Battery,'Battery')
     derivedObs['peakSun']       = observation.Format(peakSun,'peakSun')
     derivedObs['UVIndex']       = observation.Format(UVIndex,'UV')
 
@@ -339,7 +334,6 @@ def outdoorAir(Msg,wfpiconsole):
     Pres     = [Ob[1],'mb']
     Temp     = [Ob[2],'c']
     Humidity = [Ob[3],' %']
-    Battery  = [Ob[6],' v']
     Strikes  = [Ob[4],'count']
 
     # Extract lightning strike data from the latest outdoor AIR Websocket JSON
@@ -411,7 +405,6 @@ def outdoorAir(Msg,wfpiconsole):
     derivedObs['StrikesMonth'] = observation.Format(StrikeCount['Month'],'StrikeCount')
     derivedObs['StrikesYear']  = observation.Format(StrikeCount['Year'],'StrikeCount')
     derivedObs['Humidity']     = observation.Format(Humidity,'Humidity')
-    derivedObs['Battery']      = observation.Format(Battery,'Battery')
 
     # Update wfpiconsole display with derived outdoor AIR observations
     updateDisplay(derivedObs,wfpiconsole,'outdoorAir')
@@ -516,14 +509,10 @@ def rapidWind(Msg,wfpiconsole):
     WindSpd = observation.Units(WindSpd,wfpiconsole.config['Units']['Wind'])
     WindDir = observation.Units(WindDir,'degrees')
 
-    # Store derived Rapid Wind observations dictionary
-    derivedObs               = {}
-    derivedObs['rapidShift'] = WindDir[0] - WindDirOld[0]
-    derivedObs['rapidSpd']   = observation.Format(WindSpd,'Wind')
-    derivedObs['rapidDir']   = observation.Format(WindDir,'Direction')
-
     # Update wfpiconsole display with derived Rapid Wind observations
-    updateDisplay(derivedObs,wfpiconsole,'rapidWind')
+    wfpiconsole.Obs['rapidShift'] = WindDir[0] - WindDirOld[0]
+    wfpiconsole.Obs['rapidSpd']   = observation.Format(WindSpd,'Wind')
+    wfpiconsole.Obs['rapidDir']   = observation.Format(WindDir,'Direction')
 
     # Animate wind rose arrow if WindSpeedPanel panel is active
     if hasattr(wfpiconsole,'WindSpeedPanel'):
@@ -555,7 +544,7 @@ def evtStrike(Msg,wfpiconsole):
     # Convert observation units as required
     StrikeDist = observation.Units(StrikeDist,wfpiconsole.config['Units']['Distance'])
 
-    # Store derived evt_strike observations dictionary
+    # Store derived evt_strike observations in derivedObs dictionary
     derivedObs                 = {}
     derivedObs['StrikeDeltaT'] = observation.Format(StrikeDeltaT,'TimeDelta')
     derivedObs['StrikeDist']   = observation.Format(StrikeDist,'StrikeDistance')

@@ -1066,8 +1066,6 @@ def peakSunHours(Radiation,peakSun,Astro,Device,Config,flagAPI):
     else:
         watthrs = peakSun[2] + Radiation[0]*1/60 if not math.isnan(Radiation[0]) else peakSun[2]
         peakSun = [watthrs/1000,'hrs',watthrs,Now]
-        if math.isnan(Radiation[0]):
-            print("Radiation is NaN")
 
     # Calculate proportion of daylight hours that have passed
     daylightTotal  = (Astro['Sunset'][0] - Astro['Sunrise'][0]).total_seconds()
@@ -1094,43 +1092,3 @@ def peakSunHours(Radiation,peakSun,Astro,Device,Config,flagAPI):
 
     # Return Peak Sun Hours
     return peakSun
-
-# # CHECK STATUS OF SKY AND AIR MODULES
-# # --------------------------------------------------------------------------
-# def SkyAirStatus(self,dt):
-
-    # # Define current time in station timezone
-    # Tz = pytz.timezone(self.config['Station']['Timezone'])
-    # Now = datetime.now(pytz.utc).astimezone(Tz)
-
-    # # Check latest AIR observation time is less than 5 minutes old and
-    # # battery voltage is greater than 1.9 v
-    # if 'Obs' in self.Obs:
-        # AirTime = datetime.fromtimestamp(self.Obs['Obs'][0],Tz)
-        # AirDiff = (Now - AirTime).total_seconds()
-        # if self.Obs['Battery'][0] != '-':
-            # AirVoltage = float(self.Obs['Battery'][0])
-        # else:
-            # AirVoltage = 0;
-        # if AirDiff < 300 and AirVoltage > 1.9:
-            # self.Obs['StatusIcon'] = 'OK'
-
-        # # Latest AIR observation time is greater than 5 minutes old
-        # else:
-            # self.Obs['StatusIcon'] = 'Error'
-
-    # # Check latest Sky observation time is less than 5 minutes old and
-    # # battery voltage is greater than 2.0 v
-    # if 'Obs' in self.Obs:
-        # SkyTime = datetime.fromtimestamp(self.Obs['Obs'][0],Tz)
-        # SkyDiff = (Now - SkyTime).total_seconds()
-        # if self.Obs['Battery'][0] != '-':
-            # SkyVoltage = float(self.Obs['Battery'][0])
-        # else:
-            # SkyVoltage = 0;
-        # if SkyDiff < 300 and SkyVoltage > 2.0:
-            # self.Obs['StatusIcon'] = 'OK'
-
-        # # Latest Sky observation time is greater than 5 minutes old
-        # else:
-            # self.Obs['StatusIcon'] = 'Error'

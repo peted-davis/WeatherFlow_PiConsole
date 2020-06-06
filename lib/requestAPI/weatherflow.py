@@ -105,6 +105,34 @@ def Last6h(Device,endTime,Config):
 
     # Return observations from the last three hours
     return Data
+    
+def Last24h(Device,endTime,Config):
+
+    """ API Request for last twenty fouts hours of data from a WeatherFlow Smart 
+    Home Weather Station device
+
+    INPUTS:
+        Device              Device ID
+        endTime             End time of six hour window as a UNIX timestamp
+        Config              Station configuration
+
+    OUTPUT:
+        Response            API response containing latest three-hourly forecast
+    """
+
+    # Calculate timestamp three hours past
+    startTime = endTime - int((3600*24))
+
+    # Download WeatherFlow data for last three hours
+    Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&api_key={}'
+    URL = Template.format(Device,startTime,endTime,Config['Keys']['WeatherFlow'])
+    try:
+        Data = requests.get(URL,timeout=int(Config['System']['Timeout']))
+    except:
+        Data = None
+
+    # Return observations from the last three hours
+    return Data    
 
 def Today(Device,Config):
 
@@ -250,4 +278,28 @@ def Year(Device,Config):
         Data = None
 
     # Return observations from the last year
+    return Data
+    
+def stationMetaData(Station,Config):
+
+    """ API Request for station meta data from a WeatherFlow Smart Home Weather 
+    Station
+
+    INPUTS:
+        Device              Device type (AIR/SKY/TEMPEST)
+        Config              Station configuration
+
+    OUTPUT:
+        Response            API response containing latest three-hourly forecast
+    """
+
+    # Download station meta data
+    Template = 'https://swd.weatherflow.com/swd/rest/stations/{}?api_key={}'
+    URL = Template.format(Station,Config['Keys']['WeatherFlow'])
+    try:
+        Data = requests.get(URL,timeout=int(Config['System']['Timeout']))
+    except:
+        Data = None
+        
+    # Return station meta data
     return Data

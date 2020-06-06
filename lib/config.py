@@ -488,24 +488,19 @@ def writeConfigKey(Config,Section,Key,keyDetails):
                 else:
                     Value = ''
 
-        # Get station latitude/longitude
+        # Get station latitude/longitude, timezone, or name
         if Section == 'Station':
-            if Key in ['Latitude','Longitude']:
+            if Key in ['Latitude','Longitude','Timezone','Name']:
                 Value = STATION['stations'][0][Key.lower()]
-
-        # Get station timezone
-        if Section == 'Station':
-            if Key in ['Timezone']:
-                Value = STATION['stations'][0]['timezone']
 
         # Get station elevation
         if Section == 'Station':
-            if Key in ['Elevation']:
+            if Key == 'Elevation':
                 Value = STATION['stations'][0]['station_meta']['elevation']
-
+                
         # Get station country code
         if Section == 'Station':
-            if Key in ['Country']:
+            if Key == 'Country':
                 Value = GEONAMES['geonames'][0]['countryCode']
 
         # Get station units
@@ -584,6 +579,7 @@ def defaultConfig():
                                                           ('Longitude',      {'Type': 'request', 'Source': 'station', 'Desc': 'station longitude'}),
                                                           ('Elevation',      {'Type': 'request', 'Source': 'station', 'Desc': 'station elevation'}),
                                                           ('Timezone',       {'Type': 'request', 'Source': 'station', 'Desc': 'station timezone'}),
+                                                          ('Name',           {'Type': 'request', 'Source': 'station', 'Desc': 'station name'}),
                                                           ('Country',        {'Type': 'request', 'Source': 'GeoNames',  'Desc': 'station country'}),
                                                           ('ForecastLocn',   {'Type': 'request', 'Source': 'MetOffice', 'Desc': 'station forecast location'}),
                                                           ('MetOfficeID',    {'Type': 'request', 'Source': 'MetOffice', 'Desc': 'station forecast ID'})])
