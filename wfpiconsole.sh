@@ -502,6 +502,8 @@ installServiceFile () {
     # Write current user and install directory to wfpiconsole.service file
     sed -i "s+WorkingDirectory=.*$+WorkingDirectory=$CONSOLEDIR+" $CONSOLEDIR/wfpiconsole.service
     sed -i "s+User=.*$+User=$USER+" $CONSOLEDIR/wfpiconsole.service
+    sed -i "s+StandardOutput=.*$+StandardOutput=file:$CONSOLEDIR/wfpiconsole.log+" $CONSOLEDIR/wfpiconsole.service
+    sed -i "s+StandardError=.*$+StandardError=file:$CONSOLEDIR/wfpiconsole.log+" $CONSOLEDIR/wfpiconsole.service
 
     # Install wfpiconsole.service file to /etc/systemd/system/ and reload deamon
     local str="Copying service file to autostart directory"
@@ -525,6 +527,7 @@ enableService () {
     # Enable wfpiconsole.service file
     local str="Enabling the WeatherFlow PiConsole service file"
     printf "  %b %s..." "${INFO}" "${str}"
+    rm -f wfpiconsole.log
     if (sudo systemctl enable wfpiconsole &> errorLog); then
         if (sudo systemctl start wfpiconsole &> errorLog); then
             printf "%b  %b %s\\n\\n" "${OVER}" "${TICK}" "${str}"
@@ -657,7 +660,8 @@ processComplete() {
 # START THE WeatherFlow PiConsole
 # ------------------------------------------------------------------------------
 start () {
-    cd $CONSOLEDIR && python3 main.py
+    cd $CONSOLEDIR && rm -f wfpiconsole.log
+    python3 main.py |& tee wfpiconsole.log
 }
 
 # STOP THE WeatherFlow PiConsole

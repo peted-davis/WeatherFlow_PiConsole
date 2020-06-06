@@ -1069,7 +1069,6 @@ def peakSunHours(Radiation,peakSun,Astro,Device,Config,flagAPI):
 
     # Calculate proportion of daylight hours that have passed
     daylightTotal  = (Astro['Sunset'][0] - Astro['Sunrise'][0]).total_seconds()
-
     if Astro['Sunrise'][0] <= Now <= Astro['Sunset'][0]:
         daylightElapsed = (Now - Astro['Sunrise'][0]).total_seconds()
     else:
