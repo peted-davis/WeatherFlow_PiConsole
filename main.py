@@ -149,6 +149,7 @@ from lib import requestAPI
 from lib import websocket
 from lib import settings
 from lib import forecast
+from lib import station
 from lib import system
 
 # ==============================================================================
@@ -203,10 +204,9 @@ class wfpiconsole(App):
                               ('StrikesToday','-'),    ('StrikesMonth','-'),   ('StrikesYear','-')
                              ])
     Astro = DictProperty    ([('Sunrise',['-','-',0]), ('Sunset',['-','-',0]), ('Dawn',['-','-',0]),
-                              ('Dusk',['-','-',0]),    ('sunEvent','----'),    ('sunIcon',['-',0]),
-                              ('sunIconPosition',0),   ('Moonrise',['-','-']), ('Moonset',['-','-']),
-                              ('NewMoon','--'),        ('FullMoon','--'),      ('Phase','---'),
-                              ('Reformat','-'),
+                              ('Dusk',['-','-',0]),    ('sunEvent','----'),    ('sunIcon',['-',0,0]),
+                              ('Moonrise',['-','-']), ('Moonset',['-','-']),   ('NewMoon','--'),        
+                              ('FullMoon','--'),      ('Phase','---'),         ('Reformat','-'),
                              ])
     MetData = DictProperty  ([('Weather','Building'),  ('Temp','--'),          ('Precip','--'),
                               ('WindSpd','--'),        ('WindDir','--'),       ('Valid','--')
@@ -214,8 +214,7 @@ class wfpiconsole(App):
     Sager = DictProperty    ([('Forecast','--'),       ('Issued','--')])
     System = DictProperty   ([('Time','-'),            ('Date','-')])
     Version = DictProperty  ([('Latest','-')])
-    
-    
+
     # Define App class configParser properties
     BarometerMax = ConfigParserProperty('-','System', 'BarometerMax','wfpiconsole')
     BarometerMin = ConfigParserProperty('-','System', 'BarometerMin','wfpiconsole')
@@ -240,7 +239,7 @@ class wfpiconsole(App):
         elif self.config['System']['Hardware'] == 'Other':
             Window.size = (800,480)
 
-        # Initialise real time lock
+        # Initialise real time clock
         Clock.schedule_interval(partial(system.realtimeClock,self.System,self.config),1.0)
         
         # Initialise Sunrise and Sunset time, Moonrise and Moonset time, and
@@ -254,15 +253,9 @@ class wfpiconsole(App):
 
         # Initialise websocket connection
         self.WebsocketConnect()
-        
-        
-        
-        
 
         # Check for latest version
         Clock.schedule_once(partial(system.checkVersion,self.Version,self.config,updateNotif))
-
-
 
         # Initialise Station class, and set device status to be checked every 
         # second
@@ -273,7 +266,6 @@ class wfpiconsole(App):
         Clock.schedule_interval(self.UpdateMethods,1.0)
         Clock.schedule_interval(partial(astro.sunTransit,self.Astro,self.config),1.0)
         Clock.schedule_interval(partial(astro.moonPhase ,self.Astro,self.config),1.0)
-        
 
     # BUILD 'WeatherFlowPiConsole' APP CLASS SETTINGS
     # --------------------------------------------------------------------------
@@ -441,8 +433,8 @@ class wfpiconsole(App):
 
         # Extract observations from evt_strike websocket message
         elif Type == 'evt_strike':
-            Thread(target=websocket.evtStrike, args=(Msg,self), name="evt_strike", daemon=True).start()
-
+            websocket.evtStrike(Msg,self)
+            
     # UPDATE 'WeatherFlowPiConsole' APP CLASS METHODS AT REQUIRED INTERVALS
     # --------------------------------------------------------------------------
     def UpdateMethods(self,dt):
@@ -513,7 +505,6 @@ class CurrentConditions(Screen):
 
     # SWITCH BETWEEN DIFFERENT PANELS ON CURRENT CONDITIONS SCREEN
     # --------------------------------------------------------------------------
-    @mainthread
     def SwitchPanel(self,Instance,overideButton=None):
 
         # Determine ID of button that has been pressed
@@ -770,7 +761,6 @@ class LightningPanel(RelativeLayout):
                 self.lightningBoltIcon = 'lightningBolt'
 
     # Animate lightning bolt icon
-    @mainthread
     def animateLightningBoltIcon(self):
         Anim = Animation(lightningBoltPosX=10,t='out_quad',d=0.02) + Animation(lightningBoltPosX=0,t='out_elastic',d=0.5)
         Anim.start(self)
@@ -820,17 +810,17 @@ class Station(Widget):
                            ('inAirObCount','-'),      ('stationStatus','-'),  ('hubFirmware','-')
                           ])
 
-    # Get station status from device status
+    # Get hub status from device status
     def getStationStatus(self):
-        Thread(target=system.getStationStatus, args=(self.Device,App.get_running_app()), name="getStationStatus", daemon=True).start()
+        Thread(target=station.getHubStatus, args=(self.Device,App.get_running_app()), name="getHubStatus", daemon=True).start()
 
     # Get device status from last observation time
     def getDeviceStatus(self,dt):
-        system.getDeviceStatus(self.Device,App.get_running_app())
+        station.getDeviceStatus(self.Device,App.get_running_app())
 
     # Get device observation count from WeatherFlow API
     def getObservationCount(self):
-        Thread(target=system.getObservationCount, args=(self.Device,App.get_running_app()), name="getObservationCount", daemon=True).start()
+        Thread(target=station.getObservationCount, args=(self.Device,App.get_running_app()), name="getObservationCount", daemon=True).start()
 
 # ==============================================================================
 # mainMenu AND [module]Status CLASSES

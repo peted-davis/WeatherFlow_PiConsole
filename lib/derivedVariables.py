@@ -176,9 +176,9 @@ def SLPTrend(Pres,Time,Data3h,Config):
     if requestAPI.weatherflow.verifyResponse(Data3h,'obs'):
         Data3h = Data3h.json()['obs']
         if Config['Station']['OutAirID']:
-            Pres3h = [Data3h[0][1],'mb']
+            Pres3h = [Data3h[0][1] if Data3h[0][1] != None else NaN,'mb']
         elif Config['Station']['TempestID']:
-            Pres3h = [Data3h[0][6],'mb']
+            Pres3h = [Data3h[0][6] if Data3h[0][6] != None else NaN,'mb']
     else:
         Pres3h = [NaN,'mb']
 
@@ -255,7 +255,7 @@ def SLPMaxMin(Time,Pres,maxPres,minPres,Device,Config,flagAPI):
     # Define current time in station timezone
     Tz = pytz.timezone(Config['Station']['Timezone'])
     Now = datetime.now(pytz.utc).astimezone(Tz)
-    
+
     # Set time format based on user configuration
     if Config['Display']['TimeFormat'] == '12 hr':
         if Config['System']['Hardware'] != 'Other':
@@ -286,7 +286,7 @@ def SLPMaxMin(Time,Pres,maxPres,minPres,Device,Config,flagAPI):
             # Calculate sea level pressure
             SLP = [derive.SLP(P,Config) for P in Pres]
 
-            # Define maximum and minimum pressure. 
+            # Define maximum and minimum pressure.
             MaxPres = [max(SLP)[0],'mb',datetime.fromtimestamp(Time[SLP.index(max(SLP))],Tz).strftime(Format),max(SLP)[0],Now]
             MinPres = [min(SLP)[0],'mb',datetime.fromtimestamp(Time[SLP.index(min(SLP))],Tz).strftime(Format),min(SLP)[0],Now]
         else:
@@ -348,7 +348,7 @@ def TempMaxMin(Time,Temp,maxTemp,minTemp,Device,Config,flagAPI):
     # Define current time in station timezone
     Tz = pytz.timezone(Config['Station']['Timezone'])
     Now = datetime.now(pytz.utc).astimezone(Tz)
-    
+
     # Set time format based on user configuration
     if Config['Display']['TimeFormat'] == '12 hr':
         if Config['System']['Hardware'] != 'Other':
@@ -547,12 +547,12 @@ def StrikeCount(Count,strikeCount,Device,Config,flagAPI):
             monthStrikes = [sum(x for x in Strikes),'count',sum(x for x in Strikes),Now]
         else:
             monthStrikes = [NaN,'count',NaN,Now]
-            
-        # Adjust monthly lightning strike total for strikes that have been 
+
+        # Adjust monthly lightning strike total for strikes that have been
         # recorded today
         if not math.isnan(todayStrikes[0]):
             monthStrikes[0] += todayStrikes[0]
-            monthStrikes[2] += todayStrikes[2]    
+            monthStrikes[2] += todayStrikes[2]
 
     # Code initialising. Download all data for current year using
     # Weatherflow API and calculate total yearly lightning strikes
@@ -572,12 +572,12 @@ def StrikeCount(Count,strikeCount,Device,Config,flagAPI):
             yearStrikes = [sum(x for x in Strikes),'count',sum(x for x in Strikes),Now]
         else:
             yearStrikes = [NaN,'count',NaN,Now]
-            
-        # Adjust monthly lightning strike total for strikes that have been 
+
+        # Adjust monthly lightning strike total for strikes that have been
         # recorded today
         if not math.isnan(todayStrikes[0]):
             yearStrikes[0] += todayStrikes[0]
-            yearStrikes[2] += todayStrikes[2]      
+            yearStrikes[2] += todayStrikes[2]
 
         # Return Daily, Monthly, and Yearly lightning strike counts
         return {'Today':todayStrikes, 'Month':monthStrikes, 'Year':yearStrikes}
@@ -730,12 +730,12 @@ def RainAccumulation(Rain,rainAccum,Device,Config,flagAPI):
             MonthRain = [sum(x for x in Rain),'mm',sum(x for x in Rain),Now]
         else:
             MonthRain = [NaN,'mm',NaN,Now]
-            
+
         # Adjust monthly rainfall total for rain that has fallen today
         if not math.isnan(TodayRain[0]):
             MonthRain[0] += TodayRain[0]
             MonthRain[2] += TodayRain[2]
-        
+
     # Code initialising. Download all data for current year using
     # Weatherflow API and calculate total yearly rainfall
     if rainAccum['Year'][0] == '-' or flagAPI:
@@ -753,12 +753,12 @@ def RainAccumulation(Rain,rainAccum,Device,Config,flagAPI):
             YearRain = [sum(x for x in Rain),'mm',sum(x for x in Rain),Now]
         else:
             YearRain = [NaN,'mm',NaN,Now]
-            
+
         # Adjust yearly rainfall total for rain that has fallen today
         if not math.isnan(TodayRain[0]):
             YearRain[0] += TodayRain[0]
             YearRain[2] += TodayRain[2]
-        
+
         # Return Daily, Monthly, and Yearly rainfall accumulation totals
         return {'Today':TodayRain, 'Yesterday':YesterdayRain, 'Month':MonthRain, 'Year':YearRain}
 

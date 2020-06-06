@@ -115,6 +115,16 @@ def checkVersion(verData,Config,updateNotif,*largs):
 
 def getStationStatus(Status,wfpiconsole):
 
+    """ Gets the current status of the station
+
+    INPUTS:
+        Status                 Dictionary holding station status information
+        wfpiconsole            wfpiconsole object
+
+    OUTPUT:
+        Status                 Dictionary holding station status information
+    """
+
     # Set station status based on device status
     deviceStatus = []
     for Key in Status:
@@ -139,7 +149,7 @@ def getStationStatus(Status,wfpiconsole):
         for Device in Devices:
             if Device['device_type'] == 'HB':
                 Status['hubFirmware'] = Device['firmware_revision']
-                
+
 def getDeviceStatus(Status,wfpiconsole):
 
     """ Gets the current status of the devices attached to the station
@@ -170,12 +180,12 @@ def getDeviceStatus(Status,wfpiconsole):
                 deviceStatus = '[color=9aba2fff]OK[/color]'
             else:
                 deviceStatus = '[color=d73027ff]Error[/color]'
-                
+
             # Store outdoor AIR device status variables
             Status['tempestSampleTime'] = lastSampleTime.strftime('%H:%M:%S')
             Status['tempestVoltage']    = '{:.2f}'.format(deviceVoltage)
             Status['tempestStatus']     = deviceStatus
-    
+
     # Get SKY device status
     if wfpiconsole.config['Station']['SkyID']:
         if 'SkyMsg' in wfpiconsole.Obs:
@@ -190,7 +200,7 @@ def getDeviceStatus(Status,wfpiconsole):
                 deviceStatus = '[color=9aba2fff]OK[/color]'
             else:
                 deviceStatus = '[color=d73027ff]Error[/color]'
-                
+
             # Store outdoor AIR device status variables
             Status['skySampleTime'] = lastSampleTime.strftime('%H:%M:%S')
             Status['skyVoltage']    = '{:.2f}'.format(deviceVoltage)
@@ -210,12 +220,12 @@ def getDeviceStatus(Status,wfpiconsole):
                 deviceStatus = '[color=9aba2fff]OK[/color]'
             else:
                 deviceStatus = '[color=d73027ff]Error[/color]'
-                
+
             # Store outdoor AIR device status variables
             Status['outAirSampleTime'] = lastSampleTime.strftime('%H:%M:%S')
             Status['outAirVoltage']    = '{:.2f}'.format(deviceVoltage)
             Status['outAirStatus']     = deviceStatus
-            
+
     # Get outdoor AIR device status
     if wfpiconsole.config['Station']['InAirID']:
         if 'inAirMsg' in wfpiconsole.Obs:
@@ -230,17 +240,17 @@ def getDeviceStatus(Status,wfpiconsole):
                 deviceStatus = '[color=9aba2fff]OK[/color]'
             else:
                 deviceStatus = '[color=d73027ff]Error[/color]'
-                
+
             # Store outdoor AIR device status variables
             Status['inAirSampleTime'] = lastSampleTime.strftime('%H:%M:%S')
             Status['inAirVoltage']    = '{:.2f}'.format(deviceVoltage)
-            Status['inAirStatus']     = deviceStatus        
-            
+            Status['inAirStatus']     = deviceStatus
+
     return Status
-    
+
 def getObservationCount(Status,wfpiconsole):
 
-    """ Gets number of observations in the last 24 hours for each device 
+    """ Gets number of observations in the last 24 hours for each device
     attached to the station
 
     INPUTS:
@@ -264,8 +274,8 @@ def getObservationCount(Status,wfpiconsole):
         Data24h = requestAPI.weatherflow.Last24h(Device,lastOb[0],wfpiconsole.config)
         if requestAPI.weatherflow.verifyResponse(Data24h,'obs'):
             Data24h = Data24h.json()['obs']
-            Status['tempestObCount'] = str(len(Data24h)) 
-    
+            Status['tempestObCount'] = str(len(Data24h))
+
     # Get SKY observation count
     if wfpiconsole.config['Station']['SkyID']:
         Device  = wfpiconsole.config['Station']['SkyID']
@@ -275,7 +285,7 @@ def getObservationCount(Status,wfpiconsole):
         Data24h = requestAPI.weatherflow.Last24h(Device,lastOb[0],wfpiconsole.config)
         if requestAPI.weatherflow.verifyResponse(Data24h,'obs'):
             Data24h = Data24h.json()['obs']
-            Status['skyObCount'] = str(len(Data24h)) 
+            Status['skyObCount'] = str(len(Data24h))
 
     # Get outdoor AIR observation count
     if wfpiconsole.config['Station']['OutAirID']:
@@ -286,8 +296,8 @@ def getObservationCount(Status,wfpiconsole):
         Data24h = requestAPI.weatherflow.Last24h(Device,lastOb[0],wfpiconsole.config)
         if requestAPI.weatherflow.verifyResponse(Data24h,'obs'):
             Data24h = Data24h.json()['obs']
-            Status['outAirObCount'] = str(len(Data24h)) 
-            
+            Status['outAirObCount'] = str(len(Data24h))
+
     # Get indoor AIR observation count
     if wfpiconsole.config['Station']['InAirID']:
         Device  = wfpiconsole.config['Station']['InAirID']
@@ -297,9 +307,8 @@ def getObservationCount(Status,wfpiconsole):
         Data24h = requestAPI.weatherflow.Last24h(Device,lastOb[0],wfpiconsole.config)
         if requestAPI.weatherflow.verifyResponse(Data24h,'obs'):
             Data24h = Data24h.json()['obs']
-            Status['outAirObCount'] = str(len(Data24h))       
-            
-    return Status
-    
+            Status['outAirObCount'] = str(len(Data24h))
 
-    
+    return Status
+
+

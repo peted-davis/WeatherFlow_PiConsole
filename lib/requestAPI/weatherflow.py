@@ -105,10 +105,10 @@ def Last6h(Device,endTime,Config):
 
     # Return observations from the last three hours
     return Data
-    
+
 def Last24h(Device,endTime,Config):
 
-    """ API Request for last twenty fouts hours of data from a WeatherFlow Smart 
+    """ API Request for last twenty fouts hours of data from a WeatherFlow Smart
     Home Weather Station device
 
     INPUTS:
@@ -132,7 +132,7 @@ def Last24h(Device,endTime,Config):
         Data = None
 
     # Return observations from the last three hours
-    return Data    
+    return Data
 
 def Today(Device,Config):
 
@@ -261,7 +261,7 @@ def Year(Device,Config):
     Tz = pytz.timezone(Config['Station']['Timezone'])
     Now = datetime.now(pytz.utc).astimezone(Tz)
 
-    # Convert start of current year in Station timezone to start of current year 
+    # Convert start of current year in Station timezone to start of current year
     # in UTC. Convert UTC time into time timestamp
     startTime = int(Tz.localize(datetime(Now.year,1,1)).timestamp())
 
@@ -279,10 +279,10 @@ def Year(Device,Config):
 
     # Return observations from the last year
     return Data
-    
+
 def stationMetaData(Station,Config):
 
-    """ API Request for station meta data from a WeatherFlow Smart Home Weather 
+    """ API Request for station meta data from a WeatherFlow Smart Home Weather
     Station
 
     INPUTS:
@@ -300,6 +300,6 @@ def stationMetaData(Station,Config):
         Data = requests.get(URL,timeout=int(Config['System']['Timeout']))
     except:
         Data = None
-        
+
     # Return station meta data
     return Data

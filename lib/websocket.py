@@ -55,8 +55,8 @@ def updateDisplay(derivedObs,wfpiconsole,Type):
     # Animate rain rate level if RainfallPanel is active
     if Type in ['Tempest','Sky'] and hasattr(wfpiconsole,'RainfallPanel'):
         wfpiconsole.RainfallPanel.animateRainRate()
-        
-    # Set lightning bolt icon if LightningPanel is active    
+
+    # Set lightning bolt icon if LightningPanel is active
     if Type in ['Tempest','outdoorAir']  and hasattr(wfpiconsole,'LightningPanel'):
         wfpiconsole.LightningPanel.setLightningBoltIcon()
 
@@ -544,13 +544,9 @@ def evtStrike(Msg,wfpiconsole):
     # Convert observation units as required
     StrikeDist = observation.Units(StrikeDist,wfpiconsole.config['Units']['Distance'])
 
-    # Store derived evt_strike observations in derivedObs dictionary
-    derivedObs                 = {}
-    derivedObs['StrikeDeltaT'] = observation.Format(StrikeDeltaT,'TimeDelta')
-    derivedObs['StrikeDist']   = observation.Format(StrikeDist,'StrikeDistance')
-
-    # Update wfpiconsole display with derived evt_strike observations
-    updateDisplay(derivedObs,wfpiconsole,'Strike')
+    # Update wfpiconsole display with derived Rapid Wind observations
+    wfpiconsole.Obs['StrikeDeltaT'] = observation.Format(StrikeDeltaT,'TimeDelta')
+    wfpiconsole.Obs['StrikeDist']   = observation.Format(StrikeDist,'StrikeDistance')
 
     # If required, open secondary lightning panel to show strike has been
     # detected
@@ -558,10 +554,6 @@ def evtStrike(Msg,wfpiconsole):
         for ii,Button in enumerate(wfpiconsole.CurrentConditions.buttonList):
             if "Lightning" in Button[2]:
                 wfpiconsole.CurrentConditions.SwitchPanel([],Button)
-
-                # Wait for lightning panel to be instantiated
-                while not hasattr(wfpiconsole,'LightningPanel'):
-                    time.sleep(0.1)
 
     # Set and animate lightning bolt icon if LightningPanel panel is active
     if hasattr(wfpiconsole,'LightningPanel'):
