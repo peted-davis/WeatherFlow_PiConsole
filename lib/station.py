@@ -80,7 +80,7 @@ def getDeviceStatus(Status,wfpiconsole):
 
     # Get TEMPEST device status
     if wfpiconsole.config['Station']['TempestID']:
-        if 'TempestID' in wfpiconsole.Obs:
+        if 'TempestMsg' in wfpiconsole.Obs:
             lastOb         = [x if x != None else NaN for x in wfpiconsole.Obs['TempestMsg']['obs'][0]]
             lastSampleTime = datetime.fromtimestamp(lastOb[0],Tz)
             lastSampleDiff = (Now - lastSampleTime).total_seconds()
@@ -158,6 +158,7 @@ def getDeviceStatus(Status,wfpiconsole):
             Status['inAirVoltage']    = '{:.2f}'.format(deviceVoltage)
             Status['inAirStatus']     = deviceStatus
 
+    # Return device status
     return Status
 
 def getObservationCount(Status,wfpiconsole):
@@ -219,8 +220,9 @@ def getObservationCount(Status,wfpiconsole):
         Data24h = requestAPI.weatherflow.Last24h(Device,lastOb[0],wfpiconsole.config)
         if requestAPI.weatherflow.verifyResponse(Data24h,'obs'):
             Data24h = Data24h.json()['obs']
-            Status['outAirObCount'] = str(len(Data24h))
+            Status['inAirObCount'] = str(len(Data24h))
 
+    # Return device observation count
     return Status
 
 
