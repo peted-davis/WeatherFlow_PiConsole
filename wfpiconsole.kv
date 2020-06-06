@@ -87,7 +87,7 @@ ScreenManager:
             size: 1, self.height,
 
 <MainMenuLayout@GridLayout>:
-    padding: '12dp'
+    padding: '5dp'
     cols: 1
     canvas.after:
         Color:
@@ -1013,7 +1013,7 @@ ScreenManager:
             pos: self.pos
             size: self.size
     GridLayout:
-        padding: '12dp'
+        padding: '5dp'
         cols: 1
         size_hint: None, None
         pos: root.pos
@@ -1033,7 +1033,7 @@ ScreenManager:
                         BoldText:
                             size_hint: (1,1)
                             font_size: '16dp'
-                            text:'Cambourne'
+                            text: app.config['Station']['Name']
                         BoldText: 
                             size_hint: (1,1)
                             text: 'Station status: ' + app.Station.Device['stationStatus']                   

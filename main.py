@@ -826,7 +826,7 @@ class Station(Widget):
 
     # Get device status from last observation time
     def getDeviceStatus(self,dt):
-        Thread(target=system.getDeviceStatus, args=(self.Device,App.get_running_app()), name="getDeviceStatus", daemon=True).start()
+        system.getDeviceStatus(self.Device,App.get_running_app())
 
     # Get device observation count from WeatherFlow API
     def getObservationCount(self):
@@ -861,7 +861,7 @@ class mainMenu(ModalView):
         self.ids.statusPanel.add_widget(statusPanel)
         
         # Add 'Close', 'Settings', and 'Exit' buttons below device status panel
-        Buttons = BoxLayout(orientation='horizontal',  size_hint=(1,.1), spacing=dp(25), padding=[dp(25),dp(0)])
+        Buttons = BoxLayout(orientation='horizontal',  size_hint=(1,.1), spacing=dp(25), padding=[dp(0),dp(0),dp(0),dp(2)])
         Buttons.add_widget(Button(text='Close',    on_release=self.dismiss))
         Buttons.add_widget(Button(text='Settings', on_release=self.openSettings))
         Buttons.add_widget(Button(text='Exit',     on_release=App.get_running_app().stop))
