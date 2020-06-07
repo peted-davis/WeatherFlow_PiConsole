@@ -160,6 +160,7 @@ from functools        import partial
 from threading        import Thread
 from datetime         import datetime, date, time, timedelta
 from optparse         import OptionParser
+import subprocess
 import requests
 import pytz
 import math
@@ -205,7 +206,7 @@ class wfpiconsole(App):
                              ])
     Astro = DictProperty    ([('Sunrise',['-','-',0]), ('Sunset',['-','-',0]), ('Dawn',['-','-',0]),
                               ('Dusk',['-','-',0]),    ('sunEvent','----'),    ('sunIcon',['-',0,0]),
-                              ('Moonrise',['-','-']), ('Moonset',['-','-']),   ('NewMoon','--'),        
+                              ('Moonrise',['-','-']), ('Moonset',['-','-']),   ('NewMoon','--'),
                               ('FullMoon','--'),      ('Phase','---'),         ('Reformat','-'),
                              ])
     MetData = DictProperty  ([('Weather','Building'),  ('Temp','--'),          ('Precip','--'),
@@ -241,7 +242,7 @@ class wfpiconsole(App):
 
         # Initialise real time clock
         Clock.schedule_interval(partial(system.realtimeClock,self.System,self.config),1.0)
-        
+
         # Initialise Sunrise and Sunset time, Moonrise and Moonset time, and
         # MetOffice or DarkSky weather forecast
         astro.SunriseSunset(self.Astro,self.config)
@@ -257,11 +258,11 @@ class wfpiconsole(App):
         # Check for latest version
         Clock.schedule_once(partial(system.checkVersion,self.Version,self.config,updateNotif))
 
-        # Initialise Station class, and set device status to be checked every 
+        # Initialise Station class, and set device status to be checked every
         # second
         self.Station = Station()
         Clock.schedule_interval(self.Station.getDeviceStatus,1.0)
-        
+
         # Schedule function calls
         Clock.schedule_interval(self.UpdateMethods,1.0)
         Clock.schedule_interval(partial(astro.sunTransit,self.Astro,self.config),1.0)
@@ -434,7 +435,7 @@ class wfpiconsole(App):
         # Extract observations from evt_strike websocket message
         elif Type == 'evt_strike':
             websocket.evtStrike(Msg,self)
-            
+
     # UPDATE 'WeatherFlowPiConsole' APP CLASS METHODS AT REQUIRED INTERVALS
     # --------------------------------------------------------------------------
     def UpdateMethods(self,dt):
@@ -467,8 +468,8 @@ class wfpiconsole(App):
         # Once moonset has passed, calculate new moonrise/moonset times
         if Now > self.Astro['Moonset'][0]:
             self.Astro = astro.MoonriseMoonset(self.Astro,self.config)
-            
-        # At midnight, update Sunset, Sunrise, Moonrise and Moonset Kivy Labels 
+
+        # At midnight, update Sunset, Sunrise, Moonrise and Moonset Kivy Labels
         if self.Astro['Reformat'] and Now.replace(second=0).time() == time(0,0,0):
             self.Astro = astro.Format(self.Astro,self.config,"Sun")
             self.Astro = astro.Format(self.Astro,self.config,"Moon")
@@ -732,7 +733,7 @@ class RainfallPanel(RelativeLayout):
     def on_rainRatePosX(self,item,rainRatePosX):
         if round(rainRatePosX,3) == -0.875:
             item.rainRatePosX = 0
-            
+
 class RainfallButton(RelativeLayout):
     pass
 
@@ -798,7 +799,7 @@ class updateNotif(ModalView):
 
 # ==============================================================================
 # Station CLASS
-# ==============================================================================    
+# ==============================================================================
 class Station(Widget):
 
     # Define Station class Device properties
@@ -824,7 +825,7 @@ class Station(Widget):
 
 # ==============================================================================
 # mainMenu AND [module]Status CLASSES
-# ==============================================================================     
+# ==============================================================================
 class mainMenu(ModalView):
 
     # Initialise 'BarometerPanel' ModalView class
@@ -834,10 +835,10 @@ class mainMenu(ModalView):
         self.app.Station.getObservationCount()
         self.app.Station.getStationStatus()
         self.initialiseStatusPanels()
-        
+
     # Initialise device status panels based on devices connected to station
     def initialiseStatusPanels(self):
-    
+
         # Add device status panels based on devices connected to station
         statusPanel = BoxLayout(orientation='vertical', padding=[dp(0),dp(0),dp(0),dp(10)], size_hint=(1,.4))
         if self.app.config['Station']['TempestID']:
@@ -849,18 +850,30 @@ class mainMenu(ModalView):
         if self.app.config['Station']['InAirID']:
             statusPanel.add_widget(inAirStatus())
         self.ids.statusPanel.add_widget(statusPanel)
-        
+
         # Add 'Close', 'Settings', and 'Exit' buttons below device status panel
-        Buttons = BoxLayout(orientation='horizontal', size_hint=(1,.1), spacing=dp(25), padding=[dp(0),dp(0),dp(0),dp(2)])
+        Buttons = BoxLayout(orientation='horizontal', size_hint=(1,.1), spacing=dp(10), padding=[dp(0),dp(0),dp(0),dp(2)])
         Buttons.add_widget(Button(text='Close',    on_release=self.dismiss))
         Buttons.add_widget(Button(text='Settings', on_release=self.openSettings))
         Buttons.add_widget(Button(text='Exit',     on_release=App.get_running_app().stop))
+        Buttons.add_widget(Button(text='Reboot',   on_release=self.rebootSystem))
+        Buttons.add_widget(Button(text='Shutdown', on_release=self.shutdownSystem))
         self.ids.statusPanel.add_widget(Buttons)
-    
+
     # Open settings screen from mainMenu
     def openSettings(self,instance):
         self.app.open_settings()
         self.dismiss()
+
+    # Exit console and shutdown system
+    def shutdownSystem(self,instance):
+        App.get_running_app().stop()
+        subprocess.call('sudo shutdown -h', shell = True)
+
+    # Reboot console and shutdown system
+    def rebootSystem(self,instance):
+        App.get_running_app().stop()
+        subprocess.call('sudo shutdown -r', shell = True)
 
 class tempestStatus(BoxLayout):
     pass
@@ -869,11 +882,11 @@ class skyStatus(BoxLayout):
     pass
 
 class outAirStatus(BoxLayout):
-    pass   
+    pass
 
 class inAirStatus(BoxLayout):
-    pass         
-        
+    pass
+
 # ==============================================================================
 # SettingScrollOptions SETTINGS CLASS
 # ==============================================================================
@@ -1007,7 +1020,7 @@ class SettingToggleTemperature(SettingString):
 
 # ==============================================================================
 # CUSTOM LABEL CLASSES
-# ============================================================================== 
+# ==============================================================================
 class BoldText():
     pass
 
