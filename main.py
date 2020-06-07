@@ -16,6 +16,12 @@
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
 # ==============================================================================
+# DEFINE GOBAL VARIABLES
+# =============================================================================
+SHUTDOWN = 0
+REBOOT = 0
+
+# ==============================================================================
 # CREATE OR UPDATE wfpiconsole.ini FILE
 # ==============================================================================
 # Import required modules
@@ -867,13 +873,15 @@ class mainMenu(ModalView):
 
     # Exit console and shutdown system
     def shutdownSystem(self,instance):
+        global SHUTDOWN
+        SHUTDOWN = 1
         App.get_running_app().stop()
-        subprocess.call('sudo shutdown -h', shell = True)
 
-    # Reboot console and shutdown system
+    # Exit console and reboot system
     def rebootSystem(self,instance):
+        global REBOOT
+        REBOOT = 1
         App.get_running_app().stop()
-        subprocess.call('sudo shutdown -r', shell = True)
 
 class tempestStatus(BoxLayout):
     pass
@@ -1031,5 +1039,9 @@ if __name__ == '__main__':
     log.startLogging(sys.stdout)
     try:
         wfpiconsole().run()
+        if REBOOT:
+            subprocess.call('sudo shutdown -r now', shell = True)
+        elif SHUTDOWN:
+            subprocess.call('sudo shutdown -h now', shell = True)
     except KeyboardInterrupt:
         wfpiconsole().stop()
