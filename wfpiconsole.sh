@@ -672,6 +672,7 @@ stop () {
     else
         pkill -HUP -f main.py
     fi
+    cleanUp
 }
 
 # INSTALL WeatherFlow PiConsole
