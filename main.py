@@ -838,8 +838,6 @@ class mainMenu(ModalView):
     def __init__(self,**kwargs):
         super(mainMenu,self).__init__(**kwargs)
         self.app = App.get_running_app()
-        self.app.Station.getObservationCount()
-        self.app.Station.getStationStatus()
         self.initialiseStatusPanels()
 
     # Initialise device status panels based on devices connected to station
@@ -861,10 +859,14 @@ class mainMenu(ModalView):
         Buttons = BoxLayout(orientation='horizontal', size_hint=(1,.1), spacing=dp(10), padding=[dp(0),dp(0),dp(0),dp(2)])
         Buttons.add_widget(Button(text='Close',    on_release=self.dismiss))
         Buttons.add_widget(Button(text='Settings', on_release=self.openSettings))
-        Buttons.add_widget(Button(text='Exit',     on_release=App.get_running_app().stop))
+        Buttons.add_widget(Button(text='Exit',     on_release=self.app.stop))
         Buttons.add_widget(Button(text='Reboot',   on_release=self.rebootSystem))
         Buttons.add_widget(Button(text='Shutdown', on_release=self.shutdownSystem))
         self.ids.statusPanel.add_widget(Buttons)
+        
+        # Populate status fields
+        self.app.Station.getObservationCount()
+        self.app.Station.getStationStatus()
 
     # Open settings screen from mainMenu
     def openSettings(self,instance):
