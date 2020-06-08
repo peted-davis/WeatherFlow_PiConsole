@@ -1,4 +1,4 @@
-""" Contains system functions required by the Raspberry Pi Python console for
+""" Contains station functions required by the Raspberry Pi Python console for
 WeatherFlow Tempest and Smart Home Weather stations.
 Copyright (C) 2018-2020 Peter Davis
 
@@ -19,113 +19,25 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 from lib import requestAPI
 
 # Import required Python modules
-from kivy.clock import Clock
-from packaging  import version
-from functools  import partial
 from datetime   import datetime, date, time, timedelta
 import pytz
 
 # Define global variables
 NaN = float('NaN')
 
-def realtimeClock(System,Config,*largs):
+def getHubStatus(Status,wfpiconsole):
 
-    """ Realtime clock in station timezone
-
-    INPUTS:
-        System                 Dictionary holding system information
-        Config                 Station configuration
-
-    OUTPUT:
-        System                 Dictionary holding system information
-    """
-
-    # Define time and date format based on user settings
-    if Config['Display']['TimeFormat'] == '12 hr':
-        TimeFormat = '%I:%M:%S %p'
-    else:
-        TimeFormat = '%H:%M:%S'
-    if  Config['Display']['DateFormat'] == 'Mon, Jan 01 0000':
-        DateFormat = '%a, %b %d %Y'
-    elif Config['Display']['DateFormat'] == 'Monday, 01 Jan 0000':
-        DateFormat = '%A, %d %b %Y'
-    elif Config['Display']['DateFormat'] == 'Monday, Jan 01 0000':
-        DateFormat = '%A, %b %d %Y'
-    else:
-        DateFormat = '%a, %d %b %Y'
-
-    # Get current time in station time zone
-    Tz = pytz.timezone(Config['Station']['Timezone'])
-    Now = datetime.now(pytz.utc).astimezone(Tz)
-
-    # Format realtime Clock
-    System['Time'] = Now.strftime(TimeFormat)
-    System['Date'] = Now.strftime(DateFormat)
-
-    # Return system information
-    return System
-
-def checkVersion(verData,Config,updateNotif,*largs):
-
-    """ Checks current version of the PiConsole against the latest available
-    version on Github
+    """ Gets the current status of the hub attached to the station
 
     INPUTS:
-        verData                 Dictionary holding version information
-        Config                  Station configuration
-        updateNotif             Instance of the updateNotif widget
-
-    OUTPUT:
-        verData                 Dictionary holding version information
-    """
-
-    # Get version information from Github API
-    Data = requestAPI.github.version(Config)
-
-    # Get current time in station time zone
-    Tz = pytz.timezone(Config['Station']['Timezone'])
-    Now = datetime.now(pytz.utc).astimezone(Tz)
-
-    # Extract version number from API response
-    if requestAPI.github.verifyResponse(Data,'tag_name'):
-        verData['Latest'] = Data.json()['tag_name']
-    else:
-        Next = Tz.localize(datetime(Now.year,Now.month,Now.day)+timedelta(days=1))
-        Clock.schedule_once(partial(checkVersion,verData,Config,updateNotif),(Next-Now).total_seconds())
-        return verData
-
-    # If current and latest version numbers do not match, open update
-    # notification
-    if version.parse(Config['System']['Version']) < version.parse(verData['Latest']):
-
-        # Check if update notification is already open. Close if required
-        if 'updateNotif' in verData:
-            verData['updateNotif'].dismiss()
-
-        # Open update notification
-        verData['updateNotif'] = updateNotif()
-        verData['updateNotif'].open()
-
-    # Schedule next Version Check
-    Next = Tz.localize(datetime(Now.year,Now.month,Now.day)+timedelta(days=1))
-    Clock.schedule_once(partial(checkVersion,verData,Config,updateNotif),(Next-Now).total_seconds())
-
-    # Return system variables
-    return verData
-
-def getStationStatus(Status,wfpiconsole):
-
-    """ Gets the current status of the station
-
-    INPUTS:
-        Status                 Dictionary holding station status information
+        Status                 Dictionary holding hub status information
         wfpiconsole            wfpiconsole object
 
     OUTPUT:
-        Status                 Dictionary holding station status information
+        Status                 Dictionary holding hub status information
     """
 
-    # Set station status based on device status
+    # Set hub status based on device status
     deviceStatus = []
     for Key in Status:
         if 'Status' in Key:
@@ -168,7 +80,7 @@ def getDeviceStatus(Status,wfpiconsole):
 
     # Get TEMPEST device status
     if wfpiconsole.config['Station']['TempestID']:
-        if 'TempestID' in wfpiconsole.Obs:
+        if 'TempestMsg' in wfpiconsole.Obs:
             lastOb         = [x if x != None else NaN for x in wfpiconsole.Obs['TempestMsg']['obs'][0]]
             lastSampleTime = datetime.fromtimestamp(lastOb[0],Tz)
             lastSampleDiff = (Now - lastSampleTime).total_seconds()
@@ -246,6 +158,7 @@ def getDeviceStatus(Status,wfpiconsole):
             Status['inAirVoltage']    = '{:.2f}'.format(deviceVoltage)
             Status['inAirStatus']     = deviceStatus
 
+    # Return device status
     return Status
 
 def getObservationCount(Status,wfpiconsole):
@@ -307,8 +220,9 @@ def getObservationCount(Status,wfpiconsole):
         Data24h = requestAPI.weatherflow.Last24h(Device,lastOb[0],wfpiconsole.config)
         if requestAPI.weatherflow.verifyResponse(Data24h,'obs'):
             Data24h = Data24h.json()['obs']
-            Status['outAirObCount'] = str(len(Data24h))
+            Status['inAirObCount'] = str(len(Data24h))
 
+    # Return device observation count
     return Status
 
 

@@ -12,7 +12,7 @@ copyright 2015-2020 Brian Underdown. The Weather34 Home Weather Station Template
 is licensed under a Creative Commons Attribution-NonCommercial-NoDerivatives 4.0
 International License.
 
-http://weatherflow.com/smart-home-weather-stations/
+https://weatherflow.com/tempest-weather-system/
 https://community.weatherflow.com/
 
 ## Contents
@@ -29,7 +29,7 @@ be started from the terminal with a single command. The automated installation
 should take ~1 hour.
 
 The automated installer assumes you have already sucesfully setup your Raspberry
-Pi and have installed Raspbian Buster with Desktop. You should have also
+Pi and have installed Raspberry Pi OS with Desktop. You should have also
 attached the touch screen, and have either a keyboard and mouse attached
 directly to the Pi, or have accessesd the Pi remotely through SSH/VNC. If you
 are starting from scratch, the Raspberry Pi documentation should help get you

@@ -28,7 +28,7 @@ import sys
 import os
 
 # Define wfpiconsole version number
-Version = 'v3.4'
+Version = 'v3.5'
 
 # Define required variables
 TEMPEST       = False
@@ -169,8 +169,8 @@ def copyConfigKey(newConfig,currentConfig,Section,Key,keyDetails):
     if keyDetails['Type'] == 'fixed':
         Value = keyDetails['Value']
 
-    # Copy key value from existing configuration. Ignore AIR/SKY module IDs if
-    # switching to TEMPEST module
+    # Copy key value from existing configuration. Ignore AIR/SKY device IDs if
+    # switching to TEMPEST
     else:
         if (Key == 'SkyID' or Key == 'SkyHeight') and TEMPEST:
             Value = ''
@@ -207,21 +207,21 @@ def writeConfigKey(Config,Section,Key,keyDetails):
         # Define global variables
         global TEMPEST, INDOORAIR
 
-        # Request user input to determine which modules are present
+        # Request user input to determine which devices are present
         if Key == 'TempestID':
-            if queryUser('Do you own a TEMPEST module?*',None):
+            if queryUser('Do you own a TEMPEST?*',None):
                 TEMPEST = True
             else:
                 Value = ''
                 keyRequired = False
         elif Key == 'InAirID':
-            if queryUser('Do you own an Indoor AIR module?*',None):
+            if queryUser('Do you own an Indoor AIR?*',None):
                 INDOORAIR = True
             else:
                 Value = ''
                 keyRequired = False
 
-        # Skip module ID keys for modules that are not present
+        # Skip device ID keys for devices that are not present
         if Key == 'SkyID' and TEMPEST:
             Value = ''
             keyRequired = False
@@ -379,8 +379,7 @@ def writeConfigKey(Config,Section,Key,keyDetails):
                     METOFFICE = METOFFICE.json()
                     break
 
-        # Validate TEMPEST module ID and get height above ground of TEMPEST
-        # module
+        # Validate TEMPEST device ID and get height above ground of TEMPEST
         if Section == 'Station':
             if Key == 'TempestHeight' and Config['Station']['TempestID']:
                 while True:
@@ -390,22 +389,22 @@ def writeConfigKey(Config,Section,Key,keyDetails):
                                 if Device['device_type'] == 'ST':
                                     Value = Device['device_meta']['agl']
                     if not Value:
-                        inputStr = '    TEMPEST module not found. Please re-enter your TEMPEST ID*: '
+                        inputStr = '    TEMPEST not found. Please re-enter your TEMPEST device ID*: '
                         while True:
                             ID = input(inputStr)
                             if not ID:
-                                print('    TEMPEST ID cannot be empty. Please try again')
+                                print('    TEMPEST device ID cannot be empty. Please try again')
                                 continue
                             try:
                                 ID = int(ID)
                                 break
                             except ValueError:
-                                inputStr = '    TEMPEST ID not valid. Please re-enter your TEMPEST ID*: '
+                                inputStr = '    TEMPEST device ID not valid. Please re-enter your TEMPEST device ID*: '
                         Config.set('Station','TempestID',str(ID))
                     else:
                         break
 
-        # Validate AIR module ID and get height above ground of AIR module
+        # Validate AIR device ID and get height above ground of AIR
         if Section == 'Station':
             if Key == 'OutAirHeight' and Config['Station']['OutAirID']:
                 while True:
@@ -415,22 +414,22 @@ def writeConfigKey(Config,Section,Key,keyDetails):
                                 if Device['device_type'] == 'AR':
                                     Value = Device['device_meta']['agl']
                     if not Value:
-                        inputStr = '    Outdoor AIR module not found. Please re-enter your Outdoor AIR ID*: '
+                        inputStr = '    Outdoor AIR not found. Please re-enter your Outdoor AIR device ID*: '
                         while True:
                             ID = input(inputStr)
                             if not ID:
-                                print('    Outdoor AIR module ID cannot be empty. Please try again')
+                                print('    Outdoor AIR device ID cannot be empty. Please try again')
                                 continue
                             try:
                                 ID = int(ID)
                                 break
                             except ValueError:
-                                inputStr = '    Outdoor AIR ID not valid. Please re-enter your Outdoor AIR ID*: '
+                                inputStr = '    Outdoor AIR device ID not valid. Please re-enter your Outdoor AIR device ID*: '
                         Config.set('Station','OutAirID',str(ID))
                     else:
                         break
 
-        # Validate SKY module ID and get height above ground of SKY module
+        # Validate SKY device ID and get height above ground of SKY
         if Section == 'Station':
             if Key == 'SkyHeight' and Config['Station']['SkyID']:
                 while True:
@@ -440,17 +439,17 @@ def writeConfigKey(Config,Section,Key,keyDetails):
                                 if Device['device_type'] == 'SK':
                                     Value = Device['device_meta']['agl']
                     if not Value:
-                        inputStr = '    SKY module not found. Please re-enter your SKY ID*: '
+                        inputStr = '    SKY not found. Please re-enter your SKY device ID*: '
                         while True:
                             ID = input(inputStr)
                             if not ID:
-                                print('    SKY module ID cannot be empty. Please try again')
+                                print('    SKY device ID cannot be empty. Please try again')
                                 continue
                             try:
                                 ID = int(ID)
                                 break
                             except ValueError:
-                                inputStr = '    SKY module ID not valid. Please re-enter your SKY ID*: '
+                                inputStr = '    SKY device ID not valid. Please re-enter your SKY device ID*: '
                         Config.set('Station','SkyID',str(ID))
                     else:
                         break
@@ -488,24 +487,19 @@ def writeConfigKey(Config,Section,Key,keyDetails):
                 else:
                     Value = ''
 
-        # Get station latitude/longitude
+        # Get station latitude/longitude, timezone, or name
         if Section == 'Station':
-            if Key in ['Latitude','Longitude']:
+            if Key in ['Latitude','Longitude','Timezone','Name']:
                 Value = STATION['stations'][0][Key.lower()]
-
-        # Get station timezone
-        if Section == 'Station':
-            if Key in ['Timezone']:
-                Value = STATION['stations'][0]['timezone']
 
         # Get station elevation
         if Section == 'Station':
-            if Key in ['Elevation']:
+            if Key == 'Elevation':
                 Value = STATION['stations'][0]['station_meta']['elevation']
 
         # Get station country code
         if Section == 'Station':
-            if Key in ['Country']:
+            if Key == 'Country':
                 Value = GEONAMES['geonames'][0]['countryCode']
 
         # Get station units
@@ -571,19 +565,20 @@ def defaultConfig():
                                                           ('DarkSky',        {'Type': 'userInput', 'State': 'optional', 'Format': str, 'Desc': 'DarkSky API Key (if you have one)',}),
                                                           ('CheckWX',        {'Type': 'userInput', 'State': 'required', 'Format': str, 'Desc': 'CheckWX API Key',}),
                                                           ('WeatherFlow',    {'Type': 'fixed',     'Value': '146e4f2c-adec-4244-b711-1aeca8f46a48', 'Desc': 'WeatherFlow API Key'})])
-    Default['Station'] =         collections.OrderedDict([('Description',    '  Station and module IDs'),
+    Default['Station'] =         collections.OrderedDict([('Description',    '  Station and device IDs'),
                                                           ('StationID',      {'Type': 'userInput', 'State': 'required', 'Format': int, 'Desc': 'Station ID'}),
-                                                          ('TempestID',      {'Type': 'userInput', 'State': 'required', 'Format': int, 'Desc': 'TEMPEST module ID'}),
-                                                          ('SkyID',          {'Type': 'userInput', 'State': 'required', 'Format': int, 'Desc': 'SKY module ID'}),
-                                                          ('OutAirID',       {'Type': 'userInput', 'State': 'required', 'Format': int, 'Desc': 'outdoor AIR module ID'}),
-                                                          ('InAirID',        {'Type': 'userInput', 'State': 'required', 'Format': int, 'Desc': 'indoor AIR module ID'}),
-                                                          ('TempestHeight',  {'Type': 'request', 'Source': 'station', 'Desc': 'height of TEMPEST module'}),
-                                                          ('SkyHeight',      {'Type': 'request', 'Source': 'station', 'Desc': 'height of SKY module'}),
-                                                          ('OutAirHeight',   {'Type': 'request', 'Source': 'station', 'Desc': 'height of outdoor AIR module'}),
+                                                          ('TempestID',      {'Type': 'userInput', 'State': 'required', 'Format': int, 'Desc': 'TEMPEST device ID'}),
+                                                          ('SkyID',          {'Type': 'userInput', 'State': 'required', 'Format': int, 'Desc': 'SKY device ID'}),
+                                                          ('OutAirID',       {'Type': 'userInput', 'State': 'required', 'Format': int, 'Desc': 'outdoor AIR device ID'}),
+                                                          ('InAirID',        {'Type': 'userInput', 'State': 'required', 'Format': int, 'Desc': 'indoor AIR device ID'}),
+                                                          ('TempestHeight',  {'Type': 'request', 'Source': 'station', 'Desc': 'height of TEMPEST'}),
+                                                          ('SkyHeight',      {'Type': 'request', 'Source': 'station', 'Desc': 'height of SKY'}),
+                                                          ('OutAirHeight',   {'Type': 'request', 'Source': 'station', 'Desc': 'height of outdoor AIR'}),
                                                           ('Latitude',       {'Type': 'request', 'Source': 'station', 'Desc': 'station latitude'}),
                                                           ('Longitude',      {'Type': 'request', 'Source': 'station', 'Desc': 'station longitude'}),
                                                           ('Elevation',      {'Type': 'request', 'Source': 'station', 'Desc': 'station elevation'}),
                                                           ('Timezone',       {'Type': 'request', 'Source': 'station', 'Desc': 'station timezone'}),
+                                                          ('Name',           {'Type': 'request', 'Source': 'station', 'Desc': 'station name'}),
                                                           ('Country',        {'Type': 'request', 'Source': 'GeoNames',  'Desc': 'station country'}),
                                                           ('ForecastLocn',   {'Type': 'request', 'Source': 'MetOffice', 'Desc': 'station forecast location'}),
                                                           ('MetOfficeID',    {'Type': 'request', 'Source': 'MetOffice', 'Desc': 'station forecast ID'})])

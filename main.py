@@ -16,6 +16,12 @@
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
 # ==============================================================================
+# DEFINE GOBAL VARIABLES
+# =============================================================================
+SHUTDOWN = 0
+REBOOT = 0
+
+# ==============================================================================
 # CREATE OR UPDATE wfpiconsole.ini FILE
 # ==============================================================================
 # Import required modules
@@ -149,6 +155,7 @@ from lib import requestAPI
 from lib import websocket
 from lib import settings
 from lib import forecast
+from lib import station
 from lib import system
 
 # ==============================================================================
@@ -159,6 +166,7 @@ from functools        import partial
 from threading        import Thread
 from datetime         import datetime, date, time, timedelta
 from optparse         import OptionParser
+import subprocess
 import requests
 import pytz
 import math
@@ -171,6 +179,7 @@ import sys
 from kivy.uix.relativelayout import RelativeLayout
 from kivy.uix.screenmanager  import Screen
 from kivy.uix.togglebutton   import ToggleButton
+from kivy.uix.tabbedpanel    import TabbedPanel
 from kivy.uix.scrollview     import ScrollView
 from kivy.uix.gridlayout     import GridLayout
 from kivy.uix.modalview      import ModalView
@@ -187,7 +196,7 @@ from kivy.uix.label          import Label
 # ==============================================================================
 class wfpiconsole(App):
 
-    # Define App class dictionary properties
+    # Define App class observation dictionary properties
     Obs = DictProperty      ([('rapidSpd','--'),       ('rapidDir','----'),    ('rapidShift','-'),
                               ('WindSpd','-----'),     ('WindGust','--'),      ('WindDir','---'),
                               ('AvgWind','--'),        ('MaxGust','--'),       ('RainRate','---'),
@@ -203,20 +212,19 @@ class wfpiconsole(App):
                              ])
     Astro = DictProperty    ([('Sunrise',['-','-',0]), ('Sunset',['-','-',0]), ('Dawn',['-','-',0]),
                               ('Dusk',['-','-',0]),    ('sunEvent','----'),    ('sunIcon',['-',0,0]),
-                              ('Moonrise',['-','-']),  ('Moonset',['-','-']),  ('NewMoon','--'),
-                              ('FullMoon','--'),       ('Phase','---'),        ('Reformat','-'),
+                              ('Moonrise',['-','-']), ('Moonset',['-','-']),   ('NewMoon','--'),
+                              ('FullMoon','--'),      ('Phase','---'),         ('Reformat','-'),
                              ])
     MetData = DictProperty  ([('Weather','Building'),  ('Temp','--'),          ('Precip','--'),
                               ('WindSpd','--'),        ('WindDir','--'),       ('Valid','--')
                              ])
     Sager = DictProperty    ([('Forecast','--'),       ('Issued','--')])
+    System = DictProperty   ([('Time','-'),            ('Date','-')])
     Version = DictProperty  ([('Latest','-')])
 
     # Define App class configParser properties
     BarometerMax = ConfigParserProperty('-','System', 'BarometerMax','wfpiconsole')
     BarometerMin = ConfigParserProperty('-','System', 'BarometerMin','wfpiconsole')
-    TimeFormat   = ConfigParserProperty('-','Display','TimeFormat',  'wfpiconsole')
-    DateFormat   = ConfigParserProperty('-','Display','DateFormat',  'wfpiconsole')
     IndoorTemp   = ConfigParserProperty('-','Display','IndoorTemp',  'wfpiconsole')
 
     # BUILD 'WeatherFlowPiConsole' APP CLASS
@@ -238,6 +246,9 @@ class wfpiconsole(App):
         elif self.config['System']['Hardware'] == 'Other':
             Window.size = (800,480)
 
+        # Initialise real time clock
+        Clock.schedule_interval(partial(system.realtimeClock,self.System,self.config),1.0)
+
         # Initialise Sunrise and Sunset time, Moonrise and Moonset time, and
         # MetOffice or DarkSky weather forecast
         astro.SunriseSunset(self.Astro,self.config)
@@ -245,13 +256,18 @@ class wfpiconsole(App):
         forecast.Download(self.MetData,self.config)
 
         # Generate Sager Weathercaster forecast
-        Thread(target=sagerForecast.Generate, args=(self.Sager,self.config), name="Sager").start()
+        Thread(target=sagerForecast.Generate, args=(self.Sager,self.config), name="Sager", daemon=True).start()
 
         # Initialise websocket connection
         self.WebsocketConnect()
 
         # Check for latest version
         Clock.schedule_once(partial(system.checkVersion,self.Version,self.config,updateNotif))
+
+        # Initialise Station class, and set device status to be checked every
+        # second
+        self.Station = Station()
+        Clock.schedule_interval(self.Station.getDeviceStatus,1.0)
 
         # Schedule function calls
         Clock.schedule_interval(self.UpdateMethods,1.0)
@@ -359,7 +375,7 @@ class wfpiconsole(App):
     def WebsocketConnect(self):
         Server = 'wss://ws.weatherflow.com/swd/data?api_key=' + self.config['Keys']['WeatherFlow']
         self._factory = WeatherFlowClientFactory(Server,self)
-        reactor.connectSSL('ws.weatherflow.com',443,self._factory,ssl.ClientContextFactory(),20)
+        reactor.connectTCP('ws.weatherflow.com',80,self._factory,)
 
     # SEND MESSAGE TO THE WEATHERFLOW WEBSOCKET SERVER
     # --------------------------------------------------------------------------
@@ -404,27 +420,27 @@ class wfpiconsole(App):
 
         # Extract observations from obs_st websocket message
         elif Type == 'obs_st':
-            Thread(target=websocket.Tempest, args=(Msg,self), name="Tempest").start()
+            Thread(target=websocket.Tempest, args=(Msg,self), name="Tempest", daemon=True).start()
 
         # Extract observations from obs_sky websocket message
         elif Type == 'obs_sky':
-            Thread(target=websocket.Sky, args=(Msg,self), name="Sky").start()
+            Thread(target=websocket.Sky, args=(Msg,self), name="Sky", daemon=True).start()
 
         # Extract observations from obs_air websocket message based on device
         # ID
         elif Type == 'obs_air':
             if self.config['Station']['InAirID'] and Msg['device_id'] == int(self.config['Station']['InAirID']):
-                Thread(target=websocket.indoorAir, args=(Msg,self), name="indoorAir").start()
+                Thread(target=websocket.indoorAir, args=(Msg,self),  name="indoorAir",  daemon=True).start()
             if self.config['Station']['OutAirID'] and Msg['device_id'] == int(self.config['Station']['OutAirID']):
-                Thread(target=websocket.outdoorAir, args=(Msg,self), name="outdoorAir").start()
+                Thread(target=websocket.outdoorAir, args=(Msg,self), name="outdoorAir", daemon=True).start()
 
         # Extract observations from rapid_wind websocket message
         elif Type == 'rapid_wind':
-            Thread(target=websocket.rapidWind, args=(Msg,self), name="rapidWind").start()
+            websocket.rapidWind(Msg,self)
 
         # Extract observations from evt_strike websocket message
         elif Type == 'evt_strike':
-            Thread(target=websocket.evtStrike, args=(Msg,self), name="evt_strike").start()
+            websocket.evtStrike(Msg,self)
 
     # UPDATE 'WeatherFlowPiConsole' APP CLASS METHODS AT REQUIRED INTERVALS
     # --------------------------------------------------------------------------
@@ -459,7 +475,7 @@ class wfpiconsole(App):
         if Now > self.Astro['Moonset'][0]:
             self.Astro = astro.MoonriseMoonset(self.Astro,self.config)
 
-        # At midnight, update Sunset, Sunrise, Moonrise and Moonset Kivy Labels 
+        # At midnight, update Sunset, Sunrise, Moonrise and Moonset Kivy Labels
         if self.Astro['Reformat'] and Now.replace(second=0).time() == time(0,0,0):
             self.Astro = astro.Format(self.Astro,self.config,"Sun")
             self.Astro = astro.Format(self.Astro,self.config,"Moon")
@@ -496,7 +512,6 @@ class CurrentConditions(Screen):
 
     # SWITCH BETWEEN DIFFERENT PANELS ON CURRENT CONDITIONS SCREEN
     # --------------------------------------------------------------------------
-    @mainthread
     def SwitchPanel(self,Instance,overideButton=None):
 
         # Determine ID of button that has been pressed
@@ -597,7 +612,6 @@ class WindSpeedPanel(RelativeLayout):
         self.setWindIcons()
 
     # Animate rapid wind rose
-    @mainthread
     def animateWindRose(self):
 
         # Get current wind direction, old wind direction and change in wind
@@ -675,7 +689,6 @@ class MoonPhaseButton(RelativeLayout):
 class RainfallPanel(RelativeLayout):
 
     # Define RainfallPanel class properties
-    realtimeClock = StringProperty('--')
     rainRatePosX  = NumericProperty(+0)
     rainRatePosY  = NumericProperty(-1)
 
@@ -683,7 +696,6 @@ class RainfallPanel(RelativeLayout):
     def __init__(self,**kwargs):
         super(RainfallPanel,self).__init__(**kwargs)
         App.get_running_app().RainfallPanel = self
-        Clock.schedule_once(self.Clock)
         self.animateRainRate()
 
     # Animate rain rate level
@@ -728,33 +740,6 @@ class RainfallPanel(RelativeLayout):
         if round(rainRatePosX,3) == -0.875:
             item.rainRatePosX = 0
 
-    # Define realtime clock in station timezone
-    def Clock(self,dt):
-
-        # Define time and date format based on user settings
-        if App.get_running_app().TimeFormat == '12 hr':
-            TimeFormat = '%I:%M:%S %p'
-        else:
-            TimeFormat = '%H:%M:%S'
-        if  App.get_running_app().DateFormat == 'Mon, Jan 01 0000':
-            DateFormat = '%a, %b %d %Y'
-        elif App.get_running_app().DateFormat == 'Monday, 01 Jan 0000':
-            DateFormat = '%A, %d %b %Y'
-        elif App.get_running_app().DateFormat == 'Monday, Jan 01 0000':
-            DateFormat = '%A, %b %d %Y'
-        else:
-            DateFormat = '%a, %d %b %Y'
-
-        # Get current time in station time zone
-        Tz = pytz.timezone(App.get_running_app().config['Station']['Timezone'])
-        Now = datetime.now(pytz.utc).astimezone(Tz)
-
-        # Format realtime Clock
-        self.realtimeClock = Now.strftime(DateFormat + '\n' + TimeFormat)
-
-        # Schedule realtime Clock
-        Clock.schedule_once(self.Clock,1.0)
-
 class RainfallButton(RelativeLayout):
     pass
 
@@ -783,7 +768,6 @@ class LightningPanel(RelativeLayout):
                 self.lightningBoltIcon = 'lightningBolt'
 
     # Animate lightning bolt icon
-    @mainthread
     def animateLightningBoltIcon(self):
         Anim = Animation(lightningBoltPosX=10,t='out_quad',d=0.02) + Animation(lightningBoltPosX=0,t='out_elastic',d=0.5)
         Anim.start(self)
@@ -814,12 +798,103 @@ class BarometerButton(RelativeLayout):
     pass
 
 # ==============================================================================
-# Credits AND UpdateNotification POPUP CLASSES
+# UpdateNotification POPUP CLASS
 # ==============================================================================
-class Credits(ModalView):
+class updateNotif(ModalView):
     pass
 
-class updateNotif(ModalView):
+# ==============================================================================
+# Station CLASS
+# ==============================================================================
+class Station(Widget):
+
+    # Define Station class Device properties
+    Device = DictProperty([('tempestSampleTime','-'), ('tempestVoltage','-'), ('tempestStatus','-'),
+                           ('tempestObCount','-'),    ('skySampleTime','-'),  ('skyVoltage','-'),
+                           ('skyStatus','-'),         ('skyObCount','-'),     ('outAirSampleTime','-'),
+                           ('outAirVoltage','-'),     ('outAirStatus','-'),   ('outAirObCount','-'),
+                           ('inAirSampleTime','-'),   ('inAirVoltage','-'),   ('inAirStatus','-'),
+                           ('inAirObCount','-'),      ('stationStatus','-'),  ('hubFirmware','-')
+                          ])
+
+    # Get hub status from device status
+    def getStationStatus(self):
+        Thread(target=station.getHubStatus, args=(self.Device,App.get_running_app()), name="getHubStatus", daemon=True).start()
+
+    # Get device status from last observation time
+    def getDeviceStatus(self,dt):
+        station.getDeviceStatus(self.Device,App.get_running_app())
+
+    # Get device observation count from WeatherFlow API
+    def getObservationCount(self):
+        Thread(target=station.getObservationCount, args=(self.Device,App.get_running_app()), name="getObservationCount", daemon=True).start()
+
+# ==============================================================================
+# mainMenu AND [module]Status CLASSES
+# ==============================================================================
+class mainMenu(ModalView):
+
+    # Initialise 'BarometerPanel' ModalView class
+    def __init__(self,**kwargs):
+        super(mainMenu,self).__init__(**kwargs)
+        self.app = App.get_running_app()
+        self.initialiseStatusPanels()
+
+    # Initialise device status panels based on devices connected to station
+    def initialiseStatusPanels(self):
+
+        # Add device status panels based on devices connected to station
+        statusPanel = BoxLayout(orientation='vertical', padding=[dp(0),dp(0),dp(0),dp(10)], size_hint=(1,.4))
+        if self.app.config['Station']['TempestID']:
+            statusPanel.add_widget(tempestStatus())
+        if self.app.config['Station']['SkyID']:
+            statusPanel.add_widget(skyStatus())
+        if self.app.config['Station']['OutAirID']:
+            statusPanel.add_widget(outAirStatus())
+        if self.app.config['Station']['InAirID']:
+            statusPanel.add_widget(inAirStatus())
+        self.ids.statusPanel.add_widget(statusPanel)
+
+        # Add 'Close', 'Settings', and 'Exit' buttons below device status panel
+        Buttons = BoxLayout(orientation='horizontal', size_hint=(1,.1), spacing=dp(10), padding=[dp(0),dp(0),dp(0),dp(2)])
+        Buttons.add_widget(Button(text='Close',    on_release=self.dismiss))
+        Buttons.add_widget(Button(text='Settings', on_release=self.openSettings))
+        Buttons.add_widget(Button(text='Exit',     on_release=self.app.stop))
+        Buttons.add_widget(Button(text='Reboot',   on_release=self.rebootSystem))
+        Buttons.add_widget(Button(text='Shutdown', on_release=self.shutdownSystem))
+        self.ids.statusPanel.add_widget(Buttons)
+        
+        # Populate status fields
+        self.app.Station.getObservationCount()
+        self.app.Station.getStationStatus()
+
+    # Open settings screen from mainMenu
+    def openSettings(self,instance):
+        self.app.open_settings()
+        self.dismiss()
+
+    # Exit console and shutdown system
+    def shutdownSystem(self,instance):
+        global SHUTDOWN
+        SHUTDOWN = 1
+        App.get_running_app().stop()
+
+    # Exit console and reboot system
+    def rebootSystem(self,instance):
+        global REBOOT
+        REBOOT = 1
+        App.get_running_app().stop()
+
+class tempestStatus(BoxLayout):
+    pass
+
+class skyStatus(BoxLayout):
+    pass
+
+class outAirStatus(BoxLayout):
+    pass
+
+class inAirStatus(BoxLayout):
     pass
 
 # ==============================================================================
@@ -954,11 +1029,21 @@ class SettingToggleTemperature(SettingString):
         self.Label.text = str(Value) + Units
 
 # ==============================================================================
+# CUSTOM LABEL CLASSES
+# ==============================================================================
+class BoldText():
+    pass
+
+# ==============================================================================
 # RUN APP
 # ==============================================================================
 if __name__ == '__main__':
     log.startLogging(sys.stdout)
     try:
         wfpiconsole().run()
+        if REBOOT:
+            subprocess.call('sudo shutdown -r now', shell = True)
+        elif SHUTDOWN:
+            subprocess.call('sudo shutdown -h now', shell = True)
     except KeyboardInterrupt:
         wfpiconsole().stop()
