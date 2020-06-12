@@ -216,7 +216,7 @@ def Generate(sagerDict,Config):
         Time = time(6,0,0)
         ForecastTime = Tz.localize(datetime.combine(Date,Time))
     Seconds = (ForecastTime - Now).total_seconds()
-    Clock.schedule_once(lambda dt: Generate,Seconds)
+    Clock.schedule_once(lambda dt: Generate(sagerDict,Config), Seconds)
 
     # Return Sager Weathercaster forecast
     return sagerDict

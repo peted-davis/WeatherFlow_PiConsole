@@ -42,15 +42,17 @@ NaN           = float('NaN')
 
 # Determine hardware version
 try:
-    Hardware = os.popen("cat /proc/device-tree/model").read()
-    if "Raspberry Pi 4" in Hardware:
-        Hardware = "Pi4"
-    elif "Raspberry Pi 3" in Hardware:
-        Hardware = "Pi3"
+    Hardware = os.popen('cat /proc/device-tree/model').read()
+    if 'Raspberry Pi 4' in Hardware:
+        Hardware = 'Pi4'
+    elif 'Raspberry Pi 3' in Hardware:
+        Hardware = 'Pi3'
+    elif 'Raspberry Pi Model B' in Hardware:
+        Hardware = 'PiB'
     else:
-        Hardware = "Other"
+        Hardware = 'Other'
 except:
-    Hardware = "Other"
+    Hardware = 'Other'
 
 def create():
 
@@ -524,15 +526,15 @@ def queryUser(Question,Default=None):
     """
 
     # Define valid reponses and prompt based on specified default answer
-    valid = {"yes": True, "y": True, "ye": True, "no": False, "n": False}
+    valid = {'yes': True, 'y': True, 'ye': True, 'no': False, 'n': False}
     if Default is None:
-        prompt = " [y/n] "
-    elif Default == "yes":
-        prompt = " [Y/n] "
-    elif Default == "no":
-        prompt = " [y/N] "
+        prompt = ' [y/n] '
+    elif Default == 'yes':
+        prompt = ' [Y/n] '
+    elif Default == 'no':
+        prompt = ' [y/N] '
     else:
-        raise ValueError("invalid default answer: '%s'" % Default)
+        raise ValueError('invalid default answer: "%s"' % Default)
 
     # Display question to user
     while True:

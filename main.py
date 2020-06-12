@@ -50,7 +50,7 @@ if config['System']['Hardware'] == 'Pi4':
     os.environ['SDL_VIDEO_ALLOW_SCREENSAVER'] = '1'
     os.environ['KIVY_GRAPHICS'] = 'gles'
     os.environ['KIVY_WINDOW']   = 'sdl2'
-elif config['System']['Hardware'] == 'Pi3':
+elif config['System']['Hardware'] in ['PiB','Pi3']:
     os.environ['KIVY_GL_BACKEND'] = 'gl'
 
 # ==============================================================================
@@ -61,7 +61,7 @@ kivyconfig = configparser.ConfigParser()
 kivyconfig.read(os.path.expanduser('~/.kivy/') + 'config.ini')
 
 # Add mouse support if not already set
-if config['System']['Hardware'] == 'Pi3':
+if config['System']['Hardware'] in ['PiB','Pi3']:
     if not config.has_option('modules','cursor'):
         kivyconfig.set('modules','cursor','1')
         with open(os.path.expanduser('~/.kivy/') + 'config.ini','w') as kivycfg:

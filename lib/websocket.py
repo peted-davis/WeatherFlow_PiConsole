@@ -16,10 +16,10 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 """
 
 # Import required library modules
+from kivy.clock  import mainthread
 from lib         import derivedVariables   as derive
 from lib         import observationFormat  as observation
 from lib         import requestAPI
-from kivy.clock  import mainthread
 import time
 
 # Define global variables
