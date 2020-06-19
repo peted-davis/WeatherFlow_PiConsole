@@ -28,7 +28,7 @@ import sys
 import os
 
 # Define wfpiconsole version number
-Version = 'v3.5'
+Version = 'v3.51'
 
 # Define required variables
 TEMPEST       = False
@@ -38,19 +38,22 @@ OBSERVATION   = None
 GEONAMES      = None
 METOFFICE     = None
 LOCATION      = None
+MAXRETRIES    = 3
 NaN           = float('NaN')
 
 # Determine hardware version
 try:
-    Hardware = os.popen("cat /proc/device-tree/model").read()
-    if "Raspberry Pi 4" in Hardware:
-        Hardware = "Pi4"
-    elif "Raspberry Pi 3" in Hardware:
-        Hardware = "Pi3"
+    Hardware = os.popen('cat /proc/device-tree/model').read()
+    if 'Raspberry Pi 4' in Hardware:
+        Hardware = 'Pi4'
+    elif 'Raspberry Pi 3' in Hardware:
+        Hardware = 'Pi3'
+    elif 'Raspberry Pi Model B' in Hardware:
+        Hardware = 'PiB'
     else:
-        Hardware = "Other"
+        Hardware = 'Other'
 except:
-    Hardware = "Other"
+    Hardware = 'Other'
 
 def create():
 
@@ -229,23 +232,29 @@ def writeConfigKey(Config,Section,Key,keyDetails):
             Value = ''
             keyRequired = False
 
-        # Get value of userInput key type from user
-        while keyRequired:
-            if keyDetails['State'] == 'required':
-                String = '  Please enter your ' + keyDetails['Desc'] + '*: '
-            else:
-                String = '  Please enter your ' + keyDetails['Desc'] + ': '
-            Value = input(String)
-            if not Value and keyDetails['State'] == 'required':
-                print('    ' + keyDetails['Desc'] + ' cannot be empty. Please try again')
-                continue
-            elif not Value and keyDetails['State'] == 'optional':
-                break
-            try:
-                Value = keyDetails['Format'](Value)
-                break
-            except ValueError:
-                print('    ' + keyDetails['Desc'] + ' not valid. Please try again')
+        # userInput key required. Get value from user
+        if keyRequired:
+            while True:
+                if keyDetails['State'] == 'required':
+                    String = '  Please enter your ' + keyDetails['Desc'] + '*: '
+                else:
+                    String = '  Please enter your ' + keyDetails['Desc'] + ': '
+                Value = input(String)
+
+                # userInput key value is empty. Check if userInput key is
+                # required
+                if not Value and keyDetails['State'] == 'required':
+                    print('    ' + keyDetails['Desc'] + ' cannot be empty. Please try again')
+                    continue
+                elif not Value and keyDetails['State'] == 'optional':
+                    break
+
+                # Check if userInput key value matches required format
+                try:
+                    Value = keyDetails['Format'](Value)
+                    break
+                except ValueError:
+                    print('    ' + keyDetails['Desc'] + ' format is not valid. Please try again')
 
         # Write userInput Key value pair to configuration file
         Config.set(Section,Key,str(Value))
@@ -312,42 +321,62 @@ def writeConfigKey(Config,Section,Key,keyDetails):
                     Config.set('Keys','MetOffice',str(Value))
 
         # Get Station metadata from WeatherFlow API and validate Station ID
+        RETRIES = 0
         if keyDetails['Source'] == 'station' and STATION is None:
             while True:
                 Template = 'https://swd.weatherflow.com/swd/rest/stations/{}?api_key={}'
                 URL = Template.format(Config['Station']['StationID'],Config['Keys']['WeatherFlow'])
                 STATION = requests.get(URL).json()
-                if 'NOT FOUND' in STATION['status']['status_message']:
-                    inputStr = '    Station not found. Please re-enter your Station ID*: '
-                    while True:
-                        ID = input(inputStr)
-                        if not ID:
-                            print('    Station ID cannot be empty. Please try again')
-                            continue
-                        try:
-                            ID = int(ID)
-                            break
-                        except ValueError:
-                            inputStr = '    Station ID not valid. Please re-enter your Station ID*: '
-                    Config.set('Station','StationID',str(ID))
-                elif 'SUCCESS' in STATION['status']['status_message']:
-                    break
+                if 'status' in STATION:
+                    if 'NOT FOUND' in STATION['status']['status_message']:
+                        inputStr = '    Station not found. Please re-enter your Station ID*: '
+                        while True:
+                            ID = input(inputStr)
+                            if not ID:
+                                print('    Station ID cannot be empty. Please try again')
+                                continue
+                            try:
+                                ID = int(ID)
+                                break
+                            except ValueError:
+                                inputStr = '    Station ID not valid. Please re-enter your Station ID*: '
+                        Config.set('Station','StationID',str(ID))
+                    elif 'SUCCESS' in STATION['status']['status_message']:
+                        break
+                    else:
+                        RETRIES += 1
+                else:
+                    RETRIES += 1
+                if RETRIES >= MAXRETRIES:
+                    sys.exit('\n    Error: unable to fetch station meta-data')
 
         # Get Observation metadata from WeatherFlow API
+        RETRIES = 0
         if keyDetails['Source'] == 'observation' and OBSERVATION is None:
-            Template = 'https://swd.weatherflow.com/swd/rest/observations/station/{}?api_key={}'
-            URL = Template.format(Config['Station']['StationID'],Config['Keys']['WeatherFlow'])
-            OBSERVATION = requests.get(URL).json()
+            while True:
+                Template = 'https://swd.weatherflow.com/swd/rest/observations/station/{}?api_key={}'
+                URL = Template.format(Config['Station']['StationID'],Config['Keys']['WeatherFlow'])
+                OBSERVATION = requests.get(URL).json()
+                if 'status' in STATION:
+                    if 'SUCCESS' in STATION['status']['status_message']:
+                        break
+                    else:
+                        RETRIES += 1
+                else:
+                    RETRIES += 1
+                if RETRIES >= MAXRETRIES:
+                    sys.exit('\n    Error: unable to fetch observation meta-data')
 
         # Validate Geonames API key and get Station geographical data from
         # GeoNames API
+        RETRIES = 0
         if keyDetails['Source'] == 'GeoNames' and GEONAMES is None:
             while True:
                 Template = 'http://api.geonames.org/findNearbyPlaceName?lat={}&lng={}&username={}&radius=10&featureClass=P&maxRows=20&type=json'
                 URL = Template.format(Config['Station']['Latitude'],Config['Station']['Longitude'],Config['Keys']['GeoNames'])
                 GEONAMES = requests.get(URL).json()
                 if 'status' in GEONAMES:
-                    if GEONAMES['status']['message'] == 'invalid user' or  GEONAMES['status']['message'] == 'user does not exist.':
+                    if GEONAMES['status']['message'] in ['invalid user','user does not exist.']:
                         inputStr = '    GeoNames API Key not valid. Please re-enter your GeoNames API Key*: '
                         while True:
                             ID = input(inputStr)
@@ -356,11 +385,18 @@ def writeConfigKey(Config,Section,Key,keyDetails):
                                 continue
                             break
                         Config.set('Keys','GeoNames',str(ID))
-                else:
+                    else:
+                        RETRIES += 1
+                elif 'geonames' in GEONAMES:
                     break
+                else:
+                    RETRIES += 1
+                if RETRIES >= MAXRETRIES:
+                    sys.exit('\n    Error: have you activated "Free Web Services" in your Geonames account?')
 
         # Validate MetOffice API key and get MetOffice forecast locations from
         # MetOffice API
+        RETRIES = 0
         if keyDetails['Source'] == 'MetOffice' and METOFFICE is None and Config['Station']['Country'] in ['GB']:
             while True:
                 Template = 'http://datapoint.metoffice.gov.uk/public/data/val/wxfcs/all/json/sitelist?&key={}'
@@ -375,9 +411,13 @@ def writeConfigKey(Config,Section,Key,keyDetails):
                             continue
                         break
                     Config.set('Keys','MetOffice',str(ID))
-                else:
+                elif METOFFICE.status_code // 100 == 2:
                     METOFFICE = METOFFICE.json()
                     break
+                else:
+                    RETRIES += 1
+                if RETRIES >= MAXRETRIES:
+                    sys.exit('\n    Error: Unable to fetch UK MetOffice forecast location')
 
         # Validate TEMPEST device ID and get height above ground of TEMPEST
         if Section == 'Station':
@@ -524,15 +564,15 @@ def queryUser(Question,Default=None):
     """
 
     # Define valid reponses and prompt based on specified default answer
-    valid = {"yes": True, "y": True, "ye": True, "no": False, "n": False}
+    valid = {'yes': True, 'y': True, 'ye': True, 'no': False, 'n': False}
     if Default is None:
-        prompt = " [y/n] "
-    elif Default == "yes":
-        prompt = " [Y/n] "
-    elif Default == "no":
-        prompt = " [y/N] "
+        prompt = ' [y/n] '
+    elif Default == 'yes':
+        prompt = ' [Y/n] '
+    elif Default == 'no':
+        prompt = ' [y/N] '
     else:
-        raise ValueError("invalid default answer: '%s'" % Default)
+        raise ValueError('invalid default answer: "%s"' % Default)
 
     # Display question to user
     while True:

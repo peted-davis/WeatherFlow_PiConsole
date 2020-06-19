@@ -22,7 +22,8 @@ from lib import requestAPI
 from kivy.clock import Clock
 from packaging  import version
 from functools  import partial
-from datetime   import datetime, date, time, timedelta
+from datetime   import datetime, timedelta
+import time
 import pytz
 
 # Define global variables

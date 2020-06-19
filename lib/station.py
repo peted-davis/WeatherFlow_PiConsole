@@ -19,7 +19,8 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 from lib import requestAPI
 
 # Import required Python modules
-from datetime   import datetime, date, time, timedelta
+from datetime import datetime
+import time
 import pytz
 
 # Define global variables
