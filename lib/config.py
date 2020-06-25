@@ -656,8 +656,8 @@ def defaultConfig():
                                                           ('PanelTwo',       {'Type': 'default', 'Value': '',              'Desc':'Secondary display for Panel Two'}),
                                                           ('PanelThree',     {'Type': 'default', 'Value': '',              'Desc':'Secondary display for Panel Three'}),
                                                           ('PanelFour',      {'Type': 'default', 'Value': 'MoonPhase',     'Desc':'Secondary display for Panel Four'}),
-                                                          ('PanelFive',      {'Type': 'default', 'Value': 'Lightning',     'Desc':'Secondary display for Panel Five'}),
-                                                          ('PanelSix',       {'Type': 'default', 'Value': '',              'Desc':'Secondary display for Panel Six'})])
+                                                          ('PanelFive',      {'Type': 'default', 'Value': '',              'Desc':'Secondary display for Panel Five'}),
+                                                          ('PanelSix',       {'Type': 'default', 'Value': 'Lightning',     'Desc':'Secondary display for Panel Six'})])
     Default['System'] =          collections.OrderedDict([('Description',    '  System settings'),
                                                           ('BarometerMax',   {'Type': 'dependent', 'Desc': 'maximum barometer pressure'}),
                                                           ('BarometerMin',   {'Type': 'dependent', 'Desc': 'minimum barometer pressure'}),
