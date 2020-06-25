@@ -86,8 +86,9 @@ the UK, register instead for a DarkSky API account (https://darksky.net/dev/regi
 This will be your 'DarkSky' API key. The console requires you to enter either a
 MetOffice API key or a DarkSky API key.~~ As Apple have decided to restrict
 access to DarkSky data to Apple users only, the console is currently unable to
-provide a forecast for stations outside the UK. I am working on finding a
-replacement API service.
+provide a forecast for stations outside the UK. In the near future the console
+will be updated to use the forecast provided directly by WeatherFlow, however
+they are still working to finalise the details of the public API.
 
 3. Finally go to CheckWX Aviation Weather and register to enable access to the
 closest METAR information to you station location.
