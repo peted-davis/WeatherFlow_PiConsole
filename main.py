@@ -250,7 +250,7 @@ class wfpiconsole(App):
         Clock.schedule_interval(partial(system.realtimeClock,self.System,self.config),1.0)
 
         # Initialise Sunrise and Sunset time, Moonrise and Moonset time, and
-        # MetOffice or DarkSky weather forecast
+        # WeatherFlow weather forecast
         astro.SunriseSunset(self.Astro,self.config)
         astro.MoonriseMoonset(self.Astro,self.config)
         forecast.Download(self.MetData,self.config)
@@ -299,10 +299,7 @@ class wfpiconsole(App):
         # Update current weather forecast and Sager Weathercaster forecast when
         # temperature or wind speed units are changed
         if section == 'Units' and key in ['Temp','Wind']:
-            if self.config['Station']['Country'] == 'GB':
-                forecast.ExtractMetOffice(self.MetData,self.config)
-            else:
-                forecast.ExtractDarkSky(self.MetData,self.config)
+            forecast.Extract(self.MetData,self.config)
             if key == 'Wind' and 'Dial' in self.Sager:
                 self.Sager['Dial']['Units'] = value
                 self.Sager['Forecast'] = sagerForecast.getForecast(self.Sager['Dial'])
@@ -458,14 +455,9 @@ class wfpiconsole(App):
 
         # At the top of each hour update the on-screen forecast for the Station
         # location
-        if self.config['Station']['Country'] == 'GB':
-            if Now.hour > self.MetData['Time'].hour or Now.date() > self.MetData['Time'].date():
-                forecast.ExtractMetOffice(self.MetData,self.config)
-                self.MetData['Time'] = Now
-        elif self.config['Keys']['DarkSky']:
-            if Now.hour > self.MetData['Time'].hour or Now.date() > self.MetData['Time'].date():
-                forecast.ExtractDarkSky(self.MetData,self.config)
-                self.MetData['Time'] = Now
+        if Now.hour > self.MetData['Time'].hour or Now.date() > self.MetData['Time'].date():
+            forecast.Extract(self.MetData,self.config)
+            self.MetData['Time'] = Now
 
         # Once dusk has passed, calculate new sunrise/sunset times
         if Now >= self.Astro['Dusk'][0]:

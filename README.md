@@ -67,49 +67,28 @@ Please note that you also cannot use SSH to start the console on a Raspberry Pi
 
 ### Configure and Run WeatherFlow PiConsole
 
-When the console is run for the first time, you'll be required to enter a number
-of API keys for essential web services. One API key is needed determine the the
-station location (country) from its latitude/longitude, one needed to download
-an apppropriate weather forecast for your location, and one needed to download
-the closest METAR information for your location. Follow the steps below to
-register for the required API keys:
+When the console is run for the first time, you'll be asked to enter a CheckWX 
+Aviation Weather API key. This key is required to download the closest METAR 
+information to your station location and can be obtained by registering for a 
+free account here: https://www.checkwx.com/signup
 
-1. First, go to http://www.geonames.org/login and register for a new account.
-Once you have registered, go to your account (http://www.geonames.org/manageaccount)
-and activate "Free Web Services". Once this is done, your username will be your
-'GeoNames' API key.
-
-2. Next, if you live in the UK go to the UK MetOffice DataPoint homepage
-(https://www.metoffice.gov.uk/datapoint), and register for a new account. You'll
-be given an API key that will be you 'MetOffice' API key. ~~If you live outside
-the UK, register instead for a DarkSky API account (https://darksky.net/dev/register).
-This will be your 'DarkSky' API key. The console requires you to enter either a
-MetOffice API key or a DarkSky API key.~~ As Apple have decided to restrict
-access to DarkSky data to Apple users only, the console is currently unable to
-provide a forecast for stations outside the UK. I am working on finding a
-replacement API service.
-
-3. Finally go to CheckWX Aviation Weather and register to enable access to the
-closest METAR information to you station location.
-(https://www.checkwx.com/signup). This will be your 'CheckWX' key.
-
-Once you have followed the above steps and registered for the required API keys,
-go ahead and run the console for the first time using:
+Once you have registered with CheckWX, go ahead and run the console for the 
+first time using:
 ```
 wfpiconsole start
 ```
-You'll be asked to enter the API keys you have just signed-up for above, as well
-as information about your station. This includes your station ID and device ID
-for your outdoor Air and Sky modules. To find this information either open the
-WeatherFlow app or view your station page in a web browser. Click on the gear
-icon -> Stations -> [Station name] -> Status.
+You'll be asked to enter the API key you have just signed-up for above, as well
+as information about your station. This includes your station ID and device IDs
+for your AIR, SKY, or TEMPEST modules. To find this information either open the
+WeatherFlow app or view your station page in a web browser. Click on the gear 
+(settings) icon -> Stations -> [Station name] -> Status.
 
 If all goes smoothly the console should automatically add the extra information
 it needs to your configuration file and then start running. You should not need
 to enter this configuration information again.
 
 Congratulations, you have installed the Raspberry Pi Python console for the
-Weather Flow Smart Home Weather Station.
+Weather Flow Tempest and Smart Home Weather Stations.
 
 ## Update Instructions
 
