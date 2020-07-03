@@ -82,7 +82,7 @@ def Extract(metData,Config):
     # Extract 'valid from' time of all available hourly forecasts, and
     # retrieve forecast for the current hourly period
     Times = list(hourlyForecast['time'] for hourlyForecast in metDict)
-    metDict = metDict[bisect.bisect(Times,int(time.time()))-1]
+    metDict = metDict[bisect.bisect(Times,int(time.time()))]
     
     # Extract 'Valid' until time of forecast
     Valid = Times[bisect.bisect(Times,int(time.time()))]
@@ -108,25 +108,43 @@ def Extract(metData,Config):
     metData['Precip']  = '{:.0f}'.format(Precip[0])
     
     # Define weather icon
-    if Weather == 'clear-day':
+    if 'clear-day' in Weather:
         metData['Weather'] = '1'
-    elif Weather == 'clear-night':
+    elif 'clear-night' in Weather:
         metData['Weather'] = '0'
-    elif Weather == 'rain':
-        metData['Weather'] = '12'
-    elif Weather == 'snow':
+    elif 'rainy' in Weather:
+        metData['Weather'] = '15'
+    elif 'possibly-rainy-day' in Weather:
+        metData['Weather'] = '10'
+    elif 'possibly-rainy-night' in Weather:
+        metData['Weather'] = '9'
+    elif 'snow' in Weather:
         metData['Weather'] = '27'
-    elif Weather == 'sleet':
+    elif 'possibly-snow-day' in Weather:
+        metData['Weather'] = '23'
+    elif 'possibly-snow-night' in Weather:
+        metData['Weather'] = '22'
+    elif 'sleet' in Weather:
         metData['Weather'] = '18'
-    elif Weather == 'wind':
+    elif 'possibly-sleet-day' in Weather:
+        metData['Weather'] = '17'
+    elif 'possibly-sleet-night' in Weather:
+        metData['Weather'] = '16'
+    elif 'thunderstorm' in Weather:
+        metData['Weather'] = '30'
+    elif 'possibly-thunderstorm-day' in Weather:
+        metData['Weather'] = '29'
+    elif 'possibly-thunderstorm-night' in Weather:
+        metData['Weather'] = '28'
+    elif 'windy' in Weather:
         metData['Weather'] = 'wind'
-    elif Weather == 'fog':
+    elif 'foggy' in Weather:
         metData['Weather'] = '6'
-    elif Weather == 'cloudy':
+    elif 'cloudy' in Weather:
         metData['Weather'] = '7'
-    elif Weather == 'partly-cloudy-day':
+    elif 'partly-cloudy-day' in Weather:
         metData['Weather'] = '3'
-    elif Weather == 'partly-cloudy-night':
+    elif 'partly-cloudy-night' in Weather:
         metData['Weather'] = '2'
     else:
         metData['Weather'] = 'ForecastUnavailable'
