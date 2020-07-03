@@ -564,11 +564,15 @@ def StrikeCount(Count,strikeCount,Device,Config,flagAPI):
         # Calculate yearly lightning strikes total. Return NaN if API call
         # has failed
         if requestAPI.weatherflow.verifyResponse(Data,'obs'):
+            bucketStep = Data.json()['bucket_step_minutes']
             Data = Data.json()['obs']
             if Config['Station']['OutAirID']:
                 Strikes = [item[4] for item in Data if item[4] != None]
             elif Config['Station']['TempestID']:
-                Strikes = [item[15] for item in Data if item[15] != None]
+                if bucketStep == 1440:
+                    Strikes = [item[24] for item in Data if item[24] != None]
+                else:
+                    Strikes = [item[15] for item in Data if item[15] != None]
             yearStrikes = [sum(x for x in Strikes),'count',sum(x for x in Strikes),Now]
         else:
             yearStrikes = [NaN,'count',NaN,Now]
@@ -745,11 +749,15 @@ def RainAccumulation(Rain,rainAccum,Device,Config,flagAPI):
 
         # Calculate yearly rainfall total. Return NaN if API call has failed
         if requestAPI.weatherflow.verifyResponse(Data,'obs'):
+            bucketStep = Data.json()['bucket_step_minutes']
             Data = Data.json()['obs']
             if Config['Station']['SkyID']:
                 Rain = [item[3] for item in Data if item[3] != None]
             elif Config['Station']['TempestID']:
-                Rain = [item[12] for item in Data if item[12] != None]
+                if bucketStep == 1440:
+                    Rain = [item[28] for item in Data if item[28] != None]
+                else:
+                    Rain = [item[12] for item in Data if item[12] != None]
             YearRain = [sum(x for x in Rain),'mm',sum(x for x in Rain),Now]
         else:
             YearRain = [NaN,'mm',NaN,Now]

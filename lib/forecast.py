@@ -1,4 +1,4 @@
-""" Returns the WeatherFlow forecast variables required by the Raspberry Pi 
+""" Returns the WeatherFlow forecast variables required by the Raspberry Pi
 Python console for WeatherFlow Tempest and Smart Home Weather stations.
 Copyright (C) 2018-2020 Peter Davis
 
@@ -53,13 +53,13 @@ def Download(metData,Config):
 
     # Return metData dictionary
     return metData
-    
+
 def Extract(metData,Config):
 
     # Get current time in station time zone
     Tz = pytz.timezone(Config['Station']['Timezone'])
     Now = datetime.now(pytz.utc).astimezone(Tz)
-    
+
     # Extract all forecast data from WeatherFlow JSON file. If  forecast is
     # unavailable, set forecast variables to blank and indicate to user that
     # forecast is unavailable
@@ -78,27 +78,27 @@ def Extract(metData,Config):
         # metData dictionary
         Clock.schedule_once(lambda dt: Download(metData,Config),600)
         return metData
-    
+
     # Extract 'valid from' time of all available hourly forecasts, and
     # retrieve forecast for the current hourly period
     Times = list(hourlyForecast['time'] for hourlyForecast in metDict)
     metDict = metDict[bisect.bisect(Times,int(time.time()))]
-    
+
     # Extract 'Valid' until time of forecast
     Valid = Times[bisect.bisect(Times,int(time.time()))]
     Valid = datetime.fromtimestamp(Valid,pytz.utc).astimezone(Tz)
-    
+
     # Extract weather variables from DarkSky forecast
     Temp    = [metDict['air_temperature'],'c']
     WindSpd = [metDict['wind_avg'],'mps']
     WindDir = [metDict['wind_direction'],'degrees']
     Precip  = [metDict['precip_probability'],'%']
-    Weather =  metDict['icon']
-    
+    Weather =  metDict['icon'].replace('cc-','')
+
     # Convert forecast units as required
     Temp = observation.Units(Temp,Config['Units']['Temp'])
     WindSpd = observation.Units(WindSpd,Config['Units']['Wind'])
-    
+
     # Define and format labels
     metData['Time']    = Now
     metData['Valid']   = datetime.strftime(Valid,'%H:%M')
@@ -106,45 +106,45 @@ def Extract(metData,Config):
     metData['WindDir'] = derive.CardinalWindDirection(WindDir)[2]
     metData['WindSpd'] = ['{:.0f}'.format(WindSpd[0]),WindSpd[1]]
     metData['Precip']  = '{:.0f}'.format(Precip[0])
-    
+
     # Define weather icon
-    if 'clear-day' in Weather:
+    if Weather == 'clear-day':
         metData['Weather'] = '1'
-    elif 'clear-night' in Weather:
+    elif Weather == 'clear-night':
         metData['Weather'] = '0'
-    elif 'rainy' in Weather:
+    elif Weather == 'rainy':
         metData['Weather'] = '15'
-    elif 'possibly-rainy-day' in Weather:
+    elif Weather == 'possibly-rainy-day':
         metData['Weather'] = '10'
-    elif 'possibly-rainy-night' in Weather:
+    elif Weather == 'possibly-rainy-night':
         metData['Weather'] = '9'
-    elif 'snow' in Weather:
+    elif Weather == 'snow':
         metData['Weather'] = '27'
-    elif 'possibly-snow-day' in Weather:
+    elif Weather == 'possibly-snow-day':
         metData['Weather'] = '23'
-    elif 'possibly-snow-night' in Weather:
+    elif Weather == 'possibly-snow-night':
         metData['Weather'] = '22'
-    elif 'sleet' in Weather:
+    elif Weather == 'sleet':
         metData['Weather'] = '18'
-    elif 'possibly-sleet-day' in Weather:
+    elif Weather == 'possibly-sleet-day':
         metData['Weather'] = '17'
-    elif 'possibly-sleet-night' in Weather:
+    elif Weather == 'possibly-sleet-night':
         metData['Weather'] = '16'
-    elif 'thunderstorm' in Weather:
+    elif Weather == 'thunderstorm':
         metData['Weather'] = '30'
-    elif 'possibly-thunderstorm-day' in Weather:
+    elif Weather == 'possibly-thunderstorm-day':
         metData['Weather'] = '29'
-    elif 'possibly-thunderstorm-night' in Weather:
+    elif Weather == 'possibly-thunderstorm-night':
         metData['Weather'] = '28'
-    elif 'windy' in Weather:
+    elif Weather == 'windy':
         metData['Weather'] = 'wind'
-    elif 'foggy' in Weather:
+    elif Weather == 'foggy':
         metData['Weather'] = '6'
-    elif 'cloudy' in Weather:
+    elif Weather == 'cloudy':
         metData['Weather'] = '7'
-    elif 'partly-cloudy-day' in Weather:
+    elif Weather == 'partly-cloudy-day':
         metData['Weather'] = '3'
-    elif 'partly-cloudy-night' in Weather:
+    elif Weather == 'partly-cloudy-night':
         metData['Weather'] = '2'
     else:
         metData['Weather'] = 'ForecastUnavailable'
