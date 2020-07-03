@@ -166,7 +166,7 @@ ScreenManager:
                     on_release: Factory.mainMenu().open()
 
 ## =============================================================================
-## METOFFICE/DARKSKY FORECAST PANEL AND BUTTON
+## WEATHERFLOW FORECAST PANEL AND BUTTON
 ## =============================================================================
 <ForecastPanel>:
     Image:
@@ -198,7 +198,7 @@ ScreenManager:
 
     ## Forecast location, valid, and issued time
     SmallText:
-        text: (app.config['Station']['ForecastLocn'] +';' if len(app.config['Station']['ForecastLocn']) <= 18 else '') + ' Valid until ' + app.MetData['Valid']
+        text: 'Forecast valid until ' + app.MetData['Valid']
         halign: 'right'
         pos_hint: {'x': 6/262, 'y': 3/202}
         size_hint: (252/262, 16/202)
@@ -1091,12 +1091,8 @@ ScreenManager:
                             'Copyright 2015-2020 Brian Underdown \n' \
                             'CC Attribution-NonCommercial-NoDerivatives 4.0 International License \n' \
                             'www.weather34.com/homeweatherstation/ \n\n' \
-                            'Weather forecast data provided by: \n\n' \
-                            'UK MetOffice Datapoint API \n' \
-                            'Contains public sector information licensed under the \n' \
-                            'Open Government Licence \n\n' \
-                            'DarkSky API \n' \
-                            'www.darksky.net \n'
+                            'Weather forecast data provided by \n' \
+                            'WeatherFlow BetterForecast API \n'
 
 ## =============================================================================
 ## DEVICE STATUS PANELS
