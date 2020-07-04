@@ -345,12 +345,13 @@ class wfpiconsole(App):
         if section == 'SecondaryPanels':
             ii = 0
             self.CurrentConditions.buttonList = []
-            Button = ['Button' + Num for Num in ['One','Two','Three','Four','Five','Six']]
+            buttonList = ['Button' + Num for Num in ['One','Two','Three','Four','Five','Six']]
+            for Button in buttonList:
+                self.CurrentConditions.ids[Button].clear_widgets()
             for Panel, Type in App.get_running_app().config['SecondaryPanels'].items():
-                self.CurrentConditions.ids[Button[ii]].clear_widgets()
                 if Type and Type != 'None':
-                    self.CurrentConditions.ids[Button[ii]].add_widget(eval(Type + 'Button')())
-                    self.CurrentConditions.buttonList.append([Button[ii],Panel,Type,'Primary'])
+                    self.CurrentConditions.ids[buttonList[ii]].add_widget(eval(Type + 'Button')())
+                    self.CurrentConditions.buttonList.append([buttonList[ii],Panel,Type,'Primary'])
                     ii += 1
 
             # Change 'None' for secondary panel selection to blank in config
@@ -495,11 +496,11 @@ class CurrentConditions(Screen):
         # Add secondary panel buttons to CurrentConditions screen
         self.buttonList = []
         ii = 0
-        Button = ['Button' + Num for Num in ['One','Two','Three','Four','Five','Six']]
+        buttonList = ['Button' + Num for Num in ['One','Two','Three','Four','Five','Six']]
         for Panel, Type in App.get_running_app().config['SecondaryPanels'].items():
             if Type:
-                self.manager.ids.CurrentConditions.ids[Button[ii]].add_widget(eval(Type + 'Button')())
-                self.buttonList.append([Button[ii],Panel,Type,'Primary'])
+                self.manager.ids.CurrentConditions.ids[buttonList[ii]].add_widget(eval(Type + 'Button')())
+                self.buttonList.append([buttonList[ii],Panel,Type,'Primary'])
                 ii += 1
 
     # SWITCH BETWEEN DIFFERENT PANELS ON CURRENT CONDITIONS SCREEN
@@ -855,7 +856,7 @@ class mainMenu(ModalView):
         Buttons.add_widget(Button(text='Reboot',   on_release=self.rebootSystem))
         Buttons.add_widget(Button(text='Shutdown', on_release=self.shutdownSystem))
         self.ids.statusPanel.add_widget(Buttons)
-        
+
         # Populate status fields
         self.app.Station.getObservationCount()
         self.app.Station.getStationStatus()
