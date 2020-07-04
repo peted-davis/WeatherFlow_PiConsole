@@ -28,16 +28,13 @@ import sys
 import os
 
 # Define wfpiconsole version number
-Version = 'v3.51'
+Version = 'v3.6'
 
 # Define required variables
 TEMPEST       = False
 INDOORAIR     = False
 STATION       = None
 OBSERVATION   = None
-GEONAMES      = None
-METOFFICE     = None
-LOCATION      = None
 MAXRETRIES    = 3
 NaN           = float('NaN')
 
@@ -301,24 +298,9 @@ def writeConfigKey(Config,Section,Key,keyDetails):
         # Define global variables
         global STATION
         global OBSERVATION
-        global GEONAMES
-        global METOFFICE
-        global LOCATION
 
         # Define local variables
         Value = ''
-
-        # Ensure all necessary API keys have been provided
-        if 'Country' in Config['Station']:
-            if Config['Station']['Country'] in ['GB']:
-                if not Config['Keys']['MetOffice']:
-                    while True:
-                        Value = input('    Station located in UK. Please enter your MetOffice API Key*: ')
-                        if not Value:
-                            print('    MetOffice API Key cannot be empty. Please try again')
-                            continue
-                        break
-                    Config.set('Keys','MetOffice',str(Value))
 
         # Get Station metadata from WeatherFlow API and validate Station ID
         RETRIES = 0
@@ -366,58 +348,6 @@ def writeConfigKey(Config,Section,Key,keyDetails):
                     RETRIES += 1
                 if RETRIES >= MAXRETRIES:
                     sys.exit('\n    Error: unable to fetch observation meta-data')
-
-        # Validate Geonames API key and get Station geographical data from
-        # GeoNames API
-        RETRIES = 0
-        if keyDetails['Source'] == 'GeoNames' and GEONAMES is None:
-            while True:
-                Template = 'http://api.geonames.org/findNearbyPlaceName?lat={}&lng={}&username={}&radius=10&featureClass=P&maxRows=20&type=json'
-                URL = Template.format(Config['Station']['Latitude'],Config['Station']['Longitude'],Config['Keys']['GeoNames'])
-                GEONAMES = requests.get(URL).json()
-                if 'status' in GEONAMES:
-                    if GEONAMES['status']['message'] in ['invalid user','user does not exist.']:
-                        inputStr = '    GeoNames API Key not valid. Please re-enter your GeoNames API Key*: '
-                        while True:
-                            ID = input(inputStr)
-                            if not ID:
-                                print('    GeoNames API Key cannot be empty. Please try again')
-                                continue
-                            break
-                        Config.set('Keys','GeoNames',str(ID))
-                    else:
-                        RETRIES += 1
-                elif 'geonames' in GEONAMES:
-                    break
-                else:
-                    RETRIES += 1
-                if RETRIES >= MAXRETRIES:
-                    sys.exit('\n    Error: have you activated "Free Web Services" in your Geonames account?')
-
-        # Validate MetOffice API key and get MetOffice forecast locations from
-        # MetOffice API
-        RETRIES = 0
-        if keyDetails['Source'] == 'MetOffice' and METOFFICE is None and Config['Station']['Country'] in ['GB']:
-            while True:
-                Template = 'http://datapoint.metoffice.gov.uk/public/data/val/wxfcs/all/json/sitelist?&key={}'
-                URL = Template.format(Config['Keys']['MetOffice'])
-                METOFFICE = requests.get(URL)
-                if not METOFFICE.status_code // 100 == 2:
-                    inputStr = '    MetOffice API Key not valid. Please re-enter your MetOffice API Key*: '
-                    while True:
-                        ID = input(inputStr)
-                        if not ID:
-                            print('    MetOffice API Key cannot be empty. Please try again')
-                            continue
-                        break
-                    Config.set('Keys','MetOffice',str(ID))
-                elif METOFFICE.status_code // 100 == 2:
-                    METOFFICE = METOFFICE.json()
-                    break
-                else:
-                    RETRIES += 1
-                if RETRIES >= MAXRETRIES:
-                    sys.exit('\n    Error: Unable to fetch UK MetOffice forecast location')
 
         # Validate TEMPEST device ID and get height above ground of TEMPEST
         if Section == 'Station':
@@ -494,39 +424,6 @@ def writeConfigKey(Config,Section,Key,keyDetails):
                     else:
                         break
 
-        # Get UK MetOffice or DarkSky forecast location
-        if Section == 'Station':
-            if Key == 'ForecastLocn':
-                if Config['Station']['Country'] == 'GB':
-                    MinDist = math.inf
-                    for Locn in METOFFICE['Locations']['Location']:
-                        ForecastLocn = (float(Locn['latitude']),float(Locn['longitude']))
-                        StationLocn = (float(Config['Station']['Latitude']),float(Config['Station']['Longitude']))
-                        LatDiff = abs(StationLocn[0] - ForecastLocn[0])
-                        LonDiff = abs(StationLocn[1] - ForecastLocn[1])
-                        if (LatDiff and LonDiff) < 0.5:
-                            Dist = geopy.distance(StationLocn,ForecastLocn).km
-                            if Dist < MinDist:
-                                MinDist = Dist
-                                LOCATION = Locn
-                    Value = LOCATION['name']
-                else:
-                    Locns = [Item['name'] for Item in GEONAMES['geonames']]
-                    Len = [len(Item) for Item in Locns]
-                    Ind = next((Item for Item in Len if Item<=18),NaN)
-                    if Ind != NaN:
-                        Value = Locns[Len.index(Ind)]
-                    else:
-                        Value = ''
-
-        # Get UK MetOffice forecast ID
-        if Section == 'Station':
-            if Key == 'MetOfficeID':
-                if Config['Station']['Country'] == 'GB':
-                    Value = LOCATION['id']
-                else:
-                    Value = ''
-
         # Get station latitude/longitude, timezone, or name
         if Section == 'Station':
             if Key in ['Latitude','Longitude','Timezone','Name']:
@@ -536,11 +433,6 @@ def writeConfigKey(Config,Section,Key,keyDetails):
         if Section == 'Station':
             if Key == 'Elevation':
                 Value = STATION['stations'][0]['station_meta']['elevation']
-
-        # Get station country code
-        if Section == 'Station':
-            if Key == 'Country':
-                Value = GEONAMES['geonames'][0]['countryCode']
 
         # Get station units
         if Section in ['Units']:
@@ -600,9 +492,6 @@ def defaultConfig():
     # --------------------------------------------------------------------------
     Default =                    collections.OrderedDict()
     Default['Keys'] =            collections.OrderedDict([('Description',    '  API keys'),
-                                                          ('GeoNames',       {'Type': 'userInput', 'State': 'required', 'Format': str, 'Desc': 'GeoNames API Key'}),
-                                                          ('MetOffice',      {'Type': 'userInput', 'State': 'optional', 'Format': str, 'Desc': 'UK MetOffice API Key'}),
-                                                          ('DarkSky',        {'Type': 'userInput', 'State': 'optional', 'Format': str, 'Desc': 'DarkSky API Key (if you have one)',}),
                                                           ('CheckWX',        {'Type': 'userInput', 'State': 'required', 'Format': str, 'Desc': 'CheckWX API Key',}),
                                                           ('WeatherFlow',    {'Type': 'fixed',     'Value': '146e4f2c-adec-4244-b711-1aeca8f46a48', 'Desc': 'WeatherFlow API Key'})])
     Default['Station'] =         collections.OrderedDict([('Description',    '  Station and device IDs'),
@@ -618,10 +507,7 @@ def defaultConfig():
                                                           ('Longitude',      {'Type': 'request', 'Source': 'station', 'Desc': 'station longitude'}),
                                                           ('Elevation',      {'Type': 'request', 'Source': 'station', 'Desc': 'station elevation'}),
                                                           ('Timezone',       {'Type': 'request', 'Source': 'station', 'Desc': 'station timezone'}),
-                                                          ('Name',           {'Type': 'request', 'Source': 'station', 'Desc': 'station name'}),
-                                                          ('Country',        {'Type': 'request', 'Source': 'GeoNames',  'Desc': 'station country'}),
-                                                          ('ForecastLocn',   {'Type': 'request', 'Source': 'MetOffice', 'Desc': 'station forecast location'}),
-                                                          ('MetOfficeID',    {'Type': 'request', 'Source': 'MetOffice', 'Desc': 'station forecast ID'})])
+                                                          ('Name',           {'Type': 'request', 'Source': 'station', 'Desc': 'station name'})])
     Default['Units'] =           collections.OrderedDict([('Description',    '  Observation units'),
                                                           ('Temp',           {'Type': 'request', 'Source': 'observation', 'Desc': 'station temperature units'}),
                                                           ('Pressure',       {'Type': 'request', 'Source': 'observation', 'Desc': 'station pressure units'}),
@@ -656,8 +542,8 @@ def defaultConfig():
                                                           ('PanelTwo',       {'Type': 'default', 'Value': '',              'Desc':'Secondary display for Panel Two'}),
                                                           ('PanelThree',     {'Type': 'default', 'Value': '',              'Desc':'Secondary display for Panel Three'}),
                                                           ('PanelFour',      {'Type': 'default', 'Value': 'MoonPhase',     'Desc':'Secondary display for Panel Four'}),
-                                                          ('PanelFive',      {'Type': 'default', 'Value': 'Lightning',     'Desc':'Secondary display for Panel Five'}),
-                                                          ('PanelSix',       {'Type': 'default', 'Value': '',              'Desc':'Secondary display for Panel Six'})])
+                                                          ('PanelFive',      {'Type': 'default', 'Value': '',              'Desc':'Secondary display for Panel Five'}),
+                                                          ('PanelSix',       {'Type': 'default', 'Value': 'Lightning',     'Desc':'Secondary display for Panel Six'})])
     Default['System'] =          collections.OrderedDict([('Description',    '  System settings'),
                                                           ('BarometerMax',   {'Type': 'dependent', 'Desc': 'maximum barometer pressure'}),
                                                           ('BarometerMin',   {'Type': 'dependent', 'Desc': 'minimum barometer pressure'}),

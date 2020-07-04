@@ -286,7 +286,7 @@ def stationMetaData(Station,Config):
     Station
 
     INPUTS:
-        Device              Device type (AIR/SKY/TEMPEST)
+        Station              Device type (AIR/SKY/TEMPEST)
         Config              Station configuration
 
     OUTPUT:
@@ -302,4 +302,26 @@ def stationMetaData(Station,Config):
         Data = None
 
     # Return station meta data
+    return Data
+
+def Forecast(Config):
+
+    """ API Request for a weather forecast from WeatherFlow's BetterForecast API
+
+    INPUTS:
+        Config              Station configuration
+
+    OUTPUT:
+        Response            API response containing latest WeatherFlow forecast
+    """
+
+    # Download WeatherFlow forecast
+    Template = 'https://swd.weatherflow.com/swd/rest/better_forecast?api_key={}&station_id={}&lat={}&lon={}'
+    URL = Template.format(Config['Keys']['WeatherFlow'],Config['Station']['StationID'],Config['Station']['Latitude'],Config['Station']['Longitude'])
+    try:
+        Data = requests.get(URL,timeout=int(Config['System']['Timeout']))
+    except:
+        Data = None
+
+    # Return WeatherFlow forecast data
     return Data
