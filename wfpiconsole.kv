@@ -33,8 +33,8 @@ ScreenManager:
 ## CUSTOM Label
 ## =============================================================================
 <LargeText@Label>
-    font_name: 'fonts/SystemSanFranciscoDisplayThin.ttf'
-    font_size: '30sp'
+    font_name: 'fonts/WorkSans-Light.ttf'
+    font_size: '23pt'
     text_size: self.size
     markup: 1
     valign: 'center'
@@ -43,8 +43,8 @@ ScreenManager:
     color: [0.84,0.84,0.84,1]
 
 <MediumText@Label>
-    font_name: 'fonts/SystemSanFranciscoDisplayThin.ttf'
-    font_size: '20sp'
+    font_name: 'fonts/WorkSans-Light.ttf'
+    font_size: '16pt'
     text_size: self.size
     markup: 1
     valign: 'center'
@@ -53,8 +53,8 @@ ScreenManager:
     color: [0.84,0.84,0.84,1]
 
 <SmallText@Label>
-    font_name: 'fonts/Helvetica.ttf'
-    font_size: '15sp'
+    font_name: 'fonts/WorkSans-Medium.ttf'
+    font_size: '11pt'
     text_size: self.size
     markup: 1
     valign: 'center'
@@ -63,10 +63,9 @@ ScreenManager:
     color: [0.84,0.84,0.84,1]
 
 <BoldText@Label>
-    font_name: 'fonts/SystemSanFranciscoDisplayBold.ttf'
-    font_size: '13sp'
+    font_name: 'fonts/WorkSans-SemiBold.ttf'
+    font_size: '11pt'
     text_size: self.size
-    font_hinting: None
     markup: 1
     halign: 'center'
     valign: 'center'
@@ -769,7 +768,8 @@ ScreenManager:
     ## Time and date
     MediumText
         text: app.System['Date'] + '\n' + app.System['Time']
-        font_name: 'fonts/SystemSanFranciscoDisplayRegular.ttf'
+        font_name: 'fonts/WorkSans-SemiBold.ttf'
+        font_size: '14pt'
         pos_hint: {'x': 0/262, 'y': 0/202}
         size_hint: (262/262, 46/202)
 
