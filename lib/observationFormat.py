@@ -104,7 +104,7 @@ def Units(Obs,Unit):
                     cObs[ii] = ''
                 else:
                     cObs[ii-1] = Obs[ii-1]
-                    cObs[ii] = '[sup]o[/sup]'
+                    cObs[ii] = 'degrees'
 
     # Convert rain accumulation and rain rate observations
     elif Unit in ['in','cm','mm']:
@@ -113,7 +113,7 @@ def Units(Obs,Unit):
                 if Unit == 'in':
                     cObs[ii-1] = Obs[ii-1] * 0.0393701
                     if Prcp == 'mm':
-                        cObs[ii] = '"'
+                        cObs[ii] = ' in'
                     else:
                         cObs[ii] = ' in/hr'
                 elif Unit == 'cm':
@@ -197,7 +197,8 @@ def Format(Obs,Type):
     # Format wind direction observations
     elif Type == 'Direction':
         for ii,D in enumerate(Obs):
-            if isinstance(D,str) and D.strip() in ['[sup]o[/sup]']:
+            if isinstance(D,str) and D.strip() in ['degrees']:
+                cObs[ii] = u'\u00B0'
                 if math.isnan(cObs[ii-1]):
                     cObs[ii-1] = '-'
                 else:
@@ -220,7 +221,7 @@ def Format(Obs,Type):
                             cObs[ii-1] = '{:.1f}'.format(cObs[ii-1])
                         else:
                             cObs[ii-1] = '{:.0f}'.format(cObs[ii-1])
-                elif Prcp.strip() in ['"','cm']:
+                elif Prcp.strip() in ['in','cm']:
                     if math.isnan(cObs[ii-1]):
                         cObs[ii-1] = '-'
                     else:
@@ -235,6 +236,8 @@ def Format(Obs,Type):
                             cObs[ii-1] = '{:.1f}'.format(cObs[ii-1])
                         else:
                             cObs[ii-1] = '{:.0f}'.format(cObs[ii-1])
+                    if Prcp.strip() == 'in':
+                        cObs[ii] = '[size=19sp]' + u'\u2033' + '[/size]'
                 elif Prcp.strip() == 'mm/hr':
                     if math.isnan(cObs[ii-1]):
                         cObs[ii-1] = '-'
@@ -275,12 +278,11 @@ def Format(Obs,Type):
     elif Type == 'Radiation':
         for ii,Rad in enumerate(Obs):
             if isinstance(Rad,str) and Rad.strip() == 'Wm2':
+                cObs[ii]   = ' W/m' + u'\u00B2'
                 if math.isnan(cObs[ii-1]):
                     cObs[ii-1] = '-'
-                    cObs[ii]   = ' W/m' + u'\u00B2'
                 else:
                     cObs[ii-1] = '{:.0f}'.format(cObs[ii-1])
-                    cObs[ii]   = ' W/m' + u'\u00B2'
 
     # Format UV observations
     elif Type == 'UV':
