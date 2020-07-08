@@ -102,10 +102,10 @@ def Extract(metData,Config):
     # Define and format labels
     metData['Time']    = Now
     metData['Valid']   = datetime.strftime(Valid,'%H:%M')
-    metData['Temp']    = ['{:.1f}'.format(Temp[0]),Temp[1]]
+    metData['Temp']    = observation.Format(Temp,'Temp')
     metData['WindDir'] = derive.CardinalWindDirection(WindDir)[2]
     metData['WindSpd'] = ['{:.0f}'.format(WindSpd[0]),WindSpd[1]]
-    metData['Precip']  = '{:.0f}'.format(Precip[0])
+    metData['Precip']  = ['{:.0f}'.format(Precip[0]),Precip[1]]
 
     # Define weather icon
     if Weather == 'clear-day':

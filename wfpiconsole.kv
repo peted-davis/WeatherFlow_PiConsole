@@ -33,18 +33,19 @@ ScreenManager:
 ## CUSTOM Label
 ## =============================================================================
 <LargeText@Label>
-    font_name: 'fonts/WorkSans-Light.ttf'
-    font_size: '23pt'
+    font_name: 'fonts/Inter-ExtraLight.ttf'
+    font_size: '29sp'
     text_size: self.size
     markup: 1
+    font_hinting: None
     valign: 'center'
     halign: 'center'
     size_hint: (None,None)
     color: [0.84,0.84,0.84,1]
 
 <MediumText@Label>
-    font_name: 'fonts/WorkSans-Light.ttf'
-    font_size: '16pt'
+    font_name: 'fonts/Inter-Light.ttf'
+    font_size: '19sp'
     text_size: self.size
     markup: 1
     valign: 'center'
@@ -54,7 +55,7 @@ ScreenManager:
 
 <SmallText@Label>
     font_name: 'fonts/Helvetica.ttf'
-    font_size: '11.5pt'
+    font_size: '15sp'
     text_size: self.size
     markup: 1
     valign: 'center'
@@ -63,8 +64,8 @@ ScreenManager:
     color: [0.84,0.84,0.84,1]
 
 <BoldText@Label>
-    font_name: 'fonts/WorkSans-SemiBold.ttf'
-    font_size: '11pt'
+    font_name: 'fonts/Inter-Bold.ttf'
+    font_size: '10pt'
     text_size: self.size
     markup: 1
     halign: 'center'
@@ -183,7 +184,7 @@ ScreenManager:
 
     ## Forecast precipitation
     LargeText:
-        text: app.MetData['Precip'] + ' %'
+        text: app.MetData['Precip'][0] + app.MetData['Precip'][1]
         halign: 'left'
         pos_hint: {'x': 6/262, 'y': 78/202}
         size_hint: (170/262, 31/202)
@@ -271,7 +272,7 @@ ScreenManager:
 
     ## Indoor temperature minimum
     MediumText:
-        text: '[color=00a4b4ff]' + app.Obs['inTempMin'][0] + '[size=15sp]' + app.Obs['inTempMin'][1] + '[/color][/size]'
+        text: '[size=18sp][color=00a4b4ff]' + app.Obs['inTempMin'][0] + '[size=15sp]' + app.Obs['inTempMin'][1] + '[/color][/size][/size]'
         pos_hint: {'x': 0/262, 'y': 104/202}
         size_hint: (65.5/262, 22/202)
         opacity: 1 if app.IndoorTemp == '1' else 0
@@ -283,7 +284,7 @@ ScreenManager:
 
     ## Indoor temperature maximum
     MediumText:
-        text: '[color=f05e40ff]' + app.Obs['inTempMax'][0] + '[size=15sp]' + app.Obs['inTempMax'][1] + '[/color][/size]'
+        text: '[size=18sp][color=f05e40ff]' + app.Obs['inTempMax'][0] + '[size=15sp]' + app.Obs['inTempMax'][1] + '[/color][/size][/size]'
         pos_hint: {'x': 65.5/262, 'y': 104/202}
         size_hint: (65.5/262, 22/202)
         opacity: 1 if app.IndoorTemp == '1' else 0
@@ -305,7 +306,7 @@ ScreenManager:
 
     ## Outdoor temperature minimum
     MediumText:
-        text: '[color=00a4b4ff]' + app.Obs['outTempMin'][0] + '[size=15sp]' + app.Obs['outTempMin'][1] + '[/color][/size]'
+        text: '[size=18sp][color=00a4b4ff]' + app.Obs['outTempMin'][0] + '[size=15sp]' + app.Obs['outTempMin'][1] + '[/color][/size][/size]'
         pos_hint: {'x': 131/262 if app.IndoorTemp == '1' else 65.5/262, 'y': 104/202}
         size_hint: (65.5/262, 22/202)
     SmallText:
@@ -315,7 +316,7 @@ ScreenManager:
 
     ## Outdoor temperature maximum
     MediumText:
-        text: '[color=f05e40ff]' + app.Obs['outTempMax'][0] + '[size=15sp]' + app.Obs['outTempMax'][1] + '[/color][/size]'
+        text: '[size=18sp][color=f05e40ff]' + app.Obs['outTempMax'][0] + '[size=15sp]' + app.Obs['outTempMax'][1] + '[/color][/size][/size]'
         pos_hint: {'x': 196.5/262 if app.IndoorTemp == '1' else 131/262, 'y': 104/202}
         size_hint: (65.5/262, 22/202)
     SmallText:
@@ -558,7 +559,7 @@ ScreenManager:
             Color:
                 rgba: utils.rgba(root.uvBackground) if root.uvBackground != '-' else [20/255,20/255,20/255,1]
             RoundedRectangle:
-                pos: [self.pos[0],self.pos[1]-2]
+                pos: [self.pos[0],self.pos[1]]
                 size: self.size
                 radius: [5,]
 
@@ -742,33 +743,32 @@ ScreenManager:
 
     ## Total daily rainfall
     MediumText
-        text: app.Obs['TodayRain'][0] + '[size=15sp]' + app.Obs['TodayRain'][1] + '[/size]'
+        text: app.Obs['TodayRain'][0] + '[size=16sp]' + app.Obs['TodayRain'][1] + '[/size]'
         pos_hint: {'x': 1/262, 'y': 128/202}
         size_hint: (88/262, 32/202)
 
     ## Total yesterday rainfall
     MediumText
-        text: app.Obs['YesterdayRain'][0] + '[size=15sp]' + app.Obs['YesterdayRain'][1] + '[/size]'
+        text: app.Obs['YesterdayRain'][0] + '[size=16sp]' + app.Obs['YesterdayRain'][1] + '[/size]'
         pos_hint: {'x': 89/262, 'y': 128/202}
         size_hint: (88/262, 32/202)
 
     ## Total monthly rainfall
     MediumText
-        text: app.Obs['MonthRain'][0] + '[size=15sp]' + app.Obs['MonthRain'][1] + '[/size]'
+        text: app.Obs['MonthRain'][0] + '[size=16sp]' + app.Obs['MonthRain'][1] + '[/size]'
         pos_hint: {'x': 1/262, 'y': 73/202}
         size_hint: (88/262, 32/202)
 
     ## Total yearly rainfall
     MediumText
-        text: app.Obs['YearRain'][0] + '[size=15sp]' + app.Obs['YearRain'][1] + '[/size]'
+        text: app.Obs['YearRain'][0] + '[size=16sp]' + app.Obs['YearRain'][1] + '[/size]'
         pos_hint: {'x': 89/262, 'y': 73/202}
         size_hint: (88/262, 32/202)
 
     ## Time and date
     MediumText
         text: app.System['Date'] + '\n' + app.System['Time']
-        font_name: 'fonts/WorkSans-SemiBold.ttf'
-        font_size: '14pt'
+        font_name: 'fonts/Inter-Medium.ttf'
         pos_hint: {'x': 0/262, 'y': 0/202}
         size_hint: (262/262, 46/202)
 

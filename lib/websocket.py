@@ -92,9 +92,9 @@ def Tempest(Msg,wfpiconsole):
     WindDir   = [Ob[4],'degrees']
     Pres      = [Ob[6],'mb']
     Temp      = [Ob[7],'c']
-    Humidity  = [Ob[8],' %']
+    Humidity  = [Ob[8],'%']
     UV        = [Ob[10],'index']
-    Radiation = [Ob[11],' W m[sup]-2[/sup]']
+    Radiation = [Ob[11],' W m' + u'\u207B\u00B2']
     Rain      = [Ob[12],'mm']
     Strikes   = [Ob[15],'count']
 
@@ -236,7 +236,7 @@ def Sky(Msg,wfpiconsole):
     WindSpd   = [Ob[5],'mps']
     WindGust  = [Ob[6],'mps']
     WindDir   = [Ob[7],'degrees']
-    Radiation = [Ob[10],' W m[sup]-2[/sup]']
+    Radiation = [Ob[10],'Wm2']
 
     # Store latest SKY Websocket message
     wfpiconsole.Obs['SkyMsg'] = Msg
@@ -333,7 +333,7 @@ def outdoorAir(Msg,wfpiconsole):
     Time     = [Ob[0],'s']
     Pres     = [Ob[1],'mb']
     Temp     = [Ob[2],'c']
-    Humidity = [Ob[3],' %']
+    Humidity = [Ob[3],'%']
     Strikes  = [Ob[4],'count']
 
     # Extract lightning strike data from the latest outdoor AIR Websocket JSON
