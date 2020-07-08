@@ -62,9 +62,9 @@ def Units(Obs,Unit):
                 elif Unit == 'hpa':
                     cObs[ii-1] = Obs[ii-1]
                     if P == 'mb':
-                        cObs[ii] = ' hpa'
+                        cObs[ii] = ' hPa'
                     else:
-                        cObs[ii] = ' hpa/hr'
+                        cObs[ii] = ' hPa/hr'
                 else:
                     cObs[ii-1] = Obs[ii-1]
                     if P == 'mb':
@@ -171,7 +171,7 @@ def Format(Obs,Type):
     # Format pressure observations
     elif Type == 'Pressure':
         for ii,P in enumerate(Obs):
-            if isinstance(P,str) and P.strip() in ['inHg/hr','inHg','mmHg/hr','mmHg','hpa/hr','mb/hr','hpa','mb']:
+            if isinstance(P,str) and P.strip() in ['inHg/hr','inHg','mmHg/hr','mmHg','hPa/hr','mb/hr','hPa','mb']:
                 if math.isnan(cObs[ii-1]):
                     cObs[ii-1] = '-'
                 else:
@@ -179,7 +179,7 @@ def Format(Obs,Type):
                         cObs[ii-1] = '{:2.3f}'.format(cObs[ii-1])
                     elif P.strip() in ['mmHg/hr','mmHg']:
                         cObs[ii-1] = '{:3.2f}'.format(cObs[ii-1])
-                    elif P.strip() in ['hpa/hr','mb/hr','hpa','mb']:
+                    elif P.strip() in ['hPa/hr','mb/hr','hPa','mb']:
                         cObs[ii-1] = '{:4.1f}'.format(cObs[ii-1])
 
     # Format windspeed observations
