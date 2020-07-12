@@ -72,6 +72,88 @@ ScreenManager:
     valign: 'center'
     size_hint: (None,None)
     color: [0.84,0.84,0.84,1]
+    
+    
+    
+   
+    
+    
+    
+    
+    
+    
+    
+    
+<ScaledLabel@Label>
+    _scale: 1.0 if self.texture_size[0] < self.width else float(self.width) / self.texture_size[0]
+    canvas.before:
+        PushMatrix
+        Scale:
+            origin: self.center
+            x: self._scale or 1.
+            y: self._scale or 1.
+    canvas.after:
+        PopMatrix
+    markup: 1        
+    halign: 'center'
+    valign: 'center'    
+
+<FieldTitle@ScaledLabel>
+    font_name: 'fonts/Inter-Bold.ttf'
+    color: utils.rgba('c8c8c8ff')
+    font_size: self.height
+    size_hint_y: 13/202
+        
+<PanelTitle@ScaledLabel>:     
+    font_name: 'fonts/Inter-Bold.ttf'
+    font_size: self.height
+    color: utils.rgba('ffffffff')
+    size_hint: (1, 13/202)
+    pos_hint: {'x': 0, 'y': 185/202}    
+     
+<PanelBackground@BoxLayout>:
+    pos_hint: {'x': 0/262, 'y': 0/202}
+    size_hint: [1, 1]
+    canvas.after:
+        Color:
+            rgba: [1,1,1,1]
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: (app.borderWidth*2, app.borderWidth*2)
+        Color:
+            rgba: utils.rgba('0f0f0fff')
+        Rectangle:
+            pos: self.x+dp(app.borderWidth), self.y+dp(app.borderWidth)
+            size: self.width-dp(app.borderWidth*2), self.height-dp(app.borderWidth*2)    
+    
+<WindRose@BoxLayout>:
+    _width: 3
+    pos_hint: {'x': 65/262, 'y': 26/202}
+    size_hint: (134/262, 134/202)
+    canvas.after:
+        Color:
+            rgba: utils.rgba('c8c8c8ff')
+        SmoothLine: 
+            width: self._width
+            ellipse: (self.x+self._width, self.y+self._width, self.width-(self._width*2), self.height-(self._width*2), 0, 45, 1000) 
+        SmoothLine: 
+            width: self._width            
+            ellipse: (self.x+self._width, self.y+self._width, self.width-(self._width*2), self.height-(self._width*2), 315, 360, 1000) 
+        SmoothLine: 
+            width: self._width            
+            ellipse: (self.x+self._width, self.y+self._width, self.width-(self._width*2), self.height-(self._width*2), 135, 225, 1000) 
+        Color:
+            rgba: utils.rgba('646464ff')
+        SmoothLine: 
+            width: self._width
+            ellipse: (self.x+self._width, self.y+self._width, self.width-(self._width*2), self.height-(self._width*2), 45, 135, 1000)     
+        SmoothLine: 
+            width: self._width
+            ellipse: (self.x+self._width, self.y+self._width, self.width-(self._width*2), self.height-(self._width*2), 225, 315, 1000)
+    
+    
+    
 
 ## =============================================================================
 ## CUSTOM TabbedPanelItem AND MainMenuLayout
@@ -169,13 +251,17 @@ ScreenManager:
 ## WEATHERFLOW FORECAST PANEL AND BUTTON
 ## =============================================================================
 <ForecastPanel>:
-    Image:
-        source: 'background/forecast.png'
-        size_hint: (1,1)
-        keep_ratio: 0
-        allow_stretch: 1
+
+    ## Panel background and title
+    PanelBackground:
+    PanelTitle:    
+        text: 'Current Forecast'    
 
     ## Forecast temperature
+    FieldTitle:
+        text: 'Temperature'
+        pos_hint: {'x': 6/262, 'y': 167/202}
+        size_hint_x: 90/263        
     LargeText:
         text: app.MetData['Temp'][0] + app.MetData['Temp'][1]
         halign: 'left'
@@ -183,6 +269,10 @@ ScreenManager:
         size_hint: (170/262, 31/202)
 
     ## Forecast precipitation
+    FieldTitle:
+        text: 'Precipitation'
+        pos_hint: {'x': 6/262, 'y': 111/202}
+        size_hint_x: 90/263  
     LargeText:
         text: app.MetData['Precip'][0] + app.MetData['Precip'][1]
         halign: 'left'
@@ -190,6 +280,10 @@ ScreenManager:
         size_hint: (170/262, 31/202)
 
     ## Forecast windspeed
+    FieldTitle:
+        text: 'Wind Speed'
+        pos_hint: {'x': 6/262, 'y': 54/202}
+        size_hint_x: 90/263  
     LargeText:
         text: app.MetData['WindSpd'][0] + ' ' + app.MetData['WindSpd'][1] + ' ' + app.MetData['WindDir']
         halign: 'left'
@@ -222,11 +316,11 @@ ScreenManager:
 ## SAGER FORECAST PANEL AND BUTTON
 ## =============================================================================
 <SagerPanel>:
-    Image:
-        source: 'background/sagerForecast.png'
-        size_hint: (1,1)
-        keep_ratio: 0
-        allow_stretch: 1
+
+    ## Panel background and title
+    PanelBackground:
+    PanelTitle:    
+        text: 'Sager Forecast'      
 
     ## Sager Weathercaster forecast
     MediumText:
@@ -252,17 +346,17 @@ ScreenManager:
 ## TEMPERATURE WIDGET
 ## =============================================================================
 <TemperaturePanel>:
-    Image:
-        source: 'background/temperature.png'
-        size_hint: (1,1)
-        keep_ratio: 0
-        allow_stretch: 1
+
+    ## Panel background and title
+    PanelBackground:
+    PanelTitle:    
+        text: 'Temperature'     
 
     ## Indoor temperature
-    BoldText:
-        text: '[color=c8c8c8ff]Indoor[/color]'
+    FieldTitle:
+        text: 'Indoor'
         pos_hint: {'x': 0/262, 'y': 166/202}
-        size_hint: (131/262, 17/202)
+        size_hint_x: (131/262)
         opacity: 1 if app.IndoorTemp == '1' else 0
     LargeText:
         text: app.Obs['inTemp'][0] + app.Obs['inTemp'][1]
@@ -295,10 +389,10 @@ ScreenManager:
         opacity: 1 if app.IndoorTemp == '1' else 0
 
     ## Outdoor temperature
-    BoldText:
-        text: '[color=c8c8c8ff]Outdoor[/color]'
+    FieldTitle:
+        text: 'Outdoor'
         pos_hint: {'x': 131/262 if app.IndoorTemp == '1' else 0/262, 'y': 166/202}
-        size_hint: (131/262 if app.IndoorTemp == '1' else 262/262, 17/202)
+        size_hint_x: (131/262 if app.IndoorTemp == '1' else 262/262)
     LargeText:
         text: app.Obs['outTemp'][0] + app.Obs['outTemp'][1]
         pos_hint: {'x': 131/262 if app.IndoorTemp == '1' else 65.5/262, 'y': 126/202}
@@ -325,18 +419,30 @@ ScreenManager:
         size_hint: (65.5/262, 22/202)
 
     ## 'Feels like' temperature
+    FieldTitle:
+        text: 'Feels Like'
+        pos_hint: {'x': 0/262, 'y': 65/202}
+        size_hint_x: (87.330/262)
     MediumText:
         text: app.Obs['FeelsLike'][0] + app.Obs['FeelsLike'][1]
         pos_hint: {'x': 0/262, 'y': 35/202}
         size_hint: (87.330/262, 29/202)
 
     ## Outdoor humidity
+    FieldTitle:
+        text: 'Humidity'
+        pos_hint: {'x': 87.330/262, 'y': 65/202}
+        size_hint_x: (87.330/262)
     MediumText:
         text: app.Obs['Humidity'][0] + app.Obs['Humidity'][1]
         pos_hint: {'x': 87.330/262, 'y': 35/202}
         size_hint: (87.330/262, 29/202)
 
     ## Dew point
+    FieldTitle:
+        text: 'Dew Point'
+        pos_hint: {'x': 174.660/262, 'y': 65/202}
+        size_hint_x: (87.330/262)
     MediumText:
         text: app.Obs['DewPoint'][0] + app.Obs['DewPoint'][1]
         pos_hint: {'x': 174.660/262, 'y': 35/202}
@@ -364,11 +470,11 @@ ScreenManager:
 ## WIND SPEED AND DIRECTION WIDGET
 ## =============================================================================
 <WindSpeedPanel>:
-    Image:
-        source: 'background/windSpeed.png'
-        size_hint: (1,1)
-        keep_ratio: 0
-        allow_stretch: 1
+
+    PanelBackground:
+    WindRose:    
+    PanelTitle:    
+        text: 'Wind Speed  [size=' + str(int(self.font_size*0.8)) + ']|[/size]  Direction'    
 
     ## Current average wind speed
     LargeText:
@@ -473,11 +579,11 @@ ScreenManager:
 ## SUNRISE/SUNSET WIDGET
 ## =============================================================================
 <SunriseSunsetPanel>:
-    Image:
-        source: 'background/sunriseSunset.png'
-        size_hint: (1,1)
-        keep_ratio: 0
-        allow_stretch: 1
+
+    ## Panel background and title
+    PanelBackground:
+    PanelTitle:    
+        text: 'Solar  [size=' + str(int(self.font_size*0.8)) + ']|[/size]  UV Index'     
 
     ## Night bar
     BoxLayout:
@@ -530,22 +636,20 @@ ScreenManager:
         size_hint: (18/262, 18/202)
 
     ## Solar radiation
-    BoldText:
+    FieldTitle:
         text: 'Radiation'
-        color: [200/255,200/255,200/255,1]
         pos_hint: {'x': 3/262, 'y': 166/202}
-        size_hint: (105/262, 15/202)
+        size_hint_x: (105/262)
     MediumText:
         text: app.Obs['Radiation'][0] + app.Obs['Radiation'][1]
         pos_hint: {'x': 3/262, 'y': 130/202}
         size_hint: (105/262, 33/202)
 
     ## UV Index
-    BoldText:
+    FieldTitle:
         text: 'UV Index'
-        color: [200/255,200/255,200/255,1]
         pos_hint: {'x': 125/262, 'y': 166/202}
-        size_hint: (120/262, 15/202)
+        size_hint_x: (120/262)
     MediumText:
         text: app.Obs['UVIndex'][0]
         pos_hint: {'x': 125/262, 'y': 130/202}
@@ -564,12 +668,11 @@ ScreenManager:
                 radius: [5,]
 
     ## Sunrise time
-    BoldText:
+    FieldTitle:
         text: 'Sunrise'
-        color: [200/255,200/255,200/255,1]
         halign: 'left'
         pos_hint: {'x': 13/262, 'y': 114/202}
-        size_hint: (80/262, 15/202)
+        size_hint_x: (80/262)
     SmallText:
         text: app.Astro['Sunrise'][1]
         halign: 'left'
@@ -578,12 +681,11 @@ ScreenManager:
         size_hint: (80/262, 20/202)
 
     ## Sunset time
-    BoldText:
+    FieldTitle:
         text: 'Sunset'
-        color: [200/255,200/255,200/255,1]
         halign: 'right'
         pos_hint: {'x': 169/262, 'y': 114/202}
-        size_hint: (80/262, 15/202)
+        size_hint_x: (80/262)
     SmallText:
         text: app.Astro['Sunset'][1]
         halign: 'right'
@@ -592,11 +694,10 @@ ScreenManager:
         size_hint: (80/262, 20/202)
 
     ## Time remaining until sunrise or sunset
-    BoldText:
+    FieldTitle:
         text: app.Astro['sunEvent'][3]
-        color: [200/255,200/255,200/255,1]
         pos_hint: {'x': 24/262, 'y': 50/202}
-        size_hint: (80/262, 15/202)
+        size_hint_x: (80/262)
     MediumText:
         text: app.Astro['sunEvent'][1]
         pos_hint: {'x': 10/262, 'y': 26/202}
@@ -623,12 +724,10 @@ ScreenManager:
         size_hint: (80/262, 18/202)
 
     ## Peak Sun Hours
-    BoldText:
+    FieldTitle:
         text: 'Peak Sun Hours'
-        valign: 'bottom'
-        color: [200/255,200/255,200/255,1]
         pos_hint: {'x': 132/262, 'y': 50/202}
-        size_hint: (120/262, 15/202)
+        size_hint_x: (120/262)
     MediumText:
         text: app.Obs['peakSun'][0]
         pos_hint: {'x': 152/262, 'y': 25/202}
@@ -654,6 +753,8 @@ ScreenManager:
         size_hint: (1,1)
         keep_ratio: 0
         allow_stretch: 1
+    PanelTitle:    
+        text: 'Moon Phase' 
 
     ## Moonrise time
     SmallText
@@ -715,6 +816,8 @@ ScreenManager:
         size_hint: (1,1)
         keep_ratio: 0
         allow_stretch: 1
+    PanelTitle:    
+        text: 'Rainfall' 
 
     ## Current rain rate and text
     SmallText:
@@ -742,28 +845,44 @@ ScreenManager:
                 pos_hint: {'x': root.rainRatePosX, 'y': root.rainRatePosY}
 
     ## Total daily rainfall
+    FieldTitle:
+        text: 'Today'
+        pos_hint: {'x': 1/262, 'y': 166/202}
+        size_hint_x: (88/262)    
     MediumText
         text: app.Obs['TodayRain'][0] + '[size=16sp]' + app.Obs['TodayRain'][1] + '[/size]'
-        pos_hint: {'x': 1/262, 'y': 128/202}
-        size_hint: (88/262, 32/202)
+        pos_hint: {'x': 1/262, 'y': 130/202}
+        size_hint: (88/262, 33/202)
 
     ## Total yesterday rainfall
+    FieldTitle:
+        text: 'Yesterday'
+        pos_hint: {'x': 89/262, 'y': 166/202}
+        size_hint_x: (88/262)
     MediumText
         text: app.Obs['YesterdayRain'][0] + '[size=16sp]' + app.Obs['YesterdayRain'][1] + '[/size]'
-        pos_hint: {'x': 89/262, 'y': 128/202}
-        size_hint: (88/262, 32/202)
+        pos_hint: {'x': 89/262, 'y': 130/202}
+        size_hint: (88/262, 33/202)
 
     ## Total monthly rainfall
+    FieldTitle:
+        text: 'Month'
+        pos_hint: {'x': 1/262, 'y': 111/202}
+        size_hint_x: (88/262)    
     MediumText
         text: app.Obs['MonthRain'][0] + '[size=16sp]' + app.Obs['MonthRain'][1] + '[/size]'
-        pos_hint: {'x': 1/262, 'y': 73/202}
-        size_hint: (88/262, 32/202)
+        pos_hint: {'x': 1/262, 'y': 75/202}
+        size_hint: (88/262, 33/202)
 
     ## Total yearly rainfall
+    FieldTitle:
+        text: 'Year'
+        pos_hint: {'x': 89/262, 'y': 111/202}
+        size_hint_x: (88/262)     
     MediumText
         text: app.Obs['YearRain'][0] + '[size=16sp]' + app.Obs['YearRain'][1] + '[/size]'
-        pos_hint: {'x': 89/262, 'y': 73/202}
-        size_hint: (88/262, 32/202)
+        pos_hint: {'x': 89/262, 'y': 75/202}
+        size_hint: (88/262, 33/202)
 
     ## Time and date
     MediumText
@@ -783,20 +902,20 @@ ScreenManager:
 ## LIGHTNING WIDGET
 ## =============================================================================
 <LightningPanel>
-    Image:
-        source: 'background/lightning.png'
-        size_hint: (1,1)
-        keep_ratio: 0
-        allow_stretch: 1
+
+    ## Panel background and title
+    PanelBackground:
+    PanelTitle:    
+        text: 'Lightning'
 
     ## Last strike time
-    BoldText:
+    FieldTitle:
         text:
             '[color=c8c8c8ff]Last Strike[/color]' if app.Obs['StrikeDeltaT'][4] == '-' else \
             '[color=c8c8c8ff]Strike Detected![/color]' if app.Obs['StrikeDeltaT'][4] < 360 else \
             '[color=c8c8c8ff]Last Strike[/color]'
-        pos_hint: {'x': 83/262, 'y': 168/202}
-        size_hint: (176/262, 18/202)
+        pos_hint: {'x': 83/262, 'y': 165/202}
+        size_hint_x: (176/262)
     LargeText:
         text: app.Obs['StrikeDeltaT'][0]
         pos_hint: {'x': 83/262, 'y': 139/202}
@@ -838,40 +957,78 @@ ScreenManager:
         size_hint: (90/262, 18/202)
 
     ## Last three hour lightning strikes
+    FieldTitle:
+        text: 'Strike Count'
+        pos_hint: {'x': 6/262, 'y': 88/202}
+        size_hint_x: (132/262) 
+    FieldTitle:
+        text: '3 hours'
+        pos_hint: {'x': 6/262, 'y': 70/202}
+        size_hint_x: (60/262)   
+        color: [1,1,1,1]        
     MediumText:
         text: app.Obs['Strikes3hr'][0]
         pos_hint: {'x': 6/262, 'y': 45/202}
         size_hint: (60/262, 24/202)
 
     ## Total daily lightning strikes
+    FieldTitle:
+        text: 'Today'
+        pos_hint: {'x': 78/262, 'y': 70/202}
+        size_hint_x: (60/262) 
+        color: [1,1,1,1] 
     MediumText:
         text: app.Obs['StrikesToday'][0]
         pos_hint: {'x': 78/262, 'y': 45/202}
         size_hint: (60/262, 24/202)
 
     ## Total monthly lightning strikes
+    FieldTitle:
+        text: 'Month'
+        pos_hint: {'x': 6/262, 'y': 28/202}
+        size_hint_x: (60/262)   
+        color: [1,1,1,1] 
     MediumText:
         text: app.Obs['StrikesMonth'][0]
         pos_hint: {'x': 6/262, 'y': 3/202}
         size_hint: (60/262, 24/202)
 
     ## Total yearly lightning strikes
+    FieldTitle:
+        text: 'Year'
+        pos_hint: {'x': 78/262, 'y': 28/202}
+        size_hint_x: (60/262) 
+        color: [1,1,1,1] 
     MediumText:
         text: app.Obs['StrikesYear'][0]
         pos_hint: {'x': 78/262, 'y': 3/202}
         size_hint: (60/262, 24/202)
 
     ## Strike frequency last ten minutes
+    FieldTitle:
+        text: 'Strike Frequency'
+        pos_hint: {'x': 143/262, 'y': 88/202}
+        size_hint_x: (114/262) 
+    FieldTitle:
+        text: '10 Minutes'
+        pos_hint: {'x': 143/262, 'y': 70/202}
+        size_hint_x: (114/262) 
+        color: [1,1,1,1] 
     MediumText:
         text: app.Obs['StrikeFreq'][0] + app.Obs['StrikeFreq'][1]
-        pos_hint: {'x': 150/262, 'y': 45/202}
-        size_hint: (100/262, 24/202)
+        pos_hint: {'x': 143/262, 'y': 45/202}
+        size_hint: (114/262, 24/202)
 
     ## Strike frequency last three hours
+    FieldTitle:
+        text: '3 hours'
+        pos_hint: {'x': 143/262, 'y': 28/202}
+        size_hint_x: (114/262) 
+        color: [1,1,1,1] 
     MediumText:
         text: app.Obs['StrikeFreq'][2] + app.Obs['StrikeFreq'][3]
-        pos_hint: {'x': 150/262, 'y': 3/202}
-        size_hint: (100/262, 24/202)
+        pos_hint: {'x': 143/262, 'y': 3/202}
+        size_hint: (114/262, 24/202)
 
     ## Lightning bolt icon
     Image:
@@ -903,7 +1060,9 @@ ScreenManager:
         size_hint: (1,1)
         keep_ratio: 0
         allow_stretch: 1
-
+    PanelTitle:    
+        text: 'Barometer' 
+        
     ## Current pressure arrow
     Image:
         source: 'icons/barometer/' + root.barometerArrow + '.png'
@@ -923,10 +1082,10 @@ ScreenManager:
         size_hint: (40/262, 19/202)
 
     ## Current pressure
-    BoldText:
-        text: '[color=c8c8c8ff] SLP [/color]'
+    FieldTitle:
+        text: 'SLP'
         pos_hint: {'x': 80/262, 'y': 57/202}
-        size_hint: (100/262, 28/202)
+        size_hint_x: (100/262)
     LargeText:
         text: app.Obs['Pres'][0]
         pos_hint: {'x': 80/262, 'y': 35/202}
@@ -937,9 +1096,13 @@ ScreenManager:
         size_hint: (100/262, 24/202)
 
     ## Current pressure trend
+    FieldTitle:
+        text: 'Trend'
+        pos_hint: {'x': 155/262, 'y': 166/202}
+        size_hint_x: (96/262) 
     SmallText:
         text: app.Obs['PresTrend'][2]
-        pos_hint: {'x': 155/262, 'y': 146/202}
+        pos_hint: {'x': 155/262, 'y': 147/202}
         size_hint: (96/262, 16/202)
     SmallText:
         text: app.Obs['PresTrend'][0] + app.Obs['PresTrend'][1]
@@ -953,9 +1116,13 @@ ScreenManager:
         size_hint: (220/262, 16/202)
 
     ## 24 Hour pressure low
+    FieldTitle:
+        text: 'Low'
+        pos_hint: {'x': 3/262, 'y': 166/202}
+        size_hint_x: (70/262)    
     SmallText:
         text: '[color=00a4b4ff]' + app.Obs['MinPres'][0] + '[/color]'
-        pos_hint: {'x': 3/262, 'y': 146/202}
+        pos_hint: {'x': 3/262, 'y': 147/202}
         size_hint: (70/262, 16/202)
     SmallText:
         text: app.Obs['MinPres'][2]
@@ -963,9 +1130,13 @@ ScreenManager:
         size_hint: (70/262, 16/202)
 
     ## 24 Hour pressure high
+    FieldTitle:
+        text: 'High'
+        pos_hint: {'x': 73/262, 'y': 166/202}
+        size_hint_x: (70/262) 
     SmallText:
         text: '[color=f05e40ff]' + app.Obs['MaxPres'][0] + '[/color]'
-        pos_hint: {'x': 73/262, 'y': 146/202}
+        pos_hint: {'x': 73/262, 'y': 147/202}
         size_hint: (70/262, 16/202)
     SmallText:
         text: app.Obs['MaxPres'][2]

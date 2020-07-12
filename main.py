@@ -135,7 +135,7 @@ class WeatherFlowClientFactory(WebSocketClientFactory,ReconnectingClientFactory)
 # IMPORT REQUIRED CORE KIVY MODULES
 # ==============================================================================
 from kivy.core.window import Window
-from kivy.properties  import DictProperty, NumericProperty, ConfigParserProperty
+from kivy.properties  import DictProperty, NumericProperty, ConfigParserProperty, ObjectProperty
 from kivy.properties  import StringProperty
 from kivy.animation   import Animation
 from kivy.factory     import Factory
@@ -189,6 +189,7 @@ from kivy.uix.settings       import SettingString, SettingSpacer
 from kivy.uix.button         import Button
 from kivy.uix.widget         import Widget
 from kivy.uix.popup          import Popup
+from kivy.uix.image          import Image
 from kivy.uix.label          import Label
 
 # ==============================================================================
@@ -197,7 +198,7 @@ from kivy.uix.label          import Label
 class wfpiconsole(App):
 
     # Define App class observation dictionary properties
-    Obs = DictProperty      ([('rapidSpd','--'),       ('rapidDir','----'),    ('rapidShift','-'),
+    Obs     = DictProperty  ([('rapidSpd','--'),       ('rapidDir','----'),    ('rapidShift','-'),
                               ('WindSpd','-----'),     ('WindGust','--'),      ('WindDir','---'),
                               ('AvgWind','--'),        ('MaxGust','--'),       ('RainRate','---'),
                               ('TodayRain','--'),      ('YesterdayRain','--'), ('MonthRain','--'),
@@ -210,7 +211,7 @@ class wfpiconsole(App):
                               ('StrikeDist','--'),     ('StrikeFreq','----'),  ('Strikes3hr','-'),
                               ('StrikesToday','-'),    ('StrikesMonth','-'),   ('StrikesYear','-')
                              ])
-    Astro = DictProperty    ([('Sunrise',['-','-',0]), ('Sunset',['-','-',0]), ('Dawn',['-','-',0]),
+    Astro   = DictProperty  ([('Sunrise',['-','-',0]), ('Sunset',['-','-',0]), ('Dawn',['-','-',0]),
                               ('Dusk',['-','-',0]),    ('sunEvent','----'),    ('sunIcon',['-',0,0]),
                               ('Moonrise',['-','-']), ('Moonset',['-','-']),   ('NewMoon','--'),
                               ('FullMoon','--'),      ('Phase','---'),         ('Reformat','-'),
@@ -218,14 +219,16 @@ class wfpiconsole(App):
     MetData = DictProperty  ([('Weather','Building'),  ('Temp','--'),          ('Precip','--'),
                               ('WindSpd','--'),        ('WindDir','--'),       ('Valid','--')
                              ])
-    Sager = DictProperty    ([('Forecast','--'),       ('Issued','--')])
-    System = DictProperty   ([('Time','-'),            ('Date','-')])
+    Sager   = DictProperty  ([('Forecast','--'),       ('Issued','--')])
+    System  = DictProperty  ([('Time','-'),            ('Date','-')])
     Version = DictProperty  ([('Latest','-')])
 
     # Define App class configParser properties
     BarometerMax = ConfigParserProperty('-','System', 'BarometerMax','wfpiconsole')
     BarometerMin = ConfigParserProperty('-','System', 'BarometerMin','wfpiconsole')
     IndoorTemp   = ConfigParserProperty('-','Display','IndoorTemp',  'wfpiconsole')
+    
+    borderWidth = NumericProperty(1)
 
     # BUILD 'WeatherFlowPiConsole' APP CLASS
     # --------------------------------------------------------------------------
@@ -245,6 +248,7 @@ class wfpiconsole(App):
             Window.top = 0
         elif self.config['System']['Hardware'] == 'Other':
             Window.size = (800,480)
+        Window.bind(on_resize=self.setDimensions)    
 
         # Initialise real time clock
         Clock.schedule_interval(partial(system.realtimeClock,self.System,self.config),1.0)
@@ -259,7 +263,7 @@ class wfpiconsole(App):
         #Thread(target=sagerForecast.Generate, args=(self.Sager,self.config), name="Sager", daemon=True).start()
 
         # Initialise websocket connection
-        self.WebsocketConnect()
+        #self.WebsocketConnect()
 
         # Check for latest version
         #Clock.schedule_once(partial(system.checkVersion,self.Version,self.config,updateNotif))
@@ -273,6 +277,12 @@ class wfpiconsole(App):
         Clock.schedule_interval(self.UpdateMethods,1.0)
         Clock.schedule_interval(partial(astro.sunTransit,self.Astro,self.config),1.0)
         Clock.schedule_interval(partial(astro.moonPhase ,self.Astro,self.config),1.0)
+        
+        
+    def setDimensions(self, instance, x, y):
+        
+        self.borderWidth = max(1,x/800*1)
+
 
     # BUILD 'WeatherFlowPiConsole' APP CLASS SETTINGS
     # --------------------------------------------------------------------------
