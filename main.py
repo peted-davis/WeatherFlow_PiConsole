@@ -228,7 +228,7 @@ class wfpiconsole(App):
     BarometerMin = ConfigParserProperty('-','System', 'BarometerMin','wfpiconsole')
     IndoorTemp   = ConfigParserProperty('-','Display','IndoorTemp',  'wfpiconsole')
     
-    borderWidth = NumericProperty(1)
+    scaleFactor = NumericProperty(1)
 
     # BUILD 'WeatherFlowPiConsole' APP CLASS
     # --------------------------------------------------------------------------
@@ -248,7 +248,7 @@ class wfpiconsole(App):
             Window.top = 0
         elif self.config['System']['Hardware'] == 'Other':
             Window.size = (800,480)
-        Window.bind(on_resize=self.setDimensions)    
+        Window.bind(on_resize=self.setScaleFactor)    
 
         # Initialise real time clock
         Clock.schedule_interval(partial(system.realtimeClock,self.System,self.config),1.0)
@@ -263,7 +263,7 @@ class wfpiconsole(App):
         #Thread(target=sagerForecast.Generate, args=(self.Sager,self.config), name="Sager", daemon=True).start()
 
         # Initialise websocket connection
-        #self.WebsocketConnect()
+        self.WebsocketConnect()
 
         # Check for latest version
         #Clock.schedule_once(partial(system.checkVersion,self.Version,self.config,updateNotif))
@@ -279,9 +279,9 @@ class wfpiconsole(App):
         Clock.schedule_interval(partial(astro.moonPhase ,self.Astro,self.config),1.0)
         
         
-    def setDimensions(self, instance, x, y):
+    def setScaleFactor(self, instance, x, y):
         
-        self.borderWidth = max(1,x/800*1)
+        self.scaleFactor = max(1,x/800)
 
 
     # BUILD 'WeatherFlowPiConsole' APP CLASS SETTINGS
