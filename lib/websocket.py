@@ -94,7 +94,7 @@ def Tempest(Msg,wfpiconsole):
     Temp      = [Ob[7],'c']
     Humidity  = [Ob[8],'%']
     UV        = [Ob[10],'index']
-    Radiation = [Ob[11],' W m' + u'\u207B\u00B2']
+    Radiation = [Ob[11],'Wm2']
     Rain      = [Ob[12],'mm']
     Strikes   = [Ob[15],'count']
 

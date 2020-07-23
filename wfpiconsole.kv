@@ -19,6 +19,7 @@
 #:import NoTransition kivy.uix.screenmanager.NoTransition
 #:import Factory      kivy.factory.Factory
 #:import utils        kivy.utils
+#:import math         math
 
 ## =============================================================================
 ## SCREEN MANAGER
@@ -152,8 +153,6 @@ ScreenManager:
 
 <WindRose@BoxLayout>:
     _width: 3
-    pos_hint: {'x': 65/262, 'y': 26/202}
-    size_hint: (134/262, 134/202)
     canvas.after:
         Color:
             rgba: utils.rgba('c8c8c8ff')
@@ -174,7 +173,7 @@ ScreenManager:
         SmoothLine:
             width: self._width*app.scaleFactor
             ellipse: (self.x+self._width*app.scaleFactor, self.y+self._width*app.scaleFactor, self.width-(self._width*2*app.scaleFactor), self.height-(self._width*2*app.scaleFactor), 225, 315, 1000)
-
+            
 ## =============================================================================
 ## CUSTOM TabbedPanelItem AND MainMenuLayout
 ## =============================================================================
@@ -501,6 +500,8 @@ ScreenManager:
 
     PanelBackground:
     WindRose:
+        pos_hint: {'x': 65/262, 'y': 26/202}
+        size_hint: (134/262, 134/202)
     PanelTitle:
         text: 'Wind Speed  [size=' + str(int(self.font_size*0.8)) + ']|[/size]  Direction'
 
@@ -573,12 +574,29 @@ ScreenManager:
         halign: 'right'
 
     ## Rapid wind direction arrow
-    Image:
-        source: 'icons/windRose/' + str(round(root.rapidWindDir)) + '.png'
-        keep_ratio: 0
-        allow_stretch: 1
+    AnchorLayout:
         pos_hint: {'x': 65/262, 'y': 26/202}
-        size_hint: (134/262, 134/202)
+        size_hint: (134/262, 134/202) 
+        anchor_x: 'center'
+        anchor_y: 'center'
+        Image:
+            _factor: (self.parent.size_hint[0]*root.width)/(self.parent.size_hint[1]*root.height)
+            _factor_x: abs(math.sin(math.radians(-root.rapidWindDir))) * (1/self._factor - 1)
+            _factor_y: abs(math.sin(math.radians(-root.rapidWindDir))) * (1 - self._factor)
+            source: 'icons/windRose/0.png'
+            size_hint: (1+self._factor_x,  1-self._factor_y)
+            keep_ratio: 0
+            allow_stretch: 1
+            canvas.before:
+                PushMatrix
+                Rotate:
+                    angle: -root.rapidWindDir
+                    axis: 0, 0, 1
+                    origin: self.parent.center
+            canvas.after:
+                PopMatrix 
+            
+            
 
     ## Rapid wind direction in degrees
     MediumField:
