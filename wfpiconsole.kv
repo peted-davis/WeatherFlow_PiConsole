@@ -98,12 +98,37 @@ ScreenManager:
     halign: 'center'
     valign: 'center'
     
-<PanelTitle@ScaledLabel>:
-    font_name: 'fonts/Inter-Bold.ttf'
-    font_size: dp(self.height)
-    size_hint: (1, 13/202)
-    pos_hint: {'x': 0, 'y': 185/202}
-    color: utils.rgba('#ffffffff')
+<ScaleButton@Button>:
+	state_image: self.background_normal if self.state == 'normal' else self.background_down
+	_scale: 1. if self.texture_size[0] < self.width else float(self.width) / self.texture_size[0]
+	canvas:
+		Color:
+			rgba: self.background_color
+		BorderImage:
+			border: self.border
+			pos: self.pos
+			size: self.size
+			source: self.disabled_image if self.disabled else self.state_image
+		PushMatrix
+		Scale:
+			origin: self.center
+			x: self._scale or 1.
+			y: self._scale or 1.
+		Color:
+			rgba: self.disabled_color if self.disabled else self.color
+		Rectangle:
+			texture: self.texture
+			size: self.texture_size
+			pos: int(self.center_x - self.texture_size[0] / 2.), int(self.center_y - self.texture_size[1] / 2.)
+		PopMatrix    
+    
+    
+    
+    
+    
+    
+    
+    
     
 <TitleField@ScaledLabel>
     font_name: 'fonts/Inter-Bold.ttf'
@@ -135,10 +160,19 @@ ScreenManager:
     valign: 'center'
     color: utils.rgba('#d6d6d6ff')
 
+<PanelTitle@ScaledLabel>:
+    font_name: 'fonts/Inter-Bold.ttf'
+    font_size: dp(self.height)
+    size_hint: (1, 13/202)
+    pos_hint: {'x': 0, 'y': 185/202}
+    color: utils.rgba('#ffffffff')
+
 <PanelBackground@BoxLayout>:
+    _panelTitle: str()
     pos_hint: {'x': 0/262, 'y': 0/202}
     size_hint: [1, 1]
-    canvas.after:
+    cols: 1
+    canvas.before:
         Color:
             rgba: [1,1,1,1]
         RoundedRectangle:
@@ -150,29 +184,32 @@ ScreenManager:
         Rectangle:
             pos: self.x+dp(app.scaleFactor), self.y+dp(app.scaleFactor)
             size: self.width-dp(app.scaleFactor*2), self.height-dp(app.scaleFactor*2)
+    PanelTitle:
+        id: Title
+        text: root._panelTitle
 
-<WindRose@BoxLayout>:
-    _width: 3
-    canvas.after:
+<MenuButton@ScaleButton>:
+    background_color: (0,0,0,0) 
+    canvas.before:
         Color:
-            rgba: utils.rgba('c8c8c8ff')
-        SmoothLine:
-            width: self._width*app.scaleFactor
-            ellipse: (self.x+self._width*app.scaleFactor, self.y+self._width*app.scaleFactor, self.width-(self._width*2*app.scaleFactor), self.height-(self._width*2*app.scaleFactor), 0, 45, 1000)
-        SmoothLine:
-            width: self._width*app.scaleFactor
-            ellipse: (self.x+self._width*app.scaleFactor, self.y+self._width*app.scaleFactor, self.width-(self._width*2*app.scaleFactor), self.height-(self._width*2*app.scaleFactor), 315, 360, 1000)
-        SmoothLine:
-            width: self._width*app.scaleFactor
-            ellipse: (self.x+self._width*app.scaleFactor, self.y+self._width*app.scaleFactor, self.width-(self._width*2*app.scaleFactor), self.height-(self._width*2*app.scaleFactor), 135, 225, 1000)
-        Color:
-            rgba: utils.rgba('646464ff')
-        SmoothLine:
-            width: self._width*app.scaleFactor
-            ellipse: (self.x+self._width*app.scaleFactor, self.y+self._width*app.scaleFactor, self.width-(self._width*2*app.scaleFactor), self.height-(self._width*2*app.scaleFactor), 45, 135, 1000)
-        SmoothLine:
-            width: self._width*app.scaleFactor
-            ellipse: (self.x+self._width*app.scaleFactor, self.y+self._width*app.scaleFactor, self.width-(self._width*2*app.scaleFactor), self.height-(self._width*2*app.scaleFactor), 225, 315, 1000)
+            rgba: (30/255,30/255,30/255,1) if self.state=='normal' else utils.rgba('#00525aff')
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [14*app.scaleFactor]
+    font_name: 'fonts/Inter-SemiBold.ttf'
+    color: utils.rgba('#d6d6d6ff')
+    font_size: self.height/2
+
+
+
+
+
+
+
+
+
+
             
 ## =============================================================================
 ## CUSTOM TabbedPanelItem AND MainMenuLayout
@@ -242,9 +279,9 @@ ScreenManager:
                 BoxLayout:
                     id: PanelSix
         BoxLayout:
+            padding: ['0dp', '0dp', '0dp', '2dp']
             spacing: '4dp'
-            height: '30dp'
-            size_hint_y: None
+            size_hint: (1,30/444)
             BoxLayout:
                 id: ButtonOne
             BoxLayout:
@@ -260,10 +297,9 @@ ScreenManager:
             BoxLayout:
                 id: GraphsButton
             BoxLayout:
-                Button:
+                MenuButton:
                     id: 'mainMenuButton'
-                    background_normal: 'buttons/mainMenu.png'
-                    background_down: 'buttons/mainMenuPressed.png'
+                    text: 'Menu'
                     on_release: Factory.mainMenu().open()
 
 ## =============================================================================
@@ -273,8 +309,7 @@ ScreenManager:
 
     ## Panel background and title
     PanelBackground:
-    PanelTitle:
-        text: 'Current Forecast'
+        _panelTitle: 'Current Forecast'
 
     ## Forecast temperature
     TitleField:
@@ -329,10 +364,9 @@ ScreenManager:
         size_hint: (115/262, 115/202)
 
 <ForecastButton>:
-    Button:
+    MenuButton:
         id: 'ForecastButton'
-        background_normal: 'buttons/forecast.png'
-        background_down: 'buttons/forecastPressed.png'
+        text: 'Forecast'
         on_release: app.CurrentConditions.SwitchPanel(self)
 
 ## =============================================================================
@@ -342,8 +376,7 @@ ScreenManager:
 
     ## Panel background and title
     PanelBackground:
-    PanelTitle:
-        text: 'Sager Forecast'
+        _panelTitle: 'Sager Forecast'
 
     ## Sager Weathercaster forecast
     MultilineText:
@@ -362,10 +395,9 @@ ScreenManager:
         halign: 'right'      
         
 <SagerButton>:
-    Button:
+    MenuButton:
         id: 'SagerButton'
-        background_normal: 'buttons/sager.png'
-        background_down: 'buttons/sagerPressed.png'
+        text: 'Sager'
         on_release: app.CurrentConditions.SwitchPanel(self)
 
 ## =============================================================================
@@ -375,8 +407,7 @@ ScreenManager:
 
     ## Panel background and title
     PanelBackground:
-    PanelTitle:
-        text: 'Temperature'
+        _panelTitle: 'Temperature'
 
     ## Indoor temperature
     TitleField:
@@ -487,10 +518,9 @@ ScreenManager:
         halign: 'left'  
 
 <TemperatureButton>:
-    Button:
+    MenuButton:
         id: 'TemperatureButton'
-        background_normal: 'buttons/temperature.png'
-        background_down: 'buttons/temperaturePressed.png'
+        text: 'Temperature'
         on_release: app.CurrentConditions.SwitchPanel(self)
 
 ## =============================================================================
@@ -498,12 +528,30 @@ ScreenManager:
 ## =============================================================================
 <WindSpeedPanel>:
 
+    ## Panel background, title, and WindRose
     PanelBackground:
-    WindRose:
+        _panelTitle: 'Wind Speed  [size=' + str(int(self.ids.Title.font_size*0.8)) + ']|[/size]  Direction'
+    BoxLayout:
+        _width: 3
         pos_hint: {'x': 65/262, 'y': 26/202}
         size_hint: (134/262, 134/202)
-    PanelTitle:
-        text: 'Wind Speed  [size=' + str(int(self.font_size*0.8)) + ']|[/size]  Direction'
+        canvas.after:
+            Color:
+                rgba: utils.rgba('c8c8c8ff')
+            SmoothLine:
+                width: self._width*app.scaleFactor
+                ellipse: (self.x+self._width*app.scaleFactor, self.y+self._width*app.scaleFactor, self.width-(self._width*2*app.scaleFactor), self.height-(self._width*2*app.scaleFactor), -45, 45, 1000)
+            SmoothLine:
+                width: self._width*app.scaleFactor
+                ellipse: (self.x+self._width*app.scaleFactor, self.y+self._width*app.scaleFactor, self.width-(self._width*2*app.scaleFactor), self.height-(self._width*2*app.scaleFactor), 135, 225, 1000)
+            Color:
+                rgba: utils.rgba('646464ff')
+            SmoothLine:
+                width: self._width*app.scaleFactor
+                ellipse: (self.x+self._width*app.scaleFactor, self.y+self._width*app.scaleFactor, self.width-(self._width*2*app.scaleFactor), self.height-(self._width*2*app.scaleFactor), 45, 135, 1000)
+            SmoothLine:
+                width: self._width*app.scaleFactor
+                ellipse: (self.x+self._width*app.scaleFactor, self.y+self._width*app.scaleFactor, self.width-(self._width*2*app.scaleFactor), self.height-(self._width*2*app.scaleFactor), 225, 315, 1000)  
 
     ## Current average wind speed
     LargeField:
@@ -574,17 +622,22 @@ ScreenManager:
         halign: 'right'
 
     ## Rapid wind direction arrow
-    AnchorLayout:
-        pos_hint: {'x': 65/262, 'y': 26/202}
-        size_hint: (134/262, 134/202) 
-        anchor_x: 'center'
-        anchor_y: 'center'
+    FloatLayout:
+        _diameter: 140
+        pos_hint: {'x': 62/262, 'y': 23/202}
+        size_hint: (self._diameter/262, self._diameter/202)
         Image:
-            _factor: (self.parent.size_hint[0]*root.width)/(self.parent.size_hint[1]*root.height)
-            _factor_x: abs(math.sin(math.radians(-root.rapidWindDir))) * (1/self._factor - 1)
-            _factor_y: abs(math.sin(math.radians(-root.rapidWindDir))) * (1 - self._factor)
-            source: 'icons/windRose/0.png'
-            size_hint: (1+self._factor_x,  1-self._factor_y)
+            _angle: root.rapidWindDir
+            _widthArrow: 18
+            _heightArrow: 16
+            _roseRadius: 0.5
+            _xc: self._roseRadius - (self._widthArrow/2  + math.cos(math.radians(-self._angle+90)) * self._widthArrow/2)  / self.parent._diameter
+            _yc: self._roseRadius - (self._heightArrow/2 + math.sin(math.radians(-self._angle+90)) * self._heightArrow/2) / self.parent._diameter
+            _pos_x: self._roseRadius * math.cos(math.radians(-self._angle+90)) + self._xc
+            _pos_y: self._roseRadius * math.sin(math.radians(-self._angle+90)) + self._yc
+            size_hint: (self._widthArrow/self.parent._diameter, self._heightArrow/self.parent._diameter)
+            pos_hint: {'x': self._pos_x, 'y': self._pos_y}
+            source: 'icons/windRose/arrow.png'
             keep_ratio: 0
             allow_stretch: 1
             canvas.before:
@@ -592,11 +645,9 @@ ScreenManager:
                 Rotate:
                     angle: -root.rapidWindDir
                     axis: 0, 0, 1
-                    origin: self.parent.center
+                    origin: self.center
             canvas.after:
-                PopMatrix 
-            
-            
+                PopMatrix  
 
     ## Rapid wind direction in degrees
     MediumField:
@@ -617,10 +668,9 @@ ScreenManager:
         size_hint_x: (80/262)      
 
 <WindSpeedButton>:
-    Button:
+    MenuButton:
         id: 'WindSpeedButton'
-        background_normal: 'buttons/wind.png'
-        background_down: 'buttons/windPressed.png'
+        text: 'Wind Speed'
         on_release: app.CurrentConditions.SwitchPanel(self)
 
 ## =============================================================================
@@ -630,8 +680,7 @@ ScreenManager:
 
     ## Panel background and title
     PanelBackground:
-    PanelTitle:
-        text: 'Solar  [size=' + str(int(self.font_size*0.8)) + ']|[/size]  UV Index'
+        _panelTitle: 'Solar  [size=' + str(int(self.ids.Title.font_size*0.8)) + ']|[/size]  UV Index'
 
     ## Night bar
     BoxLayout:
@@ -788,23 +837,29 @@ ScreenManager:
         size_hint_x: (120/262)         
         
 <SunriseSunsetButton>:
-    Button:
+    MenuButton:
         id: 'SunriseButton'
-        background_normal: 'buttons/sun.png'
-        background_down: 'buttons/sunPressed.png'
+        text: 'Sunrise'
         on_release: app.CurrentConditions.SwitchPanel(self)
 
 ## =============================================================================
 ## MOON PHASE WIDGET
 ## =============================================================================
 <MoonPhasePanel>
-    Image:
-        source: 'background/moonPhase.png'
-        size_hint: (1,1)
-        keep_ratio: 0
-        allow_stretch: 1
-    PanelTitle:
-        text: 'Moon Phase'
+        
+    ## Panel background, title, and MoonRose
+    PanelBackground:
+        _panelTitle: 'Moon Phase'
+    BoxLayout:
+        _width: 3
+        pos_hint: {'x': 64/262, 'y': 25/202}
+        size_hint: (134/262, 134/202)
+        canvas.after:
+            Color:
+                rgba: utils.rgba('646464ff')
+            SmoothLine:
+                width: self._width*app.scaleFactor
+                ellipse: (self.x+self._width*app.scaleFactor, self.y+self._width*app.scaleFactor, self.width-(self._width*2*app.scaleFactor), self.height-(self._width*2*app.scaleFactor), 0, 360, 4000)
 
     ## Moonrise time
     TitleField:
@@ -875,10 +930,9 @@ ScreenManager:
         size_hint_x: (90/262)           
 
 <MoonPhaseButton>:
-    Button:
+    MenuButton:
         id: 'MoonPhaseButton'
-        background_normal: 'buttons/moon.png'
-        background_down: 'buttons/moonPressed.png'
+        text: 'Moon Phase'
         on_release: app.CurrentConditions.SwitchPanel(self)
 
 ## =============================================================================
@@ -971,10 +1025,9 @@ ScreenManager:
         size_hint_x: (262/262)       
 
 <RainfallButton>:
-    Button:
+    MenuButton:
         id: 'RainfallButton'
-        background_normal: 'buttons/rainfall.png'
-        background_down: 'buttons/rainfallPressed.png'
+        text: 'Rainfall'
         on_release: app.CurrentConditions.SwitchPanel(self)
 
 ## =============================================================================
@@ -984,8 +1037,7 @@ ScreenManager:
 
     ## Panel background and title
     PanelBackground:
-    PanelTitle:
-        text: 'Lightning'
+        _panelTitle: 'Lightning'
 
     ## Last strike time
     TitleField:
@@ -1124,23 +1176,29 @@ ScreenManager:
         size_hint: (65/262, 68/202)
 
 <LightningButton>:
-    Button:
+    MenuButton:
         id: 'LightningButton'
-        background_normal: 'buttons/lightning.png'
-        background_down: 'buttons/lightningPressed.png'
+        text: 'Lightning'
         on_release: app.CurrentConditions.SwitchPanel(self)
 
 ## =============================================================================
 ## BAROMETER WIDGET
 ## =============================================================================
 <BarometerPanel>:
-    Image:
-        source: 'background/barometer.png'
-        size_hint: (1,1)
-        keep_ratio: 0
-        allow_stretch: 1
-    PanelTitle:
-        text: 'Barometer'
+
+    ## Panel background, title, and Barometer dial
+    PanelBackground:
+        _panelTitle: 'Barometer'
+    BoxLayout:
+        _width: 2.5
+        pos_hint: {'x': 46/262, 'y': -66/202}
+        size_hint: (168/262, 168/202)
+        canvas.after:
+            Color:
+                rgba: utils.rgba('646464ff')
+            SmoothLine:
+                width: self._width*app.scaleFactor
+                ellipse: (self.x+self._width*app.scaleFactor, self.y+self._width*app.scaleFactor, self.width-(self._width*2*app.scaleFactor), self.height-(self._width*2*app.scaleFactor), -90, 90, 2000)    
 
     ## Current pressure arrow
     Image:
@@ -1223,10 +1281,9 @@ ScreenManager:
         size_hint_x: (70/262)         
 
 <BarometerButton>:
-    Button:
+    MenuButton:
         id: 'BarometerButton'
-        background_normal: 'buttons/barometer.png'
-        background_down: 'buttons/barometerPressed.png'
+        text: 'Pressure'
         on_release: app.CurrentConditions.SwitchPanel(self)
 
 ## =============================================================================

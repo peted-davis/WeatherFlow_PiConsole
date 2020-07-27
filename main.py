@@ -260,13 +260,13 @@ class wfpiconsole(App):
         forecast.Download(self.MetData,self.config)
 
         # Generate Sager Weathercaster forecast
-        Thread(target=sagerForecast.Generate, args=(self.Sager,self.config), name="Sager", daemon=True).start()
+        #Thread(target=sagerForecast.Generate, args=(self.Sager,self.config), name="Sager", daemon=True).start()
 
         # Initialise websocket connection
         self.WebsocketConnect()
 
         # Check for latest version
-        Clock.schedule_once(partial(system.checkVersion,self.Version,self.config,updateNotif))
+        #Clock.schedule_once(partial(system.checkVersion,self.Version,self.config,updateNotif))
 
         # Initialise Station class, and set device status to be checked every
         # second
@@ -280,10 +280,7 @@ class wfpiconsole(App):
         
         
     def setScaleFactor(self, instance, x, y):
-        
         self.scaleFactor = max(1,x/800)
-        print(x,y)
-        print(self.scaleFactor)
 
     # BUILD 'WeatherFlowPiConsole' APP CLASS SETTINGS
     # --------------------------------------------------------------------------
@@ -605,7 +602,7 @@ class TemperatureButton(RelativeLayout):
 class WindSpeedPanel(RelativeLayout):
 
     # Define WindSpeedPanel class properties
-    rapidWindDir = NumericProperty(-45)
+    rapidWindDir = NumericProperty(0)
     windDirIcon  = StringProperty('-')
     windSpdIcon  = StringProperty('-')
 
