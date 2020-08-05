@@ -227,7 +227,7 @@ class wfpiconsole(App):
     BarometerMax = ConfigParserProperty('-','System', 'BarometerMax','wfpiconsole')
     BarometerMin = ConfigParserProperty('-','System', 'BarometerMin','wfpiconsole')
     IndoorTemp   = ConfigParserProperty('-','Display','IndoorTemp',  'wfpiconsole')
-    
+
     scaleFactor = NumericProperty(1)
 
     # BUILD 'WeatherFlowPiConsole' APP CLASS
@@ -248,7 +248,8 @@ class wfpiconsole(App):
             Window.top = 0
         elif self.config['System']['Hardware'] == 'Other':
             Window.size = (800,480)
-        Window.bind(on_resize=self.setScaleFactor)    
+        Window.bind(on_resize=self.setScaleFactor)
+        self.window = Window
 
         # Initialise real time clock
         Clock.schedule_interval(partial(system.realtimeClock,self.System,self.config),1.0)
@@ -260,13 +261,13 @@ class wfpiconsole(App):
         forecast.Download(self.MetData,self.config)
 
         # Generate Sager Weathercaster forecast
-        #Thread(target=sagerForecast.Generate, args=(self.Sager,self.config), name="Sager", daemon=True).start()
+        Thread(target=sagerForecast.Generate, args=(self.Sager,self.config), name="Sager", daemon=True).start()
 
         # Initialise websocket connection
         self.WebsocketConnect()
 
         # Check for latest version
-        #Clock.schedule_once(partial(system.checkVersion,self.Version,self.config,updateNotif))
+        Clock.schedule_once(partial(system.checkVersion,self.Version,self.config,updateNotif))
 
         # Initialise Station class, and set device status to be checked every
         # second
@@ -277,10 +278,14 @@ class wfpiconsole(App):
         Clock.schedule_interval(self.UpdateMethods,1.0)
         Clock.schedule_interval(partial(astro.sunTransit,self.Astro,self.config),1.0)
         Clock.schedule_interval(partial(astro.moonPhase ,self.Astro,self.config),1.0)
-        
-        
+
+
     def setScaleFactor(self, instance, x, y):
-        self.scaleFactor = max(1,x/800)
+        self.scaleFactor = max(x/800, y/480)
+        if x < 800:
+            self.window.size = (800,y)
+        if y < 480:
+            self.window.size = (x,480)
 
     # BUILD 'WeatherFlowPiConsole' APP CLASS SETTINGS
     # --------------------------------------------------------------------------
@@ -620,7 +625,7 @@ class WindSpeedPanel(RelativeLayout):
         windShift = App.get_running_app().Obs['rapidShift']
         newDirec = App.get_running_app().Obs['RapidMsg']['ob'][2]
         oldDirec = newDirec - windShift
-        
+
         # Animate Wind Rose at constant speed between old and new Rapid-Wind
         # wind direction
         if windShift >= -180 and windShift <= 180:
