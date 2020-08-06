@@ -31,77 +31,165 @@ ScreenManager:
         name: 'CurrentConditions'
 
 ## =============================================================================
-## CUSTOM SCALED LABELS
+## CUSTOM DisplayField LABELS
 ## =============================================================================
-<ScaledLabel@Label>
-    _scale: 1. if self.texture_size[0] < self.width else round(float(self.width) / self.texture_size[0],1)
-    canvas.before:
-        PushMatrix
-        Scale:
-            origin: self.center
-            x: self._scale or 1.
-            y: self._scale or 1.
-    canvas.after:
-        PopMatrix
-    markup: 1
-    color: utils.rgba('#c8c8c8ff')
 
-<ScaleButton@Button>:
-	state_image: self.background_normal if self.state == 'normal' else self.background_down
-    _scale: 1. if self.texture_size[0] < self.width else round(float(self.width) / self.texture_size[0],1)
-	canvas:
-		Color:
-			rgba: self.background_color
-		BorderImage:
-			border: self.border
-			pos: self.pos
-			size: self.size
-			source: self.disabled_image if self.disabled else self.state_image
-		PushMatrix
-		Scale:
-			origin: self.center
-			x: self._scale or 1.
-			y: self._scale or 1.
-		Color:
-			rgba: self.disabled_color if self.disabled else self.color
-		Rectangle:
-			texture: self.texture
-			size: self.texture_size
-			pos: int(self.center_x - self.texture_size[0] / 2.), int(self.center_y - self.texture_size[1] / 2.)
-		PopMatrix
-
-<TitleField@ScaledLabel>
+<BoldText@Label>
     font_name: 'fonts/Inter-Bold.ttf'
+    font_size: '13sp'
+    markup: 1
+    size_hint: (None,None)
+    color: [0.84,0.84,0.84,1]
+
+
+##<ScaleButton>:
+##    font_size: self.height/2
+##	state_image: self.background_normal if self.state == 'normal' else self.background_down
+##	canvas:
+##		Color:
+##			rgba: self.background_color
+##		BorderImage:
+##			border: self.border
+##			pos: self.pos
+##			size: self.size
+##			source: self.disabled_image if self.disabled else self.state_image
+##   color: utils.rgba('#d6d6d6ff')
+
+
+## <ScaleButton>:
+    ## font_size: self.height/2
+	## state_image: self.background_normal if self.state == 'normal' else self.background_down
+	## disabled_image: self.background_disabled_normal if self.state == 'normal' else self.background_disabled_down
+	## canvas:
+		## Color:
+			## rgba: self.background_color
+		## BorderImage:
+			## border: self.border
+			## pos: self.pos
+			## size: self.size
+			## source: self.disabled_image if self.disabled else self.state_image
+		## PushMatrix
+		## Scale:
+			## origin: self.center
+			## x: 1
+			## y: 1
+		## Color:
+			## rgba: self.disabled_color if self.disabled else self.color
+		## Rectangle:
+			## texture: self.texture
+			## size: self.texture_size
+			## pos: int(self.center_x - self.texture_size[0] / 2.), int(self.center_y - self.texture_size[1] / 2.)
+		## PopMatrix
+
+<DisplayField@Label>
     font_size: dp(self.height)
+    color: utils.rgba('#c8c8c8ff')
+    markup: 1
+
+<TitleField@DisplayField>
+    font_name: 'fonts/Inter-Bold.ttf'
     size_hint_y: (13/202)
 
-<LargeField@ScaledLabel>
+<LargeField@DisplayField>
     font_name: 'fonts/Inter-ExtraLight.ttf'
-    font_size: dp(self.height)
     size_hint_y: (27/202)
 
-<MediumField@ScaledLabel>
+<MediumField@DisplayField>
     font_name: 'fonts/Inter-Light.ttf'
-    font_size: dp(self.height)
     size_hint_y: (18/202)
 
-<SmallField@ScaledLabel>
+<SmallField@DisplayField>
     font_name: 'fonts/Helvetica.ttf'
-    font_size: dp(self.height)
     size_hint_y: (14/202)
 
-<MultilineText@Label>
-    text_size: self.size
-    halign: 'center'
-    valign: 'center'
-
-<PanelTitle@ScaledLabel>:
+<MenuField@DisplayField>
     font_name: 'fonts/Inter-Bold.ttf'
-    font_size: dp(self.height)
+    font_size: dp(self.height*0.55)
+    size_hint_y: (13/202)
+
+<StatusColumn@DisplayField>:
+    font_name: 'fonts/Inter-Bold.ttf'
+    font_size: dp(self.height*0.45)
+    color: utils.rgba('#141414ff')
+    canvas.before:
+        Color:
+            rgba: utils.rgba('#c8c8c8cc')
+        Rectangle:
+            pos: self.x + 5, self.y
+            size: self.width-10, self.height
+
+<PanelTitle@DisplayField>:
+    font_name: 'fonts/Inter-Bold.ttf'
     size_hint: (1, 13/202)
     pos_hint: {'x': 0, 'y': 185/202}
     color: utils.rgba('#ffffffff')
 
+## =============================================================================
+## CUSTOM MultilineField LABELS
+## =============================================================================
+<MultilineField@Label>
+    font_name: 'fonts/Inter-Light.ttf'
+    text_size: self.size
+    halign: 'center'
+    valign: 'center'
+
+## =============================================================================
+## CUSTOM PanelButton AND MenuButton
+## =============================================================================
+<PanelButton@Button>:
+    font_size: self.height/2
+    background_color: (0,0,0,0)
+    canvas.before:
+        Color:
+            rgba: utils.rgba('#1e1e1eff') if self.state=='normal' else utils.rgba('#00525aff')
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [14*app.scaleFactor]
+    font_name: 'fonts/Inter-SemiBold.ttf'
+    color: utils.rgba('#d6d6d6ff')
+
+<MenuButton>:
+    font_size: self.height/2
+    background_color: (0,0,0,0)
+    canvas.before:
+        Color:
+            rgba: utils.rgba('#1e1e1eff') if self.state=='normal' else utils.rgba('#00525aff')
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [14*app.scaleFactor]
+    font_name: 'fonts/Inter-SemiBold.ttf'
+    color: utils.rgba('#d6d6d6ff')
+
+## =============================================================================
+## CUSTOM TabbedPanelItem AND MainMenuLayout
+## =============================================================================
+<MainMenuTab@TabbedPanelItem>:
+    background_normal: 'atlas://atlas/wfpiconsole/tab_btn'
+    background_down: 'atlas://atlas/wfpiconsole/tab_btn_pressed'
+    font_name: 'fonts/Inter-SemiBold.ttf'
+    font_size: self.height/2.8
+    canvas.after:
+        Color:
+            rgb: [.3,.3,.3,1]
+        Rectangle:
+            pos: self.right - 1, self.y
+            size: 1, self.height,
+
+<MainMenuLayout@GridLayout>:
+    padding: '5dp'
+    cols: 1
+    canvas.after:
+        Color:
+            rgb: [.3,.3,.3,1]
+        Rectangle:
+            pos: self.x + 1, self.y + 3
+            size: self.width, 1
+
+## =============================================================================
+## PANEL BACKGROUND
+## =============================================================================
 <PanelBackground@BoxLayout>:
     _panelTitle: str()
     pos_hint: {'x': 0/262, 'y': 0/202}
@@ -123,51 +211,6 @@ ScreenManager:
         id: Title
         text: root._panelTitle
 
-<MenuButton@ScaleButton>:
-    background_color: (0,0,0,0)
-    canvas.before:
-        Color:
-            rgba: (30/255,30/255,30/255,1) if self.state=='normal' else utils.rgba('#00525aff')
-        RoundedRectangle:
-            pos: self.pos
-            size: self.size
-            radius: [14*app.scaleFactor]
-    font_name: 'fonts/Inter-SemiBold.ttf'
-    color: utils.rgba('#d6d6d6ff')
-    font_size: self.height/2
-
-## =============================================================================
-## CUSTOM TabbedPanelItem AND MainMenuLayout
-## =============================================================================
-<MainMenuTab@TabbedPanelItem>:
-    background_normal: 'atlas://atlas/wfpiconsole/tab_btn'
-    background_down: 'atlas://atlas/wfpiconsole/tab_btn_pressed'
-    canvas.after:
-        Color:
-            rgb: [.3,.3,.3,1]
-        Rectangle:
-            pos: self.right - 1, self.y
-            size: 1, self.height,
-
-<MainMenuLayout@GridLayout>:
-    padding: '5dp'
-    cols: 1
-    canvas.after:
-        Color:
-            rgb: [.3,.3,.3,1]
-        Rectangle:
-            pos: self.x + 1, self.y + 3
-            size: self.width, 1
-
-<StatusColumn@BoldText>:
-    color: [20/255,20/255,20/255,1]
-    canvas.before:
-        Color:
-            rgba: [200/255,200/255,200/255,.8]
-        Rectangle:
-            pos: self.x + 5, self.y
-            size: self.width-10, self.height
-
 ## =============================================================================
 ## CURRRENT CONDITIONS SCREEN
 ## =============================================================================
@@ -182,7 +225,7 @@ ScreenManager:
             size: self.size
     BoxLayout:
         padding: ['2dp', '2dp', '2dp', '0dp']
-        spacing: '2dp'
+        spacing: '3dp'
         orientation: 'vertical'
         BoxLayout:
             spacing: '4dp'
@@ -205,7 +248,7 @@ ScreenManager:
                     id: PanelSix
         BoxLayout:
             spacing: '4dp'
-            size_hint: (1,32/444)
+            size_hint: (1,31/444)
             BoxLayout:
                 id: ButtonOne
             BoxLayout:
@@ -221,8 +264,8 @@ ScreenManager:
             BoxLayout:
                 id: GraphsButton
             BoxLayout:
-                MenuButton:
-                    id: 'mainMenuButton'
+                PanelButton:
+                    id: 'mainPanelButton'
                     text: 'Menu'
                     on_release: Factory.mainMenu().open()
 
@@ -241,7 +284,7 @@ ScreenManager:
         pos_hint: {'x': 6/262, 'y': 167/202}
         size_hint_x: 90/263
     LargeField:
-        text: app.MetData['Temp'][0] + app.MetData['Temp'][1] + str(self._scale)
+        text: app.MetData['Temp'][0] + app.MetData['Temp'][1]
         pos_hint: {'x': 6/262, 'y': 134/202}
         size_hint_x: (200/262)
         halign: 'left'
@@ -252,7 +295,7 @@ ScreenManager:
         pos_hint: {'x': 6/262, 'y': 111/202}
         size_hint_x: 90/263
     LargeField:
-        text: app.MetData['Precip'][0] + app.MetData['Precip'][1] + str(self._scale)
+        text: app.MetData['Precip'][0] + app.MetData['Precip'][1]
         pos_hint: {'x': 6/262, 'y': 78/202}
         size_hint_x: (200/262)
         halign: 'left'
@@ -263,7 +306,7 @@ ScreenManager:
         pos_hint: {'x': 6/262, 'y': 54/202}
         size_hint_x: 90/263
     LargeField:
-        text: app.MetData['WindSpd'][0] + ' ' + app.MetData['WindSpd'][1] + ' ' + app.MetData['WindDir'] + str(self._scale)
+        text: app.MetData['WindSpd'][0] + ' ' + app.MetData['WindSpd'][1] + ' ' + app.MetData['WindDir']
         pos_hint: {'x': 6/262, 'y': 21/202}
         size_hint_x: (200/262)
         halign: 'left'
@@ -285,7 +328,7 @@ ScreenManager:
         size_hint: (115/262, 115/202)
 
 <ForecastButton>:
-    MenuButton:
+    PanelButton:
         id: 'ForecastButton'
         text: 'Forecast'
         on_release: app.CurrentConditions.SwitchPanel(self)
@@ -300,9 +343,8 @@ ScreenManager:
         _panelTitle: 'Sager Forecast'
 
     ## Sager Weathercaster forecast
-    MultilineText:
+    MultilineField:
         text: app.Sager['Forecast']
-        font_name: 'fonts/Inter-Light.ttf'
         font_size: dp(19*app.scaleFactor)
         pos_hint: {'x': 6/262, 'y': 21/202}
         size_hint: (250/262, 157/202)
@@ -316,7 +358,7 @@ ScreenManager:
         halign: 'right'
 
 <SagerButton>:
-    MenuButton:
+    PanelButton:
         id: 'SagerButton'
         text: 'Sager'
         on_release: app.CurrentConditions.SwitchPanel(self)
@@ -439,7 +481,7 @@ ScreenManager:
         halign: 'left'
 
 <TemperatureButton>:
-    MenuButton:
+    PanelButton:
         id: 'TemperatureButton'
         text: 'Temperature'
         on_release: app.CurrentConditions.SwitchPanel(self)
@@ -589,7 +631,7 @@ ScreenManager:
         size_hint_x: (80/262)
 
 <WindSpeedButton>:
-    MenuButton:
+    PanelButton:
         id: 'WindSpeedButton'
         text: 'Wind Speed'
         on_release: app.CurrentConditions.SwitchPanel(self)
@@ -758,9 +800,9 @@ ScreenManager:
         size_hint_x: (120/262)
 
 <SunriseSunsetButton>:
-    MenuButton:
+    PanelButton:
         id: 'SunriseButton'
-        text: 'Sunrise'
+        text: 'Solar'
         on_release: app.CurrentConditions.SwitchPanel(self)
 
 ## =============================================================================
@@ -851,9 +893,9 @@ ScreenManager:
         size_hint_x: (90/262)
 
 <MoonPhaseButton>:
-    MenuButton:
+    PanelButton:
         id: 'MoonPhaseButton'
-        text: 'Moon Phase'
+        text: 'Moon'
         on_release: app.CurrentConditions.SwitchPanel(self)
 
 ## =============================================================================
@@ -946,7 +988,7 @@ ScreenManager:
         size_hint_x: (262/262)
 
 <RainfallButton>:
-    MenuButton:
+    PanelButton:
         id: 'RainfallButton'
         text: 'Rainfall'
         on_release: app.CurrentConditions.SwitchPanel(self)
@@ -1097,7 +1139,7 @@ ScreenManager:
         size_hint: (65/262, 68/202)
 
 <LightningButton>:
-    MenuButton:
+    PanelButton:
         id: 'LightningButton'
         text: 'Lightning'
         on_release: app.CurrentConditions.SwitchPanel(self)
@@ -1202,7 +1244,7 @@ ScreenManager:
         size_hint_x: (70/262)
 
 <BarometerButton>:
-    MenuButton:
+    PanelButton:
         id: 'BarometerButton'
         text: 'Pressure'
         on_release: app.CurrentConditions.SwitchPanel(self)
@@ -1249,6 +1291,8 @@ ScreenManager:
             background_color: (0, 0, 0,0)
             do_default_tab: False
             tab_pos: 'bottom_left'
+            tab_height: 40*app.scaleFactor
+            tab_width: 100*app.scaleFactor
             MainMenuTab:
                 text: 'System'
                 MainMenuLayout:
@@ -1257,35 +1301,27 @@ ScreenManager:
                         orientation: 'vertical'
                         padding: [dp(0),dp(0),dp(0),dp(10)]
                         size_hint: (1,.22)
-                        BoldText:
-                            size_hint: (1,1)
-                            font_size: '16dp'
+                        MenuField:
                             text: app.config['Station']['Name']
-                        BoldText:
-                            size_hint: (1,1)
+                            font_size: dp(self.height*0.6)
+                        MenuField:
                             text: 'Station status: ' + app.Station.Device['stationStatus']
                     GridLayout:
                         cols: 2
                         orientation: 'vertical'
                         padding: [dp(0),dp(0),dp(0),dp(10)]
                         size_hint: (1,.28)
-                        BoldText:
-                            size_hint: (1,1)
+                        MenuField:
                             text: 'Station time: ' + app.System['Time']
-                        BoldText:
-                            size_hint: (1,1)
+                        MenuField:
                             text: 'Station elevation: ' + '{:.2f}'.format(float(app.config['Station']['Elevation'])) + ' m'
-                        BoldText:
-                            size_hint: (1,1)
+                        MenuField:
                             text: 'Station latitude: ' + '{:.4f}'.format(float(app.config['Station']['Latitude'])) + '\u00B0'
-                        BoldText:
-                            size_hint: (1,1)
+                        MenuField:
                             text: 'Station Longitude: ' + '{:.4f}'.format(float(app.config['Station']['Longitude'])) + '\u00B0'
-                        BoldText:
-                            size_hint: (1,1)
+                        MenuField:
                             text: 'Hub firmware: ' + app.Station.Device['hubFirmware']
-                        BoldText:
-                            size_hint: (1,1)
+                        MenuField:
                             text: 'Console version: [color=00a4b4ff]' + app.config['System']['Version'] + '[/color]'
                     BoxLayout:
                         orientation: 'horizontal'
@@ -1308,8 +1344,7 @@ ScreenManager:
             MainMenuTab:
                 text: 'Credits'
                 MainMenuLayout:
-                    BoldText:
-                        size_hint: (1,1)
+                    MultilineField:
                         text:
                             'Python Console for Weather Flow Tempest and Smart Home Weather Station \n' \
                             'Code written by Peter Davis. Copyright 2018-2020 \n' \
@@ -1320,6 +1355,9 @@ ScreenManager:
                             'www.weather34.com/homeweatherstation/ \n\n' \
                             'Weather forecast data provided by \n' \
                             'WeatherFlow BetterForecast API \n'
+                        font_size: dp(15*app.scaleFactor)
+                        font_name: 'fonts/Inter-SemiBold.ttf'
+
 
 ## =============================================================================
 ## DEVICE STATUS PANELS

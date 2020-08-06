@@ -863,11 +863,11 @@ class mainMenu(ModalView):
 
         # Add 'Close', 'Settings', and 'Exit' buttons below device status panel
         Buttons = BoxLayout(orientation='horizontal', size_hint=(1,.1), spacing=dp(10), padding=[dp(0),dp(0),dp(0),dp(2)])
-        Buttons.add_widget(Button(text='Close',    on_release=self.dismiss))
-        Buttons.add_widget(Button(text='Settings', on_release=self.openSettings))
-        Buttons.add_widget(Button(text='Exit',     on_release=self.app.stop))
-        Buttons.add_widget(Button(text='Reboot',   on_release=self.rebootSystem))
-        Buttons.add_widget(Button(text='Shutdown', on_release=self.shutdownSystem))
+        Buttons.add_widget(MenuButton(text='Close',    on_release=self.dismiss))
+        Buttons.add_widget(MenuButton(text='Settings', on_release=self.openSettings))
+        Buttons.add_widget(MenuButton(text='Exit',     on_release=self.app.stop))
+        Buttons.add_widget(MenuButton(text='Reboot',   on_release=self.rebootSystem))
+        Buttons.add_widget(MenuButton(text='Shutdown', on_release=self.shutdownSystem))
         self.ids.statusPanel.add_widget(Buttons)
 
         # Populate status fields
@@ -1035,9 +1035,14 @@ class SettingToggleTemperature(SettingString):
         self.Label.text = str(Value) + Units
 
 # ==============================================================================
-# CUSTOM LABEL CLASSES
+# CUSTOM ScaledLabels AND ScaleButtons
 # ==============================================================================
-class BoldText():
+
+
+
+
+
+class MenuButton(Button):
     pass
 
 # ==============================================================================
