@@ -229,6 +229,7 @@ class wfpiconsole(App):
     IndoorTemp   = ConfigParserProperty('-','Display','IndoorTemp',  'wfpiconsole')
 
     scaleFactor = NumericProperty(1)
+    atlasSuffix = StringProperty('_lR')
 
     # BUILD 'WeatherFlowPiConsole' APP CLASS
     # --------------------------------------------------------------------------
@@ -281,11 +282,15 @@ class wfpiconsole(App):
 
 
     def setScaleFactor(self, instance, x, y):
-        self.scaleFactor = max(x/800, y/480)
         if x < 800:
             self.window.size = (800,y)
         if y < 480:
-            self.window.size = (x,480)
+            self.window.size = (x,480) 
+        self.scaleFactor = max(x/800, y/480)    
+        if self.scaleFactor > 1:
+            self.atlasSuffix = '_hR'
+        else:
+            self.atlasSuffix = '_lR'
 
     # BUILD 'WeatherFlowPiConsole' APP CLASS SETTINGS
     # --------------------------------------------------------------------------
@@ -862,7 +867,7 @@ class mainMenu(ModalView):
         self.ids.statusPanel.add_widget(statusPanel)
 
         # Add 'Close', 'Settings', and 'Exit' buttons below device status panel
-        Buttons = BoxLayout(orientation='horizontal', size_hint=(1,.1), spacing=dp(10), padding=[dp(0),dp(0),dp(0),dp(2)])
+        Buttons = BoxLayout(orientation='horizontal',  size_hint=(1,.1), spacing=dp(10), padding=[dp(0),dp(0),dp(0),dp(2)])
         Buttons.add_widget(MenuButton(text='Close',    on_release=self.dismiss))
         Buttons.add_widget(MenuButton(text='Settings', on_release=self.openSettings))
         Buttons.add_widget(MenuButton(text='Exit',     on_release=self.app.stop))

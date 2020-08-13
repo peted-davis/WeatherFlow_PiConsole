@@ -558,7 +558,7 @@ ScreenManager:
 
     ## Current Beaufort scale text and icon
     Image:
-        source: 'icons/windSpeed/' + root.windSpdIcon + '.png'
+        source: 'atlas://atlas/windSpd/' + root.windSpdIcon + app.atlasSuffix                                                        
         keep_ratio: 0
         allow_stretch: 1
         pos_hint: {'x': 18/262, 'y': 28/202}
@@ -572,7 +572,7 @@ ScreenManager:
 
     ## Current average wind direction
     Image:
-        source: 'icons/windDir/' + root.windDirIcon + '.png'
+        source: 'atlas://atlas/windDir/' + root.windDirIcon + app.atlasSuffix                                
         keep_ratio: 0
         allow_stretch: 1
         pos_hint: {'x': 216/262, 'y': 28/202}
@@ -586,8 +586,8 @@ ScreenManager:
 
     ## Rapid wind direction arrow
     FloatLayout:
-        _diameter: 140
-        pos_hint: {'x': 62/262, 'y': 23/202}
+        _diameter: 135
+        pos_hint: {'x': 64/262, 'y': 25/202}
         size_hint: (self._diameter/262, self._diameter/202)
         Image:
             _angle: round(root.rapidWindDir)
@@ -600,7 +600,7 @@ ScreenManager:
             _pos_y: self._roseRadius * math.sin(math.radians(-self._angle+90)) + self._yc
             size_hint: (self._widthArrow/self.parent._diameter, self._heightArrow/self.parent._diameter)
             pos_hint: {'x': self._pos_x, 'y': self._pos_y}
-            source: 'icons/windRose/arrow.png'
+            source: 'atlas://atlas/windRose/arrow' + app.atlasSuffix 
             keep_ratio: 0
             allow_stretch: 1
             canvas.before:
