@@ -491,14 +491,16 @@ ScreenManager:
 ## =============================================================================
 <WindSpeedPanel>:
 
-    ## Panel background, title, and WindRose
+    ## Panel background and title
     PanelBackground:
         _panelTitle: 'Wind Speed  [size=' + str(int(self.ids.Title.font_size*0.8)) + ']|[/size]  Direction'
-    BoxLayout:
+        
+    ## Rapid Wind wind speed and direction
+    FloatLayout:
         _width: 3
         pos_hint: {'x': 65/262, 'y': 26/202}
         size_hint: (134/262, 134/202)
-        canvas.after:
+        canvas.before:
             Color:
                 rgba: utils.rgba('c8c8c8ff')
             SmoothLine:
@@ -515,6 +517,12 @@ ScreenManager:
             SmoothLine:
                 width: self._width*app.scaleFactor
                 ellipse: (self.x+self._width*app.scaleFactor, self.y+self._width*app.scaleFactor, self.width-(self._width*2*app.scaleFactor), self.height-(self._width*2*app.scaleFactor), 225, 315, 1000)
+        Image:
+            source: 'atlas://atlas/windRose' + app.atlasSuffix + '/' + str(round(root.rapidWindDir)) 
+            keep_ratio: 0
+            allow_stretch: 1
+            pos_hint: {'x': 0, 'y': 0}
+            size_hint: (1, 1)
 
     ## Current average wind speed
     LargeField:
@@ -585,32 +593,32 @@ ScreenManager:
         halign: 'right'
 
     ## Rapid wind direction arrow
-    FloatLayout:
-        _diameter: 135
-        pos_hint: {'x': 64/262, 'y': 25/202}
-        size_hint: (self._diameter/262, self._diameter/202)
-        Image:
-            _angle: round(root.rapidWindDir)
-            _widthArrow: 18
-            _heightArrow: 16
-            _roseRadius: 0.5
-            _xc: self._roseRadius - (self._widthArrow/2  + math.cos(math.radians(-self._angle+90)) * self._widthArrow/2)  / self.parent._diameter
-            _yc: self._roseRadius - (self._heightArrow/2 + math.sin(math.radians(-self._angle+90)) * self._heightArrow/2) / self.parent._diameter
-            _pos_x: self._roseRadius * math.cos(math.radians(-self._angle+90)) + self._xc
-            _pos_y: self._roseRadius * math.sin(math.radians(-self._angle+90)) + self._yc
-            size_hint: (self._widthArrow/self.parent._diameter, self._heightArrow/self.parent._diameter)
-            pos_hint: {'x': self._pos_x, 'y': self._pos_y}
-            source: 'atlas://atlas/windRose/arrow' + app.atlasSuffix 
-            keep_ratio: 0
-            allow_stretch: 1
-            canvas.before:
-                PushMatrix
-                Rotate:
-                    angle: -round(root.rapidWindDir)
-                    axis: 0, 0, 1
-                    origin: self.center
-            canvas.after:
-                PopMatrix
+    ## FloatLayout:
+        ## _diameter: 134
+        ## pos_hint: {'x': 65/262, 'y': 26/202}
+        ## size_hint: (self._diameter/262, self._diameter/202)
+        ## Image:
+            ## _angle: 90#round(root.rapidWindDir)
+            ## _widthArrow: 18
+            ## _heightArrow: 16
+            ## _roseRadius: 0.5
+            ## _xc: self._roseRadius - (self._widthArrow/2  + math.cos(math.radians(-self._angle+90)) * self._widthArrow/2)  / self.parent._diameter
+            ## _yc: self._roseRadius - (self._heightArrow/2 + math.sin(math.radians(-self._angle+90)) * self._heightArrow/2) / self.parent._diameter
+            ## _pos_x: self._roseRadius * math.cos(math.radians(-self._angle+90)) + self._xc
+            ## _pos_y: self._roseRadius * math.sin(math.radians(-self._angle+90)) + self._yc
+            ## size_hint: (self._widthArrow/self.parent._diameter, self._heightArrow/self.parent._diameter)
+            ## pos_hint: {'x': self._pos_x, 'y': self._pos_y}
+            ## source: 'atlas://atlas/windRose/arrow' + app.atlasSuffix 
+            ## keep_ratio: 0
+            ## allow_stretch: 1
+            ## canvas.before:
+                ## PushMatrix
+                ## Rotate:
+                    ## angle: -90#round(root.rapidWindDir)
+                    ## axis: 0, 0, 1
+                    ## origin: self.center
+            ## canvas.after:
+                ## PopMatrix
 
     ## Rapid wind direction in degrees
     MediumField:
