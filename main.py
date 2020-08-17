@@ -242,15 +242,21 @@ class wfpiconsole(App):
         self.config.read('wfpiconsole.ini')
         self.settings_cls = SettingsWithSidebar
 
-        # Force window size if required based on hardware type
+        # Force window size if required based on hardware type and center on 
+        # screen
+        Window.bind(on_resize=self.setScaleFactor)
+        windowPosi = (Window.left,Window.top)
+        windowSize = Window.size
         if self.config['System']['Hardware'] == 'Pi4':
             Window.size = (800,480)
             Window.borderless = 1
             Window.top = 0
         elif self.config['System']['Hardware'] == 'Other':
             Window.size = (800,480)
-        Window.bind(on_resize=self.setScaleFactor)
-        self.window = Window
+            if Window.size != windowSize:
+                Window.left = windowPosi[0] - (Window.size[0]-windowSize[0])/2
+                Window.top  = windowPosi[1] - (Window.size[1]-windowSize[1])/2
+        self.window = Window   
 
         # Initialise real time clock
         Clock.schedule_interval(partial(system.realtimeClock,self.System,self.config),1.0)
