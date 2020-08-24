@@ -389,6 +389,11 @@ class wfpiconsole(App):
 
         # Extract type of received message
         Type = Msg['type']
+        if "type" in Msg:
+            Type = Msg['type']
+        else:
+            print(json.dumps(Msg))
+            Type = 'unknown-value'
 
         # Start listening for device observations and events upon connection of
         # websocket based on device IDs specified in user configuration file
