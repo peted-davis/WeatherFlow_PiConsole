@@ -106,6 +106,26 @@ def JSON(Section):
                  {'type':'ToggleTemperature', 'title':'Very Hot',
                   'desc':'Set the maximum temperature for "Feeling very hot"', 'section':'FeelsLike', 'key':'VeryHot'}
                 ]
+    elif 'Keys' in Section:
+        Data =  [
+                 {'type':'string', 'title':'CheckWX',
+                  'desc':'Set the CheckWX API Key', 'section':'Keys', 'key':'CheckWX'},
+                 {'type':'string', 'title':'WeatherFlow',
+                  'desc':'Set the WeatherFlow API Key', 'section':'Keys', 'key':'WeatherFlow'}
+                ]
+    elif 'Station' in Section:
+        Data =  [
+                 {'type':'string', 'title':'StationID',
+                  'desc':'Set the StationID', 'section':'Station', 'key':'StationID'},
+                 {'type':'string', 'title':'TempestID',
+                  'desc':'Set the TempestID', 'section':'Station', 'key':'TempestID'},
+                 {'type':'string', 'title':'SkyID',
+                  'desc':'Set the SkyID', 'section':'Station', 'key':'SkyID'},
+                 {'type':'string', 'title':'OutAirID',
+                  'desc':'Set the OutAirID', 'section':'Station', 'key':'OutAirID'},
+                 {'type':'string', 'title':'InAirID',
+                  'desc':'Set the InAirID', 'section':'Station', 'key':'InAirID'}
+                ]
 
     # Returns JSON object for settings section
     return json.dumps(Data)

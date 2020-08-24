@@ -289,6 +289,8 @@ class wfpiconsole(App):
         settingsScreen.add_json_panel('Secondary Panels', self.config, data = settings.JSON('Secondary'))
         settingsScreen.add_json_panel('Units',            self.config, data = settings.JSON('Units'))
         settingsScreen.add_json_panel('Feels Like',       self.config, data = settings.JSON('FeelsLike'))
+        settingsScreen.add_json_panel('Keys',             self.config, data = settings.JSON('Keys'))
+        settingsScreen.add_json_panel('Station',          self.config, data = settings.JSON('Station'))
         self.use_kivy_settings = False
 
     # OVERLOAD 'on_config_change' TO MAKE NECESSARY CHANGES TO CONFIG VALUES
