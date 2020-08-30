@@ -70,7 +70,7 @@ Please note that you also cannot use SSH to start the console on a Raspberry Pi
 When the console is run for the first time, you'll be asked to enter a CheckWX 
 Aviation Weather API key. This key is required to download the closest METAR 
 information to your station location and can be obtained by registering for a 
-free account here: https://www.checkwx.com/signup
+free account here: https://www.checkwxapi.com/auth/signup
 
 Once you have registered with CheckWX, go ahead and run the console for the 
 first time using:
