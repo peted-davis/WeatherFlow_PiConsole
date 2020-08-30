@@ -35,6 +35,7 @@ TEMPEST       = False
 INDOORAIR     = False
 STATION       = None
 OBSERVATION   = None
+CHECKWX       = None
 MAXRETRIES    = 3
 NaN           = float('NaN')
 
@@ -186,6 +187,8 @@ def copyConfigKey(newConfig,currentConfig,Section,Key,keyDetails):
     # Write key value to new configuration
     newConfig.set(Section,Key,str(Value))
 
+    # Validate API keys
+    validateAPIKeys(newConfig)
 
 def writeConfigKey(Config,Section,Key,keyDetails):
 
@@ -201,15 +204,19 @@ def writeConfigKey(Config,Section,Key,keyDetails):
 
     """
 
+    # Define global variables
+    global TEMPEST
+    global INDOORAIR
+    global STATION
+    global OBSERVATION
+    global CHECKWX
+
     # Define required variables
     keyRequired = True
 
     # GET VALUE OF userInput KEY TYPE
     # --------------------------------------------------------------------------
     if keyDetails['Type'] in ['userInput']:
-
-        # Define global variables
-        global TEMPEST, INDOORAIR
 
         # Request user input to determine which devices are present
         if Key == 'TempestID':
@@ -299,49 +306,15 @@ def writeConfigKey(Config,Section,Key,keyDetails):
     # --------------------------------------------------------------------------
     elif keyDetails['Type'] in ['request']:
 
-        # Define global variables
-        global STATION
-        global OBSERVATION
-
         # Define local variables
         Value = ''
-
-        # Get Station metadata from WeatherFlow API and validate Station ID
-        RETRIES = 0
-        if keyDetails['Source'] == 'station' and STATION is None:
-            while True:
-                Template = 'https://swd.weatherflow.com/swd/rest/stations/{}?api_key={}'
-                URL = Template.format(Config['Station']['StationID'],Config['Keys']['WeatherFlow'])
-                STATION = requests.get(URL).json()
-                if 'status' in STATION:
-                    if 'NOT FOUND' in STATION['status']['status_message']:
-                        inputStr = '    Station not found. Please re-enter your Station ID*: '
-                        while True:
-                            ID = input(inputStr)
-                            if not ID:
-                                print('    Station ID cannot be empty. Please try again')
-                                continue
-                            try:
-                                ID = int(ID)
-                                break
-                            except ValueError:
-                                inputStr = '    Station ID not valid. Please re-enter your Station ID*: '
-                        Config.set('Station','StationID',str(ID))
-                    elif 'SUCCESS' in STATION['status']['status_message']:
-                        break
-                    else:
-                        RETRIES += 1
-                else:
-                    RETRIES += 1
-                if RETRIES >= MAXRETRIES:
-                    sys.exit('\n    Error: unable to fetch station meta-data')
 
         # Get Observation metadata from WeatherFlow API
         RETRIES = 0
         if keyDetails['Source'] == 'observation' and OBSERVATION is None:
             while True:
                 Template = 'https://swd.weatherflow.com/swd/rest/observations/station/{}?api_key={}'
-                URL = Template.format(Config['Station']['StationID'],Config['Keys']['WeatherFlow'])
+                URL = Template.format(Config['Station']['StationID'],Config['Keys']['WeathFlowToken'])
                 OBSERVATION = requests.get(URL).json()
                 if 'status' in STATION:
                     if 'SUCCESS' in STATION['status']['status_message']:
@@ -446,6 +419,91 @@ def writeConfigKey(Config,Section,Key,keyDetails):
         print('  Adding ' + keyDetails['Desc'] + ': ' + str(Value))
         Config.set(Section,Key,str(Value))
 
+    # Validate API keys
+    validateAPIKeys(Config)
+
+def validateAPIKeys(Config):
+
+    """ Validates API keys entered in the config file
+
+    INPUTS
+        Config              Station configuration
+
+    """
+
+    # Define global variables
+    global STATION
+    global CHECKWX
+
+    # Validate CheckWX API key
+    RETRIES = 0
+    if Config['Keys']['CheckWX'] and CHECKWX is None:
+        while True:
+            header = {'X-API-Key':Config['Keys']['CheckWX']}
+            URL = 'https://api.checkwx.com/station/EGLL'
+            CHECKWX = requests.get(URL,headers=header).json()
+            if 'error' in CHECKWX:
+                if 'Unauthorized' in CHECKWX['error']:
+                    inputStr = '    Access not authorized. Please re-enter your CheckWX API key*: '
+                    while True:
+                        APIKey = input(inputStr)
+                        if not APIKey:
+                            print('    CheckWX API key cannot be empty. Please try again')
+                        else:
+                            break
+                    Config.set('Keys','CheckWX',str(APIKey))
+                    RETRIES += 1
+                else:
+                    RETRIES += 1
+            elif 'results' in CHECKWX:
+                break
+            else:
+                RETRIES += 1
+            if RETRIES >= MAXRETRIES:
+                sys.exit('\n    Error: unable to complete CheckWX API call')
+
+    # Validate WeatherFlow Personal Access Token
+    RETRIES = 0
+    if 'Station' in Config:
+        if Config['Keys']['CheckWX'] and Config['Station']['StationID'] and STATION is None:
+            while True:
+                Template = 'https://swd.weatherflow.com/swd/rest/stations/{}?api_key={}'
+                URL = Template.format(Config['Station']['StationID'],Config['Keys']['WeathFlowToken'])
+                STATION = requests.get(URL).json()
+                if 'status' in STATION:
+                    if 'NOT FOUND' in STATION['status']['status_message']:
+                        inputStr = '    Station not found. Please re-enter your Station ID*: '
+                        while True:
+                            ID = input(inputStr)
+                            if not ID:
+                                print('    Station ID cannot be empty. Please try again')
+                                continue
+                            try:
+                                ID = int(ID)
+                                break
+                            except ValueError:
+                                inputStr = '    Station ID not valid. Please re-enter your Station ID*: '
+                        Config.set('Station','StationID',str(ID))
+                        RETRIES += 1
+                    elif 'UNAUTHORIZED' in STATION['status']['status_message']:
+                        inputStr = '    Access not authorized. Please re-enter your WeatherFlow Personal Access Token*: '
+                        while True:
+                            Token = input(inputStr)
+                            if not Token:
+                                print('    Personal Access Token cannot be empty. Please try again')
+                            else:
+                                break
+                        Config.set('Keys','WeathFlowToken',str(Token))
+                        RETRIES += 1
+                    elif 'SUCCESS' in STATION['status']['status_message']:
+                        break
+                    else:
+                        RETRIES += 1
+                else:
+                    RETRIES += 1
+                if RETRIES >= MAXRETRIES:
+                    sys.exit('\n    Error: unable to fetch station meta-data')
+
 def queryUser(Question,Default=None):
 
     """ Ask a yes/no question via raw_input() and return their answer.
@@ -497,7 +555,7 @@ def defaultConfig():
     Default =                    collections.OrderedDict()
     Default['Keys'] =            collections.OrderedDict([('Description',    '  API keys'),
                                                           ('CheckWX',        {'Type': 'userInput', 'State': 'required', 'Format': str, 'Desc': 'CheckWX API Key',}),
-                                                          ('WeatherFlow',    {'Type': 'fixed',     'Value': '146e4f2c-adec-4244-b711-1aeca8f46a48', 'Desc': 'WeatherFlow API Key'})])
+                                                          ('WeathFlowToken', {'Type': 'userInput', 'State': 'required', 'Format': str, 'Desc': 'WeatherFlow Personal Access Token',})])
     Default['Station'] =         collections.OrderedDict([('Description',    '  Station and device IDs'),
                                                           ('StationID',      {'Type': 'userInput', 'State': 'required', 'Format': int, 'Desc': 'Station ID'}),
                                                           ('TempestID',      {'Type': 'userInput', 'State': 'required', 'Format': int, 'Desc': 'TEMPEST device ID'}),

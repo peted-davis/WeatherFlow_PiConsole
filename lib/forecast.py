@@ -79,14 +79,37 @@ def Extract(metData,Config):
         Clock.schedule_once(lambda dt: Download(metData,Config),600)
         return metData
 
-    # Extract 'valid from' time of all available hourly forecasts, and
-    # retrieve forecast for the current hourly period
+    # Extract 'valid from' time of all available hourly forecasts, and retrieve
+    # forecast for the current hourly period
     Times = list(hourlyForecast['time'] for hourlyForecast in metDict)
-    metDict = metDict[bisect.bisect(Times,int(time.time()))]
+    try:
+        metDict = metDict[bisect.bisect(Times,int(time.time()))]
+    except IndexError:
+        metData['Time']    = Now
+        metData['Temp']    = '--'
+        metData['WindDir'] = '--'
+        metData['WindSpd'] = '--'
+        metData['Weather'] = 'ForecastUnavailable'
+        metData['Precip']  = '--'
+        metData['Valid']   = '--'
+
+        # Attempt to download forecast again in 10 minutes and return
+        # metData dictionary
+        Clock.schedule_once(lambda dt: Download(metData,Config),600)
+        return metData
 
     # Extract 'Valid' until time of forecast
     Valid = Times[bisect.bisect(Times,int(time.time()))]
     Valid = datetime.fromtimestamp(Valid,pytz.utc).astimezone(Tz)
+
+    # Set time format based on user configuration
+    if Config['Display']['TimeFormat'] == '12 hr':
+        if Config['System']['Hardware'] != 'Other':
+            TimeFormat = '%-I:%M %P'
+        else:
+            TimeFormat = '%I:%M %p'
+    else:
+        TimeFormat = '%H:%M'
 
     # Extract weather variables from DarkSky forecast
     Temp    = [metDict['air_temperature'],'c']
@@ -101,7 +124,7 @@ def Extract(metData,Config):
 
     # Define and format labels
     metData['Time']    = Now
-    metData['Valid']   = datetime.strftime(Valid,'%H:%M')
+    metData['Valid']   = datetime.strftime(Valid,TimeFormat)
     metData['Temp']    = ['{:.1f}'.format(Temp[0]),Temp[1]]
     metData['WindDir'] = derive.CardinalWindDirection(WindDir)[2]
     metData['WindSpd'] = ['{:.0f}'.format(WindSpd[0]),WindSpd[1]]

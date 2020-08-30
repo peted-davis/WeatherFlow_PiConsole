@@ -289,8 +289,7 @@ class wfpiconsole(App):
         settingsScreen.add_json_panel('Secondary Panels', self.config, data = settings.JSON('Secondary'))
         settingsScreen.add_json_panel('Units',            self.config, data = settings.JSON('Units'))
         settingsScreen.add_json_panel('Feels Like',       self.config, data = settings.JSON('FeelsLike'))
-        settingsScreen.add_json_panel('Keys',             self.config, data = settings.JSON('Keys'))
-        settingsScreen.add_json_panel('Station',          self.config, data = settings.JSON('Station'))
+        settingsScreen.add_json_panel('Station IDs',      self.config, data = settings.JSON('Station'))
         self.use_kivy_settings = False
 
     # OVERLOAD 'on_config_change' TO MAKE NECESSARY CHANGES TO CONFIG VALUES
@@ -373,7 +372,7 @@ class wfpiconsole(App):
     # CONNECT TO THE SECURE WEATHERFLOW WEBSOCKET SERVER
     # --------------------------------------------------------------------------
     def WebsocketConnect(self):
-        Server = 'wss://ws.weatherflow.com/swd/data?api_key=' + self.config['Keys']['WeatherFlow']
+        Server = 'wss://ws.weatherflow.com/swd/data?api_key=' + self.config['Keys']['WeathFlowToken']
         self._factory = WeatherFlowClientFactory(Server,self)
         reactor.connectSSL('ws.weatherflow.com',443,self._factory,ssl.ClientContextFactory(),20)
 
@@ -394,8 +393,7 @@ class wfpiconsole(App):
         if "type" in Msg:
             Type = Msg['type']
         else:
-            print(json.dumps(Msg))
-            Type = 'unknown-value'
+            Type = 'Unknown'
 
         # Start listening for device observations and events upon connection of
         # websocket based on device IDs specified in user configuration file
@@ -446,6 +444,10 @@ class wfpiconsole(App):
         # Extract observations from evt_strike websocket message
         elif Type == 'evt_strike':
             websocket.evtStrike(Msg,self)
+
+        # Unknown message type, print message to terminal
+        elif Type == 'Unknown':
+            print(json.dumps(Msg))
 
     # UPDATE 'WeatherFlowPiConsole' APP CLASS METHODS AT REQUIRED INTERVALS
     # --------------------------------------------------------------------------
