@@ -67,17 +67,22 @@ Please note that you also cannot use SSH to start the console on a Raspberry Pi
 
 ### Configure and Run WeatherFlow PiConsole
 
-When the console is run for the first time, you'll be asked to enter a CheckWX 
-Aviation Weather API key. This key is required to download the closest METAR 
-information to your station location and can be obtained by registering for a 
-free account here: https://www.checkwxapi.com/auth/signup
+When the console is run for the first time, you'll be asked to enter a
+WeatherFlow Personal Access Token and a CheckWX Aviation Weather API key. The
+Personal Access Token is required for the PiConsole to access the data from your
+station, and the CheckWX API key is required to download the closest METAR 
+information to your station location. 
 
-Once you have registered with CheckWX, go ahead and run the console for the 
-first time using:
+A Personal Access Token can be generated, viewed, and deleted here: https://tempestwx.com/settings/tokens,
+and a CheckWX API key can be obtained by registering for a free account here: 
+https://www.checkwxapi.com/auth/signup
+
+Once you have a Personal Access Token and registered with CheckWX, go ahead 
+and run the console for the first time using:
 ```
 wfpiconsole start
 ```
-You'll be asked to enter the API key you have just signed-up for above, as well
+You'll be asked to enter the API keys you have just generated above, as well
 as information about your station. This includes your station ID and device IDs
 for your AIR, SKY, or TEMPEST modules. To find this information either open the
 WeatherFlow app or view your station page in a web browser. Click on the gear 
