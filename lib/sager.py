@@ -188,15 +188,25 @@ def Generate(sagerDict,Config):
         Clock.schedule_once(lambda dt: Generate(sagerDict,Config),3600)
         return sagerDict
 
-    # DERIVCE SAGER WEATHERCASTER FORECAST
+    # DERIVE SAGER WEATHERCASTER FORECAST
     # --------------------------------------------------------------------------
+    # Set time format based on user configuration
+    if Config['Display']['TimeFormat'] == '12 hr':
+        if Config['System']['Hardware'] != 'Other':
+            TimeFormat = '%-I:%M %P'
+        else:
+            TimeFormat = '%I:%M %p'
+    else:
+        TimeFormat = '%H:%M'
+
+    # Derive Sager Forecast
     sagerDict['Dial'] = dialSetting(sagerDict)
     if sagerDict['Dial'] is not None:
         sagerDict['Forecast'] = getForecast(sagerDict['Dial'])
-        sagerDict['Issued']   = datetime.now(pytz.utc).astimezone(Tz).strftime('%H:%M')
+        sagerDict['Issued']   = datetime.now(pytz.utc).astimezone(Tz).strftime(TimeFormat)
     else:
         sagerDict['Forecast'] = '[color=f05e40ff]ERROR:[/color] Forecast will be regenerated in 60 minutes'
-        sagerDict['Issued']   = datetime.now(pytz.utc).astimezone(Tz).strftime('%H:%M')
+        sagerDict['Issued']   = datetime.now(pytz.utc).astimezone(Tz).strftime(TimeFormat)
         Clock.schedule_once(lambda dt: Generate(sagerDict,Config),3600)
         return sagerDict
 
@@ -304,7 +314,7 @@ def dialSetting(Met):
     pcode  = {}
     pcodes = ['FZDZ','FZRA','SHGR','SHGS','SHPL','SHRA','SHSN','TSGR','TSGS','TSPL','TSRA',
               'TSSN','VCSH','VCTS','DZ','GR','GS','IC','PL','RA','SG','SN','UP']
-    ccodes = ['CAVOK','CLR','NCD','NSC','SKC','FEW','SCT','BKN','OVC','VV']               
+    ccodes = ['CAVOK','CLR','NCD','NSC','SKC','FEW','SCT','BKN','OVC','VV']
 
     # Searches METAR information for Cloud Codes
     Ind = {}
