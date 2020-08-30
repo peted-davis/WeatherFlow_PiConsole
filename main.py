@@ -242,21 +242,22 @@ class wfpiconsole(App):
         self.config.read('wfpiconsole.ini')
         self.settings_cls = SettingsWithSidebar
 
-        # Force window size if required based on hardware type and center on 
+        # Set window size if required based on hardware type and center on 
         # screen
-        Window.bind(on_resize=self.setScaleFactor)
-        windowPosi = (Window.left,Window.top)
-        windowSize = Window.size
-        if self.config['System']['Hardware'] == 'Pi4':
-            Window.size = (800,480)
-            Window.borderless = 1
-            Window.top = 0
-        elif self.config['System']['Hardware'] == 'Other':
-            Window.size = (800,480)
-            if Window.size != windowSize:
-                Window.left = windowPosi[0] - (Window.size[0]-windowSize[0])/2
-                Window.top  = windowPosi[1] - (Window.size[1]-windowSize[1])/2
-        self.window = Window   
+        if self.config['System']['Hardware'] != 'Pi3':
+            Window.bind(on_resize=self.setScaleFactor)
+            windowPosi = (Window.left,Window.top)
+            windowSize = Window.size
+            if self.config['System']['Hardware'] == 'Pi4':
+                Window.size = (800,480)
+                Window.borderless = 1
+                Window.top = 0
+            elif self.config['System']['Hardware'] == 'Other':
+                Window.size = (800,480)
+                if Window.size != windowSize:
+                    Window.left = windowPosi[0] - (Window.size[0]-windowSize[0])/2
+                    Window.top  = windowPosi[1] - (Window.size[1]-windowSize[1])/2
+            self.window = Window   
 
         # Initialise real time clock
         Clock.schedule_interval(partial(system.realtimeClock,self.System,self.config),1.0)
@@ -271,7 +272,7 @@ class wfpiconsole(App):
         Thread(target=sagerForecast.Generate, args=(self.Sager,self.config), name="Sager", daemon=True).start()
 
         # Initialise websocket connection
-        self.WebsocketConnect()
+        #self.WebsocketConnect()
 
         # Check for latest version
         Clock.schedule_once(partial(system.checkVersion,self.Version,self.config,updateNotif))
@@ -412,6 +413,7 @@ class wfpiconsole(App):
     def WebsocketDecodeMessage(self,Msg):
 
         # Extract type of received message
+        print(Msg)
         Type = Msg['type']
 
         # Start listening for device observations and events upon connection of

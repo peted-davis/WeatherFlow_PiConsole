@@ -470,9 +470,11 @@ ScreenManager:
 
     ## 'Feels like' icon and text
     Image:
-        source: 'icons/feelsLike/' + root.feelsLikeIcon + '.png'
+        source: 'atlas://atlas/feelsLike/' + root.feelsLikeIcon + app.atlasSuffix      
         pos_hint: {'x': 7/262, 'y': 6/202}
-        size_hint: (38/262, 29/202)
+        keep_ratio: 0
+        allow_stretch: 1
+        size_hint: (36/262, 31/202)
     SmallField:
         text: app.Obs['FeelsLike'][2]
         pos_hint: {'x': 49/262, 'y': 10/202}
@@ -697,10 +699,10 @@ ScreenManager:
                 width: 1.2
                 rectangle: [self.x + app.Astro['sunIcon'][2]*self.width, self.y, 1, self.height]
     Image:
-        source: 'icons/sun/' + app.Astro['sunIcon'][0] + '.png'
+        source: 'atlas://atlas/sunIcon/' + app.Astro['sunIcon'][0] + app.atlasSuffix      
         keep_ratio: 0
         allow_stretch: 1
-        pos_hint: {'x': (4+app.Astro['sunIcon'][2]*236)/262, 'y': 92.5/202}
+        pos_hint: {'x': (4+app.Astro['sunIcon'][2]*236)/262, 'y': 92/202}
         size_hint: (18/262, 18/202)
 
     ## Solar radiation
@@ -882,7 +884,7 @@ ScreenManager:
 
     ## Moon phase icon
     Image:
-        source: 'icons/moon/' + app.Astro['Phase'][0] + '.png'
+        source: 'atlas://atlas/moonIcon' + app.atlasSuffix + '/' + app.Astro['Phase'][0]
         keep_ratio: 0
         allow_stretch: 1
         pos_hint: {'x': 108/262, 'y': 93/202}
@@ -1140,7 +1142,7 @@ ScreenManager:
                 x: root.lightningBoltPosX
         canvas.after:
             PopMatrix
-        source: 'icons/lightning/' + root.lightningBoltIcon + '.png'
+        source: 'atlas://atlas/lightningBolt/' + root.lightningBoltIcon + app.atlasSuffix 
         keep_ratio: 0
         allow_stretch: 1
         pos_hint: {'x': 9/262, 'y': 120/202}

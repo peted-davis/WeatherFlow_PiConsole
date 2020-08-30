@@ -39,7 +39,8 @@ def JSON(Section):
                  {'type': 'bool', 'desc': 'Switch to lightning panel when a strike is detected',
                   'title': 'Lightning panel','section': 'Display', 'key': 'LightningPanel'},
                  {'type': 'bool', 'desc': 'Show indoor temperature',
-                  'title': 'Indoor temperature','section': 'Display', 'key': 'IndoorTemp'},]
+                  'title': 'Indoor temperature','section': 'Display', 'key': 'IndoorTemp'}
+                ]
     elif 'Units' in Section:
         Data =  [
                  {'type':'FixedOptions', 'options':['c','f'],'title':'Temperature',
