@@ -232,7 +232,7 @@ def Sky(Msg,wfpiconsole):
     # Extract required observations from latest SKY Websocket JSON
     Time      = [Ob[0],'s']
     UV        = [Ob[2],'index']
-    Rain      = [0.5,'mm']   #Ob[3]
+    Rain      = [Ob[3],'mm']
     WindSpd   = [Ob[5],'mps']
     WindGust  = [Ob[6],'mps']
     WindDir   = [Ob[7],'degrees']

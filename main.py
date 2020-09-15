@@ -257,7 +257,7 @@ class wfpiconsole(App):
                 if Window.size != windowSize:
                     Window.left = windowPosi[0] - (Window.size[0]-windowSize[0])/2
                     Window.top  = windowPosi[1] - (Window.size[1]-windowSize[1])/2
-            self.window = Window   
+        self.window = Window   
 
         # Initialise real time clock
         Clock.schedule_interval(partial(system.realtimeClock,self.System,self.config),1.0)
