@@ -272,7 +272,7 @@ class wfpiconsole(App):
         Thread(target=sagerForecast.Generate, args=(self.Sager,self.config), name="Sager", daemon=True).start()
 
         # Initialise websocket connection
-        #self.WebsocketConnect()
+        self.WebsocketConnect()
 
         # Check for latest version
         Clock.schedule_once(partial(system.checkVersion,self.Version,self.config,updateNotif))
@@ -287,13 +287,14 @@ class wfpiconsole(App):
         Clock.schedule_interval(partial(astro.sunTransit,self.Astro,self.config),1.0)
         Clock.schedule_interval(partial(astro.moonPhase ,self.Astro,self.config),1.0)
 
-
+    # SET DISPLAY SCALE FACTOR BASED ON SCREEN SIZE
+    # --------------------------------------------------------------------------
     def setScaleFactor(self, instance, x, y):
         if x < 800:
             self.window.size = (800,y)
         if y < 480:
             self.window.size = (x,480) 
-        self.scaleFactor = max(x/800, y/480)    
+        self.scaleFactor = max(x/800, y/480, 1)  
         if self.scaleFactor > 1:
             self.atlasSuffix = '_hR'
         else:
@@ -413,7 +414,6 @@ class wfpiconsole(App):
     def WebsocketDecodeMessage(self,Msg):
 
         # Extract type of received message
-        print(Msg)
         Type = Msg['type']
 
         # Start listening for device observations and events upon connection of
@@ -498,7 +498,7 @@ class wfpiconsole(App):
         if self.Astro['Reformat'] and Now.replace(second=0).time() == time(0,0,0):
             self.Astro = astro.Format(self.Astro,self.config,"Sun")
             self.Astro = astro.Format(self.Astro,self.config,"Moon")
-
+    
 # ==============================================================================
 # CurrentConditions SCREEN CLASS
 # ==============================================================================
@@ -821,7 +821,7 @@ class BarometerButton(RelativeLayout):
 # ==============================================================================
 class updateNotif(ModalView):
     pass
-
+    
 # ==============================================================================
 # Station CLASS
 # ==============================================================================

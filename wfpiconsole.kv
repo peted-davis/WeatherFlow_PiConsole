@@ -21,6 +21,9 @@
 #:import utils        kivy.utils
 #:import math         math
 
+## Include required kv lang files
+#:include force kvlang/rainGauge.kv
+
 ## =============================================================================
 ## SCREEN MANAGER
 ## =============================================================================
@@ -106,6 +109,10 @@ ScreenManager:
     font_name: 'fonts/Inter-Bold.ttf'
     font_size: dp(self.height*0.55)
     size_hint_y: (13/202)
+    
+<BoldField@DisplayField>
+    font_name: 'fonts/Inter-Bold.ttf'
+    size_hint_y: (13/202)
 
 <StatusColumn@DisplayField>:
     font_name: 'fonts/Inter-Bold.ttf'
@@ -188,7 +195,7 @@ ScreenManager:
             size: self.width, 1
 
 ## =============================================================================
-## PANEL BACKGROUND
+## PANEL BACKGROUNDS
 ## =============================================================================
 <PanelBackground@BoxLayout>:
     _panelTitle: str()
@@ -197,7 +204,7 @@ ScreenManager:
     cols: 1
     canvas.before:
         Color:
-            rgba: [1,1,1,1]
+            rgba: utils.rgba('ffffffff')
         RoundedRectangle:
             pos: self.pos
             size: self.size
@@ -209,7 +216,30 @@ ScreenManager:
             size: self.width-dp(app.scaleFactor*2), self.height-dp(app.scaleFactor*2)
     PanelTitle:
         id: Title
-        text: root._panelTitle
+        text: root._panelTitle  
+
+<UpdateNotifBackground@BoxLayout>:
+    _panelTitle: str()
+    pos_hint: {'x': 0, 'y': 0} 
+    size_hint: [1, 1]
+    cols: 1
+    canvas.before:
+        Color:
+            rgba: utils.rgba('f05e40ff')
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: (app.scaleFactor*2, app.scaleFactor*2)
+        Color:
+            rgba: utils.rgba('141414ff')
+        Rectangle:
+            pos: self.x+dp(app.scaleFactor), self.y+dp(app.scaleFactor)
+            size: self.width-dp(app.scaleFactor*2), self.height-dp(app.scaleFactor*2)
+    PanelTitle:
+        pos_hint: {'x': 0, 'y': 59/76}
+        size_hint: (1, 13/76)
+        text: root._panelTitle 
+        
 
 ## =============================================================================
 ## CURRRENT CONDITIONS SCREEN
@@ -287,6 +317,7 @@ ScreenManager:
         text: app.MetData['Temp'][0] + app.MetData['Temp'][1]
         pos_hint: {'x': 6/262, 'y': 134/202}
         size_hint_x: (200/262)
+        text_size: self.size
         halign: 'left'
 
     ## Forecast precipitation
@@ -298,6 +329,7 @@ ScreenManager:
         text: app.MetData['Precip'][0] + app.MetData['Precip'][1]
         pos_hint: {'x': 6/262, 'y': 78/202}
         size_hint_x: (200/262)
+        text_size: self.size
         halign: 'left'
 
     ## Forecast windspeed
@@ -309,6 +341,7 @@ ScreenManager:
         text: app.MetData['WindSpd'][0] + ' ' + app.MetData['WindSpd'][1] + ' ' + app.MetData['WindDir']
         pos_hint: {'x': 6/262, 'y': 21/202}
         size_hint_x: (200/262)
+        text_size: self.size
         halign: 'left'
 
     ## Forecast location, valid, and issued time
@@ -857,7 +890,7 @@ ScreenManager:
     ## Next new moon
     TitleField:
         text: 'Next'
-        pos_hint: {'x': 6/262, 'y': 168/202}
+        pos_hint: {'x': 6/262, 'y': 170/202}
         size_hint_x: (70/262)
     TitleField:
         text: '[color=00a4b4ff]New[/color] Moon'
@@ -871,7 +904,7 @@ ScreenManager:
     ## Next full moon
     TitleField:
         text: 'Next'
-        pos_hint: {'x': 186/262, 'y': 168/202}
+        pos_hint: {'x': 186/262, 'y': 170/202}
         size_hint_x: (70/262)
     TitleField:
         text: '[color=f05e40ff]Full[/color] Moon'
@@ -918,8 +951,9 @@ ScreenManager:
         keep_ratio: 0
         allow_stretch: 1
     PanelTitle:
-        text: 'Rainfall'
-
+        text: 'Rainfall'   
+    RainGauge:    
+    
     ## Current rain rate and text
     SmallField:
         text: app.Obs['RainRate'][2]
@@ -1263,23 +1297,37 @@ ScreenManager:
 ## UPDATE NOTIFICATION
 ## =============================================================================
 <updateNotif>:
-    background_color: [0,0,0,0.5]
-    size_hint: (262/800,76/480)
-    pos_hint: {'x': 536/800, 'y': 2/480}
-    Image:
-        source: 'background/updateNotification.png'
-        keep_ratio: 0
-        allow_stretch: 1
+    size_hint: (None, 76/480)
+    pos_hint: {'x': app.CurrentConditions.ids.PanelSix.x/app.window.width, 'y': 2/app.window.height} 
+    width: app.CurrentConditions.ids.PanelSix.size[0]
+    UpdateNotifBackground:
+        _panelTitle: 'Update Available'
     RelativeLayout:
-        BoldText:
+        BoldField:
+            text: 'Current version:'
+            pos_hint: {'x': 0.03, 'y': 0.5}   
+            size_hint: (0.47, 14/76)
+            text_size: self.size
+            halign: 'left'   
+        BoldField:
             text: app.config['System']['Version']
-            size_hint: (1,0.2)
-            pos_hint: {'x': 0.05, 'y': 0.53}
-        BoldText:
+            pos_hint: {'x': 0.5, 'y': 0.52}  
+            size_hint: (0.3, 14/76)
+        BoldField:
+            text: 'Latest version:'
+            pos_hint: {'x': 0.03, 'y': 0.28}   
+            size_hint: (0.47, 14/76)
+            text_size: self.size
+            halign: 'left'    
+        BoldField:
             text: '[color=9aba2fff]' + app.Version['Latest'] + '[/color]'
-            size_hint: (1,0.2)
-            pos_hint: {'x': 0.05, 'y': 0.31}
-
+            pos_hint: {'x': 0.5, 'y': 0.30}  
+            size_hint: (0.3, 14/76)                 
+        BoldField:
+            text: 'Run: [font=fonts/Inter-BoldItalic.ttf][color=00a4b4ff]wfpiconsole update[/color][/font]'
+            pos_hint: {'x': 0, 'y': 0.08}  
+            size_hint: (1, 14/76)  
+            
 ## =============================================================================
 ## MAIN MENU
 ## =============================================================================

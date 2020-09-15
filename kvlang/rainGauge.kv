@@ -1,0 +1,363 @@
+## WeatherFlow PiConsole: Raspberry Pi Python console for WeatherFlow Tempest
+## and Smart Home Weather stations.
+## Copyright (C) 2018-2020 Peter Davis
+
+## This program is free software: you can redistribute it and/or modify it under
+## the terms of the GNU General Public License as published by the Free Software
+## Foundation, either version 3 of the License, or (at your option) any later
+## version.
+
+## This program is distributed in the hope that it will be useful, but WITHOUT
+## ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+## FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+## details.
+
+## You should have received a copy of the GNU General Public License along with
+## this program. If not, see <http://www.gnu.org/licenses/>.
+
+<RainGauge@FloatLayout>:
+    TitleField:
+        text: 'Rain Rate'
+        pos_hint: {'x': 182/262, 'y': 126/202}
+        size_hint_x: (70/262)
+        color: utils.rgba('#807e76ff')
+        canvas.before:
+            PushMatrix
+            Rotate:
+                angle: 90
+                origin: self.center
+        canvas.after:
+            PopMatrix
+    Widget:
+        pos_hint: {'x': 198/262, 'y': 187/202}
+        size_hint: [4/262, 1/202]
+        canvas.after:
+            Color:
+                rgba: utils.rgba('646464ff')
+            Rectangle:
+                pos: self.pos
+                size: self.size
+    Widget:
+        pos_hint: {'x': 201/262, 'y': 80/202}
+        size_hint: [1/262, 108/202]
+        canvas.after:
+            Color:
+                rgba: utils.rgba('646464ff')
+            Rectangle:
+                pos: self.pos
+                size: self.size
+    Widget:
+        pos_hint: {'x': 201/262, 'y': 80/202}
+        size_hint: [35/262, 1/202]
+        canvas.after:
+            Color:
+                rgba: utils.rgba('646464ff')
+            Rectangle:
+                pos: self.pos
+                size: self.size
+    Widget:
+        pos_hint: {'x': 235/262, 'y': 80/202}
+        size_hint: [1/262, 108/202]
+        canvas.after:
+            Color:
+                rgba: utils.rgba('646464ff')
+            Rectangle:
+                pos: self.pos
+                size: self.size
+    Widget:
+        pos_hint: {'x': 235/262, 'y': 187/202}
+        size_hint: [4/262, 1/202]
+        canvas.after:
+            Color:
+                rgba: utils.rgba('646464ff')
+            Rectangle:
+                pos: self.pos
+                size: self.size
+    Widget:
+        pos_hint: {'x': 202/262, 'y': 181/202}
+        size_hint: [8/262, 2.5/202]
+        canvas.after:
+            Color:
+                rgba: utils.rgba('f05e40b2')
+            Rectangle:
+                pos: self.pos
+                size: self.size
+    Widget:
+        pos_hint: {'x': 202/262, 'y': 174.5/202}
+        size_hint: [4/262, 2.5/202]
+        canvas.after:
+            Color:
+                rgba: utils.rgba('e06247b2')
+            Rectangle:
+                pos: self.pos
+                size: self.size
+    Widget:
+        pos_hint: {'x': 202/262, 'y': 168/202}
+        size_hint: [4/262, 2.5/202]
+        canvas.after:
+            Color:
+                rgba: utils.rgba('d0674fb2')
+            Rectangle:
+                pos: self.pos
+                size: self.size
+    Widget:
+        pos_hint: {'x': 202/262, 'y': 161.5/202}
+        size_hint: [4/262, 2.5/202]
+        canvas.after:
+            Color:
+                rgba: utils.rgba('c06c57b2')
+            Rectangle:
+                pos: self.pos
+                size: self.size
+    Widget:
+        pos_hint: {'x': 202/262, 'y': 155/202}
+        size_hint: [4/262, 2.5/202]
+        canvas.after:
+            Color:
+                rgba: utils.rgba('b0705eb2')
+            Rectangle:
+                pos: self.pos
+                size: self.size
+    Widget:
+        pos_hint: {'x': 202/262, 'y': 148.5/202}
+        size_hint: [8/262, 2.5/202]
+        canvas.after:
+            Color:
+                rgba: utils.rgba('a07566b2')
+            Rectangle:
+                pos: self.pos
+                size: self.size
+    Widget:
+        pos_hint: {'x': 202/262, 'y': 142/202}
+        size_hint: [4/262, 2.5/202]
+        canvas.after:
+            Color:
+                rgba: utils.rgba('907a6eb2')
+            Rectangle:
+                pos: self.pos
+                size: self.size
+    Widget:
+        pos_hint: {'x': 202/262, 'y': 135.5/202}
+        size_hint: [4/262, 2.5/202]
+        canvas.after:
+            Color:
+                rgba: utils.rgba('807e76b2')
+            Rectangle:
+                pos: self.pos
+                size: self.size
+    Widget:
+        pos_hint: {'x': 202/262, 'y': 129/202}
+        size_hint: [4/262, 2.5/202]
+        canvas.after:
+            Color:
+                rgba: utils.rgba('70837db2')
+            Rectangle:
+                pos: self.pos
+                size: self.size
+    Widget:
+        pos_hint: {'x': 202/262, 'y': 122.5/202}
+        size_hint: [4/262, 2.5/202]
+        canvas.after:
+            Color:
+                rgba: utils.rgba('608885b2')
+            Rectangle:
+                pos: self.pos
+                size: self.size
+    Widget:
+        pos_hint: {'x': 202/262, 'y': 116/202}
+        size_hint: [8/262, 2.5/202]
+        canvas.after:
+            Color:
+                rgba: utils.rgba('508c8db2')
+            Rectangle:
+                pos: self.pos
+                size: self.size
+    Widget:
+        pos_hint: {'x': 202/262, 'y': 109.5/202}
+        size_hint: [4/262, 2.5/202]
+        canvas.after:
+            Color:
+                rgba: utils.rgba('409195b2')
+            Rectangle:
+                pos: self.pos
+                size: self.size
+    Widget:
+        pos_hint: {'x': 202/262, 'y': 103/202}
+        size_hint: [4/262, 2.5/202]
+        canvas.after:
+            Color:
+                rgba: utils.rgba('30969cb2')
+            Rectangle:
+                pos: self.pos
+                size: self.size
+    Widget:
+        pos_hint: {'x': 202/262, 'y': 96.5/202}
+        size_hint: [4/262, 2.5/202]
+        canvas.after:
+            Color:
+                rgba: utils.rgba('209aa4b2')
+            Rectangle:
+                pos: self.pos
+                size: self.size
+    Widget:
+        pos_hint: {'x': 202/262, 'y': 90/202}
+        size_hint: [4/262, 2.5/202]
+        canvas.after:
+            Color:
+                rgba: utils.rgba('109facb2')
+            Rectangle:
+                pos: self.pos
+                size: self.size
+    Widget:
+        pos_hint: {'x': 202/262, 'y': 83.5/202}
+        size_hint: [8/262, 2.5/202]
+        canvas.after:
+            Color:
+                rgba: utils.rgba('00a4b4b2')
+            Rectangle:
+                pos: self.pos
+                size: self.size
+    Widget:
+        pos_hint: {'x': 227/262, 'y': 181/202}
+        size_hint: [8/262, 2.5/202]
+        canvas.after:
+            Color:
+                rgba: utils.rgba('f05e40b2')
+            Rectangle:
+                pos: self.pos
+                size: self.size
+    Widget:
+        pos_hint: {'x': 231/262, 'y': 174.5/202}
+        size_hint: [4/262, 2.5/202]
+        canvas.after:
+            Color:
+                rgba: utils.rgba('e06247b2')
+            Rectangle:
+                pos: self.pos
+                size: self.size
+    Widget:
+        pos_hint: {'x': 231/262, 'y': 168/202}
+        size_hint: [4/262, 2.5/202]
+        canvas.after:
+            Color:
+                rgba: utils.rgba('d0674fb2')
+            Rectangle:
+                pos: self.pos
+                size: self.size
+    Widget:
+        pos_hint: {'x': 231/262, 'y': 161.5/202}
+        size_hint: [4/262, 2.5/202]
+        canvas.after:
+            Color:
+                rgba: utils.rgba('c06c57b2')
+            Rectangle:
+                pos: self.pos
+                size: self.size
+    Widget:
+        pos_hint: {'x': 231/262, 'y': 155/202}
+        size_hint: [4/262, 2.5/202]
+        canvas.after:
+            Color:
+                rgba: utils.rgba('b0705eb2')
+            Rectangle:
+                pos: self.pos
+                size: self.size
+    Widget:
+        pos_hint: {'x': 227/262, 'y': 148.5/202}
+        size_hint: [8/262, 2.5/202]
+        canvas.after:
+            Color:
+                rgba: utils.rgba('a07566b2')
+            Rectangle:
+                pos: self.pos
+                size: self.size
+    Widget:
+        pos_hint: {'x': 231/262, 'y': 142/202}
+        size_hint: [4/262, 2.5/202]
+        canvas.after:
+            Color:
+                rgba: utils.rgba('907a6eb2')
+            Rectangle:
+                pos: self.pos
+                size: self.size
+    Widget:
+        pos_hint: {'x': 231/262, 'y': 135.5/202}
+        size_hint: [4/262, 2.5/202]
+        canvas.after:
+            Color:
+                rgba: utils.rgba('807e76b2')
+            Rectangle:
+                pos: self.pos
+                size: self.size
+    Widget:
+        pos_hint: {'x': 231/262, 'y': 129/202}
+        size_hint: [4/262, 2.5/202]
+        canvas.after:
+            Color:
+                rgba: utils.rgba('70837db2')
+            Rectangle:
+                pos: self.pos
+                size: self.size
+    Widget:
+        pos_hint: {'x': 231/262, 'y': 122.5/202}
+        size_hint: [4/262, 2.5/202]
+        canvas.after:
+            Color:
+                rgba: utils.rgba('608885b2')
+            Rectangle:
+                pos: self.pos
+                size: self.size
+    Widget:
+        pos_hint: {'x': 227/262, 'y': 116/202}
+        size_hint: [8/262, 2.5/202]
+        canvas.after:
+            Color:
+                rgba: utils.rgba('508c8db2')
+            Rectangle:
+                pos: self.pos
+                size: self.size
+    Widget:
+        pos_hint: {'x': 231/262, 'y': 109.5/202}
+        size_hint: [4/262, 2.5/202]
+        canvas.after:
+            Color:
+                rgba: utils.rgba('409195b2')
+            Rectangle:
+                pos: self.pos
+                size: self.size
+    Widget:
+        pos_hint: {'x': 231/262, 'y': 103/202}
+        size_hint: [4/262, 2.5/202]
+        canvas.after:
+            Color:
+                rgba: utils.rgba('30969cb2')
+            Rectangle:
+                pos: self.pos
+                size: self.size
+    Widget:
+        pos_hint: {'x': 231/262, 'y': 96.5/202}
+        size_hint: [4/262, 2.5/202]
+        canvas.after:
+            Color:
+                rgba: utils.rgba('209aa4b2')
+            Rectangle:
+                pos: self.pos
+                size: self.size
+    Widget:
+        pos_hint: {'x': 231/262, 'y': 90/202}
+        size_hint: [4/262, 2.5/202]
+        canvas.after:
+            Color:
+                rgba: utils.rgba('109facb2')
+            Rectangle:
+                pos: self.pos
+                size: self.size
+    Widget:
+        pos_hint: {'x': 227/262, 'y': 83.5/202}
+        size_hint: [8/262, 2.5/202]
+        canvas.after:
+            Color:
+                rgba: utils.rgba('00a4b4b2')
+            Rectangle:
+                pos: self.pos
+                size: self.size
