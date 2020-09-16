@@ -1,0 +1,79 @@
+## WeatherFlow PiConsole: Raspberry Pi Python console for WeatherFlow Tempest
+## and Smart Home Weather stations.
+## Copyright (C) 2018-2020 Peter Davis
+
+## This program is free software: you can redistribute it and/or modify it under
+## the terms of the GNU General Public License as published by the Free Software
+## Foundation, either version 3 of the License, or (at your option) any later
+## version.
+
+## This program is distributed in the hope that it will be useful, but WITHOUT
+## ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+## FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+## details.
+
+## You should have received a copy of the GNU General Public License along with
+## this program. If not, see <http://www.gnu.org/licenses/>.
+
+## =============================================================================
+## CUSTOM DisplayField LABELS
+## =============================================================================
+<DisplayField@Label>
+    font_size: dp(self.height)
+    color: utils.rgba('#c8c8c8ff')
+    markup: 1
+
+<TitleField@DisplayField>
+    font_name: 'fonts/Inter-Bold.ttf'
+    size_hint_y: (13/202)
+
+<LargeField@DisplayField>
+    font_name: 'fonts/Inter-ExtraLight.ttf'
+    size_hint_y: (27/202)
+
+<MediumField@DisplayField>
+    font_name: 'fonts/Inter-Light.ttf'
+    size_hint_y: (18/202)
+
+<SmallField@DisplayField>
+    font_name: 'fonts/Helvetica.ttf'
+    size_hint_y: (14/202)
+
+<MenuField@DisplayField>
+    font_name: 'fonts/Inter-Bold.ttf'
+    font_size: dp((self.height*(13/self.height))*app.scaleFactor)
+    size_hint_y: (13/202)
+
+<StatusField@DisplayField>
+    font_name: 'fonts/Inter-Bold.ttf'
+    font_size: dp((self.height*(13/self.height))*app.scaleFactor)   
+    
+<BoldField@DisplayField>
+    font_name: 'fonts/Inter-Bold.ttf'
+    size_hint_y: (13/202)
+
+<StatusColumn@DisplayField>:
+    font_name: 'fonts/Inter-Bold.ttf'
+    font_size: dp(self.height*0.45)
+    color: utils.rgba('#141414ff')
+    canvas.before:
+        Color:
+            rgba: utils.rgba('#c8c8c8cc')
+        Rectangle:
+            pos: self.x + 5, self.y
+            size: self.width-10, self.height
+
+<PanelTitle@DisplayField>:
+    font_name: 'fonts/Inter-Bold.ttf'
+    size_hint: (1, 13/202)
+    pos_hint: {'x': 0, 'y': 185/202}
+    color: utils.rgba('#ffffffff')
+    
+## =============================================================================
+## CUSTOM MultilineField LABELS
+## =============================================================================
+<MultilineField@Label>
+    font_name: 'fonts/Inter-Light.ttf'
+    text_size: self.size
+    halign: 'center'
+    valign: 'center'

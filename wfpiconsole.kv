@@ -22,7 +22,10 @@
 #:import math         math
 
 ## Include required kv lang files
-#:include force kvlang/rainGauge.kv
+#:include kvlang/rainGauge.kv
+#:include kvlang/windRose.kv
+#:include kvlang/displayFields.kv
+#:include kvlang/panelLayout.kv 
 
 ## =============================================================================
 ## SCREEN MANAGER
@@ -32,214 +35,6 @@ ScreenManager:
     CurrentConditions:
         id: CurrentConditions
         name: 'CurrentConditions'
-
-## =============================================================================
-## CUSTOM DisplayField LABELS
-## =============================================================================
-
-<BoldText@Label>
-    font_name: 'fonts/Inter-Bold.ttf'
-    font_size: '13sp'
-    markup: 1
-    size_hint: (None,None)
-    color: [0.84,0.84,0.84,1]
-
-
-##<ScaleButton>:
-##    font_size: self.height/2
-##	state_image: self.background_normal if self.state == 'normal' else self.background_down
-##	canvas:
-##		Color:
-##			rgba: self.background_color
-##		BorderImage:
-##			border: self.border
-##			pos: self.pos
-##			size: self.size
-##			source: self.disabled_image if self.disabled else self.state_image
-##   color: utils.rgba('#d6d6d6ff')
-
-
-## <ScaleButton>:
-    ## font_size: self.height/2
-	## state_image: self.background_normal if self.state == 'normal' else self.background_down
-	## disabled_image: self.background_disabled_normal if self.state == 'normal' else self.background_disabled_down
-	## canvas:
-		## Color:
-			## rgba: self.background_color
-		## BorderImage:
-			## border: self.border
-			## pos: self.pos
-			## size: self.size
-			## source: self.disabled_image if self.disabled else self.state_image
-		## PushMatrix
-		## Scale:
-			## origin: self.center
-			## x: 1
-			## y: 1
-		## Color:
-			## rgba: self.disabled_color if self.disabled else self.color
-		## Rectangle:
-			## texture: self.texture
-			## size: self.texture_size
-			## pos: int(self.center_x - self.texture_size[0] / 2.), int(self.center_y - self.texture_size[1] / 2.)
-		## PopMatrix
-
-<DisplayField@Label>
-    font_size: dp(self.height)
-    color: utils.rgba('#c8c8c8ff')
-    markup: 1
-
-<TitleField@DisplayField>
-    font_name: 'fonts/Inter-Bold.ttf'
-    size_hint_y: (13/202)
-
-<LargeField@DisplayField>
-    font_name: 'fonts/Inter-ExtraLight.ttf'
-    size_hint_y: (27/202)
-
-<MediumField@DisplayField>
-    font_name: 'fonts/Inter-Light.ttf'
-    size_hint_y: (18/202)
-
-<SmallField@DisplayField>
-    font_name: 'fonts/Helvetica.ttf'
-    size_hint_y: (14/202)
-
-<MenuField@DisplayField>
-    font_name: 'fonts/Inter-Bold.ttf'
-    font_size: dp(self.height*0.55)
-    size_hint_y: (13/202)
-    
-<BoldField@DisplayField>
-    font_name: 'fonts/Inter-Bold.ttf'
-    size_hint_y: (13/202)
-
-<StatusColumn@DisplayField>:
-    font_name: 'fonts/Inter-Bold.ttf'
-    font_size: dp(self.height*0.45)
-    color: utils.rgba('#141414ff')
-    canvas.before:
-        Color:
-            rgba: utils.rgba('#c8c8c8cc')
-        Rectangle:
-            pos: self.x + 5, self.y
-            size: self.width-10, self.height
-
-<PanelTitle@DisplayField>:
-    font_name: 'fonts/Inter-Bold.ttf'
-    size_hint: (1, 13/202)
-    pos_hint: {'x': 0, 'y': 185/202}
-    color: utils.rgba('#ffffffff')
-
-## =============================================================================
-## CUSTOM MultilineField LABELS
-## =============================================================================
-<MultilineField@Label>
-    font_name: 'fonts/Inter-Light.ttf'
-    text_size: self.size
-    halign: 'center'
-    valign: 'center'
-
-## =============================================================================
-## CUSTOM PanelButton AND MenuButton
-## =============================================================================
-<PanelButton@Button>:
-    font_size: self.height/2
-    background_color: (0,0,0,0)
-    canvas.before:
-        Color:
-            rgba: utils.rgba('#1e1e1eff') if self.state=='normal' else utils.rgba('#00525aff')
-        RoundedRectangle:
-            pos: self.pos
-            size: self.size
-            radius: [14*app.scaleFactor]
-    font_name: 'fonts/Inter-SemiBold.ttf'
-    color: utils.rgba('#d6d6d6ff')
-
-<MenuButton>:
-    font_size: self.height/2
-    background_color: (0,0,0,0)
-    canvas.before:
-        Color:
-            rgba: utils.rgba('#1e1e1eff') if self.state=='normal' else utils.rgba('#00525aff')
-        RoundedRectangle:
-            pos: self.pos
-            size: self.size
-            radius: [14*app.scaleFactor]
-    font_name: 'fonts/Inter-SemiBold.ttf'
-    color: utils.rgba('#d6d6d6ff')
-
-## =============================================================================
-## CUSTOM TabbedPanelItem AND MainMenuLayout
-## =============================================================================
-<MainMenuTab@TabbedPanelItem>:
-    background_normal: 'atlas://atlas/wfpiconsole/tab_btn'
-    background_down: 'atlas://atlas/wfpiconsole/tab_btn_pressed'
-    font_name: 'fonts/Inter-SemiBold.ttf'
-    font_size: self.height/2.8
-    canvas.after:
-        Color:
-            rgb: [.3,.3,.3,1]
-        Rectangle:
-            pos: self.right - 1, self.y
-            size: 1, self.height,
-
-<MainMenuLayout@GridLayout>:
-    padding: '5dp'
-    cols: 1
-    canvas.after:
-        Color:
-            rgb: [.3,.3,.3,1]
-        Rectangle:
-            pos: self.x + 1, self.y + 3
-            size: self.width, 1
-
-## =============================================================================
-## PANEL BACKGROUNDS
-## =============================================================================
-<PanelBackground@BoxLayout>:
-    _panelTitle: str()
-    pos_hint: {'x': 0/262, 'y': 0/202}
-    size_hint: [1, 1]
-    cols: 1
-    canvas.before:
-        Color:
-            rgba: utils.rgba('ffffffff')
-        RoundedRectangle:
-            pos: self.pos
-            size: self.size
-            radius: (app.scaleFactor*2, app.scaleFactor*2)
-        Color:
-            rgba: utils.rgba('141414ff')
-        Rectangle:
-            pos: self.x+dp(app.scaleFactor), self.y+dp(app.scaleFactor)
-            size: self.width-dp(app.scaleFactor*2), self.height-dp(app.scaleFactor*2)
-    PanelTitle:
-        id: Title
-        text: root._panelTitle  
-
-<UpdateNotifBackground@BoxLayout>:
-    _panelTitle: str()
-    pos_hint: {'x': 0, 'y': 0} 
-    size_hint: [1, 1]
-    cols: 1
-    canvas.before:
-        Color:
-            rgba: utils.rgba('f05e40ff')
-        RoundedRectangle:
-            pos: self.pos
-            size: self.size
-            radius: (app.scaleFactor*2, app.scaleFactor*2)
-        Color:
-            rgba: utils.rgba('141414ff')
-        Rectangle:
-            pos: self.x+dp(app.scaleFactor), self.y+dp(app.scaleFactor)
-            size: self.width-dp(app.scaleFactor*2), self.height-dp(app.scaleFactor*2)
-    PanelTitle:
-        pos_hint: {'x': 0, 'y': 59/76}
-        size_hint: (1, 13/76)
-        text: root._panelTitle 
-        
 
 ## =============================================================================
 ## CURRRENT CONDITIONS SCREEN
@@ -530,28 +325,8 @@ ScreenManager:
     PanelBackground:
         _panelTitle: 'Wind Speed  [size=' + str(int(self.ids.Title.font_size*0.8)) + ']|[/size]  Direction'
         
-    ## Rapid Wind wind speed and direction
-    FloatLayout:
-        _width: 3
-        pos_hint: {'x': 65/262, 'y': 26/202}
-        size_hint: (134/262, 134/202)
-        canvas.before:
-            Color:
-                rgba: utils.rgba('c8c8c8ff')
-            SmoothLine:
-                width: self._width*app.scaleFactor
-                ellipse: (self.x+self._width*app.scaleFactor, self.y+self._width*app.scaleFactor, self.width-(self._width*2*app.scaleFactor), self.height-(self._width*2*app.scaleFactor), -45, 45, 1000)
-            SmoothLine:
-                width: self._width*app.scaleFactor
-                ellipse: (self.x+self._width*app.scaleFactor, self.y+self._width*app.scaleFactor, self.width-(self._width*2*app.scaleFactor), self.height-(self._width*2*app.scaleFactor), 135, 225, 1000)
-            Color:
-                rgba: utils.rgba('646464ff')
-            SmoothLine:
-                width: self._width*app.scaleFactor
-                ellipse: (self.x+self._width*app.scaleFactor, self.y+self._width*app.scaleFactor, self.width-(self._width*2*app.scaleFactor), self.height-(self._width*2*app.scaleFactor), 45, 135, 1000)
-            SmoothLine:
-                width: self._width*app.scaleFactor
-                ellipse: (self.x+self._width*app.scaleFactor, self.y+self._width*app.scaleFactor, self.width-(self._width*2*app.scaleFactor), self.height-(self._width*2*app.scaleFactor), 225, 315, 1000)
+    ## Rapid Wind wind speed and direction    
+    windRose: 
         Image:
             source: 'atlas://atlas/windRose' + app.atlasSuffix + '/' + str(round(root.rapidWindDir)) 
             keep_ratio: 0
@@ -626,34 +401,6 @@ ScreenManager:
         size_hint_x: (135/262)
         text_size: self.size
         halign: 'right'
-
-    ## Rapid wind direction arrow
-    ## FloatLayout:
-        ## _diameter: 134
-        ## pos_hint: {'x': 65/262, 'y': 26/202}
-        ## size_hint: (self._diameter/262, self._diameter/202)
-        ## Image:
-            ## _angle: 90#round(root.rapidWindDir)
-            ## _widthArrow: 18
-            ## _heightArrow: 16
-            ## _roseRadius: 0.5
-            ## _xc: self._roseRadius - (self._widthArrow/2  + math.cos(math.radians(-self._angle+90)) * self._widthArrow/2)  / self.parent._diameter
-            ## _yc: self._roseRadius - (self._heightArrow/2 + math.sin(math.radians(-self._angle+90)) * self._heightArrow/2) / self.parent._diameter
-            ## _pos_x: self._roseRadius * math.cos(math.radians(-self._angle+90)) + self._xc
-            ## _pos_y: self._roseRadius * math.sin(math.radians(-self._angle+90)) + self._yc
-            ## size_hint: (self._widthArrow/self.parent._diameter, self._heightArrow/self.parent._diameter)
-            ## pos_hint: {'x': self._pos_x, 'y': self._pos_y}
-            ## source: 'atlas://atlas/windRose/arrow' + app.atlasSuffix 
-            ## keep_ratio: 0
-            ## allow_stretch: 1
-            ## canvas.before:
-                ## PushMatrix
-                ## Rotate:
-                    ## angle: -90#round(root.rapidWindDir)
-                    ## axis: 0, 0, 1
-                    ## origin: self.center
-            ## canvas.after:
-                ## PopMatrix
 
     ## Rapid wind direction in degrees
     MediumField:
@@ -1415,83 +1162,3 @@ ScreenManager:
                             'WeatherFlow BetterForecast API \n'
                         font_size: dp(15*app.scaleFactor)
                         font_name: 'fonts/Inter-SemiBold.ttf'
-
-
-## =============================================================================
-## DEVICE STATUS PANELS
-## =============================================================================
-<tempestStatus>:
-    size_hint: (1,.1)
-    orientation: 'horizontal'
-    BoldText:
-        size_hint: (.15,1)
-        text: 'TEMPEST'
-    BoldText:
-        size_hint: (.12,1)
-        text: app.Station.Device['tempestStatus']
-    BoldText:
-        size_hint: (.22,1)
-        text: app.Station.Device['tempestSampleTime']
-    BoldText:
-        size_hint: (.20,1)
-        text: app.Station.Device['tempestVoltage']
-    BoldText:
-        size_hint: (.31,1)
-        text: app.Station.Device['tempestObCount']
-
-<skyStatus>:
-    size_hint: (1,.1)
-    orientation: 'horizontal'
-    BoldText:
-        size_hint: (.15,1)
-        text: 'SKY'
-    BoldText:
-        size_hint: (.12,1)
-        text: app.Station.Device['skyStatus']
-    BoldText:
-        size_hint: (.22,1)
-        text: app.Station.Device['skySampleTime']
-    BoldText:
-        size_hint: (.20,1)
-        text: app.Station.Device['skyVoltage']
-    BoldText:
-        size_hint: (.31,1)
-        text: app.Station.Device['skyObCount']
-
-<outAirStatus>:
-    size_hint: (1,.1)
-    orientation: 'horizontal'
-    BoldText:
-        size_hint: (.15,1)
-        text: 'Outdoor AIR'
-    BoldText:
-        size_hint: (.12,1)
-        text: app.Station.Device['outAirStatus']
-    BoldText:
-        size_hint: (.22,1)
-        text: app.Station.Device['outAirSampleTime']
-    BoldText:
-        size_hint: (.20,1)
-        text: app.Station.Device['outAirVoltage']
-    BoldText:
-        size_hint: (.31,1)
-        text: app.Station.Device['outAirObCount']
-
-<inAirStatus>:
-    size_hint: (1,.1)
-    orientation: 'horizontal'
-    BoldText:
-        size_hint: (.15,1)
-        text: 'Indoor AIR'
-    BoldText:
-        size_hint: (.12,1)
-        text: app.Station.Device['inAirStatus']
-    BoldText:
-        size_hint: (.22,1)
-        text: app.Station.Device['inAirSampleTime']
-    BoldText:
-        size_hint: (.20,1)
-        text: app.Station.Device['inAirVoltage']
-    BoldText:
-        size_hint: (.31,1)
-        text: app.Station.Device['inAirObCount']

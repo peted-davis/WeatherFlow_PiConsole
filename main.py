@@ -227,7 +227,8 @@ class wfpiconsole(App):
     BarometerMax = ConfigParserProperty('-','System', 'BarometerMax','wfpiconsole')
     BarometerMin = ConfigParserProperty('-','System', 'BarometerMin','wfpiconsole')
     IndoorTemp   = ConfigParserProperty('-','Display','IndoorTemp',  'wfpiconsole')
-
+    
+    # Define display properties
     scaleFactor = NumericProperty(1)
     atlasSuffix = StringProperty('_lR')
 
@@ -244,20 +245,20 @@ class wfpiconsole(App):
 
         # Set window size if required based on hardware type and center on 
         # screen
+        self.window = Window
+        self.window.bind(on_resize=self.setScaleFactor)
+        windowPosi = (self.window.left,self.window.top)
+        windowSize = self.window.size
         if self.config['System']['Hardware'] != 'Pi3':
-            Window.bind(on_resize=self.setScaleFactor)
-            windowPosi = (Window.left,Window.top)
-            windowSize = Window.size
             if self.config['System']['Hardware'] == 'Pi4':
-                Window.size = (800,480)
-                Window.borderless = 1
-                Window.top = 0
+                self.window.size = (800,480)
+                self.window.borderless = 1
+                self.window.top = 0
             elif self.config['System']['Hardware'] == 'Other':
-                Window.size = (800,480)
-                if Window.size != windowSize:
-                    Window.left = windowPosi[0] - (Window.size[0]-windowSize[0])/2
-                    Window.top  = windowPosi[1] - (Window.size[1]-windowSize[1])/2
-        self.window = Window   
+                self.window.size = (800,480)
+                if self.window.size != windowSize:
+                    self.window.left = windowPosi[0] - (self.window.size[0]-windowSize[0])/2
+                    self.window.top  = windowPosi[1] - (self.window.size[1]-windowSize[1])/2
 
         # Initialise real time clock
         Clock.schedule_interval(partial(system.realtimeClock,self.System,self.config),1.0)
@@ -289,7 +290,7 @@ class wfpiconsole(App):
 
     # SET DISPLAY SCALE FACTOR BASED ON SCREEN SIZE
     # --------------------------------------------------------------------------
-    def setScaleFactor(self, instance, x, y):
+    def setScaleFactor(self,instance,x,y):
         if x < 800:
             self.window.size = (800,y)
         if y < 480:
@@ -915,6 +916,9 @@ class outAirStatus(BoxLayout):
 
 class inAirStatus(BoxLayout):
     pass
+    
+class MenuButton(Button):
+    pass
 
 # ==============================================================================
 # SettingScrollOptions SETTINGS CLASS
@@ -1046,17 +1050,6 @@ class SettingToggleTemperature(SettingString):
             Units = '[sup]o[/sup]F'
         Value = int(self.Label.text.replace(Units,'')) + 1
         self.Label.text = str(Value) + Units
-
-# ==============================================================================
-# CUSTOM ScaledLabels AND ScaleButtons
-# ==============================================================================
-
-
-
-
-
-class MenuButton(Button):
-    pass
 
 # ==============================================================================
 # RUN APP
