@@ -265,8 +265,8 @@ def SLPMaxMin(Time,Pres,maxPres,minPres,Device,Config,flagAPI):
     else:
         Format = '%H:%M'
 
-    # Code initialising. Download all data for current day using Weatherflow
-    # API and calculate daily maximum and minimum pressure
+    # If console is initialising, download all data for current day using
+    # Weatherflow API and calculate daily maximum and minimum pressure
     if maxPres[0] == '-' or flagAPI:
 
         # Download pressure data from the current day
@@ -286,39 +286,31 @@ def SLPMaxMin(Time,Pres,maxPres,minPres,Device,Config,flagAPI):
             # Calculate sea level pressure
             SLP = [derive.SLP(P,Config) for P in Pres]
 
-            # Define maximum and minimum pressure.
+            # Define maximum and minimum pressure
             MaxPres = [max(SLP)[0],'mb',datetime.fromtimestamp(Time[SLP.index(max(SLP))],Tz).strftime(Format),max(SLP)[0],Now]
             MinPres = [min(SLP)[0],'mb',datetime.fromtimestamp(Time[SLP.index(min(SLP))],Tz).strftime(Format),min(SLP)[0],Now]
         else:
             MaxPres = [NaN,'mb','-',NaN,Now]
             MinPres = [NaN,'mb','-',NaN,Now]
 
-        # Return maximum and minimum pressure
-        return MaxPres,MinPres
-
-    # At midnight reset maximum and minimum pressure
-    if Now.date() > maxPres[4].date():
-
-        # Reset maximum and minimum pressure
+    # Else if midnight has passed, reset maximum and minimum pressure
+    elif Now.date() > maxPres[4].date():
         MaxPres = [SLP[0],'mb',datetime.fromtimestamp(Time[0],Tz).strftime(Format),SLP[0],Now]
         MinPres = [SLP[0],'mb',datetime.fromtimestamp(Time[0],Tz).strftime(Format),SLP[0],Now]
 
-        # Return required variables
-        return MaxPres,MinPres
-
-    # Current pressure is greater than maximum recorded pressure. Update
+    # Else if current pressure is greater than maximum recorded pressure, update
     # maximum pressure
-    if SLP[0] > maxPres[3]:
+    elif SLP[0] > maxPres[3]:
         MaxPres = [SLP[0],'mb',datetime.fromtimestamp(Time[0],Tz).strftime(Format),SLP[0],Now]
         MinPres = [minPres[3],'mb',minPres[2],minPres[3],Now]
 
-    # Current pressure is less than minimum recorded pressure. Update
+    # Else if current pressure is less than minimum recorded pressure, update
     # minimum pressure and time
     elif SLP[0] < minPres[3]:
         MaxPres = [maxPres[3],'mb',maxPres[2],maxPres[3],Now]
         MinPres = [SLP[0],'mb',datetime.fromtimestamp(Time[0],Tz).strftime(Format),SLP[0],Now]
 
-    # Maximum and minimum pressure unchanged. Return existing values
+    # Else maximum and minimum pressure unchanged, return existing values
     else:
         MaxPres = [maxPres[3],'mb',maxPres[2],maxPres[3],Now]
         MinPres = [minPres[3],'mb',minPres[2],minPres[3],Now]
@@ -358,8 +350,8 @@ def TempMaxMin(Time,Temp,maxTemp,minTemp,Device,Config,flagAPI):
     else:
         Format = '%H:%M'
 
-    # Code initialising. Download all data for current day using Weatherflow
-    # API and calculate daily maximum and minimum temperature
+    # If console is initialising, download all data for current day using
+    # Weatherflow API and calculate daily maximum and minimum temperature
     if maxTemp[0] == '-' or flagAPI:
 
         # Download temperature data from the current day
@@ -384,32 +376,24 @@ def TempMaxMin(Time,Temp,maxTemp,minTemp,Device,Config,flagAPI):
             MaxTemp = [NaN,'c','-',NaN,Now]
             MinTemp = [NaN,'c','-',NaN,Now]
 
-        # Return maximum and minimum temperature
-        return MaxTemp,MinTemp
-
-    # At midnight reset maximum and minimum temperature
-    if Now.date() > maxTemp[4].date():
-
-        # Reset maximum and minimum temperature
+    # Else if midnight has passed, reset maximum and minimum temperature
+    elif Now.date() > maxTemp[4].date():
         MaxTemp = [Temp[0],'c',datetime.fromtimestamp(Time[0],Tz).strftime(Format),Temp[0],Now]
         MinTemp = [Temp[0],'c',datetime.fromtimestamp(Time[0],Tz).strftime(Format),Temp[0],Now]
 
-        # Return required variables
-        return MaxTemp,MinTemp
-
-    # Current temperature is greater than maximum recorded temperature. Update
-    # maximum temperature and time
-    if Temp[0] > maxTemp[3]:
+    # Else if current temperature is greater than maximum recorded temperature,
+    # update maximum temperature
+    elif Temp[0] > maxTemp[3]:
         MaxTemp = [Temp[0],'c',datetime.fromtimestamp(Time[0],Tz).strftime(Format),Temp[0],Now]
         MinTemp = [minTemp[3],'c',minTemp[2],minTemp[3],Now]
 
-    # Current temperature is less than minimum recorded temperature. Update
-    # minimum temperature and time
+    # Else if current temperature is less than minimum recorded temperature,
+    # update minimum temperature
     elif Temp[0] < minTemp[3]:
         MaxTemp = [maxTemp[3],'c',maxTemp[2],maxTemp[3],Now]
         MinTemp = [Temp[0],'c',datetime.fromtimestamp(Time[0],Tz).strftime(Format),Temp[0],Now]
 
-    # Maximum and minimum temperature unchanged. Return existing values
+    # Else maximum and minimum temperature unchanged, return existing values
     else:
         MaxTemp = [maxTemp[3],'c',maxTemp[2],maxTemp[3],Now]
         MinTemp = [minTemp[3],'c',minTemp[2],minTemp[3],Now]
@@ -510,8 +494,8 @@ def StrikeCount(Count,strikeCount,Device,Config,flagAPI):
     Tz = pytz.timezone(Config['Station']['Timezone'])
     Now = datetime.now(pytz.utc).astimezone(Tz)
 
-    # Code initialising. Download all data for current day using Weatherflow
-    # API and calculate total daily lightning strikes
+    # If console is initialising, download all data for current day using
+    # Weatherflow API and calculate total daily lightning strikes
     if strikeCount['Today'][0] == '-' or flagAPI:
 
         # Download lightning strike data from the current day
@@ -529,7 +513,17 @@ def StrikeCount(Count,strikeCount,Device,Config,flagAPI):
         else:
             todayStrikes = [NaN,'count',NaN,Now]
 
-    # Code initialising. Download all data for current month using
+    # Else if midnight has passed, reset daily lightning strike count to zero
+    elif Now.date() > strikeCount['Today'][3].date():
+        todayStrikes = [Count[0],'count',Count[0],Now]
+
+    # Else, calculate current daily lightning strike count
+    else:
+        currentCount = strikeCount['Today'][2]
+        updatedCount = currentCount + Count[0] if not math.isnan(Count[0]) else currentCount
+        todayStrikes = [updatedCount,'count',updatedCount,Now]
+
+    # If console is initialising, download all data for current month using
     # Weatherflow API and calculate total monthly lightning strikes
     if strikeCount['Month'][0] == '-' or flagAPI:
 
@@ -554,7 +548,18 @@ def StrikeCount(Count,strikeCount,Device,Config,flagAPI):
             monthStrikes[0] += todayStrikes[0]
             monthStrikes[2] += todayStrikes[2]
 
-    # Code initialising. Download all data for current year using
+    # Else if the end of the month has passed, reset monthly lightning strike
+    # count to zero
+    elif Now.month > strikeCount['Month'][3].month:
+        monthStrikes = [Count[0],'count',Count[0],Now]
+
+    # Else, calculate current monthly lightning strike count
+    else:
+        currentCount = strikeCount['Month'][2]
+        updatedCount = currentCount + Count[0] if not math.isnan(Count[0]) else currentCount
+        monthStrikes = [updatedCount,'count',updatedCount,Now]
+
+    # If console is initialising, download all data for current year using
     # Weatherflow API and calculate total yearly lightning strikes
     if strikeCount['Year'][0] == '-' or flagAPI:
 
@@ -577,45 +582,57 @@ def StrikeCount(Count,strikeCount,Device,Config,flagAPI):
         else:
             yearStrikes = [NaN,'count',NaN,Now]
 
-        # Adjust monthly lightning strike total for strikes that have been
+        # Adjust yearly lightning strike total for strikes that have been
         # recorded today
         if not math.isnan(todayStrikes[0]):
             yearStrikes[0] += todayStrikes[0]
             yearStrikes[2] += todayStrikes[2]
 
-        # Return Daily, Monthly, and Yearly lightning strike counts
-        return {'Today':todayStrikes, 'Month':monthStrikes, 'Year':yearStrikes}
-
-    # At midnight, reset daily lightning strike count to zero, else return
-    # current daily lightning strike count.
-    if Now.date() > strikeCount['Today'][3].date():
-        todayStrikes = [Count[0],'count',Count[0],Now]
-    else:
-        currentCount = strikeCount['Today'][2]
-        updatedCount = currentCount + Count[0] if not math.isnan(Count[0]) else currentCount
-        todayStrikes = [updatedCount,'count',updatedCount,Now]
-
-    # At end of month, reset monthly lightning strike count to zero, else return
-    # current monthly lightning strike count
-    if Now.month > strikeCount['Month'][3].month:
-        monthStrikes = [Count[0],'count',Count[0],Now]
-    else:
-        currentCount = strikeCount['Month'][2]
-        updatedCount = currentCount + Count[0] if not math.isnan(Count[0]) else currentCount
-        monthStrikes = [updatedCount,'count',updatedCount,Now]
-
-    # At end of year, reset monthly and yearly lightning strike counts to zero,
-    # else return current yearly lightning strike count
-    if Now.year > strikeCount['Year'][3].year:
+    # Else if the end of the year has passed, reset monthly and yearly lightning
+    # strike count to zero
+    elif Now.year > strikeCount['Year'][3].year:
         monthStrikes = [Count[0],'count',Count[0],Now]
         yearStrikes  = [Count[0],'count',Count[0],Now]
+
+    # Else, calculate current yearly lightning strike count
     else:
         currentCount = strikeCount['Year'][2]
         updatedCount = currentCount + Count[0] if not math.isnan(Count[0]) else currentCount
         yearStrikes = [updatedCount,'count',updatedCount,Now]
 
-    # Return Daily, Monthly, and Yearly lightning strike accumulation totals
+    # Return Daily, Monthly, and Yearly lightning strike counts
     return {'Today':todayStrikes, 'Month':monthStrikes, 'Year':yearStrikes}
+
+    # At midnight, reset daily lightning strike count to zero, else return
+    # current daily lightning strike count.
+    #if Now.date() > strikeCount['Today'][3].date():
+    #    todayStrikes = [Count[0],'count',Count[0],Now]
+    #else:
+    #    currentCount = strikeCount['Today'][2]
+    #    updatedCount = currentCount + Count[0] if not math.isnan(Count[0]) else currentCount
+    #    todayStrikes = [updatedCount,'count',updatedCount,Now]
+
+    # At end of month, reset monthly lightning strike count to zero, else return
+    # current monthly lightning strike count
+    #if Now.month > strikeCount['Month'][3].month:
+    #    monthStrikes = [Count[0],'count',Count[0],Now]
+    #else:
+    #    currentCount = strikeCount['Month'][2]
+    #    updatedCount = currentCount + Count[0] if not math.isnan(Count[0]) else currentCount
+    #    monthStrikes = [updatedCount,'count',updatedCount,Now]
+
+    # At end of year, reset monthly and yearly lightning strike counts to zero,
+    # else return current yearly lightning strike count
+    #if Now.year > strikeCount['Year'][3].year:
+    #    monthStrikes = [Count[0],'count',Count[0],Now]
+    #    yearStrikes  = [Count[0],'count',Count[0],Now]
+    #else:
+    #    currentCount = strikeCount['Year'][2]
+    #    updatedCount = currentCount + Count[0] if not math.isnan(Count[0]) else currentCount
+    #    yearStrikes = [updatedCount,'count',updatedCount,Now]
+
+    # Return Daily, Monthly, and Yearly lightning strike accumulation totals
+    #return {'Today':todayStrikes, 'Month':monthStrikes, 'Year':yearStrikes}
 
 def RainRate(rainAccum):
 
@@ -679,8 +696,8 @@ def RainAccumulation(Rain,rainAccum,Device,Config,flagAPI):
     Tz = pytz.timezone(Config['Station']['Timezone'])
     Now = datetime.now(pytz.utc).astimezone(Tz)
 
-    # Code initialising. Download all data for current day using Weatherflow
-    # API and calculate total daily rainfall
+    # If console is initialising, download all data for current day using
+    # Weatherflow API and calculate total daily rainfall
     if rainAccum['Today'][0] == '-' or flagAPI:
 
         # Download rainfall data for current day
@@ -697,8 +714,18 @@ def RainAccumulation(Rain,rainAccum,Device,Config,flagAPI):
         else:
             TodayRain = [NaN,'mm',NaN,Now]
 
-    # Code initialising. Download all data for yesterday using Weatherflow
-    # API and calculate total daily rainfall
+    # Else if midnight has passed, reset daily rainfall accumulation to zero
+    elif Now.date() > rainAccum['Today'][3].date():
+        TodayRain = [Rain[0],'mm',Rain[0],Now]
+
+    # Else, calculate current daily rainfall accumulation
+    else:
+        currentAccum  = rainAccum['Today'][2]
+        updatedAccum  = currentAccum + Rain[0] if not math.isnan(Rain[0]) else currentAccum
+        TodayRain     = [updatedAccum,'mm',updatedAccum,Now]
+
+    # If console is initialising, download all data for yesterday using
+    # Weatherflow API and calculate total daily rainfall
     if rainAccum['Yesterday'][0] == '-' or flagAPI:
 
         # Download rainfall data for yesterday
@@ -716,7 +743,15 @@ def RainAccumulation(Rain,rainAccum,Device,Config,flagAPI):
         else:
             YesterdayRain = [NaN,'mm',NaN,Now]
 
-    # Code initialising. Download all data for current month using
+    # Else if midnight has passed, set yesterday rainfall accumulation
+    elif Now.date() > rainAccum['Today'][3].date():
+        YesterdayRain = [rainAccum['Today'][2],'mm',rainAccum['Today'][2],Now]
+
+    # Else, set yesterday rainfall accumulation as unchanged
+    else:
+        YesterdayRain = [rainAccum['Yesterday'][2],'mm',rainAccum['Yesterday'][2],Now]
+
+    # If console is initialising, download all data for current month using
     # Weatherflow API and calculate total monthly rainfall
     if rainAccum['Month'][0] == '-' or flagAPI:
 
@@ -740,7 +775,18 @@ def RainAccumulation(Rain,rainAccum,Device,Config,flagAPI):
             MonthRain[0] += TodayRain[0]
             MonthRain[2] += TodayRain[2]
 
-    # Code initialising. Download all data for current year using
+    # Else if the end of the month has passed, reset monthly rain accumulation
+    # to zero
+    elif Now.month > rainAccum['Month'][3].month:
+        MonthRain = [Rain[0],'mm',Rain[0],Now]
+
+    # Else, calculate current monthly rainfall accumulation
+    else:
+        currentAccum = rainAccum['Month'][2]
+        updatedAccum = currentAccum + Rain[0] if not math.isnan(Rain[0]) else currentAccum
+        MonthRain    = [updatedAccum,'mm',updatedAccum,Now]
+
+    # If console is initialising, download all data for current year using
     # Weatherflow API and calculate total yearly rainfall
     if rainAccum['Year'][0] == '-' or flagAPI:
 
@@ -767,35 +813,13 @@ def RainAccumulation(Rain,rainAccum,Device,Config,flagAPI):
             YearRain[0] += TodayRain[0]
             YearRain[2] += TodayRain[2]
 
-        # Return Daily, Monthly, and Yearly rainfall accumulation totals
-        return {'Today':TodayRain, 'Yesterday':YesterdayRain, 'Month':MonthRain, 'Year':YearRain}
-
-    # At midnight, update yesterday rainfall and reset daily rainfall
-    # accumulation to zero. Else add current rainfall to current daily rainfall
-    # accumulation and set yesterday rainfall as unchanged
-    if Now.date() > rainAccum['Today'][3].date():
-        YesterdayRain = [rainAccum['Today'][2],'mm',rainAccum['Today'][2],Now]
-        TodayRain     = [Rain[0],'mm',Rain[0],Now]
-    else:
-        currentAccum  = rainAccum['Today'][2]
-        updatedAccum  = currentAccum + Rain[0] if not math.isnan(Rain[0]) else currentAccum
-        TodayRain     = [updatedAccum,'mm',updatedAccum,Now]
-        YesterdayRain = [rainAccum['Yesterday'][2],'mm',rainAccum['Yesterday'][2],Now]
-
-    # At end of month, reset monthly rainfall accumulation to zero, else add
-    # current rainfall to current monthly rainfall accumulation
-    if Now.month > rainAccum['Month'][3].month:
-        MonthRain = [Rain[0],'mm',Rain[0],Now]
-    else:
-        currentAccum = rainAccum['Month'][2]
-        updatedAccum = currentAccum + Rain[0] if not math.isnan(Rain[0]) else currentAccum
-        MonthRain    = [updatedAccum,'mm',updatedAccum,Now]
-
-    # At end of year, reset monthly and yearly rainfall accumulation to zero,
-    # else add current rainfall to current yearly rainfall accumulation
-    if Now.year > rainAccum['Year'][3].year:
+    # Else if the end of the year has passed, reset monthly and yearly rain
+    # accumulation to zero
+    elif Now.year > rainAccum['Year'][3].year:
         YearRain  = [Rain[0],'mm',Rain[0],Now]
         MonthRain = [Rain[0],'mm',Rain[0],Now]
+
+    # Else, calculate current yearly rain accumulation
     else:
         currentAccum = rainAccum['Year'][2]
         updatedAccum = currentAccum + Rain[0] if not math.isnan(Rain[0]) else currentAccum
@@ -803,6 +827,40 @@ def RainAccumulation(Rain,rainAccum,Device,Config,flagAPI):
 
     # Return Daily, Monthly, and Yearly rainfall accumulation totals
     return {'Today':TodayRain, 'Yesterday':YesterdayRain, 'Month':MonthRain, 'Year':YearRain}
+
+    # At midnight, update yesterday rainfall and reset daily rainfall
+    # accumulation to zero. Else add current rainfall to current daily rainfall
+    # accumulation and set yesterday rainfall as unchanged
+    #if Now.date() > rainAccum['Today'][3].date():
+    #    YesterdayRain = [rainAccum['Today'][2],'mm',rainAccum['Today'][2],Now]
+    #    TodayRain     = [Rain[0],'mm',Rain[0],Now]
+    #else:
+    #    currentAccum  = rainAccum['Today'][2]
+    #    updatedAccum  = currentAccum + Rain[0] if not math.isnan(Rain[0]) else currentAccum
+    #    TodayRain     = [updatedAccum,'mm',updatedAccum,Now]
+    #    YesterdayRain = [rainAccum['Yesterday'][2],'mm',rainAccum['Yesterday'][2],Now]
+
+    # At end of month, reset monthly rainfall accumulation to zero, else add
+    # current rainfall to current monthly rainfall accumulation
+    #if Now.month > rainAccum['Month'][3].month:
+    #    MonthRain = [Rain[0],'mm',Rain[0],Now]
+    #else:
+    #    currentAccum = rainAccum['Month'][2]
+    #    updatedAccum = currentAccum + Rain[0] if not math.isnan(Rain[0]) else currentAccum
+    #    MonthRain    = [updatedAccum,'mm',updatedAccum,Now]
+
+    # At end of year, reset monthly and yearly rainfall accumulation to zero,
+    # else add current rainfall to current yearly rainfall accumulation
+    #if Now.year > rainAccum['Year'][3].year:
+    #    YearRain  = [Rain[0],'mm',Rain[0],Now]
+    #    MonthRain = [Rain[0],'mm',Rain[0],Now]
+    #else:
+    #    currentAccum = rainAccum['Year'][2]
+    #    updatedAccum = currentAccum + Rain[0] if not math.isnan(Rain[0]) else currentAccum
+    #    YearRain     = [updatedAccum,'mm',updatedAccum,Now]
+
+    # Return Daily, Monthly, and Yearly rainfall accumulation totals
+    #return {'Today':TodayRain, 'Yesterday':YesterdayRain, 'Month':MonthRain, 'Year':YearRain}
 
 def MeanWindSpeed(windSpd,avgWind,Device,Config,flagAPI):
 
@@ -823,8 +881,8 @@ def MeanWindSpeed(windSpd,avgWind,Device,Config,flagAPI):
     Tz = pytz.timezone(Config['Station']['Timezone'])
     Now = datetime.now(pytz.utc).astimezone(Tz)
 
-    # Code initialising. Download all data for current day using Weatherflow API
-    # and calculate daily mean windspeed
+    # If console is initialising, download all data for current day using
+    # Weatherflow API and calculate daily averaged windspeed
     if avgWind[0] == '-' or flagAPI:
 
         # Download windspeed data for current day
@@ -843,26 +901,22 @@ def MeanWindSpeed(windSpd,avgWind,Device,Config,flagAPI):
         else:
             AvgWind = [NaN,'mps',NaN,NaN,Now]
 
-        # Return daily averaged wind speed
-        return AvgWind
+    # Else if midnight has passed, reset daily averaged wind speed
+    elif Now.date() > avgWind[4].date():
+        AvgWind = [windSpd[0],'mps',windSpd[0],1,Now]
 
-    # At midnight, reset daily averaged wind speed
-    if Now.date() > avgWind[4].date():
-        Length = 1
-        updatedAvg = windSpd[0]
-
-    # Update current daily averaged wind speed with new wind speed observation
+    # Else, calculate current daily averaged wind speed
     else:
         Length = avgWind[3] + 1
         currentAvg = avgWind[2]
         if not math.isnan(windSpd[0]):
             updatedAvg = (Length-1)/Length * currentAvg + 1/Length * windSpd[0]
+            AvgWind = [updatedAvg,'mps',updatedAvg,Length,Now]
         else:
-            updatedAvg = currentAvg
-            Length     = Length - 1
+            AvgWind = [currentAvg,'mps',currentAvg,Length-1,Now]
 
     # Return daily averaged wind speed
-    return [updatedAvg,'mps',updatedAvg,Length,Now]
+    return AvgWind
 
 def MaxWindGust(windGust,maxGust,Device,Config,flagAPI):
 
@@ -883,8 +937,8 @@ def MaxWindGust(windGust,maxGust,Device,Config,flagAPI):
     Tz = pytz.timezone(Config['Station']['Timezone'])
     Now = datetime.now(pytz.utc).astimezone(Tz)
 
-    # Code initialising. Download all data for current day using Weatherflow
-    # API and calculate daily maximum wind gust
+    # If console is initialising, download all data for current day using
+    # Weatherflow API and calculate daily maximum wind gust
     if maxGust == '--' or flagAPI:
 
         # Download windspeed data for current day
@@ -901,26 +955,20 @@ def MaxWindGust(windGust,maxGust,Device,Config,flagAPI):
         else:
             maxGust = [NaN,'mps',NaN,Now]
 
-        # Return maximum wind gust
-        return maxGust
-
-    # At midnight, reset maximum recorded wind gust
-    if Now.date() > maxGust[3].date():
+    # Else if midnight has passed, reset maximum recorded wind gust
+    elif Now.date() > maxGust[3].date():
         maxGust = [windGust[0],'mps',windGust[0],Now]
 
-        # Return maximum wind gust
-        return maxGust
-
-    # Current gust speed is greater than maximum recorded gust speed. Update
-    # maximum gust speed
-    if windGust[0] > maxGust[2]:
+    # Else if current gust speed is greater than maximum recorded gust speed,
+    # update maximum gust speed
+    elif windGust[0] > maxGust[2]:
         maxGust = [windGust[0],'mps',windGust[0],Now]
 
-    # Maximum gust speed is unchanged. Return existing value
+    # Else maximum gust speed is unchanged, return existing value
     else:
         maxGust = [maxGust[2],'mps',maxGust[2],Now]
 
-    # Return maximum wind speed and gust
+    # Return maximum wind gust
     return maxGust
 
 def CardinalWindDirection(windDir,windSpd=[1,'mps']):
@@ -1046,8 +1094,8 @@ def peakSunHours(Radiation,peakSun,Astro,Device,Config,flagAPI):
     Tz = pytz.timezone(Config['Station']['Timezone'])
     Now = datetime.now(pytz.utc).astimezone(Tz)
 
-    # Code initialising. Download all data for current day using Weatherflow
-    # API and calculate Peak Sun Hours
+    # If console is initialising, download all data for current day using
+    # Weatherflow API and calculate Peak Sun Hours
     if peakSun[0] == '-' or flagAPI:
 
         # Download solar radiation data for current day
@@ -1065,12 +1113,12 @@ def peakSunHours(Radiation,peakSun,Astro,Device,Config,flagAPI):
         else:
             peakSun = [NaN,'hrs',NaN,Now]
 
-    # At midnight, reset Peak Sun Hours
+    # Else if midnight has passed, reset Peak Sun Hours
     elif Now.date() > peakSun[3].date():
         watthrs = Radiation[0] * 1/60
         peakSun = [watthrs/1000,'hrs',watthrs,Now]
 
-    # Add current Radiation value to Peak Sun Hours
+    # Else calculate current Peak Sun Hours
     else:
         watthrs = peakSun[2] + Radiation[0]*1/60 if not math.isnan(Radiation[0]) else peakSun[2]
         peakSun = [watthrs/1000,'hrs',watthrs,Now]
@@ -1083,7 +1131,7 @@ def peakSunHours(Radiation,peakSun,Astro,Device,Config,flagAPI):
         daylightElapsed = daylightTotal
     daylightFactor = daylightElapsed/daylightTotal
 
-    # Define daily solar potential text
+    # Define daily solar potential
     if math.isnan(peakSun[0]):
         peakSun.append('-')
     if peakSun[0]/daylightFactor == 0:
