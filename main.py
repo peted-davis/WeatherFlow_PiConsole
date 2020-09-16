@@ -247,9 +247,9 @@ class wfpiconsole(App):
         # screen
         self.window = Window
         self.window.bind(on_resize=self.setScaleFactor)
-        windowPosi = (self.window.left,self.window.top)
         windowSize = self.window.size
         if self.config['System']['Hardware'] != 'Pi3':
+            windowPosi = (self.window.left,self.window.top)
             if self.config['System']['Hardware'] == 'Pi4':
                 self.window.size = (800,480)
                 self.window.borderless = 1
