@@ -573,7 +573,7 @@ processStarting() {
     case $1 in
         install)
             whiptail --msgbox --backtitle "Welcome" --title "WeatherFlow PiConsole automated installer" \
-            "\\n\\nThanks for checking out the WeatherFlow PiConsole. This script will guide you through the installation process on your Raspbery Pi." ${r} ${c}
+            "\\n\\nThanks for checking out the WeatherFlow PiConsole. This script will guide you through the installation process on your Raspberry Pi." ${r} ${c}
             printf "\\n"
             printf "  ================================\\n"
             printf "  Installing WeatherFlow PiConsole\\n"

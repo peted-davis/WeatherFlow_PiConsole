@@ -127,9 +127,8 @@ class WeatherFlowClientFactory(WebSocketClientFactory,ReconnectingClientFactory)
 
     def __init__(self, url, app):
         WebSocketClientFactory.__init__(self,url)
-        self.maxdelay = 60
-        self._app     = app
-        self._proto   = None
+        self._app         = app
+        self._proto       = None
 
 # ==============================================================================
 # IMPORT REQUIRED CORE KIVY MODULES
@@ -166,6 +165,7 @@ from functools        import partial
 from threading        import Thread
 from datetime         import datetime, date, time, timedelta
 from optparse         import OptionParser
+from time             import sleep
 import subprocess
 import requests
 import pytz
@@ -389,8 +389,7 @@ class wfpiconsole(App):
     def WebsocketDecodeMessage(self,Msg):
 
         # Extract type of received message
-        Type = Msg['type']
-        if "type" in Msg:
+        if 'type' in Msg:
             Type = Msg['type']
         else:
             Type = 'Unknown'
@@ -445,9 +444,12 @@ class wfpiconsole(App):
         elif Type == 'evt_strike':
             websocket.evtStrike(Msg,self)
 
-        # Unknown message type, print message to terminal
+        # Unknown message type, print message to terminal and restart Websocket
+        # connection
         elif Type == 'Unknown':
-            print(json.dumps(Msg))
+            log.msg('Unknown message type: ' + json.dumps(Msg))
+            log.msg('Waiting 60 seconds to restart Websocket connection'); sleep(60)
+            self._factory._proto.sendClose()
 
     # UPDATE 'WeatherFlowPiConsole' APP CLASS METHODS AT REQUIRED INTERVALS
     # --------------------------------------------------------------------------
