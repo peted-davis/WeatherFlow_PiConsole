@@ -523,11 +523,11 @@ def defaultConfig():
     Default['Display'] =         collections.OrderedDict([('Description',    '  Display settings'),
                                                           ('TimeFormat',     {'Type': 'default', 'Value': '24 hr', 'Desc': 'time format'}),
                                                           ('DateFormat',     {'Type': 'default', 'Value': 'Mon, 01 Jan 0000', 'Desc': 'date format'}),
-                                                          ('LightningPanel', {'Type': 'default', 'Value': '1',  'Desc': 'lightning panel toggle'}),
-                                                          ('IndoorTemp',     {'Type': 'default', 'Value': '1',  'Desc': 'indoor temperature toggle'}),
-                                                          ('Width',          {'Type': 'default', 'Value': '1',  'Desc': 'console width (pixels)'}),
-                                                          ('Height',         {'Type': 'default', 'Value': '1',  'Desc': 'console height (pixels)'}),
-                                                          ('FullScreen',     {'Type': 'default', 'Value': '1',  'Desc': 'fullscreen toggle'})])
+                                                          ('LightningPanel', {'Type': 'default', 'Value': '1',    'Desc': 'lightning panel toggle'}),
+                                                          ('IndoorTemp',     {'Type': 'default', 'Value': '1',    'Desc': 'indoor temperature toggle'}),
+                                                          ('Fullscreen',     {'Type': 'default', 'Value': '1',    'Desc': 'fullscreen toggle'}),
+                                                          ('Width',          {'Type': 'default', 'Value': '800',  'Desc': 'console width (pixels)'}),
+                                                          ('Height',         {'Type': 'default', 'Value': '480',  'Desc': 'console height (pixels)'})])     
     Default['FeelsLike'] =       collections.OrderedDict([('Description',    '  "Feels Like" temperature cut-offs'),
                                                           ('ExtremelyCold',  {'Type': 'default', 'Value': '-4', 'Desc': '"Feels extremely cold" cut-off temperature'}),
                                                           ('FreezingCold',   {'Type': 'default', 'Value': '0',  'Desc': '"Feels freezing cold" cut-off temperature'}),

@@ -246,16 +246,14 @@ class wfpiconsole(App):
         # Set window size if required based on hardware type and center on
         # screen
         self.window = Window
+        windowSize  = self.window.size
         self.window.bind(on_resize=self.setScaleFactor)
-        windowSize = self.window.size
         if self.config['System']['Hardware'] != 'Pi3':
             windowPosi = (self.window.left,self.window.top)
-            if self.config['System']['Hardware'] == 'Pi4':
-                self.window.size = (800,480)
-                self.window.borderless = 1
-                self.window.top = 0
-            elif self.config['System']['Hardware'] == 'Other':
-                self.window.size = (800,480)
+            if self.config['Display']['Fullscreen'] == '1':
+                self.window.fullscreen='auto'
+            else:
+                self.window.size = (int(self.config['Display']['Width']),int(self.config['Display']['Height']))
                 if self.window.size != windowSize:
                     self.window.left = windowPosi[0] - (self.window.size[0]-windowSize[0])/2
                     self.window.top  = windowPosi[1] - (self.window.size[1]-windowSize[1])/2
