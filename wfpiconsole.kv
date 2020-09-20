@@ -22,10 +22,9 @@
 #:import math         math
 
 ## Include required kv lang files
-#:include kvlang/rainGauge.kv
-#:include kvlang/windRose.kv
+#:include kvlang/displayElements.kv
 #:include kvlang/displayFields.kv
-#:include kvlang/panelLayout.kv 
+#:include kvlang/panelLayout.kv
 
 ## =============================================================================
 ## SCREEN MANAGER
@@ -298,7 +297,7 @@ ScreenManager:
 
     ## 'Feels like' icon and text
     Image:
-        source: 'atlas://atlas/feelsLike/' + root.feelsLikeIcon + app.atlasSuffix      
+        source: 'atlas://atlas/feelsLike/' + root.feelsLikeIcon + app.atlasSuffix
         pos_hint: {'x': 7/262, 'y': 6/202}
         keep_ratio: 0
         allow_stretch: 1
@@ -324,11 +323,11 @@ ScreenManager:
     ## Panel background and title
     PanelBackground:
         _panelTitle: 'Wind Speed  [size=' + str(int(self.ids.Title.font_size*0.8)) + ']|[/size]  Direction'
-        
-    ## Rapid Wind wind speed and direction    
-    windRose: 
+
+    ## Rapid Wind wind speed and direction
+    windRose:
         Image:
-            source: 'atlas://atlas/windRose' + app.atlasSuffix + '/' + str(round(root.rapidWindDir)) 
+            source: 'atlas://atlas/windRose' + app.atlasSuffix + '/' + str(round(root.rapidWindDir))
             keep_ratio: 0
             allow_stretch: 1
             pos_hint: {'x': 0, 'y': 0}
@@ -376,7 +375,7 @@ ScreenManager:
 
     ## Current Beaufort scale text and icon
     Image:
-        source: 'atlas://atlas/windSpd/' + root.windSpdIcon + app.atlasSuffix                                                        
+        source: 'atlas://atlas/windSpd/' + root.windSpdIcon + app.atlasSuffix
         keep_ratio: 0
         allow_stretch: 1
         pos_hint: {'x': 18/262, 'y': 28/202}
@@ -390,7 +389,7 @@ ScreenManager:
 
     ## Current average wind direction
     Image:
-        source: 'atlas://atlas/windDir/' + root.windDirIcon + app.atlasSuffix                                
+        source: 'atlas://atlas/windDir/' + root.windDirIcon + app.atlasSuffix
         keep_ratio: 0
         allow_stretch: 1
         pos_hint: {'x': 216/262, 'y': 28/202}
@@ -479,7 +478,7 @@ ScreenManager:
                 width: 1.2
                 rectangle: [self.x + app.Astro['sunIcon'][2]*self.width, self.y, 1, self.height]
     Image:
-        source: 'atlas://atlas/sunIcon/' + app.Astro['sunIcon'][0] + app.atlasSuffix      
+        source: 'atlas://atlas/sunIcon/' + app.Astro['sunIcon'][0] + app.atlasSuffix
         keep_ratio: 0
         allow_stretch: 1
         pos_hint: {'x': (4+app.Astro['sunIcon'][2]*236)/262, 'y': 92/202}
@@ -603,16 +602,7 @@ ScreenManager:
     ## Panel background, title, and MoonRose
     PanelBackground:
         _panelTitle: 'Moon Phase'
-    BoxLayout:
-        _width: 3
-        pos_hint: {'x': 64/262, 'y': 25/202}
-        size_hint: (134/262, 134/202)
-        canvas.after:
-            Color:
-                rgba: utils.rgba('646464ff')
-            SmoothLine:
-                width: self._width*app.scaleFactor
-                ellipse: (self.x+self._width*app.scaleFactor, self.y+self._width*app.scaleFactor, self.width-(self._width*2*app.scaleFactor), self.height-(self._width*2*app.scaleFactor), 0, 360, 4000)
+    moonRose:
 
     ## Moonrise time
     TitleField:
@@ -692,15 +682,14 @@ ScreenManager:
 ## RAINFALL WIDGET
 ## =============================================================================
 <RainfallPanel>
-    Image:
-        source: 'background/rainfall.png'
-        size_hint: (1,1)
-        keep_ratio: 0
-        allow_stretch: 1
-    PanelTitle:
-        text: 'Rainfall'   
-    RainGauge:    
-    
+
+    ## Panel background, title, and RainGauge
+    PanelBackground:
+        _panelTitle: 'Rainfall'
+        pos_hint: {'x': 0/262, 'y': 47/202}
+        size_hint: [1, 155/202]
+    RainGauge:
+
     ## Current rain rate and text
     SmallField:
         text: app.Obs['RainRate'][2]
@@ -720,7 +709,7 @@ ScreenManager:
             height: self.parent.height
             pos: self.parent.pos
             Image:
-                source: 'icons/rainfall/Water.png'
+                source: 'atlas://atlas/rainGauge/rainGauge' + app.atlasSuffix
                 keep_ratio: 0
                 allow_stretch: 1
                 size_hint: (1,1)
@@ -770,12 +759,12 @@ ScreenManager:
     MediumField:
         text: app.System['Date']
         font_name: 'fonts/Inter-Medium.ttf'
-        pos_hint: {'x': 0/262, 'y': 25/202}
+        pos_hint: {'x': 0/262, 'y': 24/202}
         size_hint_x: (262/262)
     MediumField:
         text: app.System['Time']
         font_name: 'fonts/Inter-Medium.ttf'
-        pos_hint: {'x': 0/262, 'y': 4/202}
+        pos_hint: {'x': 0/262, 'y': 3/202}
         size_hint_x: (262/262)
 
 <RainfallButton>:
@@ -923,7 +912,7 @@ ScreenManager:
                 x: root.lightningBoltPosX
         canvas.after:
             PopMatrix
-        source: 'atlas://atlas/lightningBolt/' + root.lightningBoltIcon + app.atlasSuffix 
+        source: 'atlas://atlas/lightningBolt/' + root.lightningBoltIcon + app.atlasSuffix
         keep_ratio: 0
         allow_stretch: 1
         pos_hint: {'x': 9/262, 'y': 120/202}
@@ -943,20 +932,11 @@ ScreenManager:
     ## Panel background, title, and Barometer dial
     PanelBackground:
         _panelTitle: 'Barometer'
-    BoxLayout:
-        _width: 2.5
-        pos_hint: {'x': 46/262, 'y': -66/202}
-        size_hint: (168/262, 168/202)
-        canvas.after:
-            Color:
-                rgba: utils.rgba('646464ff')
-            SmoothLine:
-                width: self._width*app.scaleFactor
-                ellipse: (self.x+self._width*app.scaleFactor, self.y+self._width*app.scaleFactor, self.width-(self._width*2*app.scaleFactor), self.height-(self._width*2*app.scaleFactor), -90, 90, 2000)
+    barometerDial:
 
     ## Current pressure arrow
     Image:
-        source: 'icons/barometer/' + root.barometerArrow + '.png'
+        source: 'atlas://atlas/barometer' + app.atlasSuffix + '/' + root.barometerArrow
         keep_ratio: 0
         allow_stretch: 1
         pos_hint: {'x': 46/262, 'y': 18/202}
@@ -1045,40 +1025,41 @@ ScreenManager:
 ## =============================================================================
 <updateNotif>:
     size_hint: (None, 76/480)
-    pos_hint: {'x': app.CurrentConditions.ids.PanelSix.x/app.window.width, 'y': 2/app.window.height} 
+    pos_hint: {'x': app.CurrentConditions.ids.PanelSix.x/app.window.width, 'y': 2/app.window.height}
     width: app.CurrentConditions.ids.PanelSix.size[0]
     UpdateNotifBackground:
         _panelTitle: 'Update Available'
     RelativeLayout:
         BoldField:
             text: 'Current version:'
-            pos_hint: {'x': 0.03, 'y': 0.5}   
+            pos_hint: {'x': 0.03, 'y': 0.5}
             size_hint: (0.47, 14/76)
             text_size: self.size
-            halign: 'left'   
+            halign: 'left'
         BoldField:
             text: app.config['System']['Version']
-            pos_hint: {'x': 0.5, 'y': 0.52}  
+            pos_hint: {'x': 0.5, 'y': 0.52}
             size_hint: (0.3, 14/76)
         BoldField:
             text: 'Latest version:'
-            pos_hint: {'x': 0.03, 'y': 0.28}   
+            pos_hint: {'x': 0.03, 'y': 0.28}
             size_hint: (0.47, 14/76)
             text_size: self.size
-            halign: 'left'    
+            halign: 'left'
         BoldField:
             text: '[color=9aba2fff]' + app.Version['Latest'] + '[/color]'
-            pos_hint: {'x': 0.5, 'y': 0.30}  
-            size_hint: (0.3, 14/76)                 
+            pos_hint: {'x': 0.5, 'y': 0.30}
+            size_hint: (0.3, 14/76)
         BoldField:
             text: 'Run: [font=fonts/Inter-BoldItalic.ttf][color=00a4b4ff]wfpiconsole update[/color][/font]'
-            pos_hint: {'x': 0, 'y': 0.08}  
-            size_hint: (1, 14/76)  
-            
+            pos_hint: {'x': 0, 'y': 0.08}
+            size_hint: (1, 14/76)
+
 ## =============================================================================
 ## MAIN MENU
 ## =============================================================================
 <mainMenu>:
+    statusPanel: statusPanel.__self__
     size_hint: (.8, .8)
     canvas:
         Color:

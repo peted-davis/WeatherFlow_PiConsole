@@ -227,7 +227,7 @@ class wfpiconsole(App):
     BarometerMax = ConfigParserProperty('-','System', 'BarometerMax','wfpiconsole')
     BarometerMin = ConfigParserProperty('-','System', 'BarometerMin','wfpiconsole')
     IndoorTemp   = ConfigParserProperty('-','Display','IndoorTemp',  'wfpiconsole')
-    
+
     # Define display properties
     scaleFactor = NumericProperty(1)
     atlasSuffix = StringProperty('_lR')
@@ -243,7 +243,7 @@ class wfpiconsole(App):
         self.config.read('wfpiconsole.ini')
         self.settings_cls = SettingsWithSidebar
 
-        # Set window size if required based on hardware type and center on 
+        # Set window size if required based on hardware type and center on
         # screen
         self.window = Window
         self.window.bind(on_resize=self.setScaleFactor)
@@ -294,8 +294,8 @@ class wfpiconsole(App):
         if x < 800:
             self.window.size = (800,y)
         if y < 480:
-            self.window.size = (x,480) 
-        self.scaleFactor = max(x/800, y/480, 1)  
+            self.window.size = (x,480)
+        self.scaleFactor = max(x/800, y/480, 1)
         if self.scaleFactor > 1:
             self.atlasSuffix = '_hR'
         else:
@@ -499,7 +499,7 @@ class wfpiconsole(App):
         if self.Astro['Reformat'] and Now.replace(second=0).time() == time(0,0,0):
             self.Astro = astro.Format(self.Astro,self.config,"Sun")
             self.Astro = astro.Format(self.Astro,self.config,"Moon")
-    
+
 # ==============================================================================
 # CurrentConditions SCREEN CLASS
 # ==============================================================================
@@ -728,8 +728,8 @@ class RainfallPanel(RelativeLayout):
         RainRate = float(App.get_running_app().Obs['RainRate'][3])
 
         # Define required animation variables
-        x0 = -1
-        xt = 0
+        x0 = -1.00
+        xt = -0.01
         t = 50
 
         # Set RainRate level y position
@@ -822,7 +822,7 @@ class BarometerButton(RelativeLayout):
 # ==============================================================================
 class updateNotif(ModalView):
     pass
-    
+
 # ==============================================================================
 # Station CLASS
 # ==============================================================================
@@ -916,7 +916,7 @@ class outAirStatus(BoxLayout):
 
 class inAirStatus(BoxLayout):
     pass
-    
+
 class MenuButton(Button):
     pass
 
