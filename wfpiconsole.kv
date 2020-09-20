@@ -327,7 +327,7 @@ ScreenManager:
     ## Rapid Wind wind speed and direction
     windRose:
         Image:
-            source: 'atlas://atlas/windRose' + app.atlasSuffix + '/' + str(round(root.rapidWindDir))
+            source: 'icons/windrose/icons' + app.atlasSuffix + '/' + str(round(root.rapidWindDir)) + '.png'
             keep_ratio: 0
             allow_stretch: 1
             pos_hint: {'x': 0, 'y': 0}
@@ -936,7 +936,7 @@ ScreenManager:
 
     ## Current pressure arrow
     Image:
-        source: 'atlas://atlas/barometer' + app.atlasSuffix + '/' + root.barometerArrow
+        source: 'icons/barometer/icons' + app.atlasSuffix + '/' + root.barometerArrow + '.png'
         keep_ratio: 0
         allow_stretch: 1
         pos_hint: {'x': 46/262, 'y': 18/202}
