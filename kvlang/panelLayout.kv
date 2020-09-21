@@ -91,11 +91,34 @@
             size: self.width-dp(app.scaleFactor*2), self.height-dp(app.scaleFactor*2)
     PanelTitle:
         id: Title
-        text: root._panelTitle  
+        text: root._panelTitle
+
+<RainfallBackground@BoxLayout>:
+    _panelTitle: str()
+    pos_hint: {'x': 0/262, 'y': 47/202}
+    size_hint: [1, 155/202]
+    cols: 1
+    canvas.before:
+        Color:
+            rgba: utils.rgba('ffffffff')
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: (app.scaleFactor*2, app.scaleFactor*2)
+        Color:
+            rgba: utils.rgba('141414ff')
+        Rectangle:
+            pos: self.x+dp(app.scaleFactor), self.y+dp(app.scaleFactor)
+            size: self.width-dp(app.scaleFactor*2), self.height-dp(app.scaleFactor*2)
+    PanelTitle:
+        id: Title
+        size_hint: (1, 13/155)
+        pos_hint: {'x': 0, 'y': 138/155}
+        text: root._panelTitle
 
 <UpdateNotifBackground@BoxLayout>:
     _panelTitle: str()
-    pos_hint: {'x': 0, 'y': 0} 
+    pos_hint: {'x': 0, 'y': 0}
     size_hint: [1, 1]
     cols: 1
     canvas.before:
@@ -113,8 +136,8 @@
     PanelTitle:
         pos_hint: {'x': 0, 'y': 59/76}
         size_hint: (1, 13/76)
-        text: root._panelTitle 
-        
+        text: root._panelTitle
+
 ## =============================================================================
 ## DEVICE STATUS PANELS
 ## =============================================================================

@@ -248,15 +248,19 @@ class wfpiconsole(App):
         self.window = Window
         windowSize  = self.window.size
         self.window.bind(on_resize=self.setScaleFactor)
-        if self.config['System']['Hardware'] != 'Pi3':
+        if self.config['System']['Hardware'] in ['Pi4','Other']:
             windowPosi = (self.window.left,self.window.top)
-            if self.config['Display']['Fullscreen'] == '1':
+            if int(self.config['Display']['Fullscreen']):
                 self.window.fullscreen='auto'
             else:
                 self.window.size = (int(self.config['Display']['Width']),int(self.config['Display']['Height']))
+                if not int(self.config['Display']['Border']):
+                    self.window.borderless=1
                 if self.window.size != windowSize:
                     self.window.left = windowPosi[0] - (self.window.size[0]-windowSize[0])/2
                     self.window.top  = windowPosi[1] - (self.window.size[1]-windowSize[1])/2
+        if not int(self.config['Display']['Cursor']):
+            self.window.show_cursor=0
 
         # Initialise real time clock
         Clock.schedule_interval(partial(system.realtimeClock,self.System,self.config),1.0)
@@ -889,7 +893,6 @@ class mainMenu(ModalView):
     # Open settings screen from mainMenu
     def openSettings(self,instance):
         self.app.open_settings()
-        self.dismiss()
 
     # Exit console and shutdown system
     def shutdownSystem(self,instance):

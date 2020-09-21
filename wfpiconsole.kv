@@ -475,7 +475,7 @@ ScreenManager:
             Color:
                 rgba: [230/255,75/255,36/255,app.Astro['sunIcon'][1]]
             Line:
-                width: 1.2
+                width: 1.2 * app.scaleFactor
                 rectangle: [self.x + app.Astro['sunIcon'][2]*self.width, self.y, 1, self.height]
     Image:
         source: 'atlas://atlas/sunIcon/' + app.Astro['sunIcon'][0] + app.atlasSuffix
@@ -684,10 +684,8 @@ ScreenManager:
 <RainfallPanel>
 
     ## Panel background, title, and RainGauge
-    PanelBackground:
+    RainfallBackground:
         _panelTitle: 'Rainfall'
-        pos_hint: {'x': 0/262, 'y': 47/202}
-        size_hint: [1, 155/202]
     RainGauge:
 
     ## Current rain rate and text

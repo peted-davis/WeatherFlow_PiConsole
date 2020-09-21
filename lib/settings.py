@@ -40,8 +40,12 @@ def JSON(Section):
                   'title': 'Lightning panel','section': 'Display', 'key': 'LightningPanel'},
                  {'type': 'bool', 'desc': 'Show indoor temperature',
                   'title': 'Indoor temperature','section': 'Display', 'key': 'IndoorTemp'},
-                 {'type': 'bool', 'desc': 'Display console fullscreen',
-                  'title': 'Fullscreen','section': 'Display', 'key': 'Fullscreen'} 
+                 {'type': 'bool', 'desc': 'Show cursor',
+                  'title': 'Cursor','section': 'Display', 'key': 'Cursor'},
+                 {'type': 'bool', 'desc': 'Set console to run fullscreen',
+                  'title': 'Fullscreen','section': 'Display', 'key': 'Fullscreen'},
+                 {'type': 'bool', 'desc': 'Display console window with border',
+                  'title': 'Border','section': 'Display', 'key': 'Border'}
                 ]
     elif 'Units' in Section:
         Data =  [
