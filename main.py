@@ -272,18 +272,18 @@ class wfpiconsole(App):
         forecast.Download(self.MetData,self.config)
 
         # Generate Sager Weathercaster forecast
-        Thread(target=sagerForecast.Generate, args=(self.Sager,self.config), name="Sager", daemon=True).start()
+        #Thread(target=sagerForecast.Generate, args=(self.Sager,self.config), name="Sager", daemon=True).start()
 
         # Initialise websocket connection
-        self.WebsocketConnect()
+        #self.WebsocketConnect()
 
         # Check for latest version
-        Clock.schedule_once(partial(system.checkVersion,self.Version,self.config,updateNotif))
+        #Clock.schedule_once(partial(system.checkVersion,self.Version,self.config,updateNotif))
 
         # Initialise Station class, and set device status to be checked every
         # second
         self.Station = Station()
-        Clock.schedule_interval(self.Station.getDeviceStatus,1.0)
+        #Clock.schedule_interval(self.Station.getDeviceStatus,1.0)
 
         # Schedule function calls
         Clock.schedule_interval(self.UpdateMethods,1.0)
@@ -551,11 +551,20 @@ class CurrentConditions(Screen):
             if Button[0] == id:
                 break
 
-        # Determine new button type
+        # Extract panel object the corresponds to the button that has been
+        # pressed and determine new button type required
+        Panel = App.get_running_app().CurrentConditions.ids[Button[1]].children
         newButton = App.get_running_app().config[Button[3] + 'Panels'][Button[1]]
 
-        # Destroy old panel class attribute
-        delattr(App.get_running_app(), newButton + 'Panel')
+        # Destroy reference to old panel class attribute
+        if hasattr(App.get_running_app(),newButton + 'Panel'):
+            if len(getattr(App.get_running_app(), newButton + 'Panel')) > 1:
+                try:
+                    getattr(App.get_running_app(), newButton + 'Panel').remove(Panel[0])
+                except ValueError:
+                    log.msg('Unable to remove panel reference from wfpiconsole class')
+            else:
+                delattr(App.get_running_app(), newButton + 'Panel')
 
         # Switch panel
         App.get_running_app().CurrentConditions.ids[Button[1]].clear_widgets()
@@ -577,7 +586,11 @@ class ForecastPanel(RelativeLayout):
     # Initialise 'ForecastPanel' relative layout class
     def __init__(self,**kwargs):
         super(ForecastPanel,self).__init__(**kwargs)
-        App.get_running_app().ForecastPanel = self
+        if not hasattr(App.get_running_app(),'ForecastPanel'):
+            App.get_running_app().ForecastPanel = []
+            App.get_running_app().ForecastPanel.append(self)
+        else:
+            App.get_running_app().ForecastPanel.append(self)
 
 class ForecastButton(RelativeLayout):
     pass
@@ -590,7 +603,11 @@ class SagerPanel(RelativeLayout):
     # Initialise 'SagerPanel' relative layout class
     def __init__(self,**kwargs):
         super(SagerPanel,self).__init__(**kwargs)
-        App.get_running_app().SagerPanel = self
+        if not hasattr(App.get_running_app(),'SagerPanel'):
+            App.get_running_app().SagerPanel = []
+            App.get_running_app().SagerPanel.append(self)
+        else:
+            App.get_running_app().SagerPanel.append(self)
 
 class SagerButton(RelativeLayout):
     pass
@@ -606,7 +623,11 @@ class TemperaturePanel(RelativeLayout):
     # Initialise 'TemperaturePanel' relative layout class
     def __init__(self,**kwargs):
         super(TemperaturePanel,self).__init__(**kwargs)
-        App.get_running_app().TemperaturePanel = self
+        if not hasattr(App.get_running_app(),'TemperaturePanel'):
+            App.get_running_app().TemperaturePanel = []
+            App.get_running_app().TemperaturePanel.append(self)
+        else:
+            App.get_running_app().TemperaturePanel.append(self)
         self.setFeelsLikeIcon()
 
     # Set "Feels Like" icon
@@ -630,7 +651,13 @@ class WindSpeedPanel(RelativeLayout):
     # Initialise 'WindSpeedPanel' relative layout class
     def __init__(self,**kwargs):
         super(WindSpeedPanel,self).__init__(**kwargs)
-        App.get_running_app().WindSpeedPanel = self
+        if not hasattr(App.get_running_app(),'WindSpeedPanel'):
+            App.get_running_app().WindSpeedPanel = []
+            App.get_running_app().WindSpeedPanel.append(self)
+        else:
+            App.get_running_app().WindSpeedPanel.append(self)
+        if App.get_running_app().Obs['rapidDir'][0] != '-':
+            self.rapidWindDir = App.get_running_app().Obs['rapidDir'][0]
         self.setWindIcons()
 
     # Animate rapid wind rose
@@ -681,7 +708,11 @@ class SunriseSunsetPanel(RelativeLayout):
     # Initialise 'SunriseSunsetPanel' relative layout class
     def __init__(self,**kwargs):
         super(SunriseSunsetPanel,self).__init__(**kwargs)
-        App.get_running_app().SunriseSunsetPanel = self
+        if not hasattr(App.get_running_app(),'SunriseSunsetPanel'):
+            App.get_running_app().SunriseSunsetPanel = []
+            App.get_running_app().SunriseSunsetPanel.append(self)
+        else:
+            App.get_running_app().SunriseSunsetPanel.append(self)
         self.setUVBackground()
 
     # Set current UV index backgroud
@@ -700,7 +731,11 @@ class MoonPhasePanel(RelativeLayout):
     # Initialise 'MoonPhasePanel' relative layout class
     def __init__(self,**kwargs):
         super(MoonPhasePanel,self).__init__(**kwargs)
-        App.get_running_app().MoonPhasePanel = self
+        if not hasattr(App.get_running_app(),'MoonPhasePanel'):
+            App.get_running_app().MoonPhasePanel = []
+            App.get_running_app().MoonPhasePanel.append(self)
+        else:
+            App.get_running_app().MoonPhasePanel.append(self)
 
 class MoonPhaseButton(RelativeLayout):
     pass
@@ -717,7 +752,11 @@ class RainfallPanel(RelativeLayout):
     # Initialise 'RainfallPanel' relative layout class
     def __init__(self,**kwargs):
         super(RainfallPanel,self).__init__(**kwargs)
-        App.get_running_app().RainfallPanel = self
+        if not hasattr(App.get_running_app(),'RainfallPanel'):
+            App.get_running_app().RainfallPanel = []
+            App.get_running_app().RainfallPanel.append(self)
+        else:
+            App.get_running_app().RainfallPanel.append(self)
         self.animateRainRate()
 
     # Animate rain rate level
@@ -777,7 +816,11 @@ class LightningPanel(RelativeLayout):
     # Initialise 'LightningPanel' relative layout class
     def __init__(self,**kwargs):
         super(LightningPanel,self).__init__(**kwargs)
-        App.get_running_app().LightningPanel = self
+        if not hasattr(App.get_running_app(),'LightningPanel'):
+            App.get_running_app().LightningPanel = []
+            App.get_running_app().LightningPanel.append(self)
+        else:
+            App.get_running_app().LightningPanel.append(self)
         self.setLightningBoltIcon()
 
     # Set lightning bolt icon
@@ -808,7 +851,11 @@ class BarometerPanel(RelativeLayout):
     # Initialise 'BarometerPanel' relative layout class
     def __init__(self,**kwargs):
         super(BarometerPanel,self).__init__(**kwargs)
-        App.get_running_app().BarometerPanel = self
+        if not hasattr(App.get_running_app(),'BarometerPanel'):
+            App.get_running_app().BarometerPanel = []
+            App.get_running_app().BarometerPanel.append(self)
+        else:
+            App.get_running_app().BarometerPanel.append(self)
         self.setBarometerArrow()
 
     # Set Barometer arrow to current sea level pressure
@@ -880,7 +927,7 @@ class mainMenu(ModalView):
         # Add 'Close', 'Settings', and 'Exit' buttons below device status panel
         Buttons = BoxLayout(orientation='horizontal',  size_hint=(1,.1), spacing=dp(10), padding=[dp(0),dp(0),dp(0),dp(2)])
         Buttons.add_widget(MenuButton(text='Close',    on_release=self.dismiss))
-        Buttons.add_widget(MenuButton(text='Settings', on_release=self.openSettings))
+        Buttons.add_widget(MenuButton(text='Settings', on_release=self.app.open_settings))
         Buttons.add_widget(MenuButton(text='Exit',     on_release=self.app.stop))
         Buttons.add_widget(MenuButton(text='Reboot',   on_release=self.rebootSystem))
         Buttons.add_widget(MenuButton(text='Shutdown', on_release=self.shutdownSystem))
@@ -889,10 +936,6 @@ class mainMenu(ModalView):
         # Populate status fields
         self.app.Station.getObservationCount()
         self.app.Station.getStationStatus()
-
-    # Open settings screen from mainMenu
-    def openSettings(self,instance):
-        self.app.open_settings()
 
     # Exit console and shutdown system
     def shutdownSystem(self,instance):

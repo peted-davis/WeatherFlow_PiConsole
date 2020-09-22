@@ -42,28 +42,34 @@ def updateDisplay(derivedObs,wfpiconsole,Type):
 
     # Set "Feels Like" icon if TemperaturePanel is active
     if Type in ['Tempest','outdoorAir']  and hasattr(wfpiconsole,'TemperaturePanel'):
-        wfpiconsole.TemperaturePanel.setFeelsLikeIcon()
+        for panel in getattr(wfpiconsole,'TemperaturePanel'):
+            panel.setFeelsLikeIcon()
 
     # Set wind speed and direction icons if WindSpeedPanel panel is active
     if Type in ['Tempest','Sky'] and hasattr(wfpiconsole,'WindSpeedPanel'):
-        wfpiconsole.WindSpeedPanel.setWindIcons()
+        for panel in getattr(wfpiconsole,'WindSpeedPanel'):
+            panel.setWindIcons()
 
     # Set current UV index background color if SunriseSunsetPanel is active
     if Type in ['Tempest','Sky'] and hasattr(wfpiconsole,'SunriseSunsetPanel'):
-        wfpiconsole.SunriseSunsetPanel.setUVBackground()
+        for panel in getattr(wfpiconsole,'SunriseSunsetPanel'):
+            panel.setUVBackground()
 
     # Animate rain rate level if RainfallPanel is active
     if Type in ['Tempest','Sky'] and hasattr(wfpiconsole,'RainfallPanel'):
-        wfpiconsole.RainfallPanel.animateRainRate()
+        for panel in getattr(wfpiconsole,'RainfallPanel'):
+            panel.animateRainRate()
 
     # Set lightning bolt icon if LightningPanel is active
     if Type in ['Tempest','outdoorAir']  and hasattr(wfpiconsole,'LightningPanel'):
-        wfpiconsole.LightningPanel.setLightningBoltIcon()
+        for panel in getattr(wfpiconsole,'LightningPanel'):
+            panel.setLightningBoltIcon()
 
     # Set barometer arrow to current sea level pressure if BarometerPanel is
     # active
     if Type in ['Tempest','outdoorAir'] and hasattr(wfpiconsole,'BarometerPanel'):
-        wfpiconsole.BarometerPanel.setBarometerArrow()
+        for panel in getattr(wfpiconsole,'BarometerPanel'):
+            panel.setBarometerArrow()
 
     # Return wfpiconsole object
     return wfpiconsole
@@ -516,7 +522,8 @@ def rapidWind(Msg,wfpiconsole):
 
     # Animate wind rose arrow if WindSpeedPanel panel is active
     if hasattr(wfpiconsole,'WindSpeedPanel'):
-        wfpiconsole.WindSpeedPanel.animateWindRose()
+        for panel in getattr(wfpiconsole,'WindSpeedPanel'):
+            panel.animateWindRose()
 
     # Return wfpiconsole object
     return wfpiconsole
@@ -557,8 +564,9 @@ def evtStrike(Msg,wfpiconsole):
 
     # Set and animate lightning bolt icon if LightningPanel panel is active
     if hasattr(wfpiconsole,'LightningPanel'):
-        wfpiconsole.LightningPanel.setLightningBoltIcon()
-        wfpiconsole.LightningPanel.animateLightningBoltIcon()
+        for panel in getattr(wfpiconsole,'LightningPanel'):
+            panel.setLightningBoltIcon()
+            panel.animateLightningBoltIcon()
 
     # Return wfpiconsole object
     return wfpiconsole

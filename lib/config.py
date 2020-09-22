@@ -113,10 +113,6 @@ def update():
     currentConfig.read('wfpiconsole.ini')
     currentVersion = currentConfig['System']['Version']
 
-    # Tweak current version
-    if currentVersion == 'v3.51':
-        currentVersion = 'v3.5.1'
-
     # Create new config parser object to hold updated user configuration file
     newConfig = configparser.ConfigParser(allow_no_value=True)
     newConfig.optionxform = str
