@@ -230,7 +230,7 @@ class wfpiconsole(App):
 
     # Define display properties
     scaleFactor = NumericProperty(1)
-    atlasSuffix = StringProperty('_lR')
+    scaleSuffix = StringProperty('_lR')
 
     # BUILD 'WeatherFlowPiConsole' APP CLASS
     # --------------------------------------------------------------------------
@@ -272,18 +272,18 @@ class wfpiconsole(App):
         forecast.Download(self.MetData,self.config)
 
         # Generate Sager Weathercaster forecast
-        #Thread(target=sagerForecast.Generate, args=(self.Sager,self.config), name="Sager", daemon=True).start()
+        Thread(target=sagerForecast.Generate, args=(self.Sager,self.config), name="Sager", daemon=True).start()
 
         # Initialise websocket connection
-        #self.WebsocketConnect()
+        self.WebsocketConnect()
 
         # Check for latest version
-        #Clock.schedule_once(partial(system.checkVersion,self.Version,self.config,updateNotif))
+        Clock.schedule_once(partial(system.checkVersion,self.Version,self.config,updateNotif))
 
         # Initialise Station class, and set device status to be checked every
         # second
         self.Station = Station()
-        #Clock.schedule_interval(self.Station.getDeviceStatus,1.0)
+        Clock.schedule_interval(self.Station.getDeviceStatus,1.0)
 
         # Schedule function calls
         Clock.schedule_interval(self.UpdateMethods,1.0)
@@ -299,9 +299,9 @@ class wfpiconsole(App):
             self.window.size = (x,480)
         self.scaleFactor = max(x/800, y/480, 1)
         if self.scaleFactor > 1:
-            self.atlasSuffix = '_hR'
+            self.scaleSuffix = '_hR'
         else:
-            self.atlasSuffix = '_lR'
+            self.scaleSuffix = '_lR'
 
     # BUILD 'WeatherFlowPiConsole' APP CLASS SETTINGS
     # --------------------------------------------------------------------------

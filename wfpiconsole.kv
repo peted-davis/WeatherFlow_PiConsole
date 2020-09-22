@@ -297,7 +297,7 @@ ScreenManager:
 
     ## 'Feels like' icon and text
     Image:
-        source: 'atlas://atlas/feelsLike/' + root.feelsLikeIcon + app.atlasSuffix
+        source: 'atlas://atlas/feelsLike/' + root.feelsLikeIcon + app.scaleSuffix
         pos_hint: {'x': 7/262, 'y': 6/202}
         keep_ratio: 0
         allow_stretch: 1
@@ -327,7 +327,7 @@ ScreenManager:
     ## Rapid Wind wind speed and direction
     windRose:
         Image:
-            source: 'icons/windrose/icons' + app.atlasSuffix + '/' + str(round(root.rapidWindDir)) + '.png'
+            source: 'icons/windrose/icons' + app.scaleSuffix + '/' + str(round(root.rapidWindDir)) + '.png'
             keep_ratio: 0
             allow_stretch: 1
             pos_hint: {'x': 0, 'y': 0}
@@ -375,7 +375,7 @@ ScreenManager:
 
     ## Current Beaufort scale text and icon
     Image:
-        source: 'atlas://atlas/windSpd/' + root.windSpdIcon + app.atlasSuffix
+        source: 'atlas://atlas/windSpd/' + root.windSpdIcon + app.scaleSuffix
         keep_ratio: 0
         allow_stretch: 1
         pos_hint: {'x': 18/262, 'y': 28/202}
@@ -389,7 +389,7 @@ ScreenManager:
 
     ## Current average wind direction
     Image:
-        source: 'atlas://atlas/windDir/' + root.windDirIcon + app.atlasSuffix
+        source: 'atlas://atlas/windDir/' + root.windDirIcon + app.scaleSuffix
         keep_ratio: 0
         allow_stretch: 1
         pos_hint: {'x': 216/262, 'y': 28/202}
@@ -478,7 +478,7 @@ ScreenManager:
                 width: 1.2 * app.scaleFactor
                 rectangle: [self.x + app.Astro['sunIcon'][2]*self.width, self.y, 1, self.height]
     Image:
-        source: 'atlas://atlas/sunIcon/' + app.Astro['sunIcon'][0] + app.atlasSuffix
+        source: 'atlas://atlas/sunIcon/' + app.Astro['sunIcon'][0] + app.scaleSuffix
         keep_ratio: 0
         allow_stretch: 1
         pos_hint: {'x': (4+app.Astro['sunIcon'][2]*236)/262, 'y': 92/202}
@@ -654,7 +654,7 @@ ScreenManager:
 
     ## Moon phase icon
     Image:
-        source: 'atlas://atlas/moonIcon' + app.atlasSuffix + '/' + app.Astro['Phase'][0]
+        source: 'atlas://atlas/moonIcon' + app.scaleSuffix + '/' + app.Astro['Phase'][0]
         keep_ratio: 0
         allow_stretch: 1
         pos_hint: {'x': 108/262, 'y': 93/202}
@@ -707,7 +707,7 @@ ScreenManager:
             height: self.parent.height
             pos: self.parent.pos
             Image:
-                source: 'atlas://atlas/rainGauge/rainGauge' + app.atlasSuffix
+                source: 'atlas://atlas/rainGauge/rainGauge' + app.scaleSuffix
                 keep_ratio: 0
                 allow_stretch: 1
                 size_hint: (1,1)
@@ -910,7 +910,7 @@ ScreenManager:
                 x: root.lightningBoltPosX
         canvas.after:
             PopMatrix
-        source: 'atlas://atlas/lightningBolt/' + root.lightningBoltIcon + app.atlasSuffix
+        source: 'atlas://atlas/lightningBolt/' + root.lightningBoltIcon + app.scaleSuffix
         keep_ratio: 0
         allow_stretch: 1
         pos_hint: {'x': 9/262, 'y': 120/202}
@@ -934,7 +934,7 @@ ScreenManager:
 
     ## Current pressure arrow
     Image:
-        source: 'icons/barometer/icons' + app.atlasSuffix + '/' + root.barometerArrow + '.png'
+        source: 'icons/barometer/icons' + app.scaleSuffix + '/' + root.barometerArrow + '.png'
         keep_ratio: 0
         allow_stretch: 1
         pos_hint: {'x': 46/262, 'y': 18/202}
