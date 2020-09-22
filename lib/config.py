@@ -114,10 +114,6 @@ def update():
     currentConfig.read('wfpiconsole.ini')
     currentVersion = currentConfig['System']['Version']
 
-    # Tweak current version
-    if currentVersion == 'v3.51':
-        currentVersion = 'v3.5.1'
-
     # Create new config parser object to hold updated user configuration file
     newConfig = configparser.ConfigParser(allow_no_value=True)
     newConfig.optionxform = str
@@ -581,8 +577,13 @@ def defaultConfig():
     Default['Display'] =         collections.OrderedDict([('Description',    '  Display settings'),
                                                           ('TimeFormat',     {'Type': 'default', 'Value': '24 hr', 'Desc': 'time format'}),
                                                           ('DateFormat',     {'Type': 'default', 'Value': 'Mon, 01 Jan 0000', 'Desc': 'date format'}),
-                                                          ('LightningPanel', {'Type': 'default', 'Value': '1',  'Desc': 'lightning panel toggle'}),
-                                                          ('IndoorTemp',     {'Type': 'default', 'Value': '1',  'Desc': 'indoor temperature toggle'})])
+                                                          ('LightningPanel', {'Type': 'default', 'Value': '1',    'Desc': 'lightning panel toggle'}),
+                                                          ('IndoorTemp',     {'Type': 'default', 'Value': '1',    'Desc': 'indoor temperature toggle'}),
+                                                          ('Cursor',         {'Type': 'default', 'Value': '1',    'Desc': 'cursor toggle'}),
+                                                          ('Border',         {'Type': 'default', 'Value': '1',    'Desc': 'border toggle'}),
+                                                          ('Fullscreen',     {'Type': 'default', 'Value': '1',    'Desc': 'fullscreen toggle'}),
+                                                          ('Width',          {'Type': 'default', 'Value': '800',  'Desc': 'console width (pixels)'}),
+                                                          ('Height',         {'Type': 'default', 'Value': '480',  'Desc': 'console height (pixels)'})])
     Default['FeelsLike'] =       collections.OrderedDict([('Description',    '  "Feels Like" temperature cut-offs'),
                                                           ('ExtremelyCold',  {'Type': 'default', 'Value': '-4', 'Desc': '"Feels extremely cold" cut-off temperature'}),
                                                           ('FreezingCold',   {'Type': 'default', 'Value': '0',  'Desc': '"Feels freezing cold" cut-off temperature'}),

@@ -1,0 +1,218 @@
+## WeatherFlow PiConsole: Raspberry Pi Python console for WeatherFlow Tempest
+## and Smart Home Weather stations.
+## Copyright (C) 2018-2020 Peter Davis
+
+## This program is free software: you can redistribute it and/or modify it under
+## the terms of the GNU General Public License as published by the Free Software
+## Foundation, either version 3 of the License, or (at your option) any later
+## version.
+
+## This program is distributed in the hope that it will be useful, but WITHOUT
+## ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+## FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+## details.
+
+## You should have received a copy of the GNU General Public License along with
+## this program. If not, see <http://www.gnu.org/licenses/>.
+
+## =============================================================================
+## CUSTOM PanelButton AND MenuButton
+## =============================================================================
+<PanelButton@Button>:
+    font_size: self.height/2
+    background_color: (0,0,0,0)
+    canvas.before:
+        Color:
+            rgba: utils.rgba('#1e1e1eff') if self.state=='normal' else utils.rgba('#00525aff')
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [14*app.scaleFactor]
+    font_name: 'fonts/Inter-SemiBold.ttf'
+    color: utils.rgba('#d6d6d6ff')
+
+<MenuButton>:
+    font_size: self.height/2
+    background_color: (0,0,0,0)
+    canvas.before:
+        Color:
+            rgba: utils.rgba('#1e1e1eff') if self.state=='normal' else utils.rgba('#00525aff')
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [14*app.scaleFactor]
+    font_name: 'fonts/Inter-SemiBold.ttf'
+    color: utils.rgba('#d6d6d6ff')
+
+## =============================================================================
+## CUSTOM TabbedPanelItem AND MainMenuLayout
+## =============================================================================
+<MainMenuTab@TabbedPanelItem>:
+    background_normal: 'atlas://atlas/wfpiconsole/tab_btn'
+    background_down: 'atlas://atlas/wfpiconsole/tab_btn_pressed'
+    font_name: 'fonts/Inter-SemiBold.ttf'
+    font_size: self.height/2.8
+    canvas.after:
+        Color:
+            rgb: [.3,.3,.3,1]
+        Rectangle:
+            pos: self.right - 1, self.y
+            size: 1, self.height,
+
+<MainMenuLayout@GridLayout>:
+    padding: '5dp'
+    cols: 1
+    canvas.after:
+        Color:
+            rgb: [.3,.3,.3,1]
+        Rectangle:
+            pos: self.x + 1, self.y + 3
+            size: self.width, 1
+
+## =============================================================================
+## PANEL BACKGROUNDS
+## =============================================================================
+<PanelBackground@BoxLayout>:
+    _panelTitle: str()
+    pos_hint: {'x': 0/262, 'y': 0/202}
+    size_hint: [1, 1]
+    cols: 1
+    canvas.before:
+        Color:
+            rgba: utils.rgba('ffffffff')
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: (app.scaleFactor*2, app.scaleFactor*2)
+        Color:
+            rgba: utils.rgba('141414ff')
+        Rectangle:
+            pos: self.x+dp(app.scaleFactor), self.y+dp(app.scaleFactor)
+            size: self.width-dp(app.scaleFactor*2), self.height-dp(app.scaleFactor*2)
+    PanelTitle:
+        id: Title
+        text: root._panelTitle
+
+<RainfallBackground@BoxLayout>:
+    _panelTitle: str()
+    pos_hint: {'x': 0/262, 'y': 47/202}
+    size_hint: [1, 155/202]
+    cols: 1
+    canvas.before:
+        Color:
+            rgba: utils.rgba('ffffffff')
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: (app.scaleFactor*2, app.scaleFactor*2)
+        Color:
+            rgba: utils.rgba('141414ff')
+        Rectangle:
+            pos: self.x+dp(app.scaleFactor), self.y+dp(app.scaleFactor)
+            size: self.width-dp(app.scaleFactor*2), self.height-dp(app.scaleFactor*2)
+    PanelTitle:
+        id: Title
+        size_hint: (1, 13/155)
+        pos_hint: {'x': 0, 'y': 138/155}
+        text: root._panelTitle
+
+<UpdateNotifBackground@BoxLayout>:
+    _panelTitle: str()
+    pos_hint: {'x': 0, 'y': 0}
+    size_hint: [1, 1]
+    cols: 1
+    canvas.before:
+        Color:
+            rgba: utils.rgba('f05e40ff')
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: (app.scaleFactor*2, app.scaleFactor*2)
+        Color:
+            rgba: utils.rgba('141414ff')
+        Rectangle:
+            pos: self.x+dp(app.scaleFactor), self.y+dp(app.scaleFactor)
+            size: self.width-dp(app.scaleFactor*2), self.height-dp(app.scaleFactor*2)
+    PanelTitle:
+        pos_hint: {'x': 0, 'y': 59/76}
+        size_hint: (1, 13/76)
+        text: root._panelTitle
+
+## =============================================================================
+## DEVICE STATUS PANELS
+## =============================================================================
+<tempestStatus>:
+    size_hint: (1,.1)
+    orientation: 'horizontal'
+    StatusField:
+        size_hint: (.15,1)
+        text: 'TEMPEST'
+    StatusField:
+        size_hint: (.12,1)
+        text: app.Station.Device['tempestStatus']
+    StatusField:
+        size_hint: (.22,1)
+        text: app.Station.Device['tempestSampleTime']
+    StatusField:
+        size_hint: (.20,1)
+        text: app.Station.Device['tempestVoltage']
+    StatusField:
+        size_hint: (.31,1)
+        text: app.Station.Device['tempestObCount']
+
+<skyStatus>:
+    size_hint: (1,.1)
+    orientation: 'horizontal'
+    StatusField:
+        size_hint: (.15,1)
+        text: 'SKY'
+    StatusField:
+        size_hint: (.12,1)
+        text: app.Station.Device['skyStatus']
+    StatusField:
+        size_hint: (.22,1)
+        text: app.Station.Device['skySampleTime']
+    StatusField:
+        size_hint: (.20,1)
+        text: app.Station.Device['skyVoltage']
+    StatusField:
+        size_hint: (.31,1)
+        text: app.Station.Device['skyObCount']
+
+<outAirStatus>:
+    size_hint: (1,.1)
+    orientation: 'horizontal'
+    StatusField:
+        size_hint: (.15,1)
+        text: 'Outdoor AIR'
+    StatusField:
+        size_hint: (.12,1)
+        text: app.Station.Device['outAirStatus']
+    StatusField:
+        size_hint: (.22,1)
+        text: app.Station.Device['outAirSampleTime']
+    StatusField:
+        size_hint: (.20,1)
+        text: app.Station.Device['outAirVoltage']
+    StatusField:
+        size_hint: (.31,1)
+        text: app.Station.Device['outAirObCount']
+
+<inAirStatus>:
+    size_hint: (1,.1)
+    orientation: 'horizontal'
+    StatusField:
+        size_hint: (.15,1)
+        text: 'Indoor AIR'
+    StatusField:
+        size_hint: (.12,1)
+        text: app.Station.Device['inAirStatus']
+    StatusField:
+        size_hint: (.22,1)
+        text: app.Station.Device['inAirSampleTime']
+    StatusField:
+        size_hint: (.20,1)
+        text: app.Station.Device['inAirVoltage']
+    StatusField:
+        size_hint: (.31,1)
+        text: app.Station.Device['inAirObCount']

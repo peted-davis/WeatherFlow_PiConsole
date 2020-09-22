@@ -42,28 +42,34 @@ def updateDisplay(derivedObs,wfpiconsole,Type):
 
     # Set "Feels Like" icon if TemperaturePanel is active
     if Type in ['Tempest','outdoorAir']  and hasattr(wfpiconsole,'TemperaturePanel'):
-        wfpiconsole.TemperaturePanel.setFeelsLikeIcon()
+        for panel in getattr(wfpiconsole,'TemperaturePanel'):
+            panel.setFeelsLikeIcon()
 
     # Set wind speed and direction icons if WindSpeedPanel panel is active
     if Type in ['Tempest','Sky'] and hasattr(wfpiconsole,'WindSpeedPanel'):
-        wfpiconsole.WindSpeedPanel.setWindIcons()
+        for panel in getattr(wfpiconsole,'WindSpeedPanel'):
+            panel.setWindIcons()
 
     # Set current UV index background color if SunriseSunsetPanel is active
     if Type in ['Tempest','Sky'] and hasattr(wfpiconsole,'SunriseSunsetPanel'):
-        wfpiconsole.SunriseSunsetPanel.setUVBackground()
+        for panel in getattr(wfpiconsole,'SunriseSunsetPanel'):
+            panel.setUVBackground()
 
     # Animate rain rate level if RainfallPanel is active
     if Type in ['Tempest','Sky'] and hasattr(wfpiconsole,'RainfallPanel'):
-        wfpiconsole.RainfallPanel.animateRainRate()
+        for panel in getattr(wfpiconsole,'RainfallPanel'):
+            panel.animateRainRate()
 
     # Set lightning bolt icon if LightningPanel is active
     if Type in ['Tempest','outdoorAir']  and hasattr(wfpiconsole,'LightningPanel'):
-        wfpiconsole.LightningPanel.setLightningBoltIcon()
+        for panel in getattr(wfpiconsole,'LightningPanel'):
+            panel.setLightningBoltIcon()
 
     # Set barometer arrow to current sea level pressure if BarometerPanel is
     # active
     if Type in ['Tempest','outdoorAir'] and hasattr(wfpiconsole,'BarometerPanel'):
-        wfpiconsole.BarometerPanel.setBarometerArrow()
+        for panel in getattr(wfpiconsole,'BarometerPanel'):
+            panel.setBarometerArrow()
 
     # Return wfpiconsole object
     return wfpiconsole
@@ -92,9 +98,9 @@ def Tempest(Msg,wfpiconsole):
     WindDir   = [Ob[4],'degrees']
     Pres      = [Ob[6],'mb']
     Temp      = [Ob[7],'c']
-    Humidity  = [Ob[8],' %']
+    Humidity  = [Ob[8],'%']
     UV        = [Ob[10],'index']
-    Radiation = [Ob[11],' W m[sup]-2[/sup]']
+    Radiation = [Ob[11],'Wm2']
     Rain      = [Ob[12],'mm']
     Strikes   = [Ob[15],'count']
 
@@ -236,7 +242,7 @@ def Sky(Msg,wfpiconsole):
     WindSpd   = [Ob[5],'mps']
     WindGust  = [Ob[6],'mps']
     WindDir   = [Ob[7],'degrees']
-    Radiation = [Ob[10],' W m[sup]-2[/sup]']
+    Radiation = [Ob[10],'Wm2']
 
     # Store latest SKY Websocket message
     wfpiconsole.Obs['SkyMsg'] = Msg
@@ -333,7 +339,7 @@ def outdoorAir(Msg,wfpiconsole):
     Time     = [Ob[0],'s']
     Pres     = [Ob[1],'mb']
     Temp     = [Ob[2],'c']
-    Humidity = [Ob[3],' %']
+    Humidity = [Ob[3],'%']
     Strikes  = [Ob[4],'count']
 
     # Extract lightning strike data from the latest outdoor AIR Websocket JSON
@@ -516,7 +522,8 @@ def rapidWind(Msg,wfpiconsole):
 
     # Animate wind rose arrow if WindSpeedPanel panel is active
     if hasattr(wfpiconsole,'WindSpeedPanel'):
-        wfpiconsole.WindSpeedPanel.animateWindRose()
+        for panel in getattr(wfpiconsole,'WindSpeedPanel'):
+            panel.animateWindRose()
 
     # Return wfpiconsole object
     return wfpiconsole
@@ -557,8 +564,9 @@ def evtStrike(Msg,wfpiconsole):
 
     # Set and animate lightning bolt icon if LightningPanel panel is active
     if hasattr(wfpiconsole,'LightningPanel'):
-        wfpiconsole.LightningPanel.setLightningBoltIcon()
-        wfpiconsole.LightningPanel.animateLightningBoltIcon()
+        for panel in getattr(wfpiconsole,'LightningPanel'):
+            panel.setLightningBoltIcon()
+            panel.animateLightningBoltIcon()
 
     # Return wfpiconsole object
     return wfpiconsole

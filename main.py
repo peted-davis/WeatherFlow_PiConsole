@@ -134,7 +134,7 @@ class WeatherFlowClientFactory(WebSocketClientFactory,ReconnectingClientFactory)
 # IMPORT REQUIRED CORE KIVY MODULES
 # ==============================================================================
 from kivy.core.window import Window
-from kivy.properties  import DictProperty, NumericProperty, ConfigParserProperty
+from kivy.properties  import DictProperty, NumericProperty, ConfigParserProperty, ObjectProperty
 from kivy.properties  import StringProperty
 from kivy.animation   import Animation
 from kivy.factory     import Factory
@@ -189,6 +189,7 @@ from kivy.uix.settings       import SettingString, SettingSpacer
 from kivy.uix.button         import Button
 from kivy.uix.widget         import Widget
 from kivy.uix.popup          import Popup
+from kivy.uix.image          import Image
 from kivy.uix.label          import Label
 
 # ==============================================================================
@@ -197,7 +198,7 @@ from kivy.uix.label          import Label
 class wfpiconsole(App):
 
     # Define App class observation dictionary properties
-    Obs = DictProperty      ([('rapidSpd','--'),       ('rapidDir','----'),    ('rapidShift','-'),
+    Obs     = DictProperty  ([('rapidSpd','--'),       ('rapidDir','----'),    ('rapidShift','-'),
                               ('WindSpd','-----'),     ('WindGust','--'),      ('WindDir','---'),
                               ('AvgWind','--'),        ('MaxGust','--'),       ('RainRate','---'),
                               ('TodayRain','--'),      ('YesterdayRain','--'), ('MonthRain','--'),
@@ -210,7 +211,7 @@ class wfpiconsole(App):
                               ('StrikeDist','--'),     ('StrikeFreq','----'),  ('Strikes3hr','-'),
                               ('StrikesToday','-'),    ('StrikesMonth','-'),   ('StrikesYear','-')
                              ])
-    Astro = DictProperty    ([('Sunrise',['-','-',0]), ('Sunset',['-','-',0]), ('Dawn',['-','-',0]),
+    Astro   = DictProperty  ([('Sunrise',['-','-',0]), ('Sunset',['-','-',0]), ('Dawn',['-','-',0]),
                               ('Dusk',['-','-',0]),    ('sunEvent','----'),    ('sunIcon',['-',0,0]),
                               ('Moonrise',['-','-']), ('Moonset',['-','-']),   ('NewMoon','--'),
                               ('FullMoon','--'),      ('Phase','---'),         ('Reformat','-'),
@@ -218,14 +219,18 @@ class wfpiconsole(App):
     MetData = DictProperty  ([('Weather','Building'),  ('Temp','--'),          ('Precip','--'),
                               ('WindSpd','--'),        ('WindDir','--'),       ('Valid','--')
                              ])
-    Sager = DictProperty    ([('Forecast','--'),       ('Issued','--')])
-    System = DictProperty   ([('Time','-'),            ('Date','-')])
+    Sager   = DictProperty  ([('Forecast','--'),       ('Issued','--')])
+    System  = DictProperty  ([('Time','-'),            ('Date','-')])
     Version = DictProperty  ([('Latest','-')])
 
     # Define App class configParser properties
     BarometerMax = ConfigParserProperty('-','System', 'BarometerMax','wfpiconsole')
     BarometerMin = ConfigParserProperty('-','System', 'BarometerMin','wfpiconsole')
     IndoorTemp   = ConfigParserProperty('-','Display','IndoorTemp',  'wfpiconsole')
+
+    # Define display properties
+    scaleFactor = NumericProperty(1)
+    scaleSuffix = StringProperty('_lR')
 
     # BUILD 'WeatherFlowPiConsole' APP CLASS
     # --------------------------------------------------------------------------
@@ -238,13 +243,24 @@ class wfpiconsole(App):
         self.config.read('wfpiconsole.ini')
         self.settings_cls = SettingsWithSidebar
 
-        # Force window size if required based on hardware type
-        if self.config['System']['Hardware'] == 'Pi4':
-            Window.size = (800,480)
-            Window.borderless = 1
-            Window.top = 0
-        elif self.config['System']['Hardware'] == 'Other':
-            Window.size = (800,480)
+        # Set window size if required based on hardware type and center on
+        # screen
+        self.window = Window
+        windowSize  = self.window.size
+        self.window.bind(on_resize=self.setScaleFactor)
+        if self.config['System']['Hardware'] in ['Pi4','Other']:
+            windowPosi = (self.window.left,self.window.top)
+            if int(self.config['Display']['Fullscreen']):
+                self.window.fullscreen='auto'
+            else:
+                self.window.size = (int(self.config['Display']['Width']),int(self.config['Display']['Height']))
+                if not int(self.config['Display']['Border']):
+                    self.window.borderless=1
+                if self.window.size != windowSize:
+                    self.window.left = windowPosi[0] - (self.window.size[0]-windowSize[0])/2
+                    self.window.top  = windowPosi[1] - (self.window.size[1]-windowSize[1])/2
+        if not int(self.config['Display']['Cursor']):
+            self.window.show_cursor=0
 
         # Initialise real time clock
         Clock.schedule_interval(partial(system.realtimeClock,self.System,self.config),1.0)
@@ -273,6 +289,19 @@ class wfpiconsole(App):
         Clock.schedule_interval(self.UpdateMethods,1.0)
         Clock.schedule_interval(partial(astro.sunTransit,self.Astro,self.config),1.0)
         Clock.schedule_interval(partial(astro.moonPhase ,self.Astro,self.config),1.0)
+
+    # SET DISPLAY SCALE FACTOR BASED ON SCREEN SIZE
+    # --------------------------------------------------------------------------
+    def setScaleFactor(self,instance,x,y):
+        if x < 800:
+            self.window.size = (800,y)
+        if y < 480:
+            self.window.size = (x,480)
+        self.scaleFactor = max(x/800, y/480, 1)
+        if self.scaleFactor > 1:
+            self.scaleSuffix = '_hR'
+        else:
+            self.scaleSuffix = '_lR'
 
     # BUILD 'WeatherFlowPiConsole' APP CLASS SETTINGS
     # --------------------------------------------------------------------------
@@ -533,11 +562,20 @@ class CurrentConditions(Screen):
             if Button[0] == id:
                 break
 
-        # Determine new button type
+        # Extract panel object the corresponds to the button that has been
+        # pressed and determine new button type required
+        Panel = App.get_running_app().CurrentConditions.ids[Button[1]].children
         newButton = App.get_running_app().config[Button[3] + 'Panels'][Button[1]]
 
-        # Destroy old panel class attribute
-        delattr(App.get_running_app(), newButton + 'Panel')
+        # Destroy reference to old panel class attribute
+        if hasattr(App.get_running_app(),newButton + 'Panel'):
+            if len(getattr(App.get_running_app(), newButton + 'Panel')) > 1:
+                try:
+                    getattr(App.get_running_app(), newButton + 'Panel').remove(Panel[0])
+                except ValueError:
+                    log.msg('Unable to remove panel reference from wfpiconsole class')
+            else:
+                delattr(App.get_running_app(), newButton + 'Panel')
 
         # Switch panel
         App.get_running_app().CurrentConditions.ids[Button[1]].clear_widgets()
@@ -559,7 +597,11 @@ class ForecastPanel(RelativeLayout):
     # Initialise 'ForecastPanel' relative layout class
     def __init__(self,**kwargs):
         super(ForecastPanel,self).__init__(**kwargs)
-        App.get_running_app().ForecastPanel = self
+        if not hasattr(App.get_running_app(),'ForecastPanel'):
+            App.get_running_app().ForecastPanel = []
+            App.get_running_app().ForecastPanel.append(self)
+        else:
+            App.get_running_app().ForecastPanel.append(self)
 
 class ForecastButton(RelativeLayout):
     pass
@@ -572,7 +614,11 @@ class SagerPanel(RelativeLayout):
     # Initialise 'SagerPanel' relative layout class
     def __init__(self,**kwargs):
         super(SagerPanel,self).__init__(**kwargs)
-        App.get_running_app().SagerPanel = self
+        if not hasattr(App.get_running_app(),'SagerPanel'):
+            App.get_running_app().SagerPanel = []
+            App.get_running_app().SagerPanel.append(self)
+        else:
+            App.get_running_app().SagerPanel.append(self)
 
 class SagerButton(RelativeLayout):
     pass
@@ -588,7 +634,11 @@ class TemperaturePanel(RelativeLayout):
     # Initialise 'TemperaturePanel' relative layout class
     def __init__(self,**kwargs):
         super(TemperaturePanel,self).__init__(**kwargs)
-        App.get_running_app().TemperaturePanel = self
+        if not hasattr(App.get_running_app(),'TemperaturePanel'):
+            App.get_running_app().TemperaturePanel = []
+            App.get_running_app().TemperaturePanel.append(self)
+        else:
+            App.get_running_app().TemperaturePanel.append(self)
         self.setFeelsLikeIcon()
 
     # Set "Feels Like" icon
@@ -612,7 +662,13 @@ class WindSpeedPanel(RelativeLayout):
     # Initialise 'WindSpeedPanel' relative layout class
     def __init__(self,**kwargs):
         super(WindSpeedPanel,self).__init__(**kwargs)
-        App.get_running_app().WindSpeedPanel = self
+        if not hasattr(App.get_running_app(),'WindSpeedPanel'):
+            App.get_running_app().WindSpeedPanel = []
+            App.get_running_app().WindSpeedPanel.append(self)
+        else:
+            App.get_running_app().WindSpeedPanel.append(self)
+        if App.get_running_app().Obs['rapidDir'][0] != '-':
+            self.rapidWindDir = App.get_running_app().Obs['rapidDir'][0]
         self.setWindIcons()
 
     # Animate rapid wind rose
@@ -663,7 +719,11 @@ class SunriseSunsetPanel(RelativeLayout):
     # Initialise 'SunriseSunsetPanel' relative layout class
     def __init__(self,**kwargs):
         super(SunriseSunsetPanel,self).__init__(**kwargs)
-        App.get_running_app().SunriseSunsetPanel = self
+        if not hasattr(App.get_running_app(),'SunriseSunsetPanel'):
+            App.get_running_app().SunriseSunsetPanel = []
+            App.get_running_app().SunriseSunsetPanel.append(self)
+        else:
+            App.get_running_app().SunriseSunsetPanel.append(self)
         self.setUVBackground()
 
     # Set current UV index backgroud
@@ -682,7 +742,11 @@ class MoonPhasePanel(RelativeLayout):
     # Initialise 'MoonPhasePanel' relative layout class
     def __init__(self,**kwargs):
         super(MoonPhasePanel,self).__init__(**kwargs)
-        App.get_running_app().MoonPhasePanel = self
+        if not hasattr(App.get_running_app(),'MoonPhasePanel'):
+            App.get_running_app().MoonPhasePanel = []
+            App.get_running_app().MoonPhasePanel.append(self)
+        else:
+            App.get_running_app().MoonPhasePanel.append(self)
 
 class MoonPhaseButton(RelativeLayout):
     pass
@@ -699,7 +763,11 @@ class RainfallPanel(RelativeLayout):
     # Initialise 'RainfallPanel' relative layout class
     def __init__(self,**kwargs):
         super(RainfallPanel,self).__init__(**kwargs)
-        App.get_running_app().RainfallPanel = self
+        if not hasattr(App.get_running_app(),'RainfallPanel'):
+            App.get_running_app().RainfallPanel = []
+            App.get_running_app().RainfallPanel.append(self)
+        else:
+            App.get_running_app().RainfallPanel.append(self)
         self.animateRainRate()
 
     # Animate rain rate level
@@ -712,8 +780,8 @@ class RainfallPanel(RelativeLayout):
         RainRate = float(App.get_running_app().Obs['RainRate'][3])
 
         # Define required animation variables
-        x0 = -1
-        xt = 0
+        x0 = -1.00
+        xt = -0.01
         t = 50
 
         # Set RainRate level y position
@@ -759,7 +827,11 @@ class LightningPanel(RelativeLayout):
     # Initialise 'LightningPanel' relative layout class
     def __init__(self,**kwargs):
         super(LightningPanel,self).__init__(**kwargs)
-        App.get_running_app().LightningPanel = self
+        if not hasattr(App.get_running_app(),'LightningPanel'):
+            App.get_running_app().LightningPanel = []
+            App.get_running_app().LightningPanel.append(self)
+        else:
+            App.get_running_app().LightningPanel.append(self)
         self.setLightningBoltIcon()
 
     # Set lightning bolt icon
@@ -790,7 +862,11 @@ class BarometerPanel(RelativeLayout):
     # Initialise 'BarometerPanel' relative layout class
     def __init__(self,**kwargs):
         super(BarometerPanel,self).__init__(**kwargs)
-        App.get_running_app().BarometerPanel = self
+        if not hasattr(App.get_running_app(),'BarometerPanel'):
+            App.get_running_app().BarometerPanel = []
+            App.get_running_app().BarometerPanel.append(self)
+        else:
+            App.get_running_app().BarometerPanel.append(self)
         self.setBarometerArrow()
 
     # Set Barometer arrow to current sea level pressure
@@ -860,22 +936,17 @@ class mainMenu(ModalView):
         self.ids.statusPanel.add_widget(statusPanel)
 
         # Add 'Close', 'Settings', and 'Exit' buttons below device status panel
-        Buttons = BoxLayout(orientation='horizontal', size_hint=(1,.1), spacing=dp(10), padding=[dp(0),dp(0),dp(0),dp(2)])
-        Buttons.add_widget(Button(text='Close',    on_release=self.dismiss))
-        Buttons.add_widget(Button(text='Settings', on_release=self.openSettings))
-        Buttons.add_widget(Button(text='Exit',     on_release=self.app.stop))
-        Buttons.add_widget(Button(text='Reboot',   on_release=self.rebootSystem))
-        Buttons.add_widget(Button(text='Shutdown', on_release=self.shutdownSystem))
+        Buttons = BoxLayout(orientation='horizontal',  size_hint=(1,.1), spacing=dp(10), padding=[dp(0),dp(0),dp(0),dp(2)])
+        Buttons.add_widget(MenuButton(text='Close',    on_release=self.dismiss))
+        Buttons.add_widget(MenuButton(text='Settings', on_release=self.app.open_settings))
+        Buttons.add_widget(MenuButton(text='Exit',     on_release=self.app.stop))
+        Buttons.add_widget(MenuButton(text='Reboot',   on_release=self.rebootSystem))
+        Buttons.add_widget(MenuButton(text='Shutdown', on_release=self.shutdownSystem))
         self.ids.statusPanel.add_widget(Buttons)
 
         # Populate status fields
         self.app.Station.getObservationCount()
         self.app.Station.getStationStatus()
-
-    # Open settings screen from mainMenu
-    def openSettings(self,instance):
-        self.app.open_settings()
-        self.dismiss()
 
     # Exit console and shutdown system
     def shutdownSystem(self,instance):
@@ -899,6 +970,9 @@ class outAirStatus(BoxLayout):
     pass
 
 class inAirStatus(BoxLayout):
+    pass
+
+class MenuButton(Button):
     pass
 
 # ==============================================================================
@@ -1031,12 +1105,6 @@ class SettingToggleTemperature(SettingString):
             Units = '[sup]o[/sup]F'
         Value = int(self.Label.text.replace(Units,'')) + 1
         self.Label.text = str(Value) + Units
-
-# ==============================================================================
-# CUSTOM LABEL CLASSES
-# ==============================================================================
-class BoldText():
-    pass
 
 # ==============================================================================
 # RUN APP
