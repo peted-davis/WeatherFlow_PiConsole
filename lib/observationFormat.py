@@ -86,7 +86,7 @@ def Units(Obs,Unit):
                     cObs[ii-1] = Obs[ii-1] * 3.6
                     cObs[ii] = 'km/h'
                 elif Unit == 'bft':
-                    cObs[ii-1] = derive.BeaufortScale(Obs[ii-1:ii+1])[4]
+                    cObs[ii-1] = derive.BeaufortScale(Obs[ii-1:ii+1])[2]
                     cObs[ii] = 'bft'
                 else:
                     cObs[ii-1] = Obs[ii-1]
@@ -237,7 +237,7 @@ def Format(Obs,Type):
                         else:
                             cObs[ii-1] = '{:.0f}'.format(cObs[ii-1])
                     if Prcp.strip() == 'in':
-                        cObs[ii] = '[size=19sp]' + u'\u2033' + '[/size]'
+                        cObs[ii] = u'\u0022'
                 elif Prcp.strip() == 'mm/hr':
                     if math.isnan(cObs[ii-1]):
                         cObs[ii-1] = '-'
