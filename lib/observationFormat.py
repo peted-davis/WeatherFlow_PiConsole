@@ -166,7 +166,20 @@ def Format(Obs,Type):
                 if T.strip() == 'c':
                     cObs[ii] = u'\N{DEGREE CELSIUS}'
                 elif T.strip() == 'f':
-                    cObs[ii] = u'\N{DEGREE FAHRENHEIT}'
+                    cObs[ii] = u'\N{DEGREE FAHRENHEIT}'                
+    elif Type == 'forecastTemp':
+        for ii,T in enumerate(Obs):
+            if isinstance(T,str) and T.strip() in ['c','f']:
+                if math.isnan(cObs[ii-1]):
+                    cObs[ii-1] = '-'
+                elif cObs[ii-1] == 0:
+                    cObs[ii-1] = '{:.0f}'.format(abs(cObs[ii-1]))
+                else:
+                    cObs[ii-1] = '{:.0f}'.format(cObs[ii-1])
+                if T.strip() == 'c':
+                    cObs[ii] = u'\N{DEGREE CELSIUS}'
+                elif T.strip() == 'f':
+                    cObs[ii] = u'\N{DEGREE FAHRENHEIT}'                
 
     # Format pressure observations
     elif Type == 'Pressure':
@@ -193,7 +206,14 @@ def Format(Obs,Type):
                         cObs[ii-1] = '{:.1f}'.format(cObs[ii-1])
                     else:
                         cObs[ii-1] = '{:.0f}'.format(cObs[ii-1])
-
+    elif Type == 'forecastWind':
+        for ii,W in enumerate(Obs):
+            if isinstance(W,str) and W.strip() in ['mph','kts','km/h','bft','m/s']:
+                if math.isnan(cObs[ii-1]):
+                    cObs[ii-1] = '-'
+                else:
+                    cObs[ii-1] = '{:.0f}'.format(cObs[ii-1])
+                        
     # Format wind direction observations
     elif Type == 'Direction':
         for ii,D in enumerate(Obs):

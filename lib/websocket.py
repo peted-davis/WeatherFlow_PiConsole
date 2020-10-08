@@ -148,7 +148,7 @@ def Tempest(Msg,wfpiconsole):
     AvgWind          = derive.MeanWindSpeed(WindSpd,avgWind,Device,Config,flagAPI)
     MaxGust          = derive.MaxWindGust(WindGust,maxGust,Device,Config,flagAPI)
     WindSpd          = derive.BeaufortScale(WindSpd)
-    WindDir          = derive.CardinalWindDirection (WindDir,WindSpd)
+    WindDir          = derive.CardinalWindDirection(WindDir,WindSpd)
     peakSun          = derive.peakSunHours(Radiation,peakSun,wfpiconsole.Astro,Device,Config,flagAPI)
     UVIndex          = derive.UVIndex(UV)
 

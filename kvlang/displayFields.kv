@@ -36,9 +36,20 @@
     size_hint_y: (18/202)
 
 <SmallField@DisplayField>
-    font_name: 'fonts/Helvetica.ttf'
+    font_name: 'fonts/Inter-Regular.ttf'
     size_hint_y: (14/202)
 
+<BoldField@DisplayField>
+    font_name: 'fonts/Inter-Bold.ttf'
+    size_hint_y: (13/202)
+
+<TimeDateField@DisplayField>
+    font_name: 'fonts/Inter-Medium.ttf'
+    size_hint_y: (18/202)
+
+## =============================================================================
+## CUSTOM MenuField, StatusField, AND StatusColumn LABELS
+## =============================================================================
 <MenuField@DisplayField>
     font_name: 'fonts/Inter-Bold.ttf'
     font_size: dp((self.height*(13/self.height))*app.scaleFactor)
@@ -47,10 +58,6 @@
 <StatusField@DisplayField>
     font_name: 'fonts/Inter-Bold.ttf'
     font_size: dp((self.height*(13/self.height))*app.scaleFactor)
-
-<BoldField@DisplayField>
-    font_name: 'fonts/Inter-Bold.ttf'
-    size_hint_y: (13/202)
 
 <StatusColumn@DisplayField>:
     font_name: 'fonts/Inter-Bold.ttf'
@@ -63,6 +70,9 @@
             pos: self.x + 5, self.y
             size: self.width-10, self.height
 
+## =============================================================================
+## CUSTOM PanelTitle LABELS
+## =============================================================================
 <PanelTitle@DisplayField>:
     font_name: 'fonts/Inter-Bold.ttf'
     size_hint: (1, 13/202)
@@ -72,8 +82,26 @@
 ## =============================================================================
 ## CUSTOM MultilineField LABELS
 ## =============================================================================
-<MultilineField@Label>
+<MediumMultilineField@Label>
     font_name: 'fonts/Inter-Light.ttf'
+    font_size: dp(18*app.scaleFactor)
     text_size: self.size
+    color: utils.rgba('#c8c8c8ff')
+    halign: 'center'
+    valign: 'center'
+
+<SmallMultilineField@Label>
+    font_name: 'fonts/Inter-Regular.ttf'
+    font_size: dp(14*app.scaleFactor)
+    text_size: self.size
+    color: utils.rgba('#c8c8c8ff')
+    halign: 'center'
+    valign: 'center'
+
+<CreditsMultilineField@Label>:
+    font_name: 'fonts/Inter-SemiBold.ttf'
+    font_size: dp(15*app.scaleFactor)
+    text_size: self.size
+    color: utils.rgba('#c8c8c8ff')
     halign: 'center'
     valign: 'center'

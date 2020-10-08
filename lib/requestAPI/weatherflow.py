@@ -120,7 +120,7 @@ def Last24h(Device,endTime,Config):
         Response            API response containing latest three-hourly forecast
     """
 
-    # Calculate timestamp three hours past
+    # Calculate timestamp 24 hours past
     startTime = endTime - int((3600*24))
 
     # Download WeatherFlow data for last three hours

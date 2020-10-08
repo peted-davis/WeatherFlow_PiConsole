@@ -213,11 +213,14 @@ class wfpiconsole(App):
                              ])
     Astro   = DictProperty  ([('Sunrise',['-','-',0]), ('Sunset',['-','-',0]), ('Dawn',['-','-',0]),
                               ('Dusk',['-','-',0]),    ('sunEvent','----'),    ('sunIcon',['-',0,0]),
-                              ('Moonrise',['-','-']), ('Moonset',['-','-']),   ('NewMoon','--'),
-                              ('FullMoon','--'),      ('Phase','---'),         ('Reformat','-'),
+                              ('Moonrise',['-','-']),  ('Moonset',['-','-']),  ('NewMoon','--'),
+                              ('FullMoon','--'),       ('Phase','---'),        ('Reformat','-'),
                              ])
-    MetData = DictProperty  ([('Weather','Building'),  ('Temp','--'),          ('Precip','--'),
-                              ('WindSpd','--'),        ('WindDir','--'),       ('Valid','--')
+    MetData = DictProperty  ([('Valid','--'),          ('Temp','--'),          ('highTemp','--'),
+                              ('lowTemp','--'),        ('WindSpd','--'),       ('WindGust','--'),
+                              ('WindDir','--'),        ('PrecipPercnt','--'),  ('PrecipDay','--'),
+                              ('PrecipAmount','--'),   ('PrecipType','--'),    ('Conditions','-'),
+                              ('Icon','--')
                              ])
     Sager   = DictProperty  ([('Forecast','--'),       ('Issued','--')])
     System  = DictProperty  ([('Time','-'),            ('Date','-')])

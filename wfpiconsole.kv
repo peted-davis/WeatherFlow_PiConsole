@@ -19,7 +19,6 @@
 #:import NoTransition kivy.uix.screenmanager.NoTransition
 #:import Factory      kivy.factory.Factory
 #:import utils        kivy.utils
-#:import math         math
 
 ## Include required kv lang files
 #:include kvlang/displayElements.kv
@@ -100,59 +99,77 @@ ScreenManager:
 
     ## Panel background and title
     PanelBackground:
-        _panelTitle: 'Current Forecast'
+        _panelTitle: 'Forecast'
 
-    ## Forecast temperature
+    ## Forecast Conditions
     TitleField:
-        text: 'Temperature'
-        pos_hint: {'x': 6/262, 'y': 167/202}
-        size_hint_x: 90/263
-    LargeField:
-        text: app.MetData['Temp'][0] + app.MetData['Temp'][1]
-        pos_hint: {'x': 6/262, 'y': 134/202}
-        size_hint_x: (200/262)
-        text_size: self.size
-        halign: 'left'
-
-    ## Forecast precipitation
+        text: 'Conditions'
+        pos_hint: {'x': 18/262, 'y': 166/202}
+        size_hint_x: 77/262
     TitleField:
-        text: 'Precipitation'
-        pos_hint: {'x': 6/262, 'y': 111/202}
-        size_hint_x: 90/263
-    LargeField:
-        text: app.MetData['Precip'][0] + app.MetData['Precip'][1]
-        pos_hint: {'x': 6/262, 'y': 78/202}
-        size_hint_x: (200/262)
-        text_size: self.size
+        text: app.MetData['Status']
+        pos_hint: {'x': 0/262, 'y': 110/202}
+        size_hint_x: 262/262
+    Image:
+        source: 'icons/weather/' + app.MetData['Icon'] + app.scaleSuffix + '.png'
+        pos_hint: {'x': 18/262, 'y': 85/202}
+        keep_ratio: 0
+        allow_stretch: 1
+        size_hint: (77/262, 80/202)
+    SmallMultilineField:
+        text: app.MetData['Conditions']
+        pos_hint: {'x': 110/262, 'y': 80/202}
+        size_hint: (132/262, 62/202)
         halign: 'left'
+        line_height: 1.2
 
     ## Forecast windspeed
     TitleField:
         text: 'Wind Speed'
-        pos_hint: {'x': 6/262, 'y': 54/202}
-        size_hint_x: 90/263
-    LargeField:
-        text: app.MetData['WindSpd'][0] + ' ' + app.MetData['WindSpd'][1] + ' ' + app.MetData['WindDir']
-        pos_hint: {'x': 6/262, 'y': 21/202}
-        size_hint_x: (200/262)
-        text_size: self.size
-        halign: 'left'
+        pos_hint: {'x': 132/262, 'y': 166/202}
+        size_hint_x: 110/262
+    MediumField:
+        text: app.MetData['WindSpd'][0] + ' ' + app.MetData['WindSpd'][1] + ' ' + app.MetData['WindDir'][0]
+        pos_hint: {'x': 132/262, 'y': 145/202}
+        size_hint_x: (110/262)
 
-    ## Forecast location, valid, and issued time
+    ## Forecast temperature
+    TitleField:
+        text: 'Temperature'
+        pos_hint: {'x': 5/262, 'y': 65/202}
+        size_hint_x: (125/262)
+    MediumField:
+        text: app.MetData['Temp'][0] + app.MetData['Temp'][1]
+        pos_hint: {'x': 5/262, 'y': 43/202}
+        size_hint_x: (125/262)
     SmallField:
-        text: 'Forecast valid until ' + app.MetData['Valid']
-        pos_hint: {'x': 6/262, 'y': 4/202}
-        size_hint_x: (252/262)
+        pos_hint: {'x': 5/262, 'y': 25/202}
+        size_hint_x: (125/262)
+        text:
+            '[color=00a4b4ff][font=fonts/Inter-Bold.ttf]L: [/font]' + app.MetData['lowTemp'][0] + app.MetData['lowTemp'][1] + '[/color]' + '  ' + \
+            '[color=f05e40ff]' + '[font=fonts/Inter-Bold.ttf]H: [/font]' + app.MetData['highTemp'][0] + app.MetData['highTemp'][1] + '[/color]'
+
+    ## Forecast rain/snowfall
+    TitleField:
+        text: app.MetData['PrecipType'].title() + 'fall'
+        pos_hint: {'x': 152/262, 'y': 65/202}
+        size_hint_x: (100/262)
+    MediumField:
+        text: app.MetData['PrecipPercnt'][0] + app.MetData['PrecipPercnt'][1]
+        pos_hint: {'x': 152/262, 'y': 43/202}
+        size_hint_x: (100/262)
+    SmallField:
+        text: '[color=ffffffff]Daily[/color]: ' + app.MetData['PrecipDay'][0] + app.MetData['PrecipDay'][1]
+        pos_hint: {'x': 152/262, 'y': 25/202}
+        size_hint_x: (100/262)
+
+    ## Forecast valid time
+    SmallField:
+        text: 'Forecast for ' + app.MetData['Valid']
+        pos_hint: {'x': 5/262, 'y': 3/202}
+        size_hint_x: 250/262
         text_size: self.size
         halign: 'right'
-
-    ## Current weather icon
-    Image:
-        source: 'icons/weather/' + app.MetData['Weather'] + '.png'
-        keep_ratio: 0
-        allow_stretch: 1
-        pos_hint: {'x': 123/262, 'y': 58/202}
-        size_hint: (115/262, 115/202)
 
 <ForecastButton>:
     PanelButton:
@@ -170,9 +187,8 @@ ScreenManager:
         _panelTitle: 'Sager Forecast'
 
     ## Sager Weathercaster forecast
-    MultilineField:
+    MediumMultilineField:
         text: app.Sager['Forecast']
-        font_size: dp(19*app.scaleFactor)
         pos_hint: {'x': 6/262, 'y': 21/202}
         size_hint: (250/262, 157/202)
 
@@ -272,7 +288,7 @@ ScreenManager:
         size_hint_x: (87.330/262)
     MediumField:
         text: app.Obs['FeelsLike'][0] + app.Obs['FeelsLike'][1]
-        pos_hint: {'x': 0/262, 'y': 41/202}
+        pos_hint: {'x': 0/262, 'y': 43/202}
         size_hint_x: (87.330/262)
 
     ## Outdoor humidity
@@ -282,7 +298,7 @@ ScreenManager:
         size_hint_x: (87.330/262)
     MediumField:
         text: app.Obs['Humidity'][0] + app.Obs['Humidity'][1]
-        pos_hint: {'x': 87.330/262, 'y': 41/202}
+        pos_hint: {'x': 87.330/262, 'y': 43/202}
         size_hint_x: (87.330/262)
 
     ## Dew point
@@ -292,19 +308,19 @@ ScreenManager:
         size_hint_x: (87.330/262)
     MediumField:
         text: app.Obs['DewPoint'][0] + app.Obs['DewPoint'][1]
-        pos_hint: {'x': 174.660/262, 'y': 41/202}
+        pos_hint: {'x': 174.660/262, 'y': 43/202}
         size_hint_x: (87.330/262)
 
     ## 'Feels like' icon and text
     Image:
         source: 'atlas://atlas/feelsLike/' + root.feelsLikeIcon + app.scaleSuffix
-        pos_hint: {'x': 7/262, 'y': 6/202}
+        pos_hint: {'x': 7/262, 'y': 7/202}
         keep_ratio: 0
         allow_stretch: 1
         size_hint: (36/262, 31/202)
     SmallField:
         text: app.Obs['FeelsLike'][2]
-        pos_hint: {'x': 49/262, 'y': 10/202}
+        pos_hint: {'x': 49/262, 'y': 11/202}
         size_hint_x: (200/262)
         text_size: self.size
         halign: 'left'
@@ -754,14 +770,12 @@ ScreenManager:
         size_hint_x: (88/262)
 
     ## Time and date
-    MediumField:
+    TimeDateField:
         text: app.System['Date']
-        font_name: 'fonts/Inter-Medium.ttf'
         pos_hint: {'x': 0/262, 'y': 24/202}
         size_hint_x: (262/262)
-    MediumField:
+    TimeDateField:
         text: app.System['Time']
-        font_name: 'fonts/Inter-Medium.ttf'
         pos_hint: {'x': 0/262, 'y': 3/202}
         size_hint_x: (262/262)
 
@@ -1128,7 +1142,7 @@ ScreenManager:
             MainMenuTab:
                 text: 'Credits'
                 MainMenuLayout:
-                    MultilineField:
+                    CreditsMultilineField:
                         text:
                             'Python Console for Weather Flow Tempest and Smart Home Weather Station \n' \
                             'Code written by Peter Davis. Copyright 2018-2020 \n' \
@@ -1139,5 +1153,3 @@ ScreenManager:
                             'www.weather34.com/homeweatherstation/ \n\n' \
                             'Weather forecast data provided by \n' \
                             'WeatherFlow BetterForecast API \n'
-                        font_size: dp(15*app.scaleFactor)
-                        font_name: 'fonts/Inter-SemiBold.ttf'
