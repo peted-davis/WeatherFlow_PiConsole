@@ -67,14 +67,14 @@
         SmoothLine:
             width: self._width*app.scaleFactor
             ellipse: (self.x+self._width*app.scaleFactor, self.y+self._width*app.scaleFactor, self.width-(self._width*2*app.scaleFactor), self.height-(self._width*2*app.scaleFactor), -90, 90, 2000)
-            
+
 ## =============================================================================
 ## RAIN GAUGE
 ## =============================================================================
 <RainGauge@FloatLayout>:
     TitleField:
         text: 'Rain Rate'
-        pos_hint: {'x': 182/262, 'y': 126/202}
+        pos_hint: {'x': 184/262, 'y': 126/202}
         size_hint_x: (70/262)
         color: utils.rgba('#807e76ff')
         canvas.before:

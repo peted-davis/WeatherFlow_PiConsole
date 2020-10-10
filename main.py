@@ -492,16 +492,9 @@ class wfpiconsole(App):
         Now = datetime.now(pytz.utc).astimezone(Tz)
         Now = Now.replace(microsecond=0)
 
-        # At 5 minutes past each hour, download a new forecast for the Station
-        # location
-        if (Now.minute,Now.second) == (5,0):
-            forecast.Download(self.MetData,self.config)
-
-        # At the top of each hour update the on-screen forecast for the Station
-        # location
-        if Now.hour > self.MetData['Time'].hour or Now.date() > self.MetData['Time'].date():
-            forecast.Extract(self.MetData,self.config)
-            self.MetData['Time'] = Now
+        # At the top of each hour download a new forecast for the Station
+        #if Now.hour > self.MetData['Time'].hour or Now.date() > self.MetData['Time'].date():
+        #   forecast.Download(self.MetData,self.config)
 
         # Once dusk has passed, calculate new sunrise/sunset times
         if Now >= self.Astro['Dusk'][0]:

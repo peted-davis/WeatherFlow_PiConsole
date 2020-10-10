@@ -21,10 +21,10 @@ from lib        import observationFormat  as observation
 from lib        import derivedVariables   as derive
 from lib        import requestAPI
 from kivy.clock import Clock
+import time as UNIX
 import requests
 import bisect
 import pytz
-import time
 
 def Download(metData,Config):
 
@@ -46,9 +46,10 @@ def Download(metData,Config):
     if requestAPI.weatherflow.verifyResponse(Data,'forecast'):
         metData['Dict'] = Data.json()
     else:
-        Clock.schedule_once(lambda dt: Download(metData,Config),600)
         if not 'Dict' in metData:
             metData['Dict'] = {}
+        elif not metData['Dict']:
+            metData['Schedule'] = Clock.schedule_once(lambda dt: Download(metData,Config),300)
     Extract(metData,Config)
 
     # Return metData dictionary
@@ -81,10 +82,10 @@ def Extract(metData,Config):
         # Extract 'valid from' time of all available hourly forecasts and
         # retrieve forecast for the current hour
         Hours         = list(forecast['time'] for forecast in hourlyForecasts)
-        hourlyCurrent = hourlyForecasts[bisect.bisect(Hours,int(time.time()))]
+        hourlyCurrent = hourlyForecasts[bisect.bisect(Hours,int(UNIX.time()))]
 
         # Extract 'Valid' until time of forecast for current hour
-        Valid = Hours[bisect.bisect(Hours,int(time.time()))]
+        Valid = Hours[bisect.bisect(Hours,int(UNIX.time()))]
         Valid = datetime.fromtimestamp(Valid,pytz.utc).astimezone(Tz)
 
         # Extract 'day_start_local' time of all available daily forecasts and
@@ -106,11 +107,13 @@ def Extract(metData,Config):
         metData['PrecipAmount'] = '--'
         metData['PrecipType']   = '--'
         metData['Conditions']   = ''
-        metData['Icon']         = '--'  
+        metData['Icon']         = '--'
         metData['Status']       = 'Forecast currently\nunavailable...'
 
-        # Attempt to download forecast again in 5 minutes and return metData 
+        # Attempt to download forecast again in 5 minutes and return metData
         # dictionary
+        if 'Schedule' in metData:
+            metData['Schedule'].cancel()
         Clock.schedule_once(lambda dt: Download(metData,Config),300)
         return metData
 
@@ -143,6 +146,10 @@ def Extract(metData,Config):
         Conditions = hourlyCurrent['conditions'].capitalize() + ' until ' + datetime.strftime(Time,TimeFormat) + ' tomorrow'
     else:
         Conditions = hourlyCurrent['conditions'].capitalize() + ' until ' + datetime.strftime(Time,TimeFormat) + 'on' + Time.strftime('%A')
+
+    # Fix 'PrecipType' as Rain or Snow
+    if PrecipType not in ['rain','snow']:
+        PrecipType = 'rain'
 
     # Calculate derived variables from forecast
     WindDir = derive.CardinalWindDirection(WindDir,WindSpd)
@@ -183,6 +190,11 @@ def Extract(metData,Config):
         metData['Icon'] = Icon
     else:
         metData['Icon'] = '--'
+        
+    # Schedule new forecast to be downloaded at the top of the next hour
+    forecastDownload = Tz.localize(datetime.combine(Now.date(),time(Now.hour+1)))
+    print((forecastDownload-Now).total_seconds())
+    Clock.schedule_once(lambda dt: Download(metData,Config), (forecastDownload-Now).total_seconds())
 
     # Return metData dictionary
     return metData

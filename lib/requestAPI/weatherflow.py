@@ -65,7 +65,7 @@ def Last3h(Device,endTime,Config):
     """
 
     # Calculate timestamp three hours past
-    startTime = endTime - int((3600*3+59))
+    startTime = endTime - int(3600*3)
 
     # Download WeatherFlow data for last three hours
     Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&api_key={}'
@@ -93,7 +93,7 @@ def Last6h(Device,endTime,Config):
     """
 
     # Calculate timestamp three hours past
-    startTime = endTime - int((3600*6+59))
+    startTime = endTime - int(3600*6)
 
     # Download WeatherFlow data for last three hours
     Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&api_key={}'
@@ -121,7 +121,7 @@ def Last24h(Device,endTime,Config):
     """
 
     # Calculate timestamp 24 hours past
-    startTime = endTime - int((3600*24))
+    startTime = endTime - int(3600*24)
 
     # Download WeatherFlow data for last three hours
     Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&api_key={}'
@@ -151,8 +151,8 @@ def Today(Device,Config):
     Tz = pytz.timezone(Config['Station']['Timezone'])
     Now = datetime.now(pytz.utc).astimezone(Tz)
 
-    # Convert midnight today in Station timezone to midnight today in
-    # UTC. Convert UTC time into UNIX timestamp.
+    # Convert midnight today in Station timezone to midnight today in UTC.
+    # Convert UTC time into UNIX timestamp.
     startTime = int(Tz.localize(datetime(Now.year,Now.month,Now.day)).timestamp())
 
     # Convert current time in Station timezone to current time in UTC.
@@ -187,15 +187,15 @@ def Yesterday(Device,Config):
     Tz = pytz.timezone(Config['Station']['Timezone'])
     Now = datetime.now(pytz.utc).astimezone(Tz)
 
-    # Convert midnight yesterday in Station timezone to midnight
-    # yesterday in UTC. Convert UTC time into UNIX timestamp
+    # Convert midnight yesterday in Station timezone to midnight yesterday in
+    # UTC. Convert UTC time into UNIX timestamp
     Yesterday = Tz.localize(datetime(Now.year,Now.month,Now.day)) - timedelta(days=1)
     startTime = int(Yesterday.timestamp())
 
-    # Convert midnight today in Station timezone to midnight
-    # yesterday in UTC. Convert UTC time into UNIX timestamp
+    # Convert midnight today in Station timezone to midnight yesterday in UTC.
+    # Convert UTC time into UNIX timestamp
     Today = Tz.localize(datetime(Now.year,Now.month,Now.day))
-    endTime = int(Today.timestamp())
+    endTime = int(Today.timestamp())-1
 
     # Download WeatherFlow data
     Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&api_key={}'
@@ -231,7 +231,7 @@ def Month(Device,Config):
 
     # Convert midnight today in Station timezone to midnight today in
     # UTC. Convert UTC time into UNIX timestamp.
-    endTime = int(Tz.localize(datetime(Now.year,Now.month,Now.day)).timestamp())
+    endTime = int(Tz.localize(datetime(Now.year,Now.month,Now.day)).timestamp())-1
 
     # Download WeatherFlow data
     Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&api_key={}'
@@ -267,7 +267,7 @@ def Year(Device,Config):
 
     # Convert midnight today in Station timezone to midnight today in
     # UTC. Convert UTC time into UNIX timestamp.
-    endTime = int(Tz.localize(datetime(Now.year,Now.month,Now.day)).timestamp())
+    endTime = int(Tz.localize(datetime(Now.year,Now.month,Now.day)).timestamp())-1
 
     # Download WeatherFlow data
     Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&api_key={}'

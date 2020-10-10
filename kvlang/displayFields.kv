@@ -20,7 +20,9 @@
 ## =============================================================================
 <DisplayField@Label>
     font_size: dp(self.height)
+    text_size: self.size
     color: utils.rgba('#c8c8c8ff')
+    halign: 'center'
     markup: 1
 
 <TitleField@DisplayField>
@@ -37,7 +39,7 @@
 
 <SmallField@DisplayField>
     font_name: 'fonts/Inter-Regular.ttf'
-    size_hint_y: (14/202)
+    size_hint_y: (13/202)
 
 <BoldField@DisplayField>
     font_name: 'fonts/Inter-Bold.ttf'
@@ -54,14 +56,17 @@
     font_name: 'fonts/Inter-Bold.ttf'
     font_size: dp((self.height*(13/self.height))*app.scaleFactor)
     size_hint_y: (13/202)
+    valign: 'center'
 
 <StatusField@DisplayField>
     font_name: 'fonts/Inter-Bold.ttf'
     font_size: dp((self.height*(13/self.height))*app.scaleFactor)
+    valign: 'center'
 
 <StatusColumn@DisplayField>:
     font_name: 'fonts/Inter-Bold.ttf'
     font_size: dp(self.height*0.45)
+    valign: 'center'
     color: utils.rgba('#141414ff')
     canvas.before:
         Color:
@@ -76,7 +81,7 @@
 <PanelTitle@DisplayField>:
     font_name: 'fonts/Inter-Bold.ttf'
     size_hint: (1, 13/202)
-    pos_hint: {'x': 0, 'y': 185/202}
+    pos_hint: {'x': 0, 'y': 184/202}
     color: utils.rgba('#ffffffff')
 
 ## =============================================================================
@@ -97,6 +102,14 @@
     color: utils.rgba('#c8c8c8ff')
     halign: 'center'
     valign: 'center'
+    
+<BoldMultilineField@Label>
+    font_name: 'fonts/Inter-Bold.ttf'
+    font_size: dp(14*app.scaleFactor)
+    text_size: self.size
+    color: utils.rgba('#c8c8c8ff')
+    halign: 'center'
+    valign: 'center'    
 
 <CreditsMultilineField@Label>:
     font_name: 'fonts/Inter-SemiBold.ttf'

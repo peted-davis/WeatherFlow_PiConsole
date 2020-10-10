@@ -331,7 +331,7 @@ def writeConfigKey(Config,Section,Key,keyDetails):
                             if str(Device['device_id']) == Config['Station']['TempestID']:
                                 if Device['device_type'] == 'ST':
                                     Value = Device['device_meta']['agl']
-                    if not Value:
+                    if not Value and Value != 0:
                         inputStr = '    TEMPEST not found. Please re-enter your TEMPEST device ID*: '
                         while True:
                             ID = input(inputStr)
@@ -356,7 +356,7 @@ def writeConfigKey(Config,Section,Key,keyDetails):
                             if str(Device['device_id']) == Config['Station']['OutAirID']:
                                 if Device['device_type'] == 'AR':
                                     Value = Device['device_meta']['agl']
-                    if not Value:
+                    if not Value and Value != 0:
                         inputStr = '    Outdoor AIR not found. Please re-enter your Outdoor AIR device ID*: '
                         while True:
                             ID = input(inputStr)
@@ -381,7 +381,7 @@ def writeConfigKey(Config,Section,Key,keyDetails):
                             if str(Device['device_id']) == Config['Station']['SkyID']:
                                 if Device['device_type'] == 'SK':
                                     Value = Device['device_meta']['agl']
-                    if not Value:
+                    if not Value and Value != 0:
                         inputStr = '    SKY not found. Please re-enter your SKY device ID*: '
                         while True:
                             ID = input(inputStr)
