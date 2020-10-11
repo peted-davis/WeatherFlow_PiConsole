@@ -15,52 +15,41 @@ You should have received a copy of the GNU General Public License along with
 this program. If not, see <http://www.gnu.org/licenses/>.
 """
 
-# Import required modules
-from datetime   import datetime, date, timedelta, time
+# Import required library modules
 from lib        import observationFormat  as observation
 from lib        import derivedVariables   as derive
 from lib        import requestAPI
+
+# Import required modules
+from datetime   import datetime, date, timedelta, time
+from functools  import partial
 from kivy.clock import Clock
-import time as UNIX
-import requests
+import time     as UNIX
 import bisect
 import pytz
+import math
 
-def Download(metData,Config):
+def Download(metData,Config,dt):
 
-    """ Download the weather forecast data using the WeatherFlow BetterForecast
-    API
+    """ Download the latest daily and hourly weather forecast data using the 
+    WeatherFlow BetterForecast API
 
     INPUTS:
         metData             Dictionary holding weather forecast data
         Config              Station configuration
+        dt                  Time in seconds since function last called
 
     OUTPUT:
         metData             Dictionary holding weather forecast data
     """
 
-    # Download latest forecast data
-    Data = requestAPI.weatherflow.Forecast(Config)
-
-    # Verify API response and extract forecast
-    if requestAPI.weatherflow.verifyResponse(Data,'forecast'):
-        metData['Dict'] = Data.json()
-    else:
-        if not 'Dict' in metData:
-            metData['Dict'] = {}
-        elif not metData['Dict']:
-            metData['Schedule'] = Clock.schedule_once(lambda dt: Download(metData,Config),300)
-    Extract(metData,Config)
-
-    # Return metData dictionary
-    return metData
-
-def Extract(metData,Config):
-
     # Get current time in station time zone
-    Tz       = pytz.timezone(Config['Station']['Timezone'])
-    Now      = datetime.now(pytz.utc).astimezone(Tz)
-    Midnight = int(Tz.localize(datetime(Now.year,Now.month,Now.day)).timestamp())
+    Tz         = pytz.timezone(Config['Station']['Timezone'])
+    funcCalled = datetime.now(pytz.utc).astimezone(Tz)
+    Midnight   = int(Tz.localize(datetime(funcCalled.year,funcCalled.month,funcCalled.day)).timestamp())
+    funcError  = 0
+    
+    print('Forecast run: ',funcCalled)
 
     # Set time format based on user configuration
     if Config['Display']['TimeFormat'] == '12 hr':
@@ -70,10 +59,19 @@ def Extract(metData,Config):
             TimeFormat = '%I %p'
     else:
         TimeFormat = '%H:%M'
+        
+    # Download latest forecast data
+    Data = requestAPI.weatherflow.Forecast(Config)
 
-    # Extract all forecast data from WeatherFlow JSON object. If  forecast is
-    # unavailable, set forecast variables to blank and indicate to user that
-    # forecast is unavailable
+    # Verify API response and extract forecast
+    if requestAPI.weatherflow.verifyResponse(Data,'forecast'):
+        metData['Dict'] = Data.json()
+    else:
+        funcError = 1
+        if not 'Dict' in metData:
+            metData['Dict'] = {}
+
+    # Extract all forecast data from WeatherFlow JSON object
     try:
         # Extract all hourly and daily forecasts
         hourlyForecasts  = (metData['Dict']['forecast']['hourly'])
@@ -93,8 +91,84 @@ def Extract(metData,Config):
         Days         = list(forecast['day_start_local'] for forecast in dailyForecasts)
         dailyCurrent = dailyForecasts[Days.index(Midnight)]
 
+        # Extract weather variables from current hourly forecast
+        Temp         = [hourlyCurrent['air_temperature'],'c']
+        WindSpd      = [hourlyCurrent['wind_avg'],'mps']
+        WindGust     = [hourlyCurrent['wind_gust'],'mps']
+        WindDir      = [hourlyCurrent['wind_direction'],'degrees']
+        PrecipPercnt = [hourlyCurrent['precip_probability'],'%']
+        PrecipAmount = [hourlyCurrent['precip'],'mm']
+        PrecipType   =  hourlyCurrent['precip_type']
+        Icon         =  hourlyCurrent['icon'].replace('cc-','')
+
+        # Extract weather variables from current daily forecast
+        highTemp  = [dailyCurrent['air_temp_high'],'c']
+        lowTemp   = [dailyCurrent['air_temp_low'],'c']
+        precipDay = [dailyCurrent['precip_probability'],'%']
+
+        # Extract list of expected conditions and find time when expected conditions
+        # will change
+        conditionList = list(forecast['conditions'] for forecast in hourlyForecasts)
+        try:
+            Ind = next(i for i,C in enumerate(conditionList) if C != hourlyCurrent['conditions'])
+        except StopIteration:
+            Ind = len(conditionList)-1
+        Time = datetime.fromtimestamp(Hours[Ind],pytz.utc).astimezone(Tz)
+        if Time.date() == funcCalled.date():
+            Conditions = hourlyCurrent['conditions'].capitalize() + ' until ' + datetime.strftime(Time,TimeFormat) + ' today'
+        elif Time.date() == funcCalled.date() + timedelta(days=1):
+            Conditions = hourlyCurrent['conditions'].capitalize() + ' until ' + datetime.strftime(Time,TimeFormat) + ' tomorrow'
+        else:
+            Conditions = hourlyCurrent['conditions'].capitalize() + ' until ' + datetime.strftime(Time,TimeFormat) + 'on' + Time.strftime('%A')
+
+        # Fix 'PrecipType' as Rain or Snow
+        if PrecipType not in ['rain','snow']:
+            PrecipType = 'rain'
+
+        # Calculate derived variables from forecast
+        WindDir = derive.CardinalWindDirection(WindDir,WindSpd)
+
+        # Convert forecast units as required
+        Temp         = observation.Units(Temp,Config['Units']['Temp'])
+        highTemp     = observation.Units(highTemp,Config['Units']['Temp'])
+        lowTemp      = observation.Units(lowTemp,Config['Units']['Temp'])
+        WindSpd      = observation.Units(WindSpd,Config['Units']['Wind'])
+        WindGust     = observation.Units(WindGust,Config['Units']['Wind'])
+        WindDir      = observation.Units(WindDir,Config['Units']['Direction'])
+        PrecipAmount = observation.Units(PrecipAmount,Config['Units']['Precip'])
+
+        # Define and format labels
+        metData['Time']         = funcCalled
+        metData['Valid']        = datetime.strftime(Valid,TimeFormat)
+        metData['Temp']         = observation.Format(Temp,'forecastTemp')
+        metData['highTemp']     = observation.Format(highTemp,'forecastTemp')
+        metData['lowTemp']      = observation.Format(lowTemp,'forecastTemp')
+        metData['WindSpd']      = observation.Format(WindSpd,'forecastWind')
+        metData['WindGust']     = observation.Format(WindGust,'forecastWind')
+        metData['WindDir']      = observation.Format(WindDir,'Direction')
+        metData['PrecipPercnt'] = observation.Format(PrecipPercnt,'Humidity')
+        metData['PrecipDay']    = observation.Format(precipDay,'Humidity')
+        metData['PrecipAmount'] = observation.Format(PrecipAmount,'Precip')
+        metData['PrecipType']   = PrecipType
+        metData['Conditions']   = Conditions
+        metData['Icon']         = Icon
+        metData['Status']       = ''
+
+        # Check expected conditions icon is recognised
+        if Icon in  ['clear-day', 'clear-night', 'rainy', 'possibly-rainy-day',
+                     'possibly-rainy-night', 'snow', 'possibly-snow-day',
+                     'possibly-snow-night', 'sleet', 'possibly-sleet-day',
+                     'possibly-sleet-night', 'thunderstorm', 'possibly-thunderstorm-day'
+                     'possibly-thunderstorm-night', 'windy', 'foggy', 'cloudy',
+                     'partly-cloudy-day','partly-cloudy-night']:
+            metData['Icon'] = Icon
+        else:
+            metData['Icon'] = '--'
+        
+    # Unable to extract forecast data from JSON object. Set set forecast 
+    # variables to blank and indicate to user that forecast is unavailable
     except (IndexError, KeyError, ValueError):
-        metData['Time']         = Now
+        metData['Time']         = funcCalled
         metData['Valid']        = '--'
         metData['Temp']         = '--'
         metData['highTemp']     = '--'
@@ -109,92 +183,21 @@ def Extract(metData,Config):
         metData['Conditions']   = ''
         metData['Icon']         = '--'
         metData['Status']       = 'Forecast currently\nunavailable...'
+        funcError               = 1
 
-        # Attempt to download forecast again in 5 minutes and return metData
-        # dictionary
-        if 'Schedule' in metData:
-            metData['Schedule'].cancel()
-        Clock.schedule_once(lambda dt: Download(metData,Config),300)
-        return metData
-
-    # Extract weather variables from current hourly forecast
-    Temp         = [hourlyCurrent['air_temperature'],'c']
-    WindSpd      = [hourlyCurrent['wind_avg'],'mps']
-    WindGust     = [hourlyCurrent['wind_gust'],'mps']
-    WindDir      = [hourlyCurrent['wind_direction'],'degrees']
-    PrecipPercnt = [hourlyCurrent['precip_probability'],'%']
-    PrecipAmount = [hourlyCurrent['precip'],'mm']
-    PrecipType   =  hourlyCurrent['precip_type']
-    Icon         =  hourlyCurrent['icon'].replace('cc-','')
-
-    # Extract weather variables from current daily forecast
-    highTemp  = [dailyCurrent['air_temp_high'],'c']
-    lowTemp   = [dailyCurrent['air_temp_low'],'c']
-    precipDay = [dailyCurrent['precip_probability'],'%']
-
-    # Extract list of expected conditions and find time when expected conditions
-    # will change
-    conditionList = list(forecast['conditions'] for forecast in hourlyForecasts)
-    try:
-        Ind = next(i for i,C in enumerate(conditionList) if C != hourlyCurrent['conditions'])
-    except StopIteration:
-        Ind = len(conditionList)-1
-    Time = datetime.fromtimestamp(Hours[Ind],pytz.utc).astimezone(Tz)
-    if Time.date() == Now.date():
-        Conditions = hourlyCurrent['conditions'].capitalize() + ' until ' + datetime.strftime(Time,TimeFormat) + ' today'
-    elif Time.date() == Now.date() + timedelta(days=1):
-        Conditions = hourlyCurrent['conditions'].capitalize() + ' until ' + datetime.strftime(Time,TimeFormat) + ' tomorrow'
+    # Schedule new forecast to be downloaded at the top of the next hour, or in
+    # 5 minutes if error was detected. Note secondsSched refers to number of 
+    # seconds since the function was last called. 
+    Now = datetime.now(pytz.utc).astimezone(Tz)
+    downloadTime = Tz.localize(datetime.combine(Now.date(),time(Now.hour,0,0))+timedelta(hours=1))
+    if not funcError:
+        secondsSched = math.ceil((downloadTime-funcCalled).total_seconds())
     else:
-        Conditions = hourlyCurrent['conditions'].capitalize() + ' until ' + datetime.strftime(Time,TimeFormat) + 'on' + Time.strftime('%A')
-
-    # Fix 'PrecipType' as Rain or Snow
-    if PrecipType not in ['rain','snow']:
-        PrecipType = 'rain'
-
-    # Calculate derived variables from forecast
-    WindDir = derive.CardinalWindDirection(WindDir,WindSpd)
-
-    # Convert forecast units as required
-    Temp         = observation.Units(Temp,Config['Units']['Temp'])
-    highTemp     = observation.Units(highTemp,Config['Units']['Temp'])
-    lowTemp      = observation.Units(lowTemp,Config['Units']['Temp'])
-    WindSpd      = observation.Units(WindSpd,Config['Units']['Wind'])
-    WindGust     = observation.Units(WindGust,Config['Units']['Wind'])
-    WindDir      = observation.Units(WindDir,Config['Units']['Direction'])
-    PrecipAmount = observation.Units(PrecipAmount,Config['Units']['Precip'])
-
-    # Define and format labels
-    metData['Time']         = Now
-    metData['Valid']        = datetime.strftime(Valid,TimeFormat)
-    metData['Temp']         = observation.Format(Temp,'forecastTemp')
-    metData['highTemp']     = observation.Format(highTemp,'forecastTemp')
-    metData['lowTemp']      = observation.Format(lowTemp,'forecastTemp')
-    metData['WindSpd']      = observation.Format(WindSpd,'forecastWind')
-    metData['WindGust']     = observation.Format(WindGust,'forecastWind')
-    metData['WindDir']      = observation.Format(WindDir,'Direction')
-    metData['PrecipPercnt'] = observation.Format(PrecipPercnt,'Humidity')
-    metData['PrecipDay']    = observation.Format(precipDay,'Humidity')
-    metData['PrecipAmount'] = observation.Format(PrecipAmount,'Precip')
-    metData['PrecipType']   = PrecipType
-    metData['Conditions']   = Conditions
-    metData['Icon']         = Icon
-    metData['Status']       = ''
-
-    # Check expected conditions icon is recognised
-    if Icon in  ['clear-day', 'clear-night', 'rainy', 'possibly-rainy-day',
-                 'possibly-rainy-night', 'snow', 'possibly-snow-day',
-                 'possibly-snow-night', 'sleet', 'possibly-sleet-day',
-                 'possibly-sleet-night', 'thunderstorm', 'possibly-thunderstorm-day'
-                 'possibly-thunderstorm-night', 'windy', 'foggy', 'cloudy',
-                 'partly-cloudy-day','partly-cloudy-night']:
-        metData['Icon'] = Icon
-    else:
-        metData['Icon'] = '--'
+        secondsSched = 10 + math.ceil((funcCalled-Now).total_seconds())
+    Clock.schedule_once(partial(Download,metData,Config), secondsSched)
         
-    # Schedule new forecast to be downloaded at the top of the next hour
-    forecastDownload = Tz.localize(datetime.combine(Now.date(),time(Now.hour+1)))
-    print((forecastDownload-Now).total_seconds())
-    Clock.schedule_once(lambda dt: Download(metData,Config), (forecastDownload-Now).total_seconds())
+    print('Forecast Seconds required: ', secondsSched, math.ceil((downloadTime-Now).total_seconds()))
+    print('Forecast scheduled: ',funcCalled + timedelta(seconds=secondsSched))
 
     # Return metData dictionary
     return metData

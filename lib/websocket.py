@@ -16,10 +16,10 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 """
 
 # Import required library modules
-from kivy.clock  import mainthread
-from lib         import derivedVariables   as derive
-from lib         import observationFormat  as observation
-from lib         import requestAPI
+from kivy.clock     import mainthread
+from lib            import derivedVariables   as derive
+from lib            import observationFormat  as observation
+from lib            import requestAPI
 import time
 
 # Define global variables
@@ -85,7 +85,7 @@ def Tempest(Msg,wfpiconsole):
 
     # Replace missing observations from latest TEMPEST Websocket JSON with NaN
     Ob = [x if x != None else NaN for x in Msg['obs'][0]]
-    
+
     # Discard duplicate TEMPEST Websocket messages
     if 'TempestMsg' in wfpiconsole.Obs:
         if wfpiconsole.Obs['TempestMsg']['obs'][0] == Ob[0]:
@@ -235,7 +235,7 @@ def Sky(Msg,wfpiconsole):
 
     # Replace missing observations from latest SKY Websocket JSON with NaN
     Ob = [x if x != None else NaN for x in Msg['obs'][0]]
-    
+
     # Discard duplicate SKY Websocket messages
     if 'SkyMsg' in wfpiconsole.Obs:
         if wfpiconsole.Obs['SkyMsg']['obs'][0] == Ob[0]:
@@ -340,12 +340,12 @@ def outdoorAir(Msg,wfpiconsole):
 
     # Replace missing observations in latest outdoor AIR Websocket JSON with NaN
     Ob = [x if x != None else NaN for x in Msg['obs'][0]]
-    
+
     # Discard duplicate outdoor AIR Websocket messages
     if 'outAirMsg' in wfpiconsole.Obs:
         if wfpiconsole.Obs['outAirMsg']['obs'][0] == Ob[0]:
             print('Discarding duplicate outdoor AIR Websocket message')
-            return    
+            return
 
     # Extract outdoor AIR device ID and API flag, and station configuration
     # object
@@ -450,12 +450,12 @@ def indoorAir(Msg,wfpiconsole):
 
     # Replace missing observations in latest indoor AIR Websocket JSON with NaN
     Ob = [x if x != None else NaN for x in Msg['obs'][0]]
-    
+
     # Discard duplicate indoor AIR Websocket messages
     if 'inAirMsg' in wfpiconsole.Obs:
         if wfpiconsole.Obs['inAirMsg']['obs'][0] == Ob[0]:
             print('Discarding duplicate indoor AIR Websocket message')
-            return     
+            return
 
     # Extract indoor AIR device ID and API flag, and station configuration
     # object
@@ -510,12 +510,12 @@ def rapidWind(Msg,wfpiconsole):
     # Replace missing observations from Rapid Wind Websocket JSON
     # with NaN
     Ob = [x if x != None else NaN for x in Msg['ob']]
-    
+
     # Discard duplicate Rapid Wind Websocket messages
     if 'RapidMsg' in wfpiconsole.Obs:
-        if wfpiconsole.Obs['RapidMsg']['ob'][0] == Ob[0]:
+        if wfpiconsole.Obs['RapidMsg']['ob'][0] != Ob[0]:
             print('Discarding duplicate Rapid Wind Websocket message')
-            return    
+            return
 
     # Extract observations from latest Rapid Wind Websocket JSON
     Time    = [Ob[0],'s']
@@ -572,7 +572,7 @@ def evtStrike(Msg,wfpiconsole):
     if 'evtStrikeMsg' in wfpiconsole.Obs:
         if wfpiconsole.Obs['evtStrikeMsg']['evt'][0] == Msg['evt'][0]:
             print('Discarding duplicate evt_strike Websocket message')
-            return   
+            return
 
     # Extract required observations from latest evt_strike Websocket JSON
     StrikeTime = [Msg['evt'][0],'s']

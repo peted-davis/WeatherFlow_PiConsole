@@ -220,7 +220,7 @@ class wfpiconsole(App):
                               ('lowTemp','--'),        ('WindSpd','--'),       ('WindGust','--'),
                               ('WindDir','--'),        ('PrecipPercnt','--'),  ('PrecipDay','--'),
                               ('PrecipAmount','--'),   ('PrecipType','--'),    ('Conditions','-'),
-                              ('Icon','--')
+                              ('Icon','--'),           ('Status','--')
                              ])
     Sager   = DictProperty  ([('Forecast','--'),       ('Issued','--')])
     System  = DictProperty  ([('Time','-'),            ('Date','-')])
@@ -268,11 +268,12 @@ class wfpiconsole(App):
         # Initialise real time clock
         Clock.schedule_interval(partial(system.realtimeClock,self.System,self.config),1.0)
 
-        # Initialise Sunrise and Sunset time, Moonrise and Moonset time, and
-        # WeatherFlow weather forecast
+        # Initialise Sunrise, Sunset, Moonrise and Moonset times
         astro.SunriseSunset(self.Astro,self.config)
         astro.MoonriseMoonset(self.Astro,self.config)
-        forecast.Download(self.MetData,self.config)
+        
+        # Fetch WeatherFlow weather forecast
+        Clock.schedule_once(partial(forecast.Download,self.MetData,self.config))
 
         # Generate Sager Weathercaster forecast
         Thread(target=sagerForecast.Generate, args=(self.Sager,self.config), name="Sager", daemon=True).start()
@@ -288,8 +289,7 @@ class wfpiconsole(App):
         self.Station = Station()
         Clock.schedule_interval(self.Station.getDeviceStatus,1.0)
 
-        # Schedule function calls
-        Clock.schedule_interval(self.UpdateMethods,1.0)
+        # Schedule sunTransit and moonPhase functions to be called each second
         Clock.schedule_interval(partial(astro.sunTransit,self.Astro,self.config),1.0)
         Clock.schedule_interval(partial(astro.moonPhase ,self.Astro,self.config),1.0)
 
@@ -479,35 +479,9 @@ class wfpiconsole(App):
         # Unknown message type, print message to terminal and restart Websocket
         # connection
         elif Type == 'Unknown':
-            log.msg('Unknown message type: ' + json.dumps(Msg))
-            log.msg('Waiting 60 seconds to restart Websocket connection'); sleep(60)
-            self._factory._proto.sendClose()
-
-    # UPDATE 'WeatherFlowPiConsole' APP CLASS METHODS AT REQUIRED INTERVALS
-    # --------------------------------------------------------------------------
-    def UpdateMethods(self,dt):
-
-        # Get current time in station timezone
-        Tz = pytz.timezone(self.config['Station']['Timezone'])
-        Now = datetime.now(pytz.utc).astimezone(Tz)
-        Now = Now.replace(microsecond=0)
-
-        # At the top of each hour download a new forecast for the Station
-        #if Now.hour > self.MetData['Time'].hour or Now.date() > self.MetData['Time'].date():
-        #   forecast.Download(self.MetData,self.config)
-
-        # Once dusk has passed, calculate new sunrise/sunset times
-        if Now >= self.Astro['Dusk'][0]:
-            self.Astro = astro.SunriseSunset(self.Astro,self.config)
-
-        # Once moonset has passed, calculate new moonrise/moonset times
-        if Now > self.Astro['Moonset'][0]:
-            self.Astro = astro.MoonriseMoonset(self.Astro,self.config)
-
-        # At midnight, update Sunset, Sunrise, Moonrise and Moonset Kivy Labels
-        if self.Astro['Reformat'] and Now.replace(second=0).time() == time(0,0,0):
-            self.Astro = astro.Format(self.Astro,self.config,"Sun")
-            self.Astro = astro.Format(self.Astro,self.config,"Moon")
+            print('Unknown message type: ' + json.dumps(Msg))
+            print('Waiting 60 seconds to restart Websocket connection');
+            Clock.schedule_once(lambda dt: self._factory._proto.sendClose(), 60)
 
 # ==============================================================================
 # CurrentConditions SCREEN CLASS

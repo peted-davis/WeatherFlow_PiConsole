@@ -192,7 +192,7 @@ def Format(astroData,Config,Type):
     # Get current time in Station timezone
     Tz = pytz.timezone(Config['Station']['Timezone'])
     Now = datetime.now(pytz.utc).astimezone(Tz)
-    
+
     # Set time format based on user configuration
     if Config['Display']['TimeFormat'] == '12 hr':
         if Config['System']['Hardware'] != 'Other':
@@ -311,6 +311,22 @@ def sunTransit(astroData, Config, *largs):
         # Define Kivy Label binds
         astroData['sunEvent']   = ['[color=00A4B4FF]Nightfall[/color]','{:02.0f}'.format(hours),'{:02.0f}'.format(minutes),'Dusk']
         astroData['sunIcon']    = ['-',1,sunPosition]
+
+    # Once dusk has passed calculate new sunrise/sunset times
+    if Now.replace(microsecond=0) >= astroData['Dusk'][0]:
+        astroData = SunriseSunset(astroData,Config)
+        print("dusk has passed calculate new sunrise/sunset times")
+
+    # Once moonset has passed, calculate new moonrise/moonset times
+    if Now.replace(microsecond=0) > astroData['Moonset'][0]:
+        astroData = MoonriseMoonset(astroData,Config)
+        print("moonset has passed calculate new sunrise/sunset times")
+
+    # At midnight update sunrise/sunset times
+    if astroData['Reformat'] and Now.replace(second=0).replace(microsecond=0).time() == time(0,0,0):
+        print("At midnight update sunrise/sunset times")
+        astroData = Format(astroData,Config,"Sun")
+        astroData = Format(astroData,Config,"Moon")
 
     # Return dictionary containing sun transit data
     return astroData
