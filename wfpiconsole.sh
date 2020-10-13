@@ -34,12 +34,17 @@ PKG_UPDATE_CACHE="${PKG_MANAGER} update"
 PKG_UPDATE_INSTALL="${PKG_MANAGER} dist-upgrade -y"
 PKG_UPDATE_COUNT="${PKG_MANAGER} -s -o Debug::NoLocking=true upgrade | grep -c ^Inst || true"
 PKG_NEW_INSTALL=(${PKG_MANAGER} --yes install)
-PKG_DEPENDENCIES=(libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev
-                  pkg-config libgl1-mesa-dev libgles2-mesa-dev python-setuptools
-                  libgstreamer1.0-dev git gstreamer1.0-plugins-{bad,base,good,ugly}
-                  python-dev libmtdev-dev xclip xsel libatlas-base-dev gstreamer1.0-{omx,alsa}
-                  rng-tools build-essential libssl-dev libjpeg-dev libffi6 libffi-dev jq)
-PYTHON_MODS=(autobahn[twisted] numpy pytz pyasn1-modules service_identity geopy ephem pillow packaging)
+PKG_DEPENDENCIES=(git curl rng-tools build-essential python3-pip python3-setuptools libssl-dev
+                  libffi6 libffi-dev jq)
+KIVY_DEPENDENCIES_ARM=(libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev
+                       pkg-config libgl1-mesa-dev libgles2-mesa-dev libgstreamer1.0-dev
+                       gstreamer1.0-plugins-{bad,base,good,ugly} libmtdev-dev xclip xsel
+                       libatlas-base-dev gstreamer1.0-{omx,alsa} libjpeg-dev)
+KIVY_DEPENDENCIES=(ffmpeg libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev
+                   libportmidi-dev libswscale-dev libavformat-dev libavcodec-dev zlib1g-dev
+                   libgstreamer1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good)
+PYTHON_MODS=(autobahn[twisted] numpy pytz pyasn1-modules service_identity geopy ephem pillow
+             packaging pyOpenSSL)
 CYTHON_VERSION="0.29.10"
 KIVY_VERSION="1.11.1"
 KIVY_REPO="https://github.com/kivy/kivy/archive/"$KIVY_VERSION".zip"
@@ -99,28 +104,6 @@ cleanUp() {
     rm -f pythonCommand errorLog
 }
 
-# CHECK COMPATABILITY OF SYSTEM FOR RUNNING THE WEATHERFLOW PICONSOLE
-# ------------------------------------------------------------------------------
-hardwareCheck() {
-
-    # Ensure installer is running on a Raspberry Pi
-    local Processor=$(uname -m)
-    if [[ "$Processor" = "arm"* ]]; then
-        printf "  %b Raspberry Pi found. Hardware check passed\\n" "${TICK}"
-        if isCommand apt-get ; then
-            printf "  %b Raspbian (Debian) found. OS check passed\\n" "${TICK}"
-        else
-            printf "  %b Raspbian (Debian) not found. OS check failed\\n\\n" "${CROSS}"
-            cleanUp
-            exit 1
-        fi
-    else
-        printf "  %b Raspberry Pi not found. Hardware check failed\\n" "${CROSS}"
-        cleanUp
-        exit 1
-    fi
-}
-
 # UPDATE LOCAL PACKAGES USING apt-get update AND apt-get upgrade
 # ------------------------------------------------------------------------------
 updatePackages() {
@@ -132,10 +115,10 @@ updatePackages() {
 
         # If there are updates to install, check if user wishes to apply updates
         updatesToInstall=$(eval ${PKG_UPDATE_COUNT})
-        if [ "$updatesToInstall" -gt "0" ]; then
+        if [[ "$updatesToInstall" -gt "0" ]]; then
             backtitle="Installing updated packages"
             title="Updated packages available to install"
-            if [ "$updatesToInstall" -eq "1" ]; then
+            if [[ "$updatesToInstall" -eq "1" ]]; then
                 msg="OPTIONAL: There is $updatesToInstall updated package to install. Do you wish to install it? This step is not required, but is highly recommended to keep your Raspberry Pi up-to-date and secure"
             else
                 msg="OPTIONAL: There are $updatesToInstall updated packages to install. Do you wish to install them? This step is not required, but is highly recommended to keep your Raspberry Pi up-to-date and secure"
@@ -181,7 +164,7 @@ installPackages() {
 
     # Parse function input and print progress to screen
     printf "\\n  %b WeatherFlow PiConsole dependency checks...\\n" "${INFO}"
-    declare -a argArray=("${!1}")
+    declare -a argArray=("${PKG_DEPENDENCIES[@]}")
     declare -a installArray
 
     # Check if any of the dependent packages are already installed.
@@ -228,21 +211,21 @@ installPythonModules() {
 
     # Parse function input and print progress to screen.
     printf "\\n  %b WeatherFlow PiConsole Python module checks..." "${INFO}"
-    declare -a argArray=("${!1}")
+    declare -a argArray=("${PYTHON_MODS[@]}")
     declare -a installArray
 
     # Update Python package manager: pip
     updatePip
 
     # Get list of installed Python modules
-    PythonList=`python3 -m pip list`
+    moduleList=$(python3 -m pip list)
 
-    # Check if any of the dependent Python modules are already installed.
+    # Check if any of the required Python modules are already installed.
     for i in "${argArray[@]}"; do
-        Module=`echo $i | cut -d"[" -f 1 | cut -d"=" -f 1`
+        Module=$(echo $i | cut -d"[" -f 1 | cut -d"=" -f 1)
         local str="Checking for Python module"
         printf "  %b %s %s..." "${INFO}" "${str}" "${Module}"
-        if echo $PythonList | grep -iF $Module &> /dev/null; then
+        if echo $moduleList | grep -iF $Module &> /dev/null; then
             printf "%b  %b %s %s\\n" "${OVER}" "${TICK}" "${str}" "${i}"
         else
             if python3 -c "import ${i%[*}" &> /dev/null; then
@@ -257,20 +240,20 @@ installPythonModules() {
     # Check if required Cython version is installed
     local str="Checking for Python module cython"
     printf "  %b %s %s..." "${INFO}" "${str}" "${Module}"
-    if echo $PythonList | grep -iF Cython &> /dev/null; then
-        cythonVersion=`echo $PythonList | sed -n 's/.*Cython //p' | cut -d" " -f 1`
-        if [ "$CYTHON_VERSION" == "$cythonVersion" ]; then
+    if echo $moduleList | grep -iF Cython &> /dev/null; then
+        cythonVersion=$(echo $moduleList | sed -n 's/.*Cython //p' | cut -d" " -f 1)
+        if [[ "$CYTHON_VERSION" == "$cythonVersion" ]]; then
             printf "%b  %b %s \\n" "${OVER}" "${TICK}" "${str}"
         else
-            printf "%b  %b %s (will be installed)\\n" "${OVER}" "${INFO}" "${str}"
-            local requireCython=true
+            printf "%b  %b %s (will be updated)\\n" "${OVER}" "${INFO}" "${str}"
+            local updateCython=true
         fi
     else
         printf "%b  %b %s (will be installed)\\n" "${OVER}" "${INFO}" "${str}"
         local requireCython=true
     fi
 
-    # Only install dependent Python modules that are missing from the system to
+    # Only install required Python modules that are missing from the system to
     # avoid unecessary downloading
     if [[ "${#installArray[@]}" -gt 0 ]]; then
         printf "\\n  %b Installing WeatherFlow PiConsole Python modules...\\n" "${INFO}"
@@ -289,60 +272,96 @@ installPythonModules() {
         done
     fi
 
-    # Install Cython if required
-    if [ "$requireCython" = true ] ; then
-        installCython
-    fi
-}
-
-# INSTALL CYTHON
-# ------------------------------------------------------------------------------
-installCython() {
-    local str="Installing Python module cython"
-    printf "  %b %s..." "${INFO}" "${str}"
-    if (python3 -m pip install --user cython==$CYTHON_VERSION &> errorLog); then
-        printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
-    else
-        printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
-        printf "  %bError: Unable to install Python module cython\\n\\n %b" "${COL_LIGHT_RED}" "${COL_NC}"
-        printf "%s\\n\\n" "$(<errorLog)"
-        cleanUp
-        exit 1
-    fi
-}
-
-# UPDATE DEPENDENT PYTHON MODULES FOR THE WeatherFlow PiConsole
-# ------------------------------------------------------------------------------
-updatePythonModules() {
-
-    # Parse function input and print progress to screen
-    printf "\\n  %b Updating WeatherFlow PiConsole Python modules...\\n" "${INFO}"
-    declare -a argArray=("${!1}")
-
-    # Update outdated dependent Python modules
-    for i in "${argArray[@]}"; do
-        local str="Updating Python module"
-        printf "  %b %s %s..." "${INFO}" "${str}" "${i}"
-        if (python3 -m pip install --user --upgrade "$i" &> errorLog); then
-            printf "%b  %b %s %s\\n" "${OVER}" "${TICK}" "${str}" "${i}"
+    # Install/Update Cython if required
+    if [[ "$requireCython" = true ]] || [[ "$updateCython" = true ]] ; then
+        if [[ "${#installArray[@]}" -eq 0 ]] && [[ "$updateCython" = true ]] ; then
+            printf "\\n  %b Updating WeatherFlow PiConsole Python modules...\\n" "${INFO}"
+        fi
+        if [[ "$requireCython" = true ]]; then
+            local str="Installing Python module cython"
+        else
+            local str="Updating Python module cython"
+        fi
+        printf "  %b %s..." "${INFO}" "${str}"
+        if (python3 -m pip install --user cython==$CYTHON_VERSION &> errorLog); then
+            printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
         else
             printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
-            printf "  %bError: Unable to update Python module: $i\\n\\n %b" "${COL_LIGHT_RED}" "${COL_NC}"
+            printf "  %bError: Unable to install Python module cython\\n\\n %b" "${COL_LIGHT_RED}" "${COL_NC}"
             printf "%s\\n\\n" "$(<errorLog)"
             cleanUp
             exit 1
         fi
+    fi
+}
+
+# INSTALL PACKAGES REQUIRED BY KIVY PYTHON LIBRARY
+# ------------------------------------------------------------------------------
+installKivyPackages() {
+
+    # Define required packages and print progress to screen
+    printf "\\n  %b Kivy Python library dependency checks...\\n" "${INFO}"
+    if [[ "$PROCESSOR" = "arm"* ]]; then
+        declare -a argArray=("${KIVY_DEPENDENCIES_ARM[@]}")
+    else
+        declare -a argArray=("${KIVY_DEPENDENCIES[@]}")
+    fi
+    declare -a installArray
+
+    # Check if any of the required packages are already installed.
+    for i in "${argArray[@]}"; do
+        printf "  %b Checking for %s..." "${INFO}" "${i}"
+        if dpkg-query -W -f='${Status}' "${i}" 2>/dev/null | grep "ok installed" &> /dev/null; then
+            printf "%b  %b Checking for %s\\n" "${OVER}" "${TICK}" "${i}"
+        else
+            echo -e "${OVER}  ${INFO} Checking for $i (will be installed)"
+            installArray+=("${i}")
+        fi
     done
+
+    # Only install required packages that are missing from the system to avoid
+    # unecessary downloading
+    if [[ "${#installArray[@]}" -gt 0 ]]; then
+        if ! (sudo debconf-apt-progress --logfile errorLog -- "${PKG_NEW_INSTALL[@]}" "${installArray[@]}"); then
+            printf "  %b\\nError: Unable to install dependent packages\\n\\n %b" "${COL_LIGHT_RED}" "${COL_NC}"
+            printf "%s\\n\\n" "$(<errorLog)"
+            cleanUp
+            exit 1
+        fi
+    fi
 }
 
 # INSTALL KIVY PYTHON LIBRARY
 # ------------------------------------------------------------------------------
 installKivy() {
-    local str="Installing Kivy Python library [This will take time - please be patient]"
+
+    # Parse function input and print progress to screen
+    #printf "\\n  %b Kivy Python library installation check..." "${INFO}"
+
+    # Check if required Kivy version is installed
+    local str="Kivy Python library installation check"
     printf "\\n  %b %s..." "${INFO}" "${str}"
     if python3 -c "import kivy" &> /dev/null; then
-        printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
+        kivyVersion=$(python3 -m pip show kivy | grep Version | cut -d" " -f2)
+        if [[ "$KIVY_VERSION" == "$kivyVersion" ]]; then
+            printf "%b  %b %s \\n" "${OVER}" "${TICK}" "${str}"
+        else
+            printf "%b  %b %s (will be updated)" "${OVER}" "${INFO}" "${str}"
+            local updateKivy=true
+        fi
     else
+        printf "%b  %b %s (will be installed)" "${OVER}" "${INFO}" "${str}"
+        local installKivy=true
+    fi
+
+    # Install Kivy Python library
+    if [[ "$updateKivy" = true ]] || [[ "$installKivy" = true ]]; then
+        if [[ "$updateKivy" = true ]]; then
+            local str="Updating Kivy Python library [This will take time - please be patient]"
+        else
+            local str="Installing Kivy Python library [This will take time - please be patient]"
+        fi
+        printf "\\n  %b %s..." "${INFO}" "${str}"
         if (python3 -m pip install --user $KIVY_REPO &> errorLog); then
             printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
         else
@@ -352,6 +371,9 @@ installKivy() {
             cleanUp
             exit 1
         fi
+
+        # Update Kivy configuration
+        updateKivyConfig
     fi
 }
 
@@ -414,7 +436,7 @@ getLatestVersion() {
 
     # If the WeatherFlow PiConsole is already installed, get the current
     # installed version from wfpiconsole.ini file.
-    if [ -f $CONSOLEDIR/wfpiconsole.ini ]; then
+    if [[ -f $CONSOLEDIR/wfpiconsole.ini ]]; then
         currentVer=$(python3 -c "import configparser; c=configparser.ConfigParser(); c.read('$CONSOLEDIR/wfpiconsole.ini'); print(c['System']['Version'])")
         printf "\\n  %b Latest version of WeatherFlow PiConsole: %s" "${INFO}" "${latestVer}"
         printf "\\n  %b Installed version of WeatherFlow PiConsole: %s" "${INFO}" "${currentVer}"
@@ -439,6 +461,7 @@ getLatestVersion() {
         local str="Installing the latest version of WeatherFlow PiConsole: ${COL_LIGHT_GREEN}${latestVer}${COL_NC}"
         printf "\\n  %b %b..." "${INFO}" "${str}"
         curl -sL $tarballLoc --create-dirs -o $DLDIR/wfpiconsole.tar.gz
+
         installLatestVersion
     fi
 }
@@ -484,7 +507,7 @@ installLatestVersion() {
 
     # Ensure console directory is owned by the correct user
     consoleOwner=$(stat -c "%U" $CONSOLEDIR)
-    if [ "$consoleOwner" != "$USER" ]; then
+    if [[ "$consoleOwner" != "$USER" ]]; then
         sudo chown -fR $USER $CONSOLEDIR
         sudo chgrp -fR $USER $CONSOLEDIR
     fi
@@ -502,8 +525,8 @@ installServiceFile () {
     # Write current user and install directory to wfpiconsole.service file
     sed -i "s+WorkingDirectory=.*$+WorkingDirectory=$CONSOLEDIR+" $CONSOLEDIR/wfpiconsole.service
     sed -i "s+User=.*$+User=$USER+" $CONSOLEDIR/wfpiconsole.service
-    sed -i "s+StandardOutput=.*$+StandardOutput=file:$CONSOLEDIR/wfpiconsole.log+" $CONSOLEDIR/wfpiconsole.service
-    sed -i "s+StandardError=.*$+StandardError=file:$CONSOLEDIR/wfpiconsole.log+" $CONSOLEDIR/wfpiconsole.service
+    sed -i "s+StandardOutput=.*$+StandardOutput=file:${CONSOLEDIR}wfpiconsole.log+" $CONSOLEDIR/wfpiconsole.service
+    sed -i "s+StandardError=.*$+StandardError=file:${CONSOLEDIR}wfpiconsole.log+" $CONSOLEDIR/wfpiconsole.service
 
     # Install wfpiconsole.service file to /etc/systemd/system/ and reload deamon
     local str="Copying service file to autostart directory"
@@ -681,18 +704,16 @@ install() {
 
     # Display installation starting dialogue
     processStarting ${FUNCNAME[0]}
-    # Check that the install command is being run on a Raspberry Pi
-    hardwareCheck
     # Check for and ask user if they wish to install any updated local packages
     updatePackages
     # Install required packages
-    installPackages PKG_DEPENDENCIES[@]
+    installPackages
     # Install required Python modules
-    installPythonModules PYTHON_MODS[@]
+    installPythonModules
+    # Install required Kivy dependencies
+    installKivyPackages
     # Install Kivy Python library
     installKivy
-    # Configure Kivy for touchscreen
-    updateKivyConfig
     # Get the latest version of the WeatherFlow PiConsole and install
     getLatestVersion
     # Clean up after update
@@ -716,16 +737,16 @@ runUpdate() {
 
     # Display installation starting dialogue
     processStarting ${FUNCNAME[0]}
-    # Check that the install command is being run on a Raspberry Pi
-    hardwareCheck
     # Check for and ask user if they wish to install any updated local packages
     updatePackages
     # Check if any new dependencies are required
-    installPackages PKG_DEPENDENCIES[@]
+    installPackages
     # Check if any new Python modules are required
-    installPythonModules PYTHON_MODS[@]
-    # Update outdated dependent Python modules
-    #updatePythonModules PYTHON_MODS[@]
+    installPythonModules
+    # Install required Kivy dependencies
+    installKivyPackages
+    # Install Kivy Python library
+    installKivy
     # Get the latest version of the WeatherFlow PiConsole and install
     getLatestVersion
     # Clean up after installation
@@ -806,7 +827,7 @@ if [ $# -eq 0 ]; then
     helpFunc
 fi
 
-# ENSURE ROOT ACCESS IS AVAILABLE AND PARSE COMMAND LINE INPUTS
+# ENSURE ROOT ACCESS IS AVAILABLE
 # ------------------------------------------------------------------------------
 # Ensure sudo command is available and script can be elevated to root privileges
 if [[ ! -x "$(command -v sudo)" ]]; then
@@ -831,7 +852,48 @@ if [[ "${1}" != "start" ]]; then
     fi
 fi
 
-# Handle redirecting to specific functions based on input arguments
+# CHECK OS/HARDWARE AND ADD REQUIRED REPOSITORIES WHEN INSTALL OR UPDATING
+# ------------------------------------------------------------------------------
+if [[ "${1}" == "install" ]] || [[ "${1}" == "update" ]] || [[ "${1}" == "runUpdate" ]]; then
+
+    # Check compatability of hardware/OS
+    PROCESSOR=$(uname -m)
+    if [[ "$PROCESSOR" = "arm"* ]] || [[ "$PROCESSOR" = "x86_64"* ]] || [[ "$PROCESSOR" = "i386"* ]]; then
+        printf "  %b Hardware check passed (%b)\\n" "${TICK}" "${PROCESSOR}"
+    else
+        printf "  %b Hardware check failed (%b)\\n\\n" "${CROSS}" "${PROCESSOR}"
+        cleanUp
+        exit 1
+    fi
+    OS=$(. /etc/os-release && echo $PRETTY_NAME)
+    if isCommand apt-get ; then
+        printf "  %b OS check passed (%b)\\n" "${TICK}" "${OS}"
+    else
+        printf "  %b OS check failed (%b)\\n\\n" "${CROSS}" "${OS}"
+        cleanUp
+        exit 1
+    fi
+
+    # Add "universe" repository when running Ubtuntu if required
+    if echo $OS | grep -iF "Ubuntu" &> /dev/null; then
+        if ! (find /etc/apt/ -name *.list | xargs cat | grep universe &> /dev/null); then
+            str="Enabling Universe repository in Ubuntu"
+            printf "  %b %s..." "${INFO}" "${str}"
+            if (sudo add-apt-repository universe &> errorLog); then
+                printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
+            else
+                printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
+                printf "  %bError: Unable to enabling Universe repository.\\n\\n %b" "${COL_LIGHT_RED}" "${COL_NC}"
+                printf "%s\\n\\n" "$(<errorLog)"
+                cleanUp
+                exit 1
+            fi
+        fi
+    fi
+fi
+
+# HANDLE REDIRECTING TO SPECIFIC FUNCTIONS BASED ON INPUT ARGUMENTS
+# ------------------------------------------------------------------------------
 case "${1}" in
     "start"               ) start;;
     "stop"                ) stop;;
