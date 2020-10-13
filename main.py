@@ -251,7 +251,7 @@ class wfpiconsole(App):
         self.window = Window
         windowSize  = self.window.size
         self.window.bind(on_resize=self.setScaleFactor)
-        if self.config['System']['Hardware'] in ['Pi4','Other']:
+        if self.config['System']['Hardware'] in ['Pi4', 'Linux', 'Other']:
             windowPosi = (self.window.left,self.window.top)
             if int(self.config['Display']['Fullscreen']):
                 self.window.fullscreen='auto'
@@ -404,7 +404,7 @@ class wfpiconsole(App):
     # CONNECT TO THE SECURE WEATHERFLOW WEBSOCKET SERVER
     # --------------------------------------------------------------------------
     def WebsocketConnect(self):
-        Server = 'wss://ws.weatherflow.com/swd/data?api_key=' + self.config['Keys']['WeathFlowToken']
+        Server = 'wss://ws.weatherflow.com/swd/data?api_key=' + self.config['Keys']['WeatherFlow']
         self._factory = WeatherFlowClientFactory(Server,self)
         reactor.connectSSL('ws.weatherflow.com',443,self._factory,ssl.ClientContextFactory(),20)
 

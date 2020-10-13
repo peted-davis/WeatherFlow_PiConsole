@@ -513,7 +513,7 @@ def rapidWind(Msg,wfpiconsole):
 
     # Discard duplicate Rapid Wind Websocket messages
     if 'RapidMsg' in wfpiconsole.Obs:
-        if wfpiconsole.Obs['RapidMsg']['ob'][0] != Ob[0]:
+        if wfpiconsole.Obs['RapidMsg']['ob'][0] == Ob[0]:
             print('Discarding duplicate Rapid Wind Websocket message')
             return
 
