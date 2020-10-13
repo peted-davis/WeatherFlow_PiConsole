@@ -60,8 +60,6 @@ def Generate(sagerDict,Config):
     Now = int(UNIX.time())
     Tz  = pytz.timezone(Config['Station']['Timezone'])
     funcCalled = datetime.now(pytz.utc).astimezone(Tz)
-    
-    print('Sager run: ',funcCalled)
 
     # Define required station variables for the Sager Weathercaster Forecast
     sagerDict['Lat'] = float(Config['Station']['Latitude'])
@@ -239,9 +237,6 @@ def Generate(sagerDict,Config):
         forecastTime = Tz.localize(datetime.combine(Date,Time))
     secondsSched = math.ceil((forecastTime - funcCalled).total_seconds())
     Clock.schedule_once(lambda dt: Generate(sagerDict,Config), secondsSched)
-
-    print('Sager Seconds required: ', secondsSched, math.ceil((forecastTime-Now).total_seconds()))
-    print('Sager scheduled: ',funcCalled + timedelta(seconds=secondsSched))
 
     # Return Sager Weathercaster forecast
     return sagerDict

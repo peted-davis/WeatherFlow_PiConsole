@@ -315,16 +315,13 @@ def sunTransit(astroData, Config, *largs):
     # Once dusk has passed calculate new sunrise/sunset times
     if Now.replace(microsecond=0) >= astroData['Dusk'][0]:
         astroData = SunriseSunset(astroData,Config)
-        print("dusk has passed calculate new sunrise/sunset times")
 
     # Once moonset has passed, calculate new moonrise/moonset times
     if Now.replace(microsecond=0) > astroData['Moonset'][0]:
         astroData = MoonriseMoonset(astroData,Config)
-        print("moonset has passed calculate new sunrise/sunset times")
 
     # At midnight update sunrise/sunset times
     if astroData['Reformat'] and Now.replace(second=0).replace(microsecond=0).time() == time(0,0,0):
-        print("At midnight update sunrise/sunset times")
         astroData = Format(astroData,Config,"Sun")
         astroData = Format(astroData,Config,"Moon")
 

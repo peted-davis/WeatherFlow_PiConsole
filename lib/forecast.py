@@ -31,7 +31,7 @@ import math
 
 def Download(metData,Config,dt):
 
-    """ Download the latest daily and hourly weather forecast data using the 
+    """ Download the latest daily and hourly weather forecast data using the
     WeatherFlow BetterForecast API
 
     INPUTS:
@@ -48,8 +48,6 @@ def Download(metData,Config,dt):
     funcCalled = datetime.now(pytz.utc).astimezone(Tz)
     Midnight   = int(Tz.localize(datetime(funcCalled.year,funcCalled.month,funcCalled.day)).timestamp())
     funcError  = 0
-    
-    print('Forecast run: ',funcCalled)
 
     # Set time format based on user configuration
     if Config['Display']['TimeFormat'] == '12 hr':
@@ -59,7 +57,7 @@ def Download(metData,Config,dt):
             TimeFormat = '%I %p'
     else:
         TimeFormat = '%H:%M'
-        
+
     # Download latest forecast data
     Data = requestAPI.weatherflow.Forecast(Config)
 
@@ -79,8 +77,10 @@ def Download(metData,Config,dt):
 
         # Extract 'valid from' time of all available hourly forecasts and
         # retrieve forecast for the current hour
-        Hours         = list(forecast['time'] for forecast in hourlyForecasts)
-        hourlyCurrent = hourlyForecasts[bisect.bisect(Hours,int(UNIX.time()))]
+        Hours          = list(forecast['time'] for forecast in hourlyForecasts)
+        hoursInd       = bisect.bisect(Hours,int(UNIX.time()))
+        hourlyCurrent  = hourlyForecasts[hoursInd]
+        hourlyLocalDay = hourlyCurrent['local_day']
 
         # Extract 'Valid' until time of forecast for current hour
         Valid = Hours[bisect.bisect(Hours,int(UNIX.time()))]
@@ -88,8 +88,8 @@ def Download(metData,Config,dt):
 
         # Extract 'day_start_local' time of all available daily forecasts and
         # retrieve forecast for the current day
-        Days         = list(forecast['day_start_local'] for forecast in dailyForecasts)
-        dailyCurrent = dailyForecasts[Days.index(Midnight)]
+        dailyDayNum  = list(forecast['day_num'] for forecast in dailyForecasts)
+        dailyCurrent = dailyForecasts[dailyDayNum.index(hourlyLocalDay)]
 
         # Extract weather variables from current hourly forecast
         Temp         = [hourlyCurrent['air_temperature'],'c']
@@ -108,7 +108,7 @@ def Download(metData,Config,dt):
 
         # Extract list of expected conditions and find time when expected conditions
         # will change
-        conditionList = list(forecast['conditions'] for forecast in hourlyForecasts)
+        conditionList = list(forecast['conditions'] for forecast in hourlyForecasts[hoursInd:])
         try:
             Ind = next(i for i,C in enumerate(conditionList) if C != hourlyCurrent['conditions'])
         except StopIteration:
@@ -119,7 +119,7 @@ def Download(metData,Config,dt):
         elif Time.date() == funcCalled.date() + timedelta(days=1):
             Conditions = hourlyCurrent['conditions'].capitalize() + ' until ' + datetime.strftime(Time,TimeFormat) + ' tomorrow'
         else:
-            Conditions = hourlyCurrent['conditions'].capitalize() + ' until ' + datetime.strftime(Time,TimeFormat) + 'on' + Time.strftime('%A')
+            Conditions = hourlyCurrent['conditions'].capitalize() + ' until ' + datetime.strftime(Time,TimeFormat) + ' on ' + Time.strftime('%A')
 
         # Fix 'PrecipType' as Rain or Snow
         if PrecipType not in ['rain','snow']:
@@ -164,8 +164,8 @@ def Download(metData,Config,dt):
             metData['Icon'] = Icon
         else:
             metData['Icon'] = '--'
-        
-    # Unable to extract forecast data from JSON object. Set set forecast 
+
+    # Unable to extract forecast data from JSON object. Set set forecast
     # variables to blank and indicate to user that forecast is unavailable
     except (IndexError, KeyError, ValueError):
         metData['Time']         = funcCalled
@@ -186,8 +186,8 @@ def Download(metData,Config,dt):
         funcError               = 1
 
     # Schedule new forecast to be downloaded at the top of the next hour, or in
-    # 5 minutes if error was detected. Note secondsSched refers to number of 
-    # seconds since the function was last called. 
+    # 5 minutes if error was detected. Note secondsSched refers to number of
+    # seconds since the function was last called.
     Now = datetime.now(pytz.utc).astimezone(Tz)
     downloadTime = Tz.localize(datetime.combine(Now.date(),time(Now.hour,0,0))+timedelta(hours=1))
     if not funcError:
@@ -195,9 +195,6 @@ def Download(metData,Config,dt):
     else:
         secondsSched = 10 + math.ceil((funcCalled-Now).total_seconds())
     Clock.schedule_once(partial(Download,metData,Config), secondsSched)
-        
-    print('Forecast Seconds required: ', secondsSched, math.ceil((downloadTime-Now).total_seconds()))
-    print('Forecast scheduled: ',funcCalled + timedelta(seconds=secondsSched))
 
     # Return metData dictionary
     return metData
