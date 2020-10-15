@@ -35,18 +35,18 @@ else:
     configFile.update()
 
 # ==============================================================================
-# INITIALISE KIVY GRAPHICS BACKEND BASED ON CURRENT HARDWARE TYPE
+# INITIALISE KIVY GRAPHICS WINDOW BASED ON CURRENT HARDWARE TYPE
 # ==============================================================================
 # Import required modules
 import configparser
 import os
 
-# Load config file
+# Load wfpiconsole.ini config file
 config = configparser.ConfigParser()
 config.read('wfpiconsole.ini')
 
 # Initialise Kivy backend based on current hardware
-if config['System']['Hardware'] == 'Pi4':
+if config['System']['Hardware'] in ['Pi4','Linux']:
     os.environ['SDL_VIDEO_ALLOW_SCREENSAVER'] = '1'
     os.environ['KIVY_GRAPHICS'] = 'gles'
     os.environ['KIVY_WINDOW']   = 'sdl2'
@@ -54,18 +54,52 @@ elif config['System']['Hardware'] in ['PiB','Pi3']:
     os.environ['KIVY_GL_BACKEND'] = 'gl'
 
 # ==============================================================================
-# ENABLE MOUSE SUPPORT ON RASPBERRY PI 3
+# INITIALISE KIVY WINDOW PROPERTIES BASED ON OPTIONS SET IN wfpiconsole.ini
 # ==============================================================================
-# Load Kivy configuration file
-kivyconfig = configparser.ConfigParser()
-kivyconfig.read(os.path.expanduser('~/.kivy/') + 'config.ini')
+# Import required modules
+from kivy.config import Config as kivyconfig
 
-# Add mouse support if not already set
+# Generate default wfpiconsole Kivy config file. Config file is always 
+# regenerated to ensure changes to the default file are always copied across 
+defaultconfig = configparser.ConfigParser()
+defaultconfig.read(os.path.expanduser('~/.kivy/') + 'config.ini')
+with open(os.path.expanduser('~/.kivy/') + 'config_wfpiconsole.ini','w') as cfg:
+    defaultconfig.write(cfg)
+    
+# Load wfpiconsole Kivy configuration file
+kivyconfig.read(os.path.expanduser('~/.kivy/') + 'config_wfpiconsole.ini')
+
+# Set Kivy window properties
+if config['System']['Hardware'] in ['Pi4', 'Linux', 'Other']:
+    kivyconfig.set('graphics', 'minimum_width',  '800')
+    kivyconfig.set('graphics', 'minimum_height', '480')
+    if int(config['Display']['Fullscreen']):
+        kivyconfig.set('graphics', 'fullscreen', 'auto')
+    else:
+        kivyconfig.set('graphics', 'fullscreen', '0')
+        kivyconfig.set('graphics', 'width',  config['Display']['Width'])
+        kivyconfig.set('graphics', 'height', config['Display']['Height'])
+    if not int(config['Display']['Border']):
+        kivyconfig.set('graphics', 'borderless', '1')
+    else:
+        kivyconfig.set('graphics', 'borderless', '0')
+
+# ==============================================================================
+# INITIALISE MOUSE SUPPORT IF OPTION SET in wfpiconsole.ini
+# ==============================================================================
+# Enable mouse support on Raspberry Pi 3 if not already set
 if config['System']['Hardware'] in ['PiB','Pi3']:
     if not config.has_option('modules','cursor'):
         kivyconfig.set('modules','cursor','1')
-        with open(os.path.expanduser('~/.kivy/') + 'config.ini','w') as kivycfg:
-            kivyconfig.write(kivycfg)
+
+# Initialise mouse support if required
+if not int(config['Display']['Cursor']):
+    kivyconfig.set('graphics', 'show_cursor', '0')
+else:
+    kivyconfig.set('graphics', 'show_cursor', '1')
+
+# Save wfpiconsole Kivy configuration file
+kivyconfig.write()
 
 # ==============================================================================
 # INITIALISE KIVY TWISTED WEBSOCKET CLIENT
@@ -246,24 +280,10 @@ class wfpiconsole(App):
         self.config.read('wfpiconsole.ini')
         self.settings_cls = SettingsWithSidebar
 
-        # Set window size if required based on hardware type and center on
-        # screen
-        self.window = Window
-        windowSize  = self.window.size
-        self.window.bind(on_resize=self.setScaleFactor)
-        if self.config['System']['Hardware'] in ['Pi4', 'Linux', 'Other']:
-            windowPosi = (self.window.left,self.window.top)
-            if int(self.config['Display']['Fullscreen']):
-                self.window.fullscreen='auto'
-            else:
-                self.window.size = (int(self.config['Display']['Width']),int(self.config['Display']['Height']))
-                if not int(self.config['Display']['Border']):
-                    self.window.borderless=1
-                if self.window.size != windowSize:
-                    self.window.left = windowPosi[0] - (self.window.size[0]-windowSize[0])/2
-                    self.window.top  = windowPosi[1] - (self.window.size[1]-windowSize[1])/2
-        if not int(self.config['Display']['Cursor']):
-            self.window.show_cursor=0
+        # Calculate initial ScaleFactor and bind self.setScaleFactor to Window 
+        # on_resize
+        self.setScaleFactor(Window, Window.width, Window.height)
+        Window.bind(on_resize=self.setScaleFactor)
 
         # Initialise real time clock
         Clock.schedule_interval(partial(system.realtimeClock,self.System,self.config),1.0)
@@ -271,7 +291,7 @@ class wfpiconsole(App):
         # Initialise Sunrise, Sunset, Moonrise and Moonset times
         astro.SunriseSunset(self.Astro,self.config)
         astro.MoonriseMoonset(self.Astro,self.config)
-        
+
         # Fetch WeatherFlow weather forecast
         Clock.schedule_once(partial(forecast.Download,self.MetData,self.config))
 
@@ -296,10 +316,6 @@ class wfpiconsole(App):
     # SET DISPLAY SCALE FACTOR BASED ON SCREEN SIZE
     # --------------------------------------------------------------------------
     def setScaleFactor(self,instance,x,y):
-        if x < 800:
-            self.window.size = (800,y)
-        if y < 480:
-            self.window.size = (x,480)
         self.scaleFactor = max(x/800, y/480, 1)
         if self.scaleFactor > 1:
             self.scaleSuffix = '_hR'

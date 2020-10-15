@@ -56,7 +56,7 @@ if os.path.exists('/proc/device-tree/model'):
     else:
         Hardware = 'Other'
 else:
-    if platform.system == 'Linux':
+    if platform.system() == 'Linux':
         Hardware = 'Linux'
     else:
         Hardware = 'Other'

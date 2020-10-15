@@ -44,7 +44,7 @@ KIVY_DEPENDENCIES=(ffmpeg libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl
                    libportmidi-dev libswscale-dev libavformat-dev libavcodec-dev zlib1g-dev
                    libgstreamer1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good)
 PYTHON_MODS=(autobahn[twisted] numpy pytz pyasn1-modules service_identity geopy ephem pillow
-             packaging pyOpenSSL)
+             packaging pyOpenSSL distro)
 CYTHON_VERSION="0.29.10"
 KIVY_VERSION="1.11.1"
 KIVY_REPO="https://github.com/kivy/kivy/archive/"$KIVY_VERSION".zip"
