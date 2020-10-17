@@ -27,15 +27,20 @@ fi
 
 # DEFINE INSTALLER VARIABLES
 # ------------------------------------------------------------------------------
+# Download and install directories
 CONSOLEDIR=/home/${USER}/wfpiconsole/
 DLDIR=${CONSOLEDIR}/temp/
+
+# Package manager commands
 PKG_MANAGER="apt-get"
 PKG_UPDATE_CACHE="${PKG_MANAGER} update"
 PKG_UPDATE_INSTALL="${PKG_MANAGER} dist-upgrade -y"
 PKG_UPDATE_COUNT="${PKG_MANAGER} -s -o Debug::NoLocking=true upgrade | grep -c ^Inst || true"
 PKG_NEW_INSTALL=(${PKG_MANAGER} --yes install)
-PKG_DEPENDENCIES=(git curl rng-tools build-essential python3-pip python3-setuptools libssl-dev
-                  libffi6 libffi-dev jq)
+
+# wfpiconsole and Kivy dependencies
+WFPICONSOLE_DEPENDENCIES=(git curl rng-tools build-essential python3-pip python3-setuptools libssl-dev
+                          libffi6 libffi-dev jq)
 KIVY_DEPENDENCIES_ARM=(libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev
                        pkg-config libgl1-mesa-dev libgles2-mesa-dev libgstreamer1.0-dev
                        gstreamer1.0-plugins-{bad,base,good,ugly} libmtdev-dev xclip xsel
@@ -43,13 +48,22 @@ KIVY_DEPENDENCIES_ARM=(libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-t
 KIVY_DEPENDENCIES=(ffmpeg libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev
                    libportmidi-dev libswscale-dev libavformat-dev libavcodec-dev zlib1g-dev
                    libgstreamer1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good)
-PYTHON_MODS=(autobahn[twisted] numpy pytz pyasn1-modules service_identity geopy ephem pillow
-             packaging pyOpenSSL distro)
-CYTHON_VERSION="0.29.10"
+
+# Python modules and versions
 KIVY_VERSION="1.11.1"
+CYTHON_VERSION="0.29.10"
+PYTHON_MODULES=(autobahn[twisted] numpy pytz pyasn1-modules service_identity geopy ephem pillow
+                packaging pyOpenSSL distro)
+
+# Github repositories
 KIVY_REPO="https://github.com/kivy/kivy/archive/"$KIVY_VERSION".zip"
-WFPICONSOLE_PATCH="https://github.com/peted-davis/WeatherFlow_PiConsole/tarball/master"
-WFPICONSOLE_UPDATE="https://raw.githubusercontent.com/peted-davis/WeatherFlow_PiConsole/master/wfpiconsole.sh"
+WFPICONSOLE_REPO="peted-davis/WeatherFlow_PiConsole"
+WFPICONSOLE_MAIN="https://github.com/"$WFPICONSOLE_REPO"/tarball/master"
+WFPICONSOLE_BETA="https://github.com/"$WFPICONSOLE_REPO"/tarball/develop"
+WFPICONSOLE_TAGS="https://api.github.com/repos/"$WFPICONSOLE_REPO"/tags"
+WFPICONSOLE_RELEASES="https://api.github.com/repos/"$WFPICONSOLE_REPO"/releases/latest"
+WFPICONSOLE_MAIN_UPDATE="https://raw.githubusercontent.com/"$WFPICONSOLE_REPO"/master/wfpiconsole.sh"
+WFPICONSOLE_BETA_UPDATE="https://raw.githubusercontent.com/"$WFPICONSOLE_REPO"/develop/wfpiconsole.sh"
 
 # DEFINE INSTALLER PREAMBLE
 # ------------------------------------------------------------------------------
@@ -164,7 +178,7 @@ installPackages() {
 
     # Parse function input and print progress to screen
     printf "\\n  %b WeatherFlow PiConsole dependency checks...\\n" "${INFO}"
-    declare -a argArray=("${PKG_DEPENDENCIES[@]}")
+    declare -a argArray=("${WFPICONSOLE_DEPENDENCIES[@]}")
     declare -a installArray
 
     # Check if any of the dependent packages are already installed.
@@ -211,7 +225,7 @@ installPythonModules() {
 
     # Parse function input and print progress to screen.
     printf "\\n  %b WeatherFlow PiConsole Python module checks..." "${INFO}"
-    declare -a argArray=("${PYTHON_MODS[@]}")
+    declare -a argArray=("${PYTHON_MODULES[@]}")
     declare -a installArray
 
     # Update Python package manager: pip
@@ -430,9 +444,8 @@ getLatestVersion() {
 
     # Get info on latest version from Github API and extract latest version
     # number using Python JSON tools
-    gitInfo=$(curl -s 'https://api.github.com/repos/peted-davis/WeatherFlow_PiConsole/releases/latest' -H 'Accept:application/vnd.github.v3+json')
-    latestVer=$(echo "$gitInfo" | jq -r '.tag_name')
-    tarballLoc=$(echo "$gitInfo" | jq -r '.tarball_url')
+    gitInfo=$(curl -s $WFPICONSOLE_RELEASES -H 'Accept:application/vnd.github.v3+json')
+    latestVer=$(echo $gitInfo | jq -r '.tag_name')
 
     # If the WeatherFlow PiConsole is already installed, get the current
     # installed version from wfpiconsole.ini file.
@@ -451,17 +464,16 @@ getLatestVersion() {
         else
             local str="Updating WeatherFlow PiConsole to ${COL_LIGHT_GREEN}${latestVer}${COL_NC}"
             printf "\\n\\n  %b %b..." "${INFO}" "${str}"
-            curl -sL $tarballLoc --create-dirs -o $DLDIR/wfpiconsole.tar.gz
+            curl -sL $WFPICONSOLE_MAIN --create-dirs -o $DLDIR/wfpiconsole.tar.gz
             installLatestVersion
         fi
 
-    # Else, the WeatherFlow PiConsole is not installed so get the latest version
-    # and install
+    # Else, the WeatherFlow PiConsole is not installed so get the latest stable
+    # version and install
     else
         local str="Installing the latest version of WeatherFlow PiConsole: ${COL_LIGHT_GREEN}${latestVer}${COL_NC}"
         printf "\\n  %b %b..." "${INFO}" "${str}"
-        curl -sL $tarballLoc --create-dirs -o $DLDIR/wfpiconsole.tar.gz
-
+        curl -sL $WFPICONSOLE_MAIN --create-dirs -o $DLDIR/wfpiconsole.tar.gz
         installLatestVersion
     fi
 }
@@ -472,15 +484,30 @@ getLatestPatch() {
 
     # Get info on latest patch from Github API and extract latest version
     # number using jq JSON tools
-    patchInfo=$(curl -s 'https://api.github.com/repos/peted-davis/WeatherFlow_PiConsole/tags' -H 'Accept: application/vnd.github.v3+json')
-    patchVer=$(echo "$patchInfo" | jq -r '.[0].name')
+    patchInfo=$(curl -s $WFPICONSOLE_TAGS -H 'Accept: application/vnd.github.v3+json')
+    patchVer=$(echo $patchInfo | jq -r '.[0].name')
 
-    # Download latest patch for the WeatherFlow PiConsole
+    # Download latest stable patch for the WeatherFlow PiConsole and install
     local str="Patching the WeatherFlow PiConsole to ${COL_LIGHT_GREEN}${patchVer}${COL_NC}"
     printf "\\n  %b %b..." "${INFO}" "${str}"
-    curl -sL $WFPICONSOLE_PATCH --create-dirs -o $DLDIR/wfpiconsole.tar.gz
+    curl -sL $WFPICONSOLE_MAIN --create-dirs -o $DLDIR/wfpiconsole.tar.gz
+    installLatestVersion
+}
 
-    # Install latest patch
+# GET THE LATEST BETA VERSION FOR THE WeatherFlow PiConsole FROM GITHUB
+# ------------------------------------------------------------------------------
+getLatestBeta() {
+
+    # Get info on latest patch from Github API and extract latest version
+    # number using jq JSON tools
+    patchInfo=$(curl -s $WFPICONSOLE_TAGS -H 'Accept: application/vnd.github.v3+json')
+    patchVer=$(echo $patchInfo | jq -r '.[0].name')
+
+    # Download latest stable beta version for the WeatherFlow PiConsole and
+    # install
+    local str="Installing the latest beta version of WeatherFlow PiConsole"
+    printf "\\n  %b %b..." "${INFO}" "${str}"
+    curl -sL $WFPICONSOLE_BETA --create-dirs -o $DLDIR/wfpiconsole.tar.gz
     installLatestVersion
 }
 
@@ -598,37 +625,44 @@ processStarting() {
             whiptail --msgbox --backtitle "Welcome" --title "WeatherFlow PiConsole automated installer" \
             "\\n\\nThanks for checking out the WeatherFlow PiConsole. This script will guide you through the installation process on your Raspberry Pi." ${r} ${c}
             printf "\\n"
-            printf "  ================================\\n"
-            printf "  Installing WeatherFlow PiConsole\\n"
-            printf "  ================================\\n\\n"
+            printf "  ================================ \\n"
+            printf "  Installing WeatherFlow PiConsole \\n"
+            printf "  ================================ \\n\\n"
             ;;
     # Display update starting dialogue
         runUpdate)
             printf "\\n"
-            printf "  ==============================\\n"
-            printf "  Updating WeatherFlow PiConsole\\n"
-            printf "  ==============================\\n\\n"
+            printf "  ============================== \\n"
+            printf "  Updating WeatherFlow PiConsole \\n"
+            printf "  ============================== \\n\\n"
             ;;
     # Display patch starting dialogue
         patch)
             printf "\\n"
-            printf "  ==============================\\n"
-            printf "  Patching WeatherFlow PiConsole\\n"
-            printf "  ==============================\\n\\n"
+            printf "  ============================== \\n"
+            printf "  Patching WeatherFlow PiConsole \\n"
+            printf "  ============================== \\n\\n"
+            ;;
+    # Display update starting dialogue
+        beta)
+            printf "\\n"
+            printf "  ===================================================== \\n"
+            printf "  Updating WeatherFlow PiConsole to latest beta version \\n"
+            printf "  ===================================================== \\n\\n"
             ;;
     # Display autostart-enable starting dialogue
         autostart-enable)
             printf "\\n"
-            printf "  ======================================\\n"
+            printf "  ====================================== \\n"
             printf "  Enabling console autostart during boot \\n"
-            printf "  ======================================\\n\\n"
+            printf "  ====================================== \\n\\n"
             ;;
     # Display autostart-disable starting dialogue
         autostart-disable)
             printf "\\n"
-            printf "  =======================================\\n"
+            printf "  ======================================= \\n"
             printf "  Disabling console autostart during boot \\n"
-            printf "  =======================================\\n\\n"
+            printf "  ======================================= \\n\\n"
     esac
 }
 
@@ -654,11 +688,20 @@ processComplete() {
             printf "  or 'wfpiconsole autostart-enable'             \\n"
             printf "  ============================================= \\n\\n"
             ;;
-    # Display patch starting dialogue
+    # Display patch complete dialogue
         patch)
             printf "  \\n"
             printf "  ============================================= \\n"
             printf "  WeatherFlow PiConsole patching complete!      \\n"
+            printf "  Restart the console with: 'wfpiconsole start' \\n"
+            printf "  or 'wfpiconsole autostart-enable'             \\n"
+            printf "  ============================================= \\n\\n"
+            ;;
+    # Display beta complete dialogue
+        beta)
+            printf "  \\n"
+            printf "  ============================================= \\n"
+            printf "  WeatherFlow PiConsole beta update complete!   \\n"
             printf "  Restart the console with: 'wfpiconsole start' \\n"
             printf "  or 'wfpiconsole autostart-enable'             \\n"
             printf "  ============================================= \\n\\n"
@@ -722,16 +765,16 @@ install() {
     processComplete ${FUNCNAME[0]}
 }
 
-# UPDATE WeatherFlow PiConsole
+# UPDATE WeatherFlow PiConsole TO THE LATEST STABLE VERSION
 # ------------------------------------------------------------------------------
 update() {
 
     # Fetch the latest update code directly from the master Github branch. This
     # ensures that changes in dependencies are addressed during this update
-    curl -sSL $WFPICONSOLE_UPDATE | bash -s runUpdate
+    curl -sSL $WFPICONSOLE_MAIN_UPDATE | bash -s runUpdate
 }
 
-# RUN THE UPDATE PROCESS
+# RUN THE STABLE VERSION UPDATE PROCESS
 # ------------------------------------------------------------------------------
 runUpdate() {
 
@@ -755,18 +798,51 @@ runUpdate() {
     processComplete ${FUNCNAME[0]}
 }
 
-# PATCH THE WeatherFlow PiConsole
+# PATCH THE WeatherFlow PiConsole TO THE LATEST STABLE PATCH
 # ------------------------------------------------------------------------------
 patch() {
 
     # Display installation starting dialogue
     processStarting ${FUNCNAME[0]}
-    # Check that the patch command is being run on a Raspberry Pi
-    hardwareCheck
     # Check for and ask user if they wish to install any updated local packages
     updatePackages
+    # Check if any new dependencies are required
+    installPackages
     # Get the latest patch for the WeatherFlow PiConsole and install
     getLatestPatch
+    # Clean up after installation
+    cleanUp
+    # Display update complete dialogue
+    processComplete ${FUNCNAME[0]}
+}
+
+# UPDATE WeatherFlow PiConsole TO THE LATEST STABLE BETA VERSION
+# ------------------------------------------------------------------------------
+update() {
+
+    # Fetch the latest beta update code directly from the develop Github branch.
+    # This ensures that changes in dependencies are addressed during this update
+    curl -sSL $WFPICONSOLE_BETA_UPDATE | bash -s runBeta
+}
+
+# RUN THE BETA VERSION UPDATE PROCESS
+# ------------------------------------------------------------------------------
+runBeta() {
+
+    # Display installation starting dialogue
+    processStarting ${FUNCNAME[0]}
+    # Check for and ask user if they wish to install any updated local packages
+    updatePackages
+    # Check if any new dependencies are required
+    installPackages
+    # Check if any new Python modules are required
+    installPythonModules
+    # Install required Kivy dependencies
+    installKivyPackages
+    # Install Kivy Python library
+    installKivy
+    # Get the latest patch for the WeatherFlow PiConsole and install
+    getLatestBeta
     # Clean up after installation
     cleanUp
     # Display update complete dialogue
@@ -854,7 +930,7 @@ fi
 
 # CHECK OS/HARDWARE AND ADD REQUIRED REPOSITORIES WHEN INSTALL OR UPDATING
 # ------------------------------------------------------------------------------
-if [[ "${1}" == "install" ]] || [[ "${1}" == "update" ]] || [[ "${1}" == "runUpdate" ]]; then
+if [[ "${1}" == "install" ]] || [[ "${1}" == "update" ]] || [[ "${1}" == "runUpdate" ]] || [[ "${1}" == "beta" ]] || [[ "${1}" == "runBeta" ]]; then
 
     # Check compatability of hardware/OS
     PROCESSOR=$(uname -m)
@@ -900,7 +976,9 @@ case "${1}" in
     "install"             ) install;;
     "update"              ) update;;
     "patch"               ) patch;;
+    "beta"                ) beta;;
     "runUpdate"           ) runUpdate;;
+    "runBeta"             ) runBeta;;
     "autostart-enable"    ) autostart-enable;;
     "autostart-disable"   ) autostart-disable;;
     *                     ) printf "Unrecognised usage\\n" && helpFunc;;
