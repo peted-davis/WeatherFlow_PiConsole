@@ -644,7 +644,7 @@ processStarting() {
             printf "  ============================== \\n\\n"
             ;;
     # Display update starting dialogue
-        beta)
+        runBeta)
             printf "\\n"
             printf "  ===================================================== \\n"
             printf "  Updating WeatherFlow PiConsole to latest beta version \\n"
@@ -698,7 +698,7 @@ processComplete() {
             printf "  ============================================= \\n\\n"
             ;;
     # Display beta complete dialogue
-        beta)
+        runBeta)
             printf "  \\n"
             printf "  ============================================= \\n"
             printf "  WeatherFlow PiConsole beta update complete!   \\n"
@@ -818,7 +818,7 @@ patch() {
 
 # UPDATE WeatherFlow PiConsole TO THE LATEST STABLE BETA VERSION
 # ------------------------------------------------------------------------------
-update() {
+beta() {
 
     # Fetch the latest beta update code directly from the develop Github branch.
     # This ensures that changes in dependencies are addressed during this update
@@ -916,7 +916,7 @@ if [[ ! -x "$(command -v sudo)" ]]; then
 fi
 if [[ "${1}" != "start" ]]; then
     if (sudo true); then
-        if [[ "${1}" != "stop" ]] && [[ "${1}" != "update" ]]; then
+        if [[ "${1}" != "stop" ]] && [[ "${1}" != "runUpdate" ]] && [[ "${1}" != "runBeta" ]]; then
             printf "\\n  %b Root user check passed\\n" "${TICK}"
         fi
     else
@@ -930,7 +930,7 @@ fi
 
 # CHECK OS/HARDWARE AND ADD REQUIRED REPOSITORIES WHEN INSTALL OR UPDATING
 # ------------------------------------------------------------------------------
-if [[ "${1}" == "install" ]] || [[ "${1}" == "update" ]] || [[ "${1}" == "runUpdate" ]] || [[ "${1}" == "beta" ]] || [[ "${1}" == "runBeta" ]]; then
+if [[ "${1}" == "install" ]] || [[ "${1}" == "update" ]] || [[ "${1}" == "beta" ]] ; then
 
     # Check compatability of hardware/OS
     PROCESSOR=$(uname -m)
