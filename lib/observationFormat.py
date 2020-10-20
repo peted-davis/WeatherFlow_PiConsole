@@ -38,10 +38,10 @@ def Units(Obs,Unit):
             if T == 'c':
                 if Unit == 'f':
                     cObs[ii-1] = Obs[ii-1] * 9/5 + 32
-                    cObs[ii] = ' [sup]o[/sup]F'
+                    cObs[ii] = 'f'
                 else:
                     cObs[ii-1] = Obs[ii-1]
-                    cObs[ii] = ' [sup]o[/sup]C'
+                    cObs[ii] = 'c'
 
     # Convert pressure and pressure trend observations
     elif Unit in ['inhg','mmhg','hpa','mb']:
@@ -62,9 +62,9 @@ def Units(Obs,Unit):
                 elif Unit == 'hpa':
                     cObs[ii-1] = Obs[ii-1]
                     if P == 'mb':
-                        cObs[ii] = ' hpa'
+                        cObs[ii] = ' hPa'
                     else:
-                        cObs[ii] = ' hpa/hr'
+                        cObs[ii] = ' hPa/hr'
                 else:
                     cObs[ii-1] = Obs[ii-1]
                     if P == 'mb':
@@ -86,7 +86,7 @@ def Units(Obs,Unit):
                     cObs[ii-1] = Obs[ii-1] * 3.6
                     cObs[ii] = 'km/h'
                 elif Unit == 'bft':
-                    cObs[ii-1] = derive.BeaufortScale(Obs[ii-1:ii+1])[4]
+                    cObs[ii-1] = derive.BeaufortScale(Obs[ii-1:ii+1])[2]
                     cObs[ii] = 'bft'
                 else:
                     cObs[ii-1] = Obs[ii-1]
@@ -104,7 +104,7 @@ def Units(Obs,Unit):
                     cObs[ii] = ''
                 else:
                     cObs[ii-1] = Obs[ii-1]
-                    cObs[ii] = '[sup]o[/sup]'
+                    cObs[ii] = 'degrees'
 
     # Convert rain accumulation and rain rate observations
     elif Unit in ['in','cm','mm']:
@@ -113,7 +113,7 @@ def Units(Obs,Unit):
                 if Unit == 'in':
                     cObs[ii-1] = Obs[ii-1] * 0.0393701
                     if Prcp == 'mm':
-                        cObs[ii] = '"'
+                        cObs[ii] = ' in'
                     else:
                         cObs[ii] = ' in/hr'
                 elif Unit == 'cm':
@@ -156,18 +156,35 @@ def Format(Obs,Type):
     cObs = Obs[:]
     if Type == 'Temp':
         for ii,T in enumerate(Obs):
-            if isinstance(T,str) and T.strip() in ['[sup]o[/sup]F','[sup]o[/sup]C']:
+            if isinstance(T,str) and T.strip() in ['c','f']:
                 if math.isnan(cObs[ii-1]):
                     cObs[ii-1] = '-'
                 elif cObs[ii-1] == 0:
                     cObs[ii-1] = '{:.1f}'.format(abs(cObs[ii-1]))
                 else:
                     cObs[ii-1] = '{:.1f}'.format(cObs[ii-1])
+                if T.strip() == 'c':
+                    cObs[ii] = u'\N{DEGREE CELSIUS}'
+                elif T.strip() == 'f':
+                    cObs[ii] = u'\N{DEGREE FAHRENHEIT}'                
+    elif Type == 'forecastTemp':
+        for ii,T in enumerate(Obs):
+            if isinstance(T,str) and T.strip() in ['c','f']:
+                if math.isnan(cObs[ii-1]):
+                    cObs[ii-1] = '-'
+                elif cObs[ii-1] == 0:
+                    cObs[ii-1] = '{:.0f}'.format(abs(cObs[ii-1]))
+                else:
+                    cObs[ii-1] = '{:.0f}'.format(cObs[ii-1])
+                if T.strip() == 'c':
+                    cObs[ii] = u'\N{DEGREE CELSIUS}'
+                elif T.strip() == 'f':
+                    cObs[ii] = u'\N{DEGREE FAHRENHEIT}'                
 
     # Format pressure observations
     elif Type == 'Pressure':
         for ii,P in enumerate(Obs):
-            if isinstance(P,str) and P.strip() in ['inHg/hr','inHg','mmHg/hr','mmHg','hpa/hr','mb/hr','hpa','mb']:
+            if isinstance(P,str) and P.strip() in ['inHg/hr','inHg','mmHg/hr','mmHg','hPa/hr','mb/hr','hPa','mb']:
                 if math.isnan(cObs[ii-1]):
                     cObs[ii-1] = '-'
                 else:
@@ -175,7 +192,7 @@ def Format(Obs,Type):
                         cObs[ii-1] = '{:2.3f}'.format(cObs[ii-1])
                     elif P.strip() in ['mmHg/hr','mmHg']:
                         cObs[ii-1] = '{:3.2f}'.format(cObs[ii-1])
-                    elif P.strip() in ['hpa/hr','mb/hr','hpa','mb']:
+                    elif P.strip() in ['hPa/hr','mb/hr','hPa','mb']:
                         cObs[ii-1] = '{:4.1f}'.format(cObs[ii-1])
 
     # Format windspeed observations
@@ -189,11 +206,19 @@ def Format(Obs,Type):
                         cObs[ii-1] = '{:.1f}'.format(cObs[ii-1])
                     else:
                         cObs[ii-1] = '{:.0f}'.format(cObs[ii-1])
-
+    elif Type == 'forecastWind':
+        for ii,W in enumerate(Obs):
+            if isinstance(W,str) and W.strip() in ['mph','kts','km/h','bft','m/s']:
+                if math.isnan(cObs[ii-1]):
+                    cObs[ii-1] = '-'
+                else:
+                    cObs[ii-1] = '{:.0f}'.format(cObs[ii-1])
+                        
     # Format wind direction observations
     elif Type == 'Direction':
         for ii,D in enumerate(Obs):
-            if isinstance(D,str) and D.strip() in ['[sup]o[/sup]']:
+            if isinstance(D,str) and D.strip() in ['degrees']:
+                cObs[ii] = u'\u00B0'
                 if math.isnan(cObs[ii-1]):
                     cObs[ii-1] = '-'
                 else:
@@ -216,19 +241,7 @@ def Format(Obs,Type):
                             cObs[ii-1] = '{:.1f}'.format(cObs[ii-1])
                         else:
                             cObs[ii-1] = '{:.0f}'.format(cObs[ii-1])
-                elif Prcp.strip() == 'mm/hr':
-                    if math.isnan(cObs[ii-1]):
-                        cObs[ii-1] = '-'
-                    else:
-                        if cObs[ii-1] == 0:
-                            cObs[ii-1] = '{:.0f}'.format(cObs[ii-1])
-                        elif cObs[ii-1] < 0.1:
-                            cObs[ii-1] = '<0.1'
-                        elif cObs[ii-1] < 10:
-                            cObs[ii-1] = '{:.1f}'.format(cObs[ii-1])
-                        else:
-                            cObs[ii-1] = '{:.0f}'.format(cObs[ii-1])
-                elif Prcp.strip() in ['"','cm']:
+                elif Prcp.strip() in ['in','cm']:
                     if math.isnan(cObs[ii-1]):
                         cObs[ii-1] = '-'
                     else:
@@ -240,6 +253,20 @@ def Format(Obs,Type):
                         elif cObs[ii-1] < 10:
                             cObs[ii-1] = '{:.2f}'.format(cObs[ii-1])
                         elif cObs[ii-1] < 100:
+                            cObs[ii-1] = '{:.1f}'.format(cObs[ii-1])
+                        else:
+                            cObs[ii-1] = '{:.0f}'.format(cObs[ii-1])
+                    if Prcp.strip() == 'in':
+                        cObs[ii] = u'\u0022'
+                elif Prcp.strip() == 'mm/hr':
+                    if math.isnan(cObs[ii-1]):
+                        cObs[ii-1] = '-'
+                    else:
+                        if cObs[ii-1] == 0:
+                            cObs[ii-1] = '{:.0f}'.format(cObs[ii-1])
+                        elif cObs[ii-1] < 0.1:
+                            cObs[ii-1] = '<0.1'
+                        elif cObs[ii-1] < 10:
                             cObs[ii-1] = '{:.1f}'.format(cObs[ii-1])
                         else:
                             cObs[ii-1] = '{:.0f}'.format(cObs[ii-1])
@@ -270,7 +297,8 @@ def Format(Obs,Type):
     # Format solar radiation observations
     elif Type == 'Radiation':
         for ii,Rad in enumerate(Obs):
-            if isinstance(Rad,str) and Rad.strip() == 'W m[sup]-2[/sup]':
+            if isinstance(Rad,str) and Rad.strip() == 'Wm2':
+                cObs[ii]   = ' W/m' + u'\u00B2'
                 if math.isnan(cObs[ii-1]):
                     cObs[ii-1] = '-'
                 else:

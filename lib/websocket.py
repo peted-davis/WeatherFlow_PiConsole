@@ -16,10 +16,10 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 """
 
 # Import required library modules
-from kivy.clock  import mainthread
-from lib         import derivedVariables   as derive
-from lib         import observationFormat  as observation
-from lib         import requestAPI
+from kivy.clock     import mainthread
+from lib            import derivedVariables   as derive
+from lib            import observationFormat  as observation
+from lib            import requestAPI
 import time
 
 # Define global variables
@@ -42,28 +42,34 @@ def updateDisplay(derivedObs,wfpiconsole,Type):
 
     # Set "Feels Like" icon if TemperaturePanel is active
     if Type in ['Tempest','outdoorAir']  and hasattr(wfpiconsole,'TemperaturePanel'):
-        wfpiconsole.TemperaturePanel.setFeelsLikeIcon()
+        for panel in getattr(wfpiconsole,'TemperaturePanel'):
+            panel.setFeelsLikeIcon()
 
     # Set wind speed and direction icons if WindSpeedPanel panel is active
     if Type in ['Tempest','Sky'] and hasattr(wfpiconsole,'WindSpeedPanel'):
-        wfpiconsole.WindSpeedPanel.setWindIcons()
+        for panel in getattr(wfpiconsole,'WindSpeedPanel'):
+            panel.setWindIcons()
 
     # Set current UV index background color if SunriseSunsetPanel is active
     if Type in ['Tempest','Sky'] and hasattr(wfpiconsole,'SunriseSunsetPanel'):
-        wfpiconsole.SunriseSunsetPanel.setUVBackground()
+        for panel in getattr(wfpiconsole,'SunriseSunsetPanel'):
+            panel.setUVBackground()
 
     # Animate rain rate level if RainfallPanel is active
     if Type in ['Tempest','Sky'] and hasattr(wfpiconsole,'RainfallPanel'):
-        wfpiconsole.RainfallPanel.animateRainRate()
+        for panel in getattr(wfpiconsole,'RainfallPanel'):
+            panel.animateRainRate()
 
     # Set lightning bolt icon if LightningPanel is active
     if Type in ['Tempest','outdoorAir']  and hasattr(wfpiconsole,'LightningPanel'):
-        wfpiconsole.LightningPanel.setLightningBoltIcon()
+        for panel in getattr(wfpiconsole,'LightningPanel'):
+            panel.setLightningBoltIcon()
 
     # Set barometer arrow to current sea level pressure if BarometerPanel is
     # active
     if Type in ['Tempest','outdoorAir'] and hasattr(wfpiconsole,'BarometerPanel'):
-        wfpiconsole.BarometerPanel.setBarometerArrow()
+        for panel in getattr(wfpiconsole,'BarometerPanel'):
+            panel.setBarometerArrow()
 
     # Return wfpiconsole object
     return wfpiconsole
@@ -77,8 +83,14 @@ def Tempest(Msg,wfpiconsole):
         wfpiconsole         wfpiconsole object
     """
 
-    # Replace missing observations from latest SKY Websocket JSON with NaN
+    # Replace missing observations from latest TEMPEST Websocket JSON with NaN
     Ob = [x if x != None else NaN for x in Msg['obs'][0]]
+
+    # Discard duplicate TEMPEST Websocket messages
+    if 'TempestMsg' in wfpiconsole.Obs:
+        if wfpiconsole.Obs['TempestMsg']['obs'][0] == Ob[0]:
+            print('Discarding duplicate TEMPEST Websocket message')
+            return
 
     # Extract TEMPEST device ID, API flag, and station configuration object
     Device  = wfpiconsole.config['Station']['TempestID']
@@ -92,9 +104,9 @@ def Tempest(Msg,wfpiconsole):
     WindDir   = [Ob[4],'degrees']
     Pres      = [Ob[6],'mb']
     Temp      = [Ob[7],'c']
-    Humidity  = [Ob[8],' %']
+    Humidity  = [Ob[8],'%']
     UV        = [Ob[10],'index']
-    Radiation = [Ob[11],' W m[sup]-2[/sup]']
+    Radiation = [Ob[11],'Wm2']
     Rain      = [Ob[12],'mm']
     Strikes   = [Ob[15],'count']
 
@@ -142,7 +154,7 @@ def Tempest(Msg,wfpiconsole):
     AvgWind          = derive.MeanWindSpeed(WindSpd,avgWind,Device,Config,flagAPI)
     MaxGust          = derive.MaxWindGust(WindGust,maxGust,Device,Config,flagAPI)
     WindSpd          = derive.BeaufortScale(WindSpd)
-    WindDir          = derive.CardinalWindDirection (WindDir,WindSpd)
+    WindDir          = derive.CardinalWindDirection(WindDir,WindSpd)
     peakSun          = derive.peakSunHours(Radiation,peakSun,wfpiconsole.Astro,Device,Config,flagAPI)
     UVIndex          = derive.UVIndex(UV)
 
@@ -224,6 +236,12 @@ def Sky(Msg,wfpiconsole):
     # Replace missing observations from latest SKY Websocket JSON with NaN
     Ob = [x if x != None else NaN for x in Msg['obs'][0]]
 
+    # Discard duplicate SKY Websocket messages
+    if 'SkyMsg' in wfpiconsole.Obs:
+        if wfpiconsole.Obs['SkyMsg']['obs'][0] == Ob[0]:
+            print('Discarding duplicate SKY Websocket message')
+            return
+
     # Extract SKY device ID and API flag, and station configuration object
     Device  = wfpiconsole.config['Station']['SkyID']
     flagAPI = wfpiconsole.flagAPI[1]
@@ -236,7 +254,7 @@ def Sky(Msg,wfpiconsole):
     WindSpd   = [Ob[5],'mps']
     WindGust  = [Ob[6],'mps']
     WindDir   = [Ob[7],'degrees']
-    Radiation = [Ob[10],' W m[sup]-2[/sup]']
+    Radiation = [Ob[10],'Wm2']
 
     # Store latest SKY Websocket message
     wfpiconsole.Obs['SkyMsg'] = Msg
@@ -323,6 +341,12 @@ def outdoorAir(Msg,wfpiconsole):
     # Replace missing observations in latest outdoor AIR Websocket JSON with NaN
     Ob = [x if x != None else NaN for x in Msg['obs'][0]]
 
+    # Discard duplicate outdoor AIR Websocket messages
+    if 'outAirMsg' in wfpiconsole.Obs:
+        if wfpiconsole.Obs['outAirMsg']['obs'][0] == Ob[0]:
+            print('Discarding duplicate outdoor AIR Websocket message')
+            return
+
     # Extract outdoor AIR device ID and API flag, and station configuration
     # object
     Device  = wfpiconsole.config['Station']['OutAirID']
@@ -333,7 +357,7 @@ def outdoorAir(Msg,wfpiconsole):
     Time     = [Ob[0],'s']
     Pres     = [Ob[1],'mb']
     Temp     = [Ob[2],'c']
-    Humidity = [Ob[3],' %']
+    Humidity = [Ob[3],'%']
     Strikes  = [Ob[4],'count']
 
     # Extract lightning strike data from the latest outdoor AIR Websocket JSON
@@ -424,8 +448,14 @@ def indoorAir(Msg,wfpiconsole):
         wfpiconsole         wfpiconsole object
     """
 
-    # Replace missing observations in latest AIR Websocket JSON with NaN
+    # Replace missing observations in latest indoor AIR Websocket JSON with NaN
     Ob = [x if x != None else NaN for x in Msg['obs'][0]]
+
+    # Discard duplicate indoor AIR Websocket messages
+    if 'inAirMsg' in wfpiconsole.Obs:
+        if wfpiconsole.Obs['inAirMsg']['obs'][0] == Ob[0]:
+            print('Discarding duplicate indoor AIR Websocket message')
+            return
 
     # Extract indoor AIR device ID and API flag, and station configuration
     # object
@@ -481,6 +511,12 @@ def rapidWind(Msg,wfpiconsole):
     # with NaN
     Ob = [x if x != None else NaN for x in Msg['ob']]
 
+    # Discard duplicate Rapid Wind Websocket messages
+    if 'RapidMsg' in wfpiconsole.Obs:
+        if wfpiconsole.Obs['RapidMsg']['ob'][0] == Ob[0]:
+            print('Discarding duplicate Rapid Wind Websocket message')
+            return
+
     # Extract observations from latest Rapid Wind Websocket JSON
     Time    = [Ob[0],'s']
     WindSpd = [Ob[1],'mps']
@@ -516,7 +552,8 @@ def rapidWind(Msg,wfpiconsole):
 
     # Animate wind rose arrow if WindSpeedPanel panel is active
     if hasattr(wfpiconsole,'WindSpeedPanel'):
-        wfpiconsole.WindSpeedPanel.animateWindRose()
+        for panel in getattr(wfpiconsole,'WindSpeedPanel'):
+            panel.animateWindRose()
 
     # Return wfpiconsole object
     return wfpiconsole
@@ -530,6 +567,12 @@ def evtStrike(Msg,wfpiconsole):
         Msg                 Websocket messages received from AIR or TEMPEST
         wfpiconsole         wfpiconsole object
     """
+
+    # Discard duplicate evt_strike Websocket messages
+    if 'evtStrikeMsg' in wfpiconsole.Obs:
+        if wfpiconsole.Obs['evtStrikeMsg']['evt'][0] == Msg['evt'][0]:
+            print('Discarding duplicate evt_strike Websocket message')
+            return
 
     # Extract required observations from latest evt_strike Websocket JSON
     StrikeTime = [Msg['evt'][0],'s']
@@ -557,8 +600,9 @@ def evtStrike(Msg,wfpiconsole):
 
     # Set and animate lightning bolt icon if LightningPanel panel is active
     if hasattr(wfpiconsole,'LightningPanel'):
-        wfpiconsole.LightningPanel.setLightningBoltIcon()
-        wfpiconsole.LightningPanel.animateLightningBoltIcon()
+        for panel in getattr(wfpiconsole,'LightningPanel'):
+            panel.setLightningBoltIcon()
+            panel.animateLightningBoltIcon()
 
     # Return wfpiconsole object
     return wfpiconsole

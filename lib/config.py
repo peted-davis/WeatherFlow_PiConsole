@@ -21,14 +21,17 @@ from packaging      import version
 from pathlib        import Path
 import configparser
 import collections
+import subprocess
 import requests
+import platform
+import distro
 import json
 import math
 import sys
 import os
 
 # Define wfpiconsole version number
-Version = 'v3.8'
+Version = 'v4.0'
 
 # Define required variables
 TEMPEST       = False
@@ -39,9 +42,11 @@ CHECKWX       = None
 MAXRETRIES    = 3
 NaN           = float('NaN')
 
-# Determine hardware version
-try:
-    Hardware = os.popen('cat /proc/device-tree/model').read()
+# Determine current system
+if os.path.exists('/proc/device-tree/model'):
+    proc = subprocess.Popen(['cat', '/proc/device-tree/model'], stdout=subprocess.PIPE)
+    Hardware = proc.stdout.read().decode('utf-8')
+    proc.kill()
     if 'Raspberry Pi 4' in Hardware:
         Hardware = 'Pi4'
     elif 'Raspberry Pi 3' in Hardware:
@@ -50,8 +55,11 @@ try:
         Hardware = 'PiB'
     else:
         Hardware = 'Other'
-except:
-    Hardware = 'Other'
+else:
+    if platform.system() == 'Linux':
+        Hardware = 'Linux'
+    else:
+        Hardware = 'Other'
 
 def create():
 
@@ -114,10 +122,6 @@ def update():
     currentConfig.read('wfpiconsole.ini')
     currentVersion = currentConfig['System']['Version']
 
-    # Tweak current version
-    if currentVersion == 'v3.51':
-        currentVersion = 'v3.5.1'
-
     # Create new config parser object to hold updated user configuration file
     newConfig = configparser.ConfigParser(allow_no_value=True)
     newConfig.optionxform = str
@@ -148,7 +152,11 @@ def update():
                     print('  ---------------------------------')
                 else:
                     if currentConfig.has_option(Section,Key):
-                        copyConfigKey(newConfig,currentConfig,Section,Key,default[Section][Key])
+                        if updateRequired(Key,currentVersion):
+                            Changes = True
+                            writeConfigKey(newConfig,Section,Key,default[Section][Key])                             
+                        else:
+                            copyConfigKey(newConfig,currentConfig,Section,Key,default[Section][Key])
                     if not currentConfig.has_option(Section,Key):
                         Changes = True
                         writeConfigKey(newConfig,Section,Key,default[Section][Key])
@@ -314,7 +322,7 @@ def writeConfigKey(Config,Section,Key,keyDetails):
         if keyDetails['Source'] == 'observation' and OBSERVATION is None:
             while True:
                 Template = 'https://swd.weatherflow.com/swd/rest/observations/station/{}?api_key={}'
-                URL = Template.format(Config['Station']['StationID'],Config['Keys']['WeathFlowToken'])
+                URL = Template.format(Config['Station']['StationID'],Config['Keys']['WeatherFlow'])
                 OBSERVATION = requests.get(URL).json()
                 if 'status' in STATION:
                     if 'SUCCESS' in STATION['status']['status_message']:
@@ -335,7 +343,7 @@ def writeConfigKey(Config,Section,Key,keyDetails):
                             if str(Device['device_id']) == Config['Station']['TempestID']:
                                 if Device['device_type'] == 'ST':
                                     Value = Device['device_meta']['agl']
-                    if not Value:
+                    if not Value and Value != 0:
                         inputStr = '    TEMPEST not found. Please re-enter your TEMPEST device ID*: '
                         while True:
                             ID = input(inputStr)
@@ -360,7 +368,7 @@ def writeConfigKey(Config,Section,Key,keyDetails):
                             if str(Device['device_id']) == Config['Station']['OutAirID']:
                                 if Device['device_type'] == 'AR':
                                     Value = Device['device_meta']['agl']
-                    if not Value:
+                    if not Value and Value != 0:
                         inputStr = '    Outdoor AIR not found. Please re-enter your Outdoor AIR device ID*: '
                         while True:
                             ID = input(inputStr)
@@ -385,7 +393,7 @@ def writeConfigKey(Config,Section,Key,keyDetails):
                             if str(Device['device_id']) == Config['Station']['SkyID']:
                                 if Device['device_type'] == 'SK':
                                     Value = Device['device_meta']['agl']
-                    if not Value:
+                    if not Value and Value != 0:
                         inputStr = '    SKY not found. Please re-enter your SKY device ID*: '
                         while True:
                             ID = input(inputStr)
@@ -468,7 +476,7 @@ def validateAPIKeys(Config):
         if Config['Keys']['CheckWX'] and Config['Station']['StationID'] and STATION is None:
             while True:
                 Template = 'https://swd.weatherflow.com/swd/rest/stations/{}?api_key={}'
-                URL = Template.format(Config['Station']['StationID'],Config['Keys']['WeathFlowToken'])
+                URL = Template.format(Config['Station']['StationID'],Config['Keys']['WeatherFlow'])
                 STATION = requests.get(URL).json()
                 if 'status' in STATION:
                     if 'NOT FOUND' in STATION['status']['status_message']:
@@ -493,7 +501,7 @@ def validateAPIKeys(Config):
                                 print('    Personal Access Token cannot be empty. Please try again')
                             else:
                                 break
-                        Config.set('Keys','WeathFlowToken',str(Token))
+                        Config.set('Keys','WeatherFlow',str(Token))
                         RETRIES += 1
                     elif 'SUCCESS' in STATION['status']['status_message']:
                         break
@@ -555,7 +563,7 @@ def defaultConfig():
     Default =                    collections.OrderedDict()
     Default['Keys'] =            collections.OrderedDict([('Description',    '  API keys'),
                                                           ('CheckWX',        {'Type': 'userInput', 'State': 'required', 'Format': str, 'Desc': 'CheckWX API Key',}),
-                                                          ('WeathFlowToken', {'Type': 'userInput', 'State': 'required', 'Format': str, 'Desc': 'WeatherFlow Personal Access Token',})])
+                                                          ('WeatherFlow',    {'Type': 'userInput', 'State': 'required', 'Format': str, 'Desc': 'WeatherFlow Personal Access Token',})])
     Default['Station'] =         collections.OrderedDict([('Description',    '  Station and device IDs'),
                                                           ('StationID',      {'Type': 'userInput', 'State': 'required', 'Format': int, 'Desc': 'Station ID'}),
                                                           ('TempestID',      {'Type': 'userInput', 'State': 'required', 'Format': int, 'Desc': 'TEMPEST device ID'}),
@@ -581,8 +589,13 @@ def defaultConfig():
     Default['Display'] =         collections.OrderedDict([('Description',    '  Display settings'),
                                                           ('TimeFormat',     {'Type': 'default', 'Value': '24 hr', 'Desc': 'time format'}),
                                                           ('DateFormat',     {'Type': 'default', 'Value': 'Mon, 01 Jan 0000', 'Desc': 'date format'}),
-                                                          ('LightningPanel', {'Type': 'default', 'Value': '1',  'Desc': 'lightning panel toggle'}),
-                                                          ('IndoorTemp',     {'Type': 'default', 'Value': '1',  'Desc': 'indoor temperature toggle'})])
+                                                          ('LightningPanel', {'Type': 'default', 'Value': '1',    'Desc': 'lightning panel toggle'}),
+                                                          ('IndoorTemp',     {'Type': 'default', 'Value': '1',    'Desc': 'indoor temperature toggle'}),
+                                                          ('Cursor',         {'Type': 'default', 'Value': '1',    'Desc': 'cursor toggle'}),
+                                                          ('Border',         {'Type': 'default', 'Value': '1',    'Desc': 'border toggle'}),
+                                                          ('Fullscreen',     {'Type': 'default', 'Value': '1',    'Desc': 'fullscreen toggle'}),
+                                                          ('Width',          {'Type': 'default', 'Value': '800',  'Desc': 'console width (pixels)'}),
+                                                          ('Height',         {'Type': 'default', 'Value': '480',  'Desc': 'console height (pixels)'})])
     Default['FeelsLike'] =       collections.OrderedDict([('Description',    '  "Feels Like" temperature cut-offs'),
                                                           ('ExtremelyCold',  {'Type': 'default', 'Value': '-4', 'Desc': '"Feels extremely cold" cut-off temperature'}),
                                                           ('FreezingCold',   {'Type': 'default', 'Value': '0',  'Desc': '"Feels freezing cold" cut-off temperature'}),
@@ -615,3 +628,29 @@ def defaultConfig():
 
     # Return default configuration
     return Default
+
+def updateRequired(Key,currentVersion):
+
+    """ List configuration keys that require updating along with the version 
+    number when the update must be triggered 
+
+    OUTPUT:
+        True/False         Boolean indicating whether configuration key needs
+                           updating
+    """
+
+    # Dictionary holding configuration keys and version numbers
+    updatesRequired = {
+        'WeatherFlow': '3.7',
+        'Hardware': '4',
+    }
+
+    # Determine if current configuration key passed to function requires 
+    # updating    
+    if Key in updatesRequired:
+        if version.parse(currentVersion) < version.parse(updatesRequired[Key]):
+            return 1
+        else:
+            return 0
+    else:
+        return 0

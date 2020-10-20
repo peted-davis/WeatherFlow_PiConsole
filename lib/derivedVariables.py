@@ -603,37 +603,6 @@ def StrikeCount(Count,strikeCount,Device,Config,flagAPI):
     # Return Daily, Monthly, and Yearly lightning strike counts
     return {'Today':todayStrikes, 'Month':monthStrikes, 'Year':yearStrikes}
 
-    # At midnight, reset daily lightning strike count to zero, else return
-    # current daily lightning strike count.
-    #if Now.date() > strikeCount['Today'][3].date():
-    #    todayStrikes = [Count[0],'count',Count[0],Now]
-    #else:
-    #    currentCount = strikeCount['Today'][2]
-    #    updatedCount = currentCount + Count[0] if not math.isnan(Count[0]) else currentCount
-    #    todayStrikes = [updatedCount,'count',updatedCount,Now]
-
-    # At end of month, reset monthly lightning strike count to zero, else return
-    # current monthly lightning strike count
-    #if Now.month > strikeCount['Month'][3].month:
-    #    monthStrikes = [Count[0],'count',Count[0],Now]
-    #else:
-    #    currentCount = strikeCount['Month'][2]
-    #    updatedCount = currentCount + Count[0] if not math.isnan(Count[0]) else currentCount
-    #    monthStrikes = [updatedCount,'count',updatedCount,Now]
-
-    # At end of year, reset monthly and yearly lightning strike counts to zero,
-    # else return current yearly lightning strike count
-    #if Now.year > strikeCount['Year'][3].year:
-    #    monthStrikes = [Count[0],'count',Count[0],Now]
-    #    yearStrikes  = [Count[0],'count',Count[0],Now]
-    #else:
-    #    currentCount = strikeCount['Year'][2]
-    #    updatedCount = currentCount + Count[0] if not math.isnan(Count[0]) else currentCount
-    #    yearStrikes = [updatedCount,'count',updatedCount,Now]
-
-    # Return Daily, Monthly, and Yearly lightning strike accumulation totals
-    #return {'Today':todayStrikes, 'Month':monthStrikes, 'Year':yearStrikes}
-
 def RainRate(rainAccum):
 
     """ Calculate the average windspeed since midnight station time
@@ -827,40 +796,6 @@ def RainAccumulation(Rain,rainAccum,Device,Config,flagAPI):
 
     # Return Daily, Monthly, and Yearly rainfall accumulation totals
     return {'Today':TodayRain, 'Yesterday':YesterdayRain, 'Month':MonthRain, 'Year':YearRain}
-
-    # At midnight, update yesterday rainfall and reset daily rainfall
-    # accumulation to zero. Else add current rainfall to current daily rainfall
-    # accumulation and set yesterday rainfall as unchanged
-    #if Now.date() > rainAccum['Today'][3].date():
-    #    YesterdayRain = [rainAccum['Today'][2],'mm',rainAccum['Today'][2],Now]
-    #    TodayRain     = [Rain[0],'mm',Rain[0],Now]
-    #else:
-    #    currentAccum  = rainAccum['Today'][2]
-    #    updatedAccum  = currentAccum + Rain[0] if not math.isnan(Rain[0]) else currentAccum
-    #    TodayRain     = [updatedAccum,'mm',updatedAccum,Now]
-    #    YesterdayRain = [rainAccum['Yesterday'][2],'mm',rainAccum['Yesterday'][2],Now]
-
-    # At end of month, reset monthly rainfall accumulation to zero, else add
-    # current rainfall to current monthly rainfall accumulation
-    #if Now.month > rainAccum['Month'][3].month:
-    #    MonthRain = [Rain[0],'mm',Rain[0],Now]
-    #else:
-    #    currentAccum = rainAccum['Month'][2]
-    #    updatedAccum = currentAccum + Rain[0] if not math.isnan(Rain[0]) else currentAccum
-    #    MonthRain    = [updatedAccum,'mm',updatedAccum,Now]
-
-    # At end of year, reset monthly and yearly rainfall accumulation to zero,
-    # else add current rainfall to current yearly rainfall accumulation
-    #if Now.year > rainAccum['Year'][3].year:
-    #    YearRain  = [Rain[0],'mm',Rain[0],Now]
-    #    MonthRain = [Rain[0],'mm',Rain[0],Now]
-    #else:
-    #    currentAccum = rainAccum['Year'][2]
-    #    updatedAccum = currentAccum + Rain[0] if not math.isnan(Rain[0]) else currentAccum
-    #    YearRain     = [updatedAccum,'mm',updatedAccum,Now]
-
-    # Return Daily, Monthly, and Yearly rainfall accumulation totals
-    #return {'Today':TodayRain, 'Yesterday':YesterdayRain, 'Month':MonthRain, 'Year':YearRain}
 
 def MeanWindSpeed(windSpd,avgWind,Device,Config,flagAPI):
 
