@@ -149,6 +149,7 @@ class WeatherFlowClientFactory(WebSocketClientFactory,ReconnectingClientFactory)
     # Define protocol and reconnection properties
     protocol     = WeatherFlowClientProtocol
     maxDelay     = 60
+    factor       = 5
     jitter       = 0
 
     def clientConnectionFailed(self,connector,reason):
@@ -496,8 +497,6 @@ class wfpiconsole(App):
         # connection
         elif Type == 'Unknown':
             print('Unknown message type: ' + json.dumps(Msg))
-            print('Waiting 60 seconds to restart Websocket connection');
-            Clock.schedule_once(lambda dt: self._factory._proto.sendClose(), 60)
 
 # ==============================================================================
 # CurrentConditions SCREEN CLASS
