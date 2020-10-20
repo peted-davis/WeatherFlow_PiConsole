@@ -24,6 +24,7 @@ https://community.weatherflow.com/
 
 ## Features and Screenshot
 
+### Features
 ▸Wind speed and direction including three second rapid wind updates<br>
 ▸Outdoor air temperature/humidity/feels Like<br>
 ▸Indoor air temperature (requires an indoor Air module)<br>
@@ -42,6 +43,7 @@ https://community.weatherflow.com/
 ▸Location specific Sager Weathercaster Forecast<br>
 ▸Settings screen to change display units and other options<br>
 
+### Screenshot
 <p align="center">
     <img src="https://aws1.discourse-cdn.com/business7/uploads/sws/original/2X/d/d0de2097c45aa64f2b95ed31a1202c2ee91adb3d.png" width="70%">
 </p>
