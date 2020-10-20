@@ -916,7 +916,7 @@ if [[ ! -x "$(command -v sudo)" ]]; then
 fi
 if [[ "${1}" != "start" ]]; then
     if (sudo true); then
-        if [[ "${1}" != "stop" ]] && [[ "${1}" != "runUpdate" ]] && [[ "${1}" != "runBeta" ]]; then
+        if [[ "${1}" != "stop" ]] && [[ "${1}" != "update" ]] && [[ "${1}" != "beta" ]]; then
             printf "\\n  %b Root user check passed\\n" "${TICK}"
         fi
     else
@@ -930,7 +930,7 @@ fi
 
 # CHECK OS/HARDWARE AND ADD REQUIRED REPOSITORIES WHEN INSTALL OR UPDATING
 # ------------------------------------------------------------------------------
-if [[ "${1}" == "install" ]] || [[ "${1}" == "update" ]] || [[ "${1}" == "beta" ]] ; then
+if [[ "${1}" == "install" ]] || [[ "${1}" == "runUpdate" ]] || [[ "${1}" == "runBeta" ]] ; then
 
     # Check compatability of hardware/OS
     PROCESSOR=$(uname -m)
