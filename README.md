@@ -10,12 +10,12 @@ The WeatherFlow PiConsole can be run on a Raspberry Pi 3 or 4 running Raspberry
 Pi OS , or on a PC running Ubuntu 18.04 LTS or Raspberry Pi OS. It is  currently 
 *not* compatible with Ubuntu 20.04 without downgrading Python to version 3.7 
 
-https://weatherflow.com/tempest-weather-system/
+https://weatherflow.com/tempest-weather-system/<br/>
 https://community.weatherflow.com/
 
 ## Contents
 
-**[Features and Screenshot](#features-screenshot)**<br>
+**[Features and Screenshot](#features-and-screenshot)**<br>
 **[Installation Instructions](#installation-instructions)**<br>
 **[Update Instructions](#update-instructions)**<br>
 **[Auto-Start Instructions](#auto-start-instructions)**<br>
@@ -24,25 +24,27 @@ https://community.weatherflow.com/
 
 ## Features and Screenshot
 
-* Wind speed and direction including three second rapid wind updates
-* Outdoor air temperature/humidity/feels Like
-* Indoor air temperature (requires an indoor Air module)
-* Daily maximum and minimum outdoor/indoor temperature
-* Daily maximum wind gust and daily averaged wind speed
-* Atmospheric pressure, pressure trend, and expected conditions
-* Daily maximum and minimum pressure
-* Current rainfall rate along with today/yesterday/monthly/yearly totals
-* Time and distance to latest lightning strike
-* Lightning strike frequency
-* Last 3 hours/today/monthly/yearly lightning strike totals
-* Solar radiation and UV index
-* Sunrise/sunset information
-* Moonrise/moonset information
-* Location specific forecast from WeatherFlow
-* Location specific Sager Weathercaster Forecast
-* Settings screen to change display units and other options
+▸Wind speed and direction including three second rapid wind updates<br>
+▸Outdoor air temperature/humidity/feels Like<br>
+▸Indoor air temperature (requires an indoor Air module)<br>
+▸Daily maximum and minimum outdoor/indoor temperature<br>
+▸Daily maximum wind gust and daily averaged wind speed<br>
+▸Atmospheric pressure, pressure trend, and expected conditions<br>
+▸Daily maximum and minimum pressure<br>
+▸Current rainfall rate along with today/yesterday/monthly/yearly totals<br>
+▸Time and distance to latest lightning strike<br>
+▸Lightning strike frequency<br>
+▸Last 3 hours/today/monthly/yearly lightning strike totals<br>
+▸Solar radiation and UV index<br>
+▸Sunrise/sunset information<br>
+▸Moonrise/moonset information<br>
+▸Location specific forecast from WeatherFlow<br>
+▸Location specific Sager Weathercaster Forecast<br>
+▸Settings screen to change display units and other options<br>
 
-![alt text](https://aws1.discourse-cdn.com/business7/uploads/sws/original/2X/d/d0de2097c45aa64f2b95ed31a1202c2ee91adb3d.png)
+<p align="center">
+    <img src="https://aws1.discourse-cdn.com/business7/uploads/sws/original/2X/d/d0de2097c45aa64f2b95ed31a1202c2ee91adb3d.png" width="70%">
+</p>
 
 ## Installation Instructions
 
