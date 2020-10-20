@@ -1,26 +1,48 @@
 # WeatherFlow PiConsole
-Raspberry Pi Python console for the WeatherFlow Tempest and Smart Home Weather
+Python console for the WeatherFlow Tempest and Smart Home Weather
 stations. The console uses the WeatherFlow REST API and websocket to stream data
 from your Weather Flow Tempest or Smart Home Weather station in real time via
-the internet. As soon as the data from your station reaches the WeatherFlow
-servers, it is pushed immediately to the console, including the 3-second rapid
-fire wind updates.
+the internet. As soon as data from your station reaches the WeatherFlow servers, 
+it is pushed immediately to the console, including the 3-second rapid wind 
+updates.
 
-Many of the graphical elements in the console are based on the Weather34 Home
-Weather Station Template (https://www.weather34.com/homeweatherstation/)
-copyright 2015-2020 Brian Underdown. The Weather34 Home Weather Station Template
-is licensed under a Creative Commons Attribution-NonCommercial-NoDerivatives 4.0
-International License.
+The WeatherFlow PiConsole can be run on a Raspberry Pi 3 or 4 running Raspberry 
+Pi OS , or on a PC running Ubuntu 18.04 LTS or Raspberry Pi OS. It is  currently 
+*not* compatible with Ubuntu 20.04 without downgrading Python to version 3.7 
 
 https://weatherflow.com/tempest-weather-system/
 https://community.weatherflow.com/
 
 ## Contents
 
+**[Features and Screenshot](#features-screenshot)**<br>
 **[Installation Instructions](#installation-instructions)**<br>
 **[Update Instructions](#update-instructions)**<br>
 **[Auto-Start Instructions](#auto-start-instructions)**<br>
 **[Advanced Installation: Windows](#advanced-installation-windows)**<br>
+**[Credits](#credits)**<br>
+
+## Features and Screenshot
+
+* Wind speed and direction including three second rapid wind updates
+* Outdoor air temperature/humidity/feels Like
+* Indoor air temperature (requires an indoor Air module)
+* Daily maximum and minimum outdoor/indoor temperature
+* Daily maximum wind gust and daily averaged wind speed
+* Atmospheric pressure, pressure trend, and expected conditions
+* Daily maximum and minimum pressure
+* Current rainfall rate along with today/yesterday/monthly/yearly totals
+* Time and distance to latest lightning strike
+* Lightning strike frequency
+* Last 3 hours/today/monthly/yearly lightning strike totals
+* Solar radiation and UV index
+* Sunrise/sunset information
+* Moonrise/moonset information
+* Location specific forecast from WeatherFlow
+* Location specific Sager Weathercaster Forecast
+* Settings screen to change display units and other options
+
+![alt text](https://aws1.discourse-cdn.com/business7/uploads/sws/original/2X/d/d0de2097c45aa64f2b95ed31a1202c2ee91adb3d.png)
 
 ## Installation Instructions
 
@@ -95,6 +117,17 @@ to enter this configuration information again.
 Congratulations, you have installed the Raspberry Pi Python console for the
 Weather Flow Tempest and Smart Home Weather Stations.
 
+### Screen size
+
+By default the PiConsole will run in full screen mode. If you are running on a 
+Raspberry Pi 4 or a PC with Raspberry Pi OS or Ubuntu 18.04 LTS, fullscreen mode 
+can be disabled in Menu -> Settings -> Display. In this case the console will 
+use the dimensions specified in the configuration file (```wfpiconsole.ini```), 
+which can be changed manually. Please note that extreme changes to the aspect 
+ratio will result in text fields running into one another. Under Settings -> 
+Display there are also settings to show/hide the cursor and show/hide the window
+border.  
+
 ## Update Instructions
 
 The WeatherFlow PiConsole can be updated quickly and easily with the following
@@ -164,3 +197,11 @@ del /f PiConsole.tar.gz
 As this is the first time you have run the console, you’ll be asked for some API
 keys. Details of what you need can be found under "Configure and Run WeatherFlow
 PiConsole" in the **[Installation Instructions](#installation-instructions)**.
+
+## Credits
+
+Many of the graphical elements in the console are based on the Weather34 Home
+Weather Station Template (https://www.weather34.com/homeweatherstation/)
+copyright 2015-2020 Brian Underdown. The Weather34 Home Weather Station Template
+is licensed under a Creative Commons Attribution-NonCommercial-NoDerivatives 4.0
+International License.
