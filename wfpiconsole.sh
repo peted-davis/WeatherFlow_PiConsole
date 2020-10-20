@@ -930,7 +930,7 @@ fi
 
 # CHECK OS/HARDWARE AND ADD REQUIRED REPOSITORIES WHEN INSTALL OR UPDATING
 # ------------------------------------------------------------------------------
-if [[ "${1}" == "install" ]] || [[ "${1}" == "update" ]] || [[ "${1}" == "beta" ]] ; then
+if [[ "${1}" == "install" ]] || [[ "${1}" == "runUpdate" ]] || [[ "${1}" == "runBeta" ]] ; then
 
     # Check compatability of hardware/OS
     PROCESSOR=$(uname -m)
