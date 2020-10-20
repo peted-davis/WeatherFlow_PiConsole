@@ -55,11 +55,12 @@ be started from the terminal with a single command. The automated installation
 should take ~1 hour.
 
 The automated installer assumes you have already sucesfully setup your Raspberry
-Pi and have installed Raspberry Pi OS with Desktop. You should have also
-attached the touch screen, and have either a keyboard and mouse attached
+Pi and have installed Raspberry Pi OS with Desktop, or you ar running on a PC
+with Ubuntu 18.04 or Raspberry Pi OS installed. For a Raspberry Pi you should 
+have also attached the touch screen, and have either a keyboard and mouse attached
 directly to the Pi, or have accessesd the Pi remotely through SSH/VNC. If you
-are starting from scratch, the Raspberry Pi documentation should help get you
-started:
+are starting from scratch with a Raspberry Pi, the documentation should help 
+get you started:
 
 * https://www.raspberrypi.org/documentation/
 
@@ -118,8 +119,8 @@ If all goes smoothly the console should automatically add the extra information
 it needs to your configuration file and then start running. You should not need
 to enter this configuration information again.
 
-Congratulations, you have installed the Raspberry Pi Python console for the
-Weather Flow Tempest and Smart Home Weather Stations.
+Congratulations, you have installed the PiConsole for the Weather Flow Tempest 
+and Smart Home Weather Stations.
 
 ### Screen size
 
