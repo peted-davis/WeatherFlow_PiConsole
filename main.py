@@ -283,8 +283,9 @@ class wfpiconsole(App):
 
         # Calculate initial ScaleFactor and bind self.setScaleFactor to Window 
         # on_resize
-        self.setScaleFactor(Window, Window.width, Window.height)
-        Window.bind(on_resize=self.setScaleFactor)
+        self.window = Window
+        self.setScaleFactor(self.window, self.window.width, self.window.height)
+        self.window.bind(on_resize=self.setScaleFactor)
 
         # Initialise real time clock
         Clock.schedule_interval(partial(system.realtimeClock,self.System,self.config),1.0)
