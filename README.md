@@ -6,6 +6,9 @@ the internet. As soon as data from your station reaches the WeatherFlow servers,
 it is pushed immediately to the console, including the 3-second rapid wind 
 updates.
 
+For a list of supported features and screenshots of the console in action, please
+checkout its page on the WeatherFlow community forums: https://community.weatherflow.com/t/weatherflow-piconsole/1933
+
 The WeatherFlow PiConsole can be run on a Raspberry Pi 3 or 4 running Raspberry 
 Pi OS , or on a PC running Ubuntu 18.04 LTS or Raspberry Pi OS. It is  currently 
 *not* compatible with Ubuntu 20.04 without downgrading Python to version 3.7 
@@ -15,38 +18,11 @@ https://community.weatherflow.com/
 
 ## Contents
 
-**[Features and Screenshot](#features-and-screenshot)**<br>
 **[Installation Instructions](#installation-instructions)**<br>
 **[Update Instructions](#update-instructions)**<br>
 **[Auto-Start Instructions](#auto-start-instructions)**<br>
 **[Advanced Installation: Windows](#advanced-installation-windows)**<br>
 **[Credits](#credits)**<br>
-
-## Features and Screenshot
-
-### Features
-▸Wind speed and direction including three second rapid wind updates<br>
-▸Outdoor air temperature/humidity/feels Like<br>
-▸Indoor air temperature (requires an indoor Air module)<br>
-▸Daily maximum and minimum outdoor/indoor temperature<br>
-▸Daily maximum wind gust and daily averaged wind speed<br>
-▸Atmospheric pressure, pressure trend, and expected conditions<br>
-▸Daily maximum and minimum pressure<br>
-▸Current rainfall rate along with today/yesterday/monthly/yearly totals<br>
-▸Time and distance to latest lightning strike<br>
-▸Lightning strike frequency<br>
-▸Last 3 hours/today/monthly/yearly lightning strike totals<br>
-▸Solar radiation and UV index<br>
-▸Sunrise/sunset information<br>
-▸Moonrise/moonset information<br>
-▸Location specific forecast from WeatherFlow<br>
-▸Location specific Sager Weathercaster Forecast<br>
-▸Settings screen to change display units and other options<br>
-
-### Screenshot
-<p align="center">
-    <img src="https://aws1.discourse-cdn.com/business7/uploads/sws/original/2X/d/d0de2097c45aa64f2b95ed31a1202c2ee91adb3d.png" width="70%">
-</p>
 
 ## Installation Instructions
 
