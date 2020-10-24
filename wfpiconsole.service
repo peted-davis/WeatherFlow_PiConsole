@@ -24,8 +24,8 @@ StartLimitBurst=5
 
 [Service]
 Restart=always
-RestartSec=10
 Environment=DISPLAY=:0
+ExecStartPre=/bin/sleep 5
 ExecStart=/usr/bin/python3 -u main.py
 WorkingDirectory=
 StandardOutput=
