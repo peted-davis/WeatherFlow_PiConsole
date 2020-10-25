@@ -19,7 +19,9 @@
 ## CUSTOM PanelButton AND MenuButton
 ## =============================================================================
 <PanelButton@Button>:
-    font_size: self.height/2
+    font_size: dp(15.5*app.scaleFactor)
+    font_name: 'fonts/Inter-SemiBold.ttf'
+    color: utils.rgba('#d6d6d6ff')
     background_color: (0,0,0,0)
     canvas.before:
         Color:
@@ -28,11 +30,11 @@
             pos: self.pos
             size: self.size
             radius: [14*app.scaleFactor]
-    font_name: 'fonts/Inter-SemiBold.ttf'
-    color: utils.rgba('#d6d6d6ff')
 
 <MenuButton>:
-    font_size: self.height/2
+    font_size: dp(15.5*app.scaleFactor)
+    font_name: 'fonts/Inter-SemiBold.ttf'
+    color: utils.rgba('#d6d6d6ff')
     background_color: (0,0,0,0)
     canvas.before:
         Color:
@@ -41,8 +43,6 @@
             pos: self.pos
             size: self.size
             radius: [14*app.scaleFactor]
-    font_name: 'fonts/Inter-SemiBold.ttf'
-    color: utils.rgba('#d6d6d6ff')
 
 ## =============================================================================
 ## CUSTOM TabbedPanelItem AND MainMenuLayout
@@ -51,7 +51,7 @@
     background_normal: 'atlas://atlas/wfpiconsole/tab_btn'
     background_down: 'atlas://atlas/wfpiconsole/tab_btn_pressed'
     font_name: 'fonts/Inter-SemiBold.ttf'
-    font_size: self.height/2.8
+    font_size: dp(14.2*app.scaleFactor)
     canvas.after:
         Color:
             rgb: [.3,.3,.3,1]

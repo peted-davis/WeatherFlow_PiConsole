@@ -19,32 +19,39 @@
 ## CUSTOM DisplayField LABELS
 ## =============================================================================
 <DisplayField@Label>
-    font_size: dp(self.height)
     color: utils.rgba('#c8c8c8ff')
+    valign: 'center'
+    halign: 'center'
     markup: 1
 
 <TitleField@DisplayField>
     font_name: 'fonts/Inter-Bold.ttf'
+    font_size: dp(14.1*app.scaleFactor)
     size_hint_y: (13/202)
 
 <LargeField@DisplayField>
     font_name: 'fonts/Inter-ExtraLight.ttf'
+    font_size: dp(29.4*app.scaleFactor)
     size_hint_y: (27/202)
 
 <MediumField@DisplayField>
     font_name: 'fonts/Inter-Light.ttf'
+    font_size: dp(19.6*app.scaleFactor)
     size_hint_y: (18/202)
 
 <SmallField@DisplayField>
     font_name: 'fonts/Inter-Regular.ttf'
+    font_size: dp(14.1*app.scaleFactor)
     size_hint_y: (13/202)
 
 <BoldField@DisplayField>
     font_name: 'fonts/Inter-Bold.ttf'
+    font_size: dp(14.1*app.scaleFactor)
     size_hint_y: (13/202)
 
 <TimeDateField@DisplayField>
     font_name: 'fonts/Inter-Medium.ttf'
+    font_size: dp(19.6*app.scaleFactor)
     size_hint_y: (18/202)
 
 ## =============================================================================
@@ -52,16 +59,16 @@
 ## =============================================================================
 <MenuField@DisplayField>
     font_name: 'fonts/Inter-Bold.ttf'
-    font_size: dp((self.height*(13/self.height))*app.scaleFactor)
+    font_size: dp(13*app.scaleFactor)
     size_hint_y: (13/202)
 
 <StatusField@DisplayField>
     font_name: 'fonts/Inter-Bold.ttf'
-    font_size: dp((self.height*(13/self.height))*app.scaleFactor)
+    font_size: dp(13*app.scaleFactor)
 
 <StatusColumn@DisplayField>:
     font_name: 'fonts/Inter-Bold.ttf'
-    font_size: dp(self.height*0.45)
+    font_size: dp(13*app.scaleFactor)
     color: utils.rgba('#141414ff')
     canvas.before:
         Color:
@@ -75,6 +82,7 @@
 ## =============================================================================
 <PanelTitle@DisplayField>:
     font_name: 'fonts/Inter-Bold.ttf'
+    font_size: dp(14.1*app.scaleFactor)
     size_hint: (1, 13/202)
     pos_hint: {'x': 0, 'y': 185/202}
     color: utils.rgba('#ffffffff')

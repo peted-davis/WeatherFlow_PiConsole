@@ -59,13 +59,13 @@ elif config['System']['Hardware'] in ['PiB','Pi3']:
 # Import required modules
 from kivy.config import Config as kivyconfig
 
-# Generate default wfpiconsole Kivy config file. Config file is always 
-# regenerated to ensure changes to the default file are always copied across 
+# Generate default wfpiconsole Kivy config file. Config file is always
+# regenerated to ensure changes to the default file are always copied across
 defaultconfig = configparser.ConfigParser()
 defaultconfig.read(os.path.expanduser('~/.kivy/') + 'config.ini')
 with open(os.path.expanduser('~/.kivy/') + 'config_wfpiconsole.ini','w') as cfg:
     defaultconfig.write(cfg)
-    
+
 # Load wfpiconsole Kivy configuration file
 kivyconfig.read(os.path.expanduser('~/.kivy/') + 'config_wfpiconsole.ini')
 
@@ -281,7 +281,7 @@ class wfpiconsole(App):
         self.config.read('wfpiconsole.ini')
         self.settings_cls = SettingsWithSidebar
 
-        # Calculate initial ScaleFactor and bind self.setScaleFactor to Window 
+        # Calculate initial ScaleFactor and bind self.setScaleFactor to Window
         # on_resize
         self.window = Window
         self.setScaleFactor(self.window, self.window.width, self.window.height)
@@ -315,10 +315,10 @@ class wfpiconsole(App):
         Clock.schedule_interval(partial(astro.sunTransit,self.Astro,self.config),1.0)
         Clock.schedule_interval(partial(astro.moonPhase ,self.Astro,self.config),1.0)
 
-    # SET DISPLAY SCALE FACTOR BASED ON SCREEN SIZE
+    # SET DISPLAY SCALE FACTOR BASED ON SCREEN DIMENSIONS
     # --------------------------------------------------------------------------
     def setScaleFactor(self,instance,x,y):
-        self.scaleFactor = max(x/800, y/480, 1)
+        self.scaleFactor = max(min(x/800, y/480), 1)
         if self.scaleFactor > 1:
             self.scaleSuffix = '_hR'
         else:

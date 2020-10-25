@@ -168,8 +168,8 @@ ScreenManager:
     ## Forecast valid time
     SmallField:
         text: 'Forecast for ' + app.MetData['Valid']
-        pos_hint: {'x': 5/262, 'y': 3/202}
-        size_hint_x: 250/262
+        pos_hint: {'x': 5/262, 'y': 2/202}
+        size_hint: (252/262, 17/202)
         text_size: self.size
         halign: 'right'
 
@@ -191,14 +191,14 @@ ScreenManager:
     ## Sager Weathercaster forecast
     MediumMultilineField:
         text: app.Sager['Forecast']
-        pos_hint: {'x': 6/262, 'y': 21/202}
-        size_hint: (250/262, 157/202)
+        pos_hint: {'x': 5/262, 'y': 21/202}
+        size_hint: (252/262, 157/202)
 
     ## Forecast issue time
     SmallField:
         text: 'Forecast issued: ' + app.Sager['Issued']
-        pos_hint: {'x': 6/262, 'y': 4/202}
-        size_hint_x: (252/262)
+        pos_hint: {'x': 5/262, 'y': 2/202}
+        size_hint: (252/262, 17/202)
         text_size: self.size
         halign: 'right'
 
@@ -322,8 +322,8 @@ ScreenManager:
         allow_stretch: 1
     SmallField:
         text: app.Obs['FeelsLike'][2]
-        pos_hint: {'x': 49/262, 'y': 11/202}
-        size_hint_x: (200/262)
+        pos_hint: {'x': 49/262, 'y': 10/202}
+        size_hint: (200/262, 17/202)
         text_size: self.size
         halign: 'left'
 
@@ -400,8 +400,8 @@ ScreenManager:
         allow_stretch: 1
     SmallField:
         text: app.Obs['WindSpd'][4]
-        pos_hint: {'x': 6/262, 'y': 7/202}
-        size_hint_x: (126/262)
+        pos_hint: {'x': 6/262, 'y': 6/202}
+        size_hint: (126/262, 17/202)
         text_size: self.size
         halign: 'left'
 
@@ -414,8 +414,8 @@ ScreenManager:
         allow_stretch: 1
     SmallField:
         text: 'Direction: [color=9aba2fff]' + app.Obs['WindDir'][0] + app.Obs['WindDir'][1] + '[/color]'
-        pos_hint: {'x': 119/262, 'y': 7/202}
-        size_hint_x: (135/262)
+        pos_hint: {'x': 119/262, 'y': 6/202}
+        size_hint: (135/262, 17/202)
         text_size: self.size
         halign: 'right'
 
@@ -537,28 +537,28 @@ ScreenManager:
     ## Sunrise time
     TitleField:
         text: 'Sunrise'
-        pos_hint: {'x': 13/262, 'y': 114/202}
-        size_hint_x: (55/262)
+        pos_hint: {'x': 13/262, 'y': 113/202}
+        size_hint: (55/262, 17/202)
         text_size: self.size
         halign: 'left'
     SmallField:
         text: app.Astro['Sunrise'][1]
-        pos_hint: {'x': 13/262, 'y': 74/202}
-        size_hint_x: (80/262)
+        pos_hint: {'x': 13/262, 'y': 73/202}
+        size_hint: (80/262, 17/202)
         text_size: self.size
         halign: 'left'
 
     ## Sunset time
     TitleField:
         text: 'Sunset'
-        pos_hint: {'x': 194/262, 'y': 114/202}
-        size_hint_x: (55/262)
+        pos_hint: {'x': 194/262, 'y': 113/202}
+        size_hint: (55/262, 17/202)
         text_size: self.size
         halign: 'right'
     SmallField:
         text: app.Astro['Sunset'][1]
-        pos_hint: {'x': 169/262, 'y': 74/202}
-        size_hint_x: (80/262)
+        pos_hint: {'x': 169/262, 'y': 73/202}
+        size_hint: (80/262, 17/202)
         text_size: self.size
         halign: 'right'
 
@@ -573,20 +573,20 @@ ScreenManager:
         size_hint_x: (30/262)
     TitleField:
         text: 'hrs'
-        color: utils.rgba('ffffffff')
+        font_size: dp(10.9*app.scaleFactor)
         pos_hint: {'x': 40/262, 'y': 25/202}
         size_hint_x: (20/262)
-        size_hint_y: (10/202)
+        color: utils.rgba('ffffffff')
     MediumField:
         text: app.Astro['sunEvent'][2]
         pos_hint: {'x': 60/262, 'y': 27/202}
         size_hint_x: (30/262)
     TitleField:
         text:  'mins'
-        color: utils.rgba('ffffffff')
+        font_size: dp(10.9*app.scaleFactor)
         pos_hint: {'x': 90/262, 'y': 25/202}
         size_hint_x: (28/262)
-        size_hint_y: (10/202)
+        color: utils.rgba('ffffffff')
     SmallField:
         text: 'Till ' + app.Astro['sunEvent'][0]
         pos_hint: {'x': 24/262, 'y': 5/202}
@@ -810,9 +810,9 @@ ScreenManager:
         size_hint_x: (80/262 if app.Obs['StrikeDeltaT'][2] == '-' else 40/262)
     TitleField:
         text: app.Obs['StrikeDeltaT'][1]
+        font_size: dp(13*app.scaleFactor)
         pos_hint: {'x': 83/262, 'y': 127/202}
         size_hint_x: (80/262 if app.Obs['StrikeDeltaT'][2] == '-' else 40/262)
-        size_hint_y: (12/202)
     LargeField:
         text: app.Obs['StrikeDeltaT'][2]
         opacity: 0 if app.Obs['StrikeDeltaT'][2] == '-' else 1
@@ -820,10 +820,10 @@ ScreenManager:
         size_hint_x: (40/262)
     TitleField:
         text: app.Obs['StrikeDeltaT'][3]
+        font_size: dp(13*app.scaleFactor)
         opacity: 0 if app.Obs['StrikeDeltaT'][2] == '-' else 1
         pos_hint: {'x': 123/262, 'y': 127/202}
         size_hint_x: (40/262)
-        size_hint_y: (12/202)
     SmallField:
         text: '[color=f05e40ff]ago[/color]'
         pos_hint: {'x': 83/262, 'y': 108/202}
@@ -836,9 +836,9 @@ ScreenManager:
         size_hint_x: (90/262)
     TitleField:
         text: app.Obs['StrikeDist'][1]
+        font_size: dp(13*app.scaleFactor)
         pos_hint: {'x': 169/262, 'y': 127/202}
         size_hint_x: (90/262)
-        size_hint_y: (12/202)
     SmallField:
         text: '[color=f05e40ff]away[/color]'
         pos_hint: {'x': 169/262, 'y': 108/202}
@@ -1101,8 +1101,8 @@ ScreenManager:
                         padding: [dp(0),dp(0),dp(0),dp(10)]
                         size_hint: (1,.22)
                         MenuField:
+                            font_size: dp(16*app.scaleFactor)
                             text: app.config['Station']['Name']
-                            font_size: dp(self.height*0.6)
                         MenuField:
                             text: 'Station status: ' + app.Station.Device['stationStatus']
                     GridLayout:
