@@ -96,17 +96,24 @@ def Download(metData,Config,dt):
         WindSpd      = [hourlyCurrent['wind_avg'],'mps']
         WindGust     = [hourlyCurrent['wind_gust'],'mps']
         WindDir      = [hourlyCurrent['wind_direction'],'degrees']
-        PrecipPercnt = [hourlyCurrent['precip_probability'],'%']
-        PrecipAmount = [hourlyCurrent['precip'],'mm']
         Icon         =  hourlyCurrent['icon'].replace('cc-','')
         
-        # Extract Precipitation Type from current hourly forecast
+        # Extract Precipitation Type, Percent, and Amount from current hourly 
+        # forecast
         if 'precip_type' in hourlyCurrent:
             PrecipType   =  hourlyCurrent['precip_type']
             if PrecipType not in ['rain','snow']:
                 PrecipType = 'rain'
         else:
             PrecipType = 'rain'
+        if 'precip_probability' in hourlyCurrent:
+            PrecipPercnt = [hourlyCurrent['precip_probability'],'%']
+        else:
+            PrecipPercnt = [0,'%']
+        if 'precip' in hourlyCurrent:
+            PrecipAmount = [hourlyCurrent['precip'],'mm']
+        else:
+            PrecipAmount = [0,'mm']
 
         # Extract weather variables from current daily forecast
         highTemp  = [dailyCurrent['air_temp_high'],'c']

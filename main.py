@@ -199,8 +199,6 @@ from twisted.internet import reactor, ssl
 from functools        import partial
 from threading        import Thread
 from datetime         import datetime, date, time, timedelta
-from optparse         import OptionParser
-from time             import sleep
 import subprocess
 import requests
 import pytz
@@ -224,7 +222,6 @@ from kivy.uix.settings       import SettingString, SettingSpacer
 from kivy.uix.button         import Button
 from kivy.uix.widget         import Widget
 from kivy.uix.popup          import Popup
-from kivy.uix.image          import Image
 from kivy.uix.label          import Label
 
 # ==============================================================================
@@ -350,7 +347,7 @@ class wfpiconsole(App):
         # Update current weather forecast and Sager Weathercaster forecast when
         # temperature or wind speed units are changed
         if section == 'Units' and key in ['Temp','Wind']:
-            forecast.Extract(self.MetData,self.config)
+            forecast.Download(self.MetData, self.config, None)
             if key == 'Wind' and 'Dial' in self.Sager:
                 self.Sager['Dial']['Units'] = value
                 self.Sager['Forecast'] = sagerForecast.getForecast(self.Sager['Dial'])

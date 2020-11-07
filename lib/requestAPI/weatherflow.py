@@ -68,7 +68,7 @@ def Last3h(Device,endTime,Config):
     startTime = endTime - int(3600*3)
 
     # Download WeatherFlow data for last three hours
-    Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&api_key={}'
+    Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&token={}'
     URL = Template.format(Device,startTime,endTime,Config['Keys']['WeatherFlow'])
     try:
         Data = requests.get(URL,timeout=int(Config['System']['Timeout']))
@@ -96,7 +96,7 @@ def Last6h(Device,endTime,Config):
     startTime = endTime - int(3600*6)
 
     # Download WeatherFlow data for last three hours
-    Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&api_key={}'
+    Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&token={}'
     URL = Template.format(Device,startTime,endTime,Config['Keys']['WeatherFlow'])
     try:
         Data = requests.get(URL,timeout=int(Config['System']['Timeout']))
@@ -124,7 +124,7 @@ def Last24h(Device,endTime,Config):
     startTime = endTime - int(3600*24)
 
     # Download WeatherFlow data for last three hours
-    Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&api_key={}'
+    Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&token={}'
     URL = Template.format(Device,startTime,endTime,Config['Keys']['WeatherFlow'])
     try:
         Data = requests.get(URL,timeout=int(Config['System']['Timeout']))
@@ -160,7 +160,7 @@ def Today(Device,Config):
     endTime = int(Now.timestamp())
 
     # Download WeatherFlow data
-    Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&api_key={}'
+    Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&token={}'
     URL = Template.format(Device,startTime,endTime,Config['Keys']['WeatherFlow'])
     try:
         Data = requests.get(URL,timeout=int(Config['System']['Timeout']))
@@ -198,7 +198,7 @@ def Yesterday(Device,Config):
     endTime = int(Today.timestamp())-1
 
     # Download WeatherFlow data
-    Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&api_key={}'
+    Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&token={}'
     URL = Template.format(Device,startTime,endTime,Config['Keys']['WeatherFlow'])
     try:
         Data = requests.get(URL,timeout=int(Config['System']['Timeout']))
@@ -234,7 +234,7 @@ def Month(Device,Config):
     endTime = int(Tz.localize(datetime(Now.year,Now.month,Now.day)).timestamp())-1
 
     # Download WeatherFlow data
-    Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&api_key={}'
+    Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&token={}'
     URL = Template.format(Device,startTime,endTime,Config['Keys']['WeatherFlow'])
     try:
         Data = requests.get(URL,timeout=int(Config['System']['Timeout']))
@@ -270,7 +270,7 @@ def Year(Device,Config):
     endTime = int(Tz.localize(datetime(Now.year,Now.month,Now.day)).timestamp())-1
 
     # Download WeatherFlow data
-    Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&api_key={}'
+    Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&token={}'
     URL = Template.format(Device,startTime,endTime,Config['Keys']['WeatherFlow'])
     try:
         Data = requests.get(URL,timeout=int(Config['System']['Timeout']))
@@ -294,7 +294,7 @@ def stationMetaData(Station,Config):
     """
 
     # Download station meta data
-    Template = 'https://swd.weatherflow.com/swd/rest/stations/{}?api_key={}'
+    Template = 'https://swd.weatherflow.com/swd/rest/stations/{}?token={}'
     URL = Template.format(Station,Config['Keys']['WeatherFlow'])
     try:
         Data = requests.get(URL,timeout=int(Config['System']['Timeout']))
@@ -316,7 +316,7 @@ def Forecast(Config):
     """
 
     # Download WeatherFlow forecast
-    Template = 'https://swd.weatherflow.com/swd/rest/better_forecast?api_key={}&station_id={}&lat={}&lon={}'
+    Template = 'https://swd.weatherflow.com/swd/rest/better_forecast?token={}&station_id={}&lat={}&lon={}'
     URL = Template.format(Config['Keys']['WeatherFlow'],Config['Station']['StationID'],Config['Station']['Latitude'],Config['Station']['Longitude'])
     try:
         Data = requests.get(URL,timeout=int(Config['System']['Timeout']))
