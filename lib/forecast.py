@@ -96,10 +96,24 @@ def Download(metData,Config,dt):
         WindSpd      = [hourlyCurrent['wind_avg'],'mps']
         WindGust     = [hourlyCurrent['wind_gust'],'mps']
         WindDir      = [hourlyCurrent['wind_direction'],'degrees']
-        PrecipPercnt = [hourlyCurrent['precip_probability'],'%']
-        PrecipAmount = [hourlyCurrent['precip'],'mm']
-        PrecipType   =  hourlyCurrent['precip_type']
         Icon         =  hourlyCurrent['icon'].replace('cc-','')
+        
+        # Extract Precipitation Type, Percent, and Amount from current hourly 
+        # forecast
+        if 'precip_type' in hourlyCurrent:
+            PrecipType   =  hourlyCurrent['precip_type']
+            if PrecipType not in ['rain','snow']:
+                PrecipType = 'rain'
+        else:
+            PrecipType = 'rain'
+        if 'precip_probability' in hourlyCurrent:
+            PrecipPercnt = [hourlyCurrent['precip_probability'],'%']
+        else:
+            PrecipPercnt = [0,'%']
+        if 'precip' in hourlyCurrent:
+            PrecipAmount = [hourlyCurrent['precip'],'mm']
+        else:
+            PrecipAmount = [0,'mm']
 
         # Extract weather variables from current daily forecast
         highTemp  = [dailyCurrent['air_temp_high'],'c']
@@ -120,10 +134,6 @@ def Download(metData,Config,dt):
             Conditions = hourlyCurrent['conditions'].capitalize() + ' until ' + datetime.strftime(Time,TimeFormat) + ' tomorrow'
         else:
             Conditions = hourlyCurrent['conditions'].capitalize() + ' until ' + datetime.strftime(Time,TimeFormat) + ' on ' + Time.strftime('%A')
-
-        # Fix 'PrecipType' as Rain or Snow
-        if PrecipType not in ['rain','snow']:
-            PrecipType = 'rain'
 
         # Calculate derived variables from forecast
         WindDir = derive.CardinalWindDirection(WindDir,WindSpd)
@@ -193,7 +203,7 @@ def Download(metData,Config,dt):
     if not funcError:
         secondsSched = math.ceil((downloadTime-funcCalled).total_seconds())
     else:
-        secondsSched = 10 + math.ceil((funcCalled-Now).total_seconds())
+        secondsSched = 300 + math.ceil((funcCalled-Now).total_seconds())
     Clock.schedule_once(partial(Download,metData,Config), secondsSched)
 
     # Return metData dictionary
