@@ -86,7 +86,7 @@ def FeelsLike(Temp,Humidity,windSpd,Config):
     WindKPH = [windSpd[0]*3.6,'kph']
 
     # If temperature or humidity is NaN, set Feels Like temperature to NaN
-    if math.isnan(Temp[0]) or math.isnan(Humidity[0]):
+    if math.isnan(Temp[0]) or math.isnan(Humidity[0]) or math.isnan(windSpd[0]):
         FeelsLike = [NaN,'c']
 
     # If temperature is less than 10 degrees celcius and wind speed is higher
@@ -638,12 +638,12 @@ def RainRate(rainAccum):
     # Return instantaneous rain rate and text
     return [Rate,'mm/hr',RateText,Rate]
 
-def RainAccumulation(Rain,rainAccum,Device,Config,flagAPI):
+def RainAccumulation(dailyRain,rainAccum,Device,Config,flagAPI):
 
     """ Calculate the rain accumulation for today/yesterday/month/year
 
     INPUTS:
-        rain                Rain accumulation for the current minute        [mm]
+        dailyRain           Daily rain accumulation                         [mm]
         rainAccum           Dictionary containing fields:
             Today               Rain accumulation for the current day       [mm]
             Yesterday           Rain accumulation yesterday                 [mm]
@@ -665,33 +665,8 @@ def RainAccumulation(Rain,rainAccum,Device,Config,flagAPI):
     Tz = pytz.timezone(Config['Station']['Timezone'])
     Now = datetime.now(pytz.utc).astimezone(Tz)
 
-    # If console is initialising, download all data for current day using
-    # Weatherflow API and calculate total daily rainfall
-    if rainAccum['Today'][0] == '-' or flagAPI:
-
-        # Download rainfall data for current day
-        Data = requestAPI.weatherflow.Today(Device,Config)
-
-        # Calculate daily rainfall total. Return NaN if API call has failed
-        if requestAPI.weatherflow.verifyResponse(Data,'obs'):
-            Data = Data.json()['obs']
-            if Config['Station']['SkyID']:
-                Rain = [item[3] for item in Data if item[3] != None]
-            elif Config['Station']['TempestID']:
-                Rain = [item[12] for item in Data if item[12] != None]
-            TodayRain = [sum(x for x in Rain),'mm',sum(x for x in Rain),Now]
-        else:
-            TodayRain = [NaN,'mm',NaN,Now]
-
-    # Else if midnight has passed, reset daily rainfall accumulation to zero
-    elif Now.date() > rainAccum['Today'][3].date():
-        TodayRain = [Rain[0],'mm',Rain[0],Now]
-
-    # Else, calculate current daily rainfall accumulation
-    else:
-        currentAccum  = rainAccum['Today'][2]
-        updatedAccum  = currentAccum + Rain[0] if not math.isnan(Rain[0]) else currentAccum
-        TodayRain     = [updatedAccum,'mm',updatedAccum,Now]
+    # Set current daily rainfall accumulation
+    TodayRain = [dailyRain[0],'mm',dailyRain[0],Now]
 
     # If console is initialising, download all data for yesterday using
     # Weatherflow API and calculate total daily rainfall
@@ -711,8 +686,9 @@ def RainAccumulation(Rain,rainAccum,Device,Config,flagAPI):
             YesterdayRain = [sum(x for x in Rain),'mm',sum(x for x in Rain),Now]
         else:
             YesterdayRain = [NaN,'mm',NaN,Now]
-
-    # Else if midnight has passed, set yesterday rainfall accumulation
+        
+    # Else if midnight has passed, set yesterday rainfall accumulation equal to
+    # rainAccum['Today'] (which still contains yesterday's accumulation)
     elif Now.date() > rainAccum['Today'][3].date():
         YesterdayRain = [rainAccum['Today'][2],'mm',rainAccum['Today'][2],Now]
 
@@ -720,9 +696,14 @@ def RainAccumulation(Rain,rainAccum,Device,Config,flagAPI):
     else:
         YesterdayRain = [rainAccum['Yesterday'][2],'mm',rainAccum['Yesterday'][2],Now]
 
+    # If console is initialising and today is the first day on the month, set
+    # monthly rainfall to current daily rainfall
+    if rainAccum['Month'][0] == '-' and Now.day == 1:
+        MonthRain = [dailyRain[0],'mm',dailyRain[0],Now]
+        
     # If console is initialising, download all data for current month using
     # Weatherflow API and calculate total monthly rainfall
-    if rainAccum['Month'][0] == '-' or flagAPI:
+    elif rainAccum['Month'][0] == '-' or flagAPI:
 
         # Download rainfall data for last Month
         Data = requestAPI.weatherflow.Month(Device,Config)
@@ -738,22 +719,28 @@ def RainAccumulation(Rain,rainAccum,Device,Config,flagAPI):
             MonthRain = [sum(x for x in Rain),'mm',sum(x for x in Rain),Now]
         else:
             MonthRain = [NaN,'mm',NaN,Now]
-
+            
         # Adjust monthly rainfall total for rain that has fallen today
         if not math.isnan(TodayRain[0]):
-            MonthRain[0] += TodayRain[0]
-            MonthRain[2] += TodayRain[2]
-
+            MonthRain[0] += dailyRain[0]
+        
     # Else if the end of the month has passed, reset monthly rain accumulation
-    # to zero
+    # to current daily rain accumulation
     elif Now.month > rainAccum['Month'][3].month:
-        MonthRain = [Rain[0],'mm',Rain[0],Now]
+        dailyAccum = dailyRain[0] if not math.isnan(dailyRain[0]) else 0
+        MonthRain  = [dailyAccum,'mm',0,Now]
 
-    # Else, calculate current monthly rainfall accumulation
+    # Else if midnight has passed, permanently add rainAccum['Today'] (which
+    # still contains yesterday's accumulation) and current daily rainfall to
+    # monthly rain accumulation
+    elif Now.date() > rainAccum['Month'][3].date():
+        dailyAccum = dailyRain[0] if not math.isnan(dailyRain[0]) else 0
+        MonthRain  = [rainAccum['Month'][2] + rainAccum['Today'][2] + dailyAccum,'mm',rainAccum['Month'][2] + rainAccum['Today'][2],Now]
+
+    # Else, update current monthly rainfall accumulation
     else:
-        currentAccum = rainAccum['Month'][2]
-        updatedAccum = currentAccum + Rain[0] if not math.isnan(Rain[0]) else currentAccum
-        MonthRain    = [updatedAccum,'mm',updatedAccum,Now]
+        dailyAccum = dailyRain[0] if not math.isnan(dailyRain[0]) else 0
+        MonthRain  = [rainAccum['Month'][2] + dailyAccum,'mm',rainAccum['Month'][2],Now]
 
     # If console is initialising, download all data for current year using
     # Weatherflow API and calculate total yearly rainfall
@@ -769,30 +756,33 @@ def RainAccumulation(Rain,rainAccum,Device,Config,flagAPI):
             if Config['Station']['SkyID']:
                 Rain = [item[3] for item in Data if item[3] != None]
             elif Config['Station']['TempestID']:
-                if bucketStep == 1440:
-                    Rain = [item[28] for item in Data if item[28] != None]
-                else:
-                    Rain = [item[12] for item in Data if item[12] != None]
+                Rain = [item[28] for item in Data if item[28] != None]
             YearRain = [sum(x for x in Rain),'mm',sum(x for x in Rain),Now]
         else:
             YearRain = [NaN,'mm',NaN,Now]
 
         # Adjust yearly rainfall total for rain that has fallen today
-        if not math.isnan(TodayRain[0]):
-            YearRain[0] += TodayRain[0]
-            YearRain[2] += TodayRain[2]
+        if not math.isnan(dailyRain[0]):
+            YearRain[0] += dailyRain[0]
 
     # Else if the end of the year has passed, reset monthly and yearly rain
-    # accumulation to zero
+    # accumulation to current daily rain accumulation
     elif Now.year > rainAccum['Year'][3].year:
-        YearRain  = [Rain[0],'mm',Rain[0],Now]
-        MonthRain = [Rain[0],'mm',Rain[0],Now]
+        dailyAccum = dailyRain[0] if not math.isnan(dailyRain[0]) else 0
+        YearRain   = [dailyAccum,'mm',0,Now]
+        MonthRain  = [dailyAccum,'mm',0,Now]
+        
+    # Else if midnight has passed, permanently add rainAccum['Today'] (which
+    # still contains yesterday's accumulation) and current daily rainfall to
+    # yearly rain accumulation
+    elif Now.date() > rainAccum['Year'][3].date():
+        dailyAccum = dailyRain[0] if not math.isnan(dailyRain[0]) else 0
+        YearRain  = [rainAccum['Year'][2] + rainAccum['Today'][2] + dailyAccum,'mm',rainAccum['Year'][2] + rainAccum['Today'][2],Now]
 
     # Else, calculate current yearly rain accumulation
     else:
-        currentAccum = rainAccum['Year'][2]
-        updatedAccum = currentAccum + Rain[0] if not math.isnan(Rain[0]) else currentAccum
-        YearRain     = [updatedAccum,'mm',updatedAccum,Now]
+        dailyAccum = dailyRain[0] if not math.isnan(dailyRain[0]) else 0
+        YearRain   = [rainAccum['Year'][2] + dailyAccum,'mm',rainAccum['Year'][2],Now]
 
     # Return Daily, Monthly, and Yearly rainfall accumulation totals
     return {'Today':TodayRain, 'Yesterday':YesterdayRain, 'Month':MonthRain, 'Year':YearRain}
