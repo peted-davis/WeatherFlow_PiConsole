@@ -183,6 +183,6 @@ PiConsole" in the **[Installation Instructions](#installation-instructions)**.
 
 Many of the graphical elements in the console are based on the Weather34 Home
 Weather Station Template (https://www.weather34.com/homeweatherstation/)
-copyright 2015-2020 Brian Underdown. The Weather34 Home Weather Station Template
+copyright 2015-2021 Brian Underdown. The Weather34 Home Weather Station Template
 is licensed under a Creative Commons Attribution-NonCommercial-NoDerivatives 4.0
 International License.

@@ -1,6 +1,6 @@
 """ Returns the derived weather variables required by the Raspberry Pi Python
 console for WeatherFlow Tempest and Smart Home Weather stations.
-Copyright (C) 2018-2020 Peter Davis
+Copyright (C) 2018-2021 Peter Davis
 
 This program is free software: you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
@@ -686,7 +686,7 @@ def RainAccumulation(dailyRain,rainAccum,Device,Config,flagAPI):
             YesterdayRain = [sum(x for x in Rain),'mm',sum(x for x in Rain),Now]
         else:
             YesterdayRain = [NaN,'mm',NaN,Now]
-        
+
     # Else if midnight has passed, set yesterday rainfall accumulation equal to
     # rainAccum['Today'] (which still contains yesterday's accumulation)
     elif Now.date() > rainAccum['Today'][3].date():
@@ -699,8 +699,8 @@ def RainAccumulation(dailyRain,rainAccum,Device,Config,flagAPI):
     # If console is initialising and today is the first day on the month, set
     # monthly rainfall to current daily rainfall
     if rainAccum['Month'][0] == '-' and Now.day == 1:
-        MonthRain = [dailyRain[0],'mm',dailyRain[0],Now]
-        
+        MonthRain = [dailyRain[0],'mm',0,Now]
+
     # If console is initialising, download all data for current month using
     # Weatherflow API and calculate total monthly rainfall
     elif rainAccum['Month'][0] == '-' or flagAPI:
@@ -719,11 +719,11 @@ def RainAccumulation(dailyRain,rainAccum,Device,Config,flagAPI):
             MonthRain = [sum(x for x in Rain),'mm',sum(x for x in Rain),Now]
         else:
             MonthRain = [NaN,'mm',NaN,Now]
-            
+
         # Adjust monthly rainfall total for rain that has fallen today
         if not math.isnan(TodayRain[0]):
             MonthRain[0] += dailyRain[0]
-        
+
     # Else if the end of the month has passed, reset monthly rain accumulation
     # to current daily rain accumulation
     elif Now.month > rainAccum['Month'][3].month:
@@ -742,9 +742,14 @@ def RainAccumulation(dailyRain,rainAccum,Device,Config,flagAPI):
         dailyAccum = dailyRain[0] if not math.isnan(dailyRain[0]) else 0
         MonthRain  = [rainAccum['Month'][2] + dailyAccum,'mm',rainAccum['Month'][2],Now]
 
+    # If console is initialising and today is the first day on the year, set
+    # yearly rainfall to current daily rainfall
+    if rainAccum['Year'][0] == '-' and Now.timetuple().tm_yday == 1:
+        YearRain = [dailyRain[0],'mm',0,Now]
+
     # If console is initialising, download all data for current year using
     # Weatherflow API and calculate total yearly rainfall
-    if rainAccum['Year'][0] == '-' or flagAPI:
+    elif rainAccum['Year'][0] == '-' or flagAPI:
 
         # Download rainfall data for last Month
         Data = requestAPI.weatherflow.Year(Device,Config)
@@ -771,7 +776,7 @@ def RainAccumulation(dailyRain,rainAccum,Device,Config,flagAPI):
         dailyAccum = dailyRain[0] if not math.isnan(dailyRain[0]) else 0
         YearRain   = [dailyAccum,'mm',0,Now]
         MonthRain  = [dailyAccum,'mm',0,Now]
-        
+
     # Else if midnight has passed, permanently add rainAccum['Today'] (which
     # still contains yesterday's accumulation) and current daily rainfall to
     # yearly rain accumulation

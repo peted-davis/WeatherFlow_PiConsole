@@ -1,6 +1,6 @@
 """ Handles Websocket messages received by the Raspberry Pi Python console for
 WeatherFlow Tempest and Smart Home Weather stations.
-Copyright (C) 2018-2020 Peter Davis
+Copyright (C) 2018-2021 Peter Davis
 
 This program is free software: you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
@@ -355,9 +355,9 @@ def outdoorAir(Msg,wfpiconsole):
         if wfpiconsole.Obs['outAirMsg']['obs'][0] == Ob[0]:
             print('Discarding duplicate outdoor AIR Websocket message')
             return
-            
+
     # Store latest outdoor AIR Websocket message
-    wfpiconsole.Obs['outAirMsg'] = Msg        
+    wfpiconsole.Obs['outAirMsg'] = Msg
 
     # Extract outdoor AIR device ID and API flag, and station configuration
     # object

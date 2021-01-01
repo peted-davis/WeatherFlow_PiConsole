@@ -1,6 +1,6 @@
 """ Formats and sets the required units of observations displayed on the
 Raspberry Pi Python console for Weather Flow Smart Home Weather Stations.
-Copyright (C) 2018-2020  Peter Davis
+Copyright (C) 2018-2021  Peter Davis
 
 This program is free software: you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
@@ -166,7 +166,7 @@ def Format(Obs,Type):
                 if T.strip() == 'c':
                     cObs[ii] = u'\N{DEGREE CELSIUS}'
                 elif T.strip() == 'f':
-                    cObs[ii] = u'\N{DEGREE FAHRENHEIT}'                
+                    cObs[ii] = u'\N{DEGREE FAHRENHEIT}'
     elif Type == 'forecastTemp':
         for ii,T in enumerate(Obs):
             if isinstance(T,str) and T.strip() in ['c','f']:
@@ -179,7 +179,7 @@ def Format(Obs,Type):
                 if T.strip() == 'c':
                     cObs[ii] = u'\N{DEGREE CELSIUS}'
                 elif T.strip() == 'f':
-                    cObs[ii] = u'\N{DEGREE FAHRENHEIT}'                
+                    cObs[ii] = u'\N{DEGREE FAHRENHEIT}'
 
     # Format pressure observations
     elif Type == 'Pressure':
@@ -213,7 +213,7 @@ def Format(Obs,Type):
                     cObs[ii-1] = '-'
                 else:
                     cObs[ii-1] = '{:.0f}'.format(cObs[ii-1])
-                        
+
     # Format wind direction observations
     elif Type == 'Direction':
         for ii,D in enumerate(Obs):

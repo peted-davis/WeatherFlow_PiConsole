@@ -1,6 +1,6 @@
 """ Returns the WeatherFlow forecast variables required by the Raspberry Pi
 Python console for WeatherFlow Tempest and Smart Home Weather stations.
-Copyright (C) 2018-2020 Peter Davis
+Copyright (C) 2018-2021 Peter Davis
 
 This program is free software: you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
@@ -97,8 +97,8 @@ def Download(metData,Config,dt):
         WindGust     = [hourlyCurrent['wind_gust'],'mps']
         WindDir      = [hourlyCurrent['wind_direction'],'degrees']
         Icon         =  hourlyCurrent['icon'].replace('cc-','')
-        
-        # Extract Precipitation Type, Percent, and Amount from current hourly 
+
+        # Extract Precipitation Type, Percent, and Amount from current hourly
         # forecast
         if 'precip_type' in hourlyCurrent:
             PrecipType   =  hourlyCurrent['precip_type']
