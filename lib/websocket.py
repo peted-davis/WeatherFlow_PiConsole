@@ -1,6 +1,6 @@
 """ Handles Websocket messages received by the Raspberry Pi Python console for
 WeatherFlow Tempest and Smart Home Weather stations.
-Copyright (C) 2018-2020 Peter Davis
+Copyright (C) 2018-2021 Peter Davis
 
 This program is free software: you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
@@ -107,8 +107,9 @@ def Tempest(Msg,wfpiconsole):
     Humidity  = [Ob[8],'%']
     UV        = [Ob[10],'index']
     Radiation = [Ob[11],'Wm2']
-    Rain      = [Ob[12],'mm']
+    minutRain = [Ob[12],'mm']
     Strikes   = [Ob[15],'count']
+    dailyRain = [Ob[18],'mm']
 
     # Extract lightning strike data from the latest AIR Websocket JSON "Summary"
     # object
@@ -149,8 +150,8 @@ def Tempest(Msg,wfpiconsole):
     StrikeFreq       = derive.StrikeFrequency(Time,Data3h,Config)
     StrikeDeltaT     = derive.StrikeDeltaT(StrikeTime)
     FeelsLike        = derive.FeelsLike(Temp,Humidity,WindSpd,Config)
-    RainRate         = derive.RainRate(Rain)
-    rainAccum        = derive.RainAccumulation(Rain,rainAccum,Device,Config,flagAPI)
+    RainRate         = derive.RainRate(minutRain)
+    rainAccum        = derive.RainAccumulation(dailyRain,rainAccum,Device,Config,flagAPI)
     AvgWind          = derive.MeanWindSpeed(WindSpd,avgWind,Device,Config,flagAPI)
     MaxGust          = derive.MaxWindGust(WindGust,maxGust,Device,Config,flagAPI)
     WindSpd          = derive.BeaufortScale(WindSpd)
@@ -242,6 +243,9 @@ def Sky(Msg,wfpiconsole):
             print('Discarding duplicate SKY Websocket message')
             return
 
+    # Store latest SKY Websocket message
+    wfpiconsole.Obs['SkyMsg'] = Msg
+
     # Extract SKY device ID and API flag, and station configuration object
     Device  = wfpiconsole.config['Station']['SkyID']
     flagAPI = wfpiconsole.flagAPI[1]
@@ -250,21 +254,26 @@ def Sky(Msg,wfpiconsole):
     # Extract required observations from latest SKY Websocket JSON
     Time      = [Ob[0],'s']
     UV        = [Ob[2],'index']
-    Rain      = [Ob[3],'mm']
+    minutRain = [Ob[3],'mm']
     WindSpd   = [Ob[5],'mps']
     WindGust  = [Ob[6],'mps']
     WindDir   = [Ob[7],'degrees']
     Radiation = [Ob[10],'Wm2']
-
-    # Store latest SKY Websocket message
-    wfpiconsole.Obs['SkyMsg'] = Msg
+    dailyRain = [Ob[11],'mm']
 
     # Extract required observations from latest AIR Websocket observations
-    while not 'outAirMsg' in wfpiconsole.Obs:
-        time.sleep(0.01)
-    Ob       = [x if x != None else NaN for x in wfpiconsole.Obs['outAirMsg']['obs'][0]]
-    Temp     = [Ob[2],'c']
-    Humidity = [Ob[3],'%']
+    Retries = 0
+    while Retries <= 10:
+        if 'outAirMsg' in wfpiconsole.Obs:
+            Ob       = [x if x != None else NaN for x in wfpiconsole.Obs['outAirMsg']['obs'][0]]
+            Temp     = [Ob[2],'c']
+            Humidity = [Ob[3],'%']
+            break
+        else:
+            Temp     = [NaN,'c']
+            Humidity = [NaN,'%']
+            Retries += 1
+            time.sleep(0.1)
 
     # Set wind direction to None if wind speed is zero
     if WindSpd[0] == 0:
@@ -281,8 +290,8 @@ def Sky(Msg,wfpiconsole):
 
     # Calculate derived variables from SKY observations
     FeelsLike = derive.FeelsLike(Temp,Humidity,WindSpd,Config)
-    RainRate  = derive.RainRate(Rain)
-    rainAccum = derive.RainAccumulation(Rain,rainAccum,Device,Config,flagAPI)
+    RainRate  = derive.RainRate(minutRain)
+    rainAccum = derive.RainAccumulation(dailyRain,rainAccum,Device,Config,flagAPI)
     AvgWind   = derive.MeanWindSpeed(WindSpd,avgWind,Device,Config,flagAPI)
     MaxGust   = derive.MaxWindGust(WindGust,maxGust,Device,Config,flagAPI)
     WindSpd   = derive.BeaufortScale(WindSpd)
@@ -347,6 +356,9 @@ def outdoorAir(Msg,wfpiconsole):
             print('Discarding duplicate outdoor AIR Websocket message')
             return
 
+    # Store latest outdoor AIR Websocket message
+    wfpiconsole.Obs['outAirMsg'] = Msg
+
     # Extract outdoor AIR device ID and API flag, and station configuration
     # object
     Device  = wfpiconsole.config['Station']['OutAirID']
@@ -378,14 +390,17 @@ def outdoorAir(Msg,wfpiconsole):
     # Request outdoor AIR data from the previous three hours
     Data3h = requestAPI.weatherflow.Last3h(Device,Time[0],Config)
 
-    # Store latest outdoor AIR Websocket message
-    wfpiconsole.Obs['outAirMsg'] = Msg
-
     # Extract required observations from latest SKY Websocket JSON
-    while not 'SkyMsg' in wfpiconsole.Obs:
-        time.sleep(0.01)
-    Ob = [x if x != None else NaN for x in wfpiconsole.Obs['SkyMsg']['obs'][0]]
-    WindSpd = [Ob[5],'mps']
+    Retries = 0
+    while Retries <= 10:
+        if 'SkyMsg' in wfpiconsole.Obs:
+            Ob = [x if x != None else NaN for x in wfpiconsole.Obs['SkyMsg']['obs'][0]]
+            WindSpd = [Ob[5],'mps']
+            break
+        else:
+            WindSpd = [NaN,'mps']
+            Retries += 1
+            time.sleep(0.1)
 
     # Calculate derived variables from AIR observations
     DewPoint         = derive.DewPoint(Temp,Humidity)

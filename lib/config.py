@@ -1,6 +1,6 @@
 """ Defines the configuration .ini files required by the Raspberry Pi Python
 console for WeatherFlow Tempest and Smart Home Weather stations.
-Copyright (C) 2018-2020 Peter Davis
+Copyright (C) 2018-2021 Peter Davis
 
 This program is free software: you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
@@ -31,7 +31,7 @@ import sys
 import os
 
 # Define wfpiconsole version number
-Version = 'v4.0.1'
+Version = 'v4.0.2'
 
 # Define required variables
 TEMPEST       = False
@@ -154,7 +154,7 @@ def update():
                     if currentConfig.has_option(Section,Key):
                         if updateRequired(Key,currentVersion):
                             Changes = True
-                            writeConfigKey(newConfig,Section,Key,default[Section][Key])                             
+                            writeConfigKey(newConfig,Section,Key,default[Section][Key])
                         else:
                             copyConfigKey(newConfig,currentConfig,Section,Key,default[Section][Key])
                     if not currentConfig.has_option(Section,Key):
@@ -631,8 +631,8 @@ def defaultConfig():
 
 def updateRequired(Key,currentVersion):
 
-    """ List configuration keys that require updating along with the version 
-    number when the update must be triggered 
+    """ List configuration keys that require updating along with the version
+    number when the update must be triggered
 
     OUTPUT:
         True/False         Boolean indicating whether configuration key needs
@@ -645,8 +645,8 @@ def updateRequired(Key,currentVersion):
         'Hardware': '4',
     }
 
-    # Determine if current configuration key passed to function requires 
-    # updating    
+    # Determine if current configuration key passed to function requires
+    # updating
     if Key in updatesRequired:
         if version.parse(currentVersion) < version.parse(updatesRequired[Key]):
             return 1

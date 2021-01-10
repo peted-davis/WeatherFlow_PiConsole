@@ -1,6 +1,6 @@
 """ Returns WeatherFlow API requests required by the Raspberry Pi Python console
 for WeatherFlow Tempest and Smart Home Weather stations.
-Copyright (C) 2018-2020 Peter Davis
+Copyright (C) 2018-2021 Peter Davis
 
 This program is free software: you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
@@ -113,7 +113,7 @@ def Last24h(Device,endTime,Config):
 
     INPUTS:
         Device              Device ID
-        endTime             End time of six hour window as a UNIX timestamp
+        endTime             End time of 24 hour window as a UNIX timestamp
         Config              Station configuration
 
     OUTPUT:
@@ -227,11 +227,13 @@ def Month(Device,Config):
 
     # Convert start of current month in Station timezone to start of
     # current month in UTC. Convert UTC time into UNIX timestamp
-    startTime = int(Tz.localize(datetime(Now.year,Now.month,1)).timestamp())
+    monthStart = Tz.localize(datetime(Now.year, Now.month, 1))
+    startTime  = int(monthStart.timestamp())
 
     # Convert midnight today in Station timezone to midnight today in
     # UTC. Convert UTC time into UNIX timestamp.
-    endTime = int(Tz.localize(datetime(Now.year,Now.month,Now.day)).timestamp())-1
+    monthEnd = Tz.localize(datetime(Now.year, Now.month, Now.day))
+    endTime = int(monthEnd.timestamp()) - 1
 
     # Download WeatherFlow data
     Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&token={}'
@@ -263,14 +265,16 @@ def Year(Device,Config):
 
     # Convert start of current year in Station timezone to start of current year
     # in UTC. Convert UTC time into time timestamp
-    startTime = int(Tz.localize(datetime(Now.year,1,1)).timestamp())
+    yearStart = Tz.localize(datetime(Now.year, 1, 1))
+    startTime = int(yearStart.timestamp())
 
-    # Convert midnight today in Station timezone to midnight today in
+    # Convert midnight yesterday in Station timezone to midnight yesterday in
     # UTC. Convert UTC time into UNIX timestamp.
-    endTime = int(Tz.localize(datetime(Now.year,Now.month,Now.day)).timestamp())-1
+    yearEnd = Tz.localize(datetime(Now.year, Now.month, Now.day)) - timedelta(days=1)
+    endTime = int(yearEnd.timestamp()) - 1
 
     # Download WeatherFlow data
-    Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&token={}'
+    Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?bucket=e&time_start={}&time_end={}&token={}'
     URL = Template.format(Device,startTime,endTime,Config['Keys']['WeatherFlow'])
     try:
         Data = requests.get(URL,timeout=int(Config['System']['Timeout']))
