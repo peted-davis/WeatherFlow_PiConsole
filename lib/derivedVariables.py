@@ -751,17 +751,22 @@ def RainAccumulation(dailyRain,rainAccum,Device,Config,flagAPI):
     if rainAccum['Year'][0] == '-' and Now.timetuple().tm_yday == 1:
         YearRain = [dailyRain[0],'mm',0,Now]
 
+    # If console is initialising and today is during the first month of the
+    # year, set yearly rainfall to current monthly rainfall
+    elif rainAccum['Year'][0] == '-' and Now.timetuple().tm_mon == 1:
+        YearRain = MonthRain
+
     # If console is initialising, download all data for current year using
     # Weatherflow API and calculate total yearly rainfall
     elif rainAccum['Year'][0] == '-' or flagAPI:
-
+        print(Now.timetuple())
         # Download rainfall data for last Month
         Data = requestAPI.weatherflow.Year(Device,Config)
 
         # Calculate yearly rainfall total. Return NaN if API call has failed
         if requestAPI.weatherflow.verifyResponse(Data,'obs'):
-            bucketStep = Data.json()['bucket_step_minutes']
             Data = Data.json()['obs']
+            print(Data)
             if Config['Station']['SkyID']:
                 Rain = [item[3] for item in Data if item[3] != None]
             elif Config['Station']['TempestID']:
