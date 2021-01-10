@@ -287,8 +287,12 @@ def SLPMaxMin(Time,Pres,maxPres,minPres,Device,Config,flagAPI):
             SLP = [derive.SLP(P,Config) for P in Pres]
 
             # Define maximum and minimum pressure
-            MaxPres = [max(SLP)[0],'mb',datetime.fromtimestamp(Time[SLP.index(max(SLP))],Tz).strftime(Format),max(SLP)[0],Now]
-            MinPres = [min(SLP)[0],'mb',datetime.fromtimestamp(Time[SLP.index(min(SLP))],Tz).strftime(Format),min(SLP)[0],Now]
+            if len(SLP) > 0:
+                MaxPres = [max(SLP)[0],'mb',datetime.fromtimestamp(Time[SLP.index(max(SLP))],Tz).strftime(Format),max(SLP)[0],Now]
+                MinPres = [min(SLP)[0],'mb',datetime.fromtimestamp(Time[SLP.index(min(SLP))],Tz).strftime(Format),min(SLP)[0],Now]
+            else:
+                MaxPres = [NaN,'mb','-',NaN,Now]
+                MinPres = [NaN,'mb','-',NaN,Now]
         else:
             MaxPres = [NaN,'mb','-',NaN,Now]
             MinPres = [NaN,'mb','-',NaN,Now]
