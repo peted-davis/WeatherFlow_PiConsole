@@ -230,13 +230,20 @@ def Month(Device,Config):
     monthStart = Tz.localize(datetime(Now.year, Now.month, 1))
     startTime  = int(monthStart.timestamp())
 
-    # Convert midnight today in Station timezone to midnight today in
-    # UTC. Convert UTC time into UNIX timestamp.
-    monthEnd = Tz.localize(datetime(Now.year, Now.month, Now.day))
-    endTime = int(monthEnd.timestamp()) - 1
+    # If today is not the first day of the month, convert midnight yesterday
+    # in Station timezone to midnight yesterday in UTC. Convert UTC time into
+    # UNIX timestamp.
+    if Now.day != 1:
+        Yesterday = Tz.localize(datetime(Now.year, Now.month, Now.day)) - timedelta(days=1)
+        endTime = int(Yesterday.timestamp()) - 1
+
+    # If today is the first day of the month, set the endTime to one second
+    # less than the startTime
+    else:
+        endTime = startTime - 1
 
     # Download WeatherFlow data
-    Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&token={}'
+    Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?bucket=e&time_start={}&time_end={}&token={}'
     URL = Template.format(Device,startTime,endTime,Config['Keys']['WeatherFlow'])
     try:
         Data = requests.get(URL,timeout=int(Config['System']['Timeout']))

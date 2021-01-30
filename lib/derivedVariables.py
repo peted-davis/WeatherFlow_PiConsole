@@ -759,14 +759,13 @@ def RainAccumulation(dailyRain,rainAccum,Device,Config,flagAPI):
     # If console is initialising, download all data for current year using
     # Weatherflow API and calculate total yearly rainfall
     elif rainAccum['Year'][0] == '-' or flagAPI:
-        print(Now.timetuple())
+
         # Download rainfall data for last Month
         Data = requestAPI.weatherflow.Year(Device,Config)
 
         # Calculate yearly rainfall total. Return NaN if API call has failed
         if requestAPI.weatherflow.verifyResponse(Data,'obs'):
             Data = Data.json()['obs']
-            print(Data)
             if Config['Station']['SkyID']:
                 Rain = [item[3] for item in Data if item[3] != None]
             elif Config['Station']['TempestID']:
