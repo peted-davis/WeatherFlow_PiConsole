@@ -44,14 +44,14 @@ PIP_UPDATE="python3 -m pip install --user --upgrade"
 
 # wfpiconsole and Kivy dependencies
 WFPICONSOLE_DEPENDENCIES=(git curl rng-tools build-essential python3-dev python3-pip python3-setuptools
-                          libssl-dev libffi6 libffi-dev jq)
+                          libssl-dev libffi6 libffi-dev libatlas-base-dev  jq)
 KIVY_DEPENDENCIES=(pkg-config libgl1-mesa-dev libgles2-mesa-dev libgstreamer1.0-dev
                    gstreamer1.0-plugins-{bad,base,good,ugly} gstreamer1.0-{omx,alsa}
                    libmtdev-dev xclip xsel libjpeg-dev libsdl2-dev libsdl2-image-dev
                    libsdl2-mixer-dev libsdl2-ttf-dev)
 
 # Python modules and versions
-KIVY_VERSION="2.0.0"
+KIVY_VERSION="1.11.1"
 PYTHON_MODULES=(cryptography==3.4.5
                 autobahn[twisted]==21.2.1
                 pyasn1-modules==0.2.8
@@ -224,7 +224,7 @@ installPythonModules() {
         Module=$(echo $i | cut -d"[" -f 1 | cut -d"=" -f 1)
         local str="Installing Python module"
         printf "  %b %s %s..." "${INFO}" "${str}" "${Module}"
-        if (${PIP_INSTALL} "$i"); then
+        if (${PIP_INSTALL} "$i" &> errorLog); then
             printf "%b  %b %s %s\\n" "${OVER}" "${TICK}" "${str}" "${Module}"
         else
             printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
@@ -347,7 +347,7 @@ installKivy() {
             local str="Installing Kivy Python library"
         fi
         printf "\\n  %b %s..." "${INFO}" "${str}"
-        if (${PIP_INSTALL} kivy[base]==$KIVY_VERSION &> errorLog); then
+        if ($PIP_INSTALL $KIVY_REPO &> errorLog); then
             printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
         else
             printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
