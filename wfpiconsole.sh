@@ -39,8 +39,8 @@ PKG_UPDATE_COUNT="${PKG_MANAGER} -s -o Debug::NoLocking=true upgrade | grep -c ^
 PKG_NEW_INSTALL=(${PKG_MANAGER} --yes install)
 
 # Python PIP commands
-PIP_INSTALL="python3 -m pip --user install"
-PIP_UPDATE="python3 -m pip --user install --upgrade"
+PIP_INSTALL="python3 -m pip install --user"
+PIP_UPDATE="python3 -m pip install --user --upgrade"
 
 # wfpiconsole and Kivy dependencies
 WFPICONSOLE_DEPENDENCIES=(git curl rng-tools build-essential python3-dev python3-pip python3-setuptools
