@@ -42,7 +42,7 @@ ScreenManager:
     orientation: 'vertical'
     canvas.before:
         Color:
-            rgba: 0, 0, 0, 1
+            rgba: utils.rgba('000000ff')
         Rectangle:
             pos: self.pos
             size: self.size
@@ -525,10 +525,10 @@ ScreenManager:
         text: app.Obs['UVIndex'][2]
         pos_hint: {'x': 170/262, 'y': 140/202}
         size_hint_x: (75/262)
-        color: utils.rgba('#141414ff')
+        color: utils.rgba('#000000ff')
         canvas.before:
             Color:
-                rgba: utils.rgba(root.uvBackground) if root.uvBackground != '-' else utils.rgba('141414ff')
+                rgba: utils.rgba(root.uvBackground) if root.uvBackground != '-' else utils.rgba('000000ff')
             RoundedRectangle:
                 pos: [self.pos[0],self.pos[1]-4*app.scaleFactor]
                 size: (self.width,self.height+8*app.scaleFactor)
