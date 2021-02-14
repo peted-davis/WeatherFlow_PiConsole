@@ -38,22 +38,31 @@ PKG_UPDATE_INSTALL="${PKG_MANAGER} dist-upgrade -y"
 PKG_UPDATE_COUNT="${PKG_MANAGER} -s -o Debug::NoLocking=true upgrade | grep -c ^Inst || true"
 PKG_NEW_INSTALL=(${PKG_MANAGER} --yes install)
 
+# Python PIP commands
+PIP_INSTALL="python3 -m pip --no-cache-dir install"
+PIP_UPDATE="python3 -m pip install --upgrade"
+
 # wfpiconsole and Kivy dependencies
-WFPICONSOLE_DEPENDENCIES=(git curl rng-tools build-essential python3-pip python3-setuptools libssl-dev
-                          libffi6 libffi-dev jq)
-KIVY_DEPENDENCIES_ARM=(libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev
-                       pkg-config libgl1-mesa-dev libgles2-mesa-dev libgstreamer1.0-dev
-                       gstreamer1.0-plugins-{bad,base,good,ugly} libmtdev-dev xclip xsel
-                       libatlas-base-dev gstreamer1.0-{omx,alsa} libjpeg-dev)
-KIVY_DEPENDENCIES=(ffmpeg libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev
-                   libportmidi-dev libswscale-dev libavformat-dev libavcodec-dev zlib1g-dev
-                   libgstreamer1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good)
+WFPICONSOLE_DEPENDENCIES=(git curl rng-tools build-essential python3-dev python3-pip python3-setuptools
+                          libssl-dev libffi6 libffi-dev jq)
+KIVY_DEPENDENCIES=(pkg-config libgl1-mesa-dev libgles2-mesa-dev libgstreamer1.0-dev
+                   gstreamer1.0-plugins-{bad,base,good,ugly} gstreamer1.0-{omx,alsa}
+                   libmtdev-dev xclip xsel libjpeg-dev libsdl2-dev libsdl2-image-dev
+                   libsdl2-mixer-dev libsdl2-ttf-dev)
 
 # Python modules and versions
-KIVY_VERSION="1.11.1"
-CYTHON_VERSION="0.29.10"
-PYTHON_MODULES=(autobahn[twisted] numpy pytz pyasn1-modules service_identity geopy ephem pillow
-                packaging pyOpenSSL distro)
+KIVY_VERSION="2.0.0"
+PYTHON_MODULES=(cryptography==3.4.5
+                autobahn[twisted]==21.2.1
+                pyasn1-modules==0.2.8
+                service-identity==18.1.0
+                numpy==1.20.1
+                pytz==2021.1
+                ephem==3.7.7.1
+                pillow==8.1.0
+                packaging==20.9
+                pyOpenSSL==20.0.1
+                distro==1.5.0)
 
 # Github repositories
 KIVY_REPO="https://github.com/kivy/kivy/archive/"$KIVY_VERSION".zip"
@@ -115,10 +124,10 @@ isCommand() {
 # CLEAN UP AFTER COMPLETED OR FAILED INSTALLATION
 # ------------------------------------------------------------------------------
 cleanUp() {
-    rm -f pythonCommand errorLog
+    rm -f pythonCommand errorLog moduleList
 }
 
-# UPDATE LOCAL PACKAGES USING apt-get update AND apt-get upgrade
+# UPDATE LOCAL PACKAGES USING apt-get update
 # ------------------------------------------------------------------------------
 updatePackages() {
 
@@ -127,37 +136,16 @@ updatePackages() {
     printf "  %b %s..." "${INFO}" "${str}"
     if (sudo ${PKG_UPDATE_CACHE} &> errorLog); then
 
-        # If there are updates to install, check if user wishes to apply updates
+        # Alert user if there are updates to install
         updatesToInstall=$(eval ${PKG_UPDATE_COUNT})
         if [[ "$updatesToInstall" -gt "0" ]]; then
-            backtitle="Installing updated packages"
-            title="Updated packages available to install"
+            printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
             if [[ "$updatesToInstall" -eq "1" ]]; then
-                msg="OPTIONAL: There is $updatesToInstall updated package to install. Do you wish to install it? This step is not required, but is highly recommended to keep your Raspberry Pi up-to-date and secure"
+                local str="$updatesToInstall updated package available. Use 'sudo apt upgrade' to install"
             else
-                msg="OPTIONAL: There are $updatesToInstall updated packages to install. Do you wish to install them? This step is not required, but is highly recommended to keep your Raspberry Pi up-to-date and secure"
+                local str="$updatesToInstall updated packages available. Use 'sudo apt upgrade' to install"
             fi
-            if (whiptail --backtitle "$backtitle" --title "$title" --yesno --defaultno "$msg" ${r} ${c}); then
-
-                # Apply updates using apt-get. Return error if updates cannot be
-                #installed
-                printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
-                local str="Installing updated packages"
-                printf "  %b %s..." "${INFO}" "${str}"
-                if (sudo debconf-apt-progress --logfile errorLog -- ${PKG_UPDATE_INSTALL}); then
-                    printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
-                else
-                    printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
-                    printf "  %bError: Unable to install package updates.\\n\\n %b" "${COL_LIGHT_RED}" "${COL_NC}"
-                    printf "%s\\n\\n" "$(<errorLog)"
-                    cleanUp
-                    exit 1
-                fi
-            else
-                printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
-                local str="Updated packages not installed. It is recommended to update your OS after the installation has finished"
-                printf "  %b %s\\n" "${CROSS}" "${str}"
-            fi
+            printf "  %b %s\\n" "${INFO}" "${str}"
         else
             printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
             local str="No updated packages found"
@@ -208,7 +196,7 @@ installPackages() {
 updatePip() {
     local str="Updating Python package manager"
     printf "\\n  %b %s..." "${INFO}" "${str}"
-    if (python3 -m pip install --user --upgrade pip setuptools &> errorLog); then
+    if (${PIP_UPDATE} pip setuptools &> errorLog); then
         printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
     else
         printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
@@ -224,123 +212,109 @@ updatePip() {
 installPythonModules() {
 
     # Parse function input and print progress to screen.
-    printf "\\n  %b WeatherFlow PiConsole Python module checks..." "${INFO}"
+    printf "\\n  %b Installing WeatherFlow PiConsole Python modules..." "${INFO}"
     declare -a argArray=("${PYTHON_MODULES[@]}")
     declare -a installArray
 
     # Update Python package manager: pip
     updatePip
 
-    # Get list of installed Python modules
-    moduleList=$(python3 -m pip list)
-
-    # Check if any of the required Python modules are already installed.
+    # Install required Python modules
     for i in "${argArray[@]}"; do
         Module=$(echo $i | cut -d"[" -f 1 | cut -d"=" -f 1)
-        local str="Checking for Python module"
+        local str="Installing Python module"
         printf "  %b %s %s..." "${INFO}" "${str}" "${Module}"
-        if echo $moduleList | grep -iF $Module &> /dev/null; then
-            printf "%b  %b %s %s\\n" "${OVER}" "${TICK}" "${str}" "${i}"
+        if (${PIP_INSTALL} "$i"); then
+            printf "%b  %b %s %s\\n" "${OVER}" "${TICK}" "${str}" "${Module}"
         else
-            if python3 -c "import ${i%[*}" &> /dev/null; then
-                printf "%b  %b %s %s\\n" "${OVER}" "${TICK}" "${str}" "${i}"
-            else
-                printf "%b  %b %s %s (will be installed)\\n" "${OVER}" "${INFO}" "${str}" "${i}"
-                installArray+=("${i}")
-            fi
+            printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
+            printf "  %bError: Unable to install Python module: $Module\\n\\n %b" "${COL_LIGHT_RED}" "${COL_NC}"
+            printf "%s\\n\\n" "$(<errorLog)"
+            cleanUp
+            exit 1
         fi
     done
+}
 
-    # Check if required Cython version is installed
-    local str="Checking for Python module cython"
-    printf "  %b %s %s..." "${INFO}" "${str}" "${Module}"
-    if echo $moduleList | grep -iF Cython &> /dev/null; then
-        cythonVersion=$(echo $moduleList | sed -n 's/.*Cython //p' | cut -d" " -f 1)
-        if [[ "$CYTHON_VERSION" == "$cythonVersion" ]]; then
-            printf "%b  %b %s \\n" "${OVER}" "${TICK}" "${str}"
+# UPDATE PYTHON MODULES FOR THE WeatherFlow PiConsole
+# ------------------------------------------------------------------------------
+updatePythonModules() {
+
+    # Parse function input and print progress to screen.
+    printf "\\n  %b Updating WeatherFlow PiConsole Python modules..." "${INFO}"
+    declare -a argArray=("${PYTHON_MODULES[@]}")
+
+    # Update Python package manager: pip
+    updatePip
+
+    # Get list of installed packages and versions
+    python3 -m pip freeze > moduleList
+
+    # Update required Python modules
+    for i in "${argArray[@]}"; do
+        Module=$(echo $i | cut -d"[" -f 1 | cut -d"=" -f 1)
+        reqVer=$(echo $i | cut -d"=" -f 3)
+        if grep -iF $Module moduleList &> /dev/null; then
+            curVer=$(grep -iF $Module moduleList | cut -d"=" -f 3)
+            if [[ "$curVer" != "$reqVer" ]]; then
+                local str="Updating Python module"
+                printf "  %b %s %s..." "${INFO}" "${str}" "${Module}"
+                if (${PIP_INSTALL} "$i" &> errorLog); then
+                    printf "%b  %b %s %s\\n" "${OVER}" "${TICK}" "${str}" "${Module}"
+                else
+                    printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
+                    printf "  %bError: Unable to update Python module: $Module\\n\\n %b" "${COL_LIGHT_RED}" "${COL_NC}"
+                    printf "%s\\n\\n" "$(<errorLog)"
+                    cleanUp
+                    exit 1
+                fi
+            fi
         else
-            printf "%b  %b %s (will be updated)\\n" "${OVER}" "${INFO}" "${str}"
-            local updateCython=true
-        fi
-    else
-        printf "%b  %b %s (will be installed)\\n" "${OVER}" "${INFO}" "${str}"
-        local requireCython=true
-    fi
-
-    # Only install required Python modules that are missing from the system to
-    # avoid unecessary downloading
-    if [[ "${#installArray[@]}" -gt 0 ]]; then
-        printf "\\n  %b Installing WeatherFlow PiConsole Python modules...\\n" "${INFO}"
-        for i in "${installArray[@]}"; do
-            local str="Installing Python module"
-            printf "  %b %s %s..." "${INFO}" "${str}" "${i}"
-            if (python3 -m pip install --user "$i" &> errorLog); then
-                printf "%b  %b %s %s\\n" "${OVER}" "${TICK}" "${str}" "${i}"
+            local str="Installing new Python module"
+            printf "  %b %s %s..." "${INFO}" "${str}" "${Module}"
+            if (${PIP_INSTALL} "$i" &> errorLog); then
+                printf "%b  %b %s %s\\n" "${OVER}" "${TICK}" "${str}" "${Module}"
             else
                 printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
-                printf "  %bError: Unable to install Python module: $i\\n\\n %b" "${COL_LIGHT_RED}" "${COL_NC}"
+                printf "  %bError: Unable to install Python module: $Module\\n\\n %b" "${COL_LIGHT_RED}" "${COL_NC}"
                 printf "%s\\n\\n" "$(<errorLog)"
                 cleanUp
                 exit 1
             fi
-        done
-    fi
-
-    # Install/Update Cython if required
-    if [[ "$requireCython" = true ]] || [[ "$updateCython" = true ]] ; then
-        if [[ "${#installArray[@]}" -eq 0 ]] && [[ "$updateCython" = true ]] ; then
-            printf "\\n  %b Updating WeatherFlow PiConsole Python modules...\\n" "${INFO}"
         fi
-        if [[ "$requireCython" = true ]]; then
-            local str="Installing Python module cython"
-        else
-            local str="Updating Python module cython"
-        fi
-        printf "  %b %s..." "${INFO}" "${str}"
-        if (python3 -m pip install --user cython==$CYTHON_VERSION &> errorLog); then
-            printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
-        else
-            printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
-            printf "  %bError: Unable to install Python module cython\\n\\n %b" "${COL_LIGHT_RED}" "${COL_NC}"
-            printf "%s\\n\\n" "$(<errorLog)"
-            cleanUp
-            exit 1
-        fi
-    fi
+    done
 }
 
-# INSTALL PACKAGES REQUIRED BY KIVY PYTHON LIBRARY
+# INSTALL PACKAGES REQUIRED BY KIVY PYTHON LIBRARY ON ARM MACHINES
 # ------------------------------------------------------------------------------
 installKivyPackages() {
 
     # Define required packages and print progress to screen
-    printf "\\n  %b Kivy Python library dependency checks...\\n" "${INFO}"
     if [[ "$PROCESSOR" = "arm"* ]]; then
-        declare -a argArray=("${KIVY_DEPENDENCIES_ARM[@]}")
-    else
         declare -a argArray=("${KIVY_DEPENDENCIES[@]}")
-    fi
-    declare -a installArray
+        declare -a installArray
+        printf "\\n  %b Kivy Python library dependency checks...\\n" "${INFO}"
 
-    # Check if any of the required packages are already installed.
-    for i in "${argArray[@]}"; do
-        printf "  %b Checking for %s..." "${INFO}" "${i}"
-        if dpkg-query -W -f='${Status}' "${i}" 2>/dev/null | grep "ok installed" &> /dev/null; then
-            printf "%b  %b Checking for %s\\n" "${OVER}" "${TICK}" "${i}"
-        else
-            echo -e "${OVER}  ${INFO} Checking for $i (will be installed)"
-            installArray+=("${i}")
-        fi
-    done
+        # Check if any of the required packages are already installed.
+        for i in "${argArray[@]}"; do
+            printf "  %b Checking for %s..." "${INFO}" "${i}"
+            if dpkg-query -W -f='${Status}' "${i}" 2>/dev/null | grep "ok installed" &> /dev/null; then
+                printf "%b  %b Checking for %s\\n" "${OVER}" "${TICK}" "${i}"
+            else
+                echo -e "${OVER}  ${INFO} Checking for $i (will be installed)"
+                installArray+=("${i}")
+            fi
+        done
 
-    # Only install required packages that are missing from the system to avoid
-    # unecessary downloading
-    if [[ "${#installArray[@]}" -gt 0 ]]; then
-        if ! (sudo debconf-apt-progress --logfile errorLog -- "${PKG_NEW_INSTALL[@]}" "${installArray[@]}"); then
-            printf "  %b\\nError: Unable to install dependent packages\\n\\n %b" "${COL_LIGHT_RED}" "${COL_NC}"
-            printf "%s\\n\\n" "$(<errorLog)"
-            cleanUp
-            exit 1
+        # Only install required packages that are missing from the system to avoid
+        # unecessary downloading
+        if [[ "${#installArray[@]}" -gt 0 ]]; then
+            if ! (sudo debconf-apt-progress --logfile errorLog -- "${PKG_NEW_INSTALL[@]}" "${installArray[@]}"); then
+                printf "  %b\\nError: Unable to install dependent packages\\n\\n %b" "${COL_LIGHT_RED}" "${COL_NC}"
+                printf "%s\\n\\n" "$(<errorLog)"
+                cleanUp
+                exit 1
+            fi
         fi
     fi
 }
@@ -348,9 +322,6 @@ installKivyPackages() {
 # INSTALL KIVY PYTHON LIBRARY
 # ------------------------------------------------------------------------------
 installKivy() {
-
-    # Parse function input and print progress to screen
-    #printf "\\n  %b Kivy Python library installation check..." "${INFO}"
 
     # Check if required Kivy version is installed
     local str="Kivy Python library installation check"
@@ -371,12 +342,12 @@ installKivy() {
     # Install Kivy Python library
     if [[ "$updateKivy" = true ]] || [[ "$installKivy" = true ]]; then
         if [[ "$updateKivy" = true ]]; then
-            local str="Updating Kivy Python library [This will take time - please be patient]"
+            local str="Updating Kivy Python library"
         else
-            local str="Installing Kivy Python library [This will take time - please be patient]"
+            local str="Installing Kivy Python library"
         fi
         printf "\\n  %b %s..." "${INFO}" "${str}"
-        if (python3 -m pip install --user $KIVY_REPO &> errorLog); then
+        if (${PIP_INSTALL} kivy[base]==$KIVY_VERSION &> errorLog); then
             printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
         else
             printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
@@ -784,8 +755,8 @@ runUpdate() {
     updatePackages
     # Check if any new dependencies are required
     installPackages
-    # Check if any new Python modules are required
-    installPythonModules
+    # Update Python modules as required
+    updatePythonModules
     # Install required Kivy dependencies
     installKivyPackages
     # Install Kivy Python library
