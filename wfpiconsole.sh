@@ -466,7 +466,7 @@ getLatestPatch() {
 
     # Download latest stable patch for the WeatherFlow PiConsole and install
     local str="Patching ${COL_LIGHT_GREEN}${patchVer}${COL_NC} of the WeatherFlow PiConsole"
-    printf "\\n  %b %b..." "${INFO}" "${str}"
+    printf "  %b %b..." "${INFO}" "${str}"
     curl -sL $WFPICONSOLE_MAIN --create-dirs -o $DLDIR/wfpiconsole.tar.gz
     installLatestVersion
 }
