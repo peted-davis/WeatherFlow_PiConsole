@@ -44,19 +44,23 @@ PIP_UPDATE="python3 -m pip install --user --upgrade"
 
 # wfpiconsole and Kivy dependencies
 WFPICONSOLE_DEPENDENCIES=(git curl rng-tools build-essential python3-dev python3-pip python3-setuptools
-                          libssl-dev libffi6 libffi-dev libatlas-base-dev  jq)
-KIVY_DEPENDENCIES=(pkg-config libgl1-mesa-dev libgles2-mesa-dev libgstreamer1.0-dev
-                   gstreamer1.0-plugins-{bad,base,good,ugly} gstreamer1.0-{omx,alsa}
-                   libmtdev-dev xclip xsel libjpeg-dev libsdl2-dev libsdl2-image-dev
-                   libsdl2-mixer-dev libsdl2-ttf-dev)
+                          libssl-dev libffi6 libffi-dev libatlas-base-dev jq)
+KIVY_DEPENDENCIES_ARM=(pkg-config libgl1-mesa-dev libgles2-mesa-dev libgstreamer1.0-dev
+                       gstreamer1.0-plugins-{bad,base,good,ugly} gstreamer1.0-{omx,alsa}
+                       libmtdev-dev xclip xsel libjpeg-dev libsdl2-dev libsdl2-image-dev
+                       libsdl2-mixer-dev libsdl2-ttf-dev)
+KIVY_DEPENDENCIES=(ffmpeg libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev
+                   libportmidi-dev libswscale-dev libavformat-dev libavcodec-dev zlib1g-dev
+                   libgstreamer1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good)
 
 # Python modules and versions
 KIVY_VERSION="1.11.1"
-PYTHON_MODULES=(cryptography==3.4.5
+PYTHON_MODULES=(cython==0.29.10
+                cryptography==3.4.5
                 autobahn[twisted]==21.2.1
                 pyasn1-modules==0.2.8
                 service-identity==18.1.0
-                numpy==1.20.1
+                numpy==1.19.5
                 pytz==2021.1
                 ephem==3.7.7.1
                 pillow==8.1.0
@@ -290,31 +294,33 @@ updatePythonModules() {
 installKivyPackages() {
 
     # Define required packages and print progress to screen
+    printf "\\n  %b Kivy Python library dependency checks...\\n" "${INFO}"
     if [[ "$PROCESSOR" = "arm"* ]]; then
+        declare -a argArray=("${KIVY_DEPENDENCIES_ARM[@]}")
+    else
         declare -a argArray=("${KIVY_DEPENDENCIES[@]}")
-        declare -a installArray
-        printf "\\n  %b Kivy Python library dependency checks...\\n" "${INFO}"
+    fi
+    declare -a installArray
 
-        # Check if any of the required packages are already installed.
-        for i in "${argArray[@]}"; do
-            printf "  %b Checking for %s..." "${INFO}" "${i}"
-            if dpkg-query -W -f='${Status}' "${i}" 2>/dev/null | grep "ok installed" &> /dev/null; then
-                printf "%b  %b Checking for %s\\n" "${OVER}" "${TICK}" "${i}"
-            else
-                echo -e "${OVER}  ${INFO} Checking for $i (will be installed)"
-                installArray+=("${i}")
-            fi
-        done
+    # Check if any of the required packages are already installed.
+    for i in "${argArray[@]}"; do
+        printf "  %b Checking for %s..." "${INFO}" "${i}"
+        if dpkg-query -W -f='${Status}' "${i}" 2>/dev/null | grep "ok installed" &> /dev/null; then
+            printf "%b  %b Checking for %s\\n" "${OVER}" "${TICK}" "${i}"
+        else
+            echo -e "${OVER}  ${INFO} Checking for $i (will be installed)"
+            installArray+=("${i}")
+        fi
+    done
 
-        # Only install required packages that are missing from the system to avoid
-        # unecessary downloading
-        if [[ "${#installArray[@]}" -gt 0 ]]; then
-            if ! (sudo debconf-apt-progress --logfile errorLog -- "${PKG_NEW_INSTALL[@]}" "${installArray[@]}"); then
-                printf "  %b\\nError: Unable to install dependent packages\\n\\n %b" "${COL_LIGHT_RED}" "${COL_NC}"
-                printf "%s\\n\\n" "$(<errorLog)"
-                cleanUp
-                exit 1
-            fi
+    # Only install required packages that are missing from the system to avoid
+    # unecessary downloading
+    if [[ "${#installArray[@]}" -gt 0 ]]; then
+        if ! (sudo debconf-apt-progress --logfile errorLog -- "${PKG_NEW_INSTALL[@]}" "${installArray[@]}"); then
+            printf "  %b\\nError: Unable to install dependent packages\\n\\n %b" "${COL_LIGHT_RED}" "${COL_NC}"
+            printf "%s\\n\\n" "$(<errorLog)"
+            cleanUp
+            exit 1
         fi
     fi
 }

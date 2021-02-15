@@ -991,7 +991,7 @@ def UVIndex(uvLevel):
     Level   = ['None','Low','Moderate','High','Very High','Extreme']
 
     # Define UV index colours
-    Grey   = '#000000'
+    Grey   = '#646464'
     Green  = '#558B2F'
     Yellow = '#F9A825'
     Orange = '#EF6C00'
