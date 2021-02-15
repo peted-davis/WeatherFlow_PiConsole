@@ -465,7 +465,7 @@ getLatestPatch() {
     patchVer=$(echo $patchInfo | jq -r '.[0].name')
 
     # Download latest stable patch for the WeatherFlow PiConsole and install
-    local str="Patching the WeatherFlow PiConsole to ${COL_LIGHT_GREEN}${patchVer}${COL_NC}"
+    local str="Patching ${COL_LIGHT_GREEN}${patchVer}${COL_NC} of the WeatherFlow PiConsole"
     printf "\\n  %b %b..." "${INFO}" "${str}"
     curl -sL $WFPICONSOLE_MAIN --create-dirs -o $DLDIR/wfpiconsole.tar.gz
     installLatestVersion
@@ -775,16 +775,12 @@ runUpdate() {
     processComplete ${FUNCNAME[0]}
 }
 
-# PATCH THE WeatherFlow PiConsole TO THE LATEST STABLE PATCH
+# PATCH THE WeatherFlow PiConsole WITH THE LATEST STABLE CHANGES
 # ------------------------------------------------------------------------------
 patch() {
 
     # Display installation starting dialogue
     processStarting ${FUNCNAME[0]}
-    # Check for and ask user if they wish to install any updated local packages
-    updatePackages
-    # Check if any new dependencies are required
-    installPackages
     # Get the latest patch for the WeatherFlow PiConsole and install
     getLatestPatch
     # Clean up after installation
@@ -812,8 +808,8 @@ runBeta() {
     updatePackages
     # Check if any new dependencies are required
     installPackages
-    # Check if any new Python modules are required
-    installPythonModules
+    # Update Python modules as required
+    updatePythonModules
     # Install required Kivy dependencies
     installKivyPackages
     # Install Kivy Python library
