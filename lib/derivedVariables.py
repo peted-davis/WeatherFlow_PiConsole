@@ -719,7 +719,7 @@ def RainAccumulation(dailyRain,rainAccum,Device,Config,flagAPI):
             if Config['Station']['SkyID']:
                 Rain = [item[3] for item in Data if item[3] != None]
             elif Config['Station']['TempestID']:
-                Rain = [item[12] for item in Data if item[12] != None]
+                Rain = [item[28] for item in Data if item[28] != None]
             MonthRain = [sum(x for x in Rain),'mm',sum(x for x in Rain),Now]
         else:
             MonthRain = [NaN,'mm',NaN,Now]
