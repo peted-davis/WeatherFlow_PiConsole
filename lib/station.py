@@ -1,6 +1,6 @@
 """ Contains station functions required by the Raspberry Pi Python console for
 WeatherFlow Tempest and Smart Home Weather stations.
-Copyright (C) 2018-2021 Peter Davis
+Copyright (C) 2018-2020 Peter Davis
 
 This program is free software: you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
@@ -16,214 +16,222 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 """
 
 # Import required library modules
-from lib import requestAPI
+from lib import properties
 
 # Import required Python modules
-from datetime import datetime
+from kivy.network.urlrequest import UrlRequest
+from kivy.properties         import DictProperty
+from kivy.uix.widget         import Widget
+from datetime                import datetime
+import certifi
 import time
+import math
 import pytz
+import re
 
 # Define global variables
 NaN = float('NaN')
 
-def getHubStatus(Status,wfpiconsole):
 
-    """ Gets the current status of the hub attached to the station
+# =============================================================================
+# DEFINE 'Station' CLASS
+# =============================================================================
+class Station(Widget):
 
-    INPUTS:
-        Status                 Dictionary holding hub status information
-        wfpiconsole            wfpiconsole object
+    Status = DictProperty([])
 
-    OUTPUT:
-        Status                 Dictionary holding hub status information
-    """
+    def __init__(self, App, **kwargs):
+        super(Station, self).__init__(**kwargs)
+        self.Status = properties.Status()
+        self.app = App
 
-    # Set hub status based on device status
-    deviceStatus = []
-    for Key in Status:
-        if 'Status' in Key:
-            if Status[Key] == '-':
-                continue
-            else:
-                if 'OK' in Status[Key]:
-                    deviceStatus.append('OK')
-                elif 'Error' in Status[Key]:
-                    deviceStatus.append('Error')
-    if all(Status == 'Error' for Status in deviceStatus):
-        Status['stationStatus'] = '[color=d73027ff]Offline[/color]'
-    else:
-        Status['stationStatus'] = '[color=9aba2fff]Online[/color]'
+    def get_hubFirmware(self):
 
-    # Get hub firmware version
-    Station = wfpiconsole.config['Station']['StationID']
-    Data = requestAPI.weatherflow.stationMetaData(Station,wfpiconsole.config)
-    if requestAPI.weatherflow.verifyResponse(Data,'stations'):
-        Devices = Data.json()['stations'][0]['devices']
-        for Device in Devices:
-            if Device['device_type'] == 'HB':
-                Status['hubFirmware'] = Device['firmware_revision']
+        """ Get the hub firmware_revision for the hub associated with the
+            Station ID
+        """
 
-def getDeviceStatus(Status,wfpiconsole):
+        URL = 'https://swd.weatherflow.com/swd/rest/stations?token=' + self.app.config['Keys']['WeatherFlow']
+        UrlRequest(URL,
+                   on_success=self.parse_hubFirmware,
+                   on_failure=self.fail_hubFirmware,
+                   on_error=self.fail_hubFirmware,
+                   timeout=int(self.app.config['System']['Timeout']),
+                   ca_file=certifi.where())
 
-    """ Gets the current status of the devices attached to the station
+    def parse_hubFirmware(self, request, response):
 
-    INPUTS:
-        Status                 Dictionary holding device status information
-        wfpiconsole            wfpiconsole object
+        """ Parse hub firmware_revision from response returned by request.url
+        """
+        try:
+            for station in response['stations']:
+                if station['station_id'] == int(self.app.config['Station']['StationID']):
+                    for device in station['devices']:
+                        if 'device_type' in device:
+                            if device['device_type'] == 'HB':
+                                self.Status['hubFirmware'] = device['firmware_revision']
+        except Exception:
+            pass
 
-    OUTPUT:
-        Status                 Dictionary holding device status information
-    """
+    def fail_hubFirmware(self, request, response):
 
-    # Define current time in station timezone
-    Tz = pytz.timezone(wfpiconsole.config['Station']['Timezone'])
-    Now = datetime.now(pytz.utc).astimezone(Tz)
+        """ Failed to get hub firmware_revision from response returned by
+            request.url
+        """
 
-    # Get TEMPEST device status
-    if wfpiconsole.config['Station']['TempestID']:
-        if 'TempestMsg' in wfpiconsole.Obs:
-            lastOb         = [x if x != None else NaN for x in wfpiconsole.Obs['TempestMsg']['obs'][0]]
-            lastSampleTime = datetime.fromtimestamp(lastOb[0],Tz)
-            lastSampleDiff = (Now - lastSampleTime).total_seconds()
-            if lastOb[16] != None:
-                deviceVoltage = float(lastOb[16])
-            else:
-                deviceVoltage = NaN
-            if lastSampleDiff < 300 and deviceVoltage > 1.9:
+        self.Status['hubFirmware'] = '[color=d73027ff]Error[/color]'
+
+    def get_observationCount(self):
+
+        """ Get last 24 hour observation count for all devices associated with
+            the Station ID
+        """
+
+        # Calculate timestamp 24 hours past
+        endTime   = int(time.time())
+        startTime = endTime - int(3600 * 24)
+
+        # Get device observation counts
+        urlList  = []
+        Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&token={}'
+        if self.app.config['Station']['TempestID']:
+            urlList.append(Template.format(self.app.config['Station']['TempestID'], startTime, endTime, self.app.config['Keys']['WeatherFlow']))
+        if self.app.config['Station']['SkyID']:
+            urlList.append(Template.format(self.app.config['Station']['SkyID'],     startTime, endTime, self.app.config['Keys']['WeatherFlow']))
+        if self.app.config['Station']['OutAirID']:
+            urlList.append(Template.format(self.app.config['Station']['OutAirID'],     startTime, endTime, self.app.config['Keys']['WeatherFlow']))
+        for URL in urlList:
+            UrlRequest(URL,
+                       on_success=self.parse_observationCount,
+                       on_failure=self.fail_observationCount,
+                       on_error=self.fail_observationCount,
+                       timeout=int(self.app.config['System']['Timeout']),
+                       ca_file=certifi.where())
+
+    def parse_observationCount(self, request, response):
+
+        """ Parse observation count from response returned by request.url """
+
+        if 'Station' in self.app.config:
+            if 'obs' in response and response['obs'] is not None:
+                if str(response['device_id']) == self.app.config['Station']['TempestID']:
+                    self.Status['tempestObCount'] = str(len(response['obs']))
+                elif str(response['device_id']) == self.app.config['Station']['SkyID']:
+                    self.Status['skyObCount'] = str(len(response['obs']))
+                elif str(response['device_id']) == self.app.config['Station']['OutAirID']:
+                    self.Status['airObCount'] = str(len(response['obs']))
+
+    def fail_observationCount(self, request, response):
+
+        """ Failed to get observation count from response returned by
+            request.url
+        """
+
+        deviceID = re.search(r'device\/(.*)\?', request.url).group(1)
+        if deviceID == self.app.config['Station']['TempestID']:
+            self.Status['tempestObCount'] = '[color=d73027ff]Error[/color]'
+        elif deviceID == self.app.config['Station']['SkyID']:
+            self.Status['skyObCount'] = '[color=d73027ff]Error[/color]'
+        elif deviceID == self.app.config['Station']['OutAirID']:
+            self.Status['airObCount'] = '[color=d73027ff]Error[/color]'
+
+    def get_deviceStatus(self, dt):
+
+        """ Gets the current status of the devices and hub associated with the
+            Station ID
+        """
+
+        # Define current station timezone
+        Tz = pytz.timezone(self.app.config['Station']['Timezone'])
+
+        # Get TEMPEST device status
+        if 'obs_st' in self.app.CurrentConditions.Obs:
+            latestOb       = self.app.CurrentConditions.Obs['obs_st']['obs'][0]
+            sampleTimeDiff = time.time() - latestOb[0]
+            deviceVoltage = float(latestOb[16])
+            if sampleTimeDiff < 300 and deviceVoltage > 2.355:
                 deviceStatus = '[color=9aba2fff]OK[/color]'
+                sampleDelay = ''
             else:
+                if sampleTimeDiff < 3600:
+                    sampleDelay = str(math.floor(sampleTimeDiff / 60)) + ' mins ago'
+                elif sampleTimeDiff < 7200:
+                    sampleDelay = str(math.floor(sampleTimeDiff / 3600)) + ' hour ago'
+                elif sampleTimeDiff < 86400:
+                    sampleDelay = str(math.floor(sampleTimeDiff / 3600)) + ' hours ago'
+                else:
+                    sampleDelay = str(math.floor(sampleTimeDiff / 86400)) + ' days ago'
                 deviceStatus = '[color=d73027ff]Error[/color]'
 
-            # Store outdoor AIR device status variables
-            Status['tempestSampleTime'] = lastSampleTime.strftime('%H:%M:%S')
-            Status['tempestVoltage']    = '{:.2f}'.format(deviceVoltage)
-            Status['tempestStatus']     = deviceStatus
+            # Store TEMPEST device status variables
+            self.Status['tempestSampleTime'] = datetime.fromtimestamp(latestOb[0], Tz).strftime('%H:%M:%S')
+            self.Status['tempestLastSample'] = sampleDelay
+            self.Status['tempestVoltage']    = '{:.2f}'.format(deviceVoltage)
+            self.Status['tempestStatus']     = deviceStatus
 
-    # Get SKY device status
-    if wfpiconsole.config['Station']['SkyID']:
-        if 'SkyMsg' in wfpiconsole.Obs:
-            lastOb         = [x if x != None else NaN for x in wfpiconsole.Obs['SkyMsg']['obs'][0]]
-            lastSampleTime = datetime.fromtimestamp(lastOb[0],Tz)
-            lastSampleDiff = (Now - lastSampleTime).total_seconds()
-            if lastOb[8] != None:
-                deviceVoltage = float(lastOb[8])
-            else:
-                deviceVoltage = NaN
-            if lastSampleDiff < 300 and deviceVoltage > 2.0:
+        # Get SKY device status
+        if 'obs_sky' in self.app.CurrentConditions.Obs:
+            latestOb       = self.app.CurrentConditions.Obs['obs_sky']['obs'][0]
+            sampleTimeDiff = time.time() - latestOb[0]
+            deviceVoltage = float(latestOb[8])
+            if sampleTimeDiff < 300 and deviceVoltage > 2.0:
                 deviceStatus = '[color=9aba2fff]OK[/color]'
+                sampleDelay = ''
             else:
+                if sampleTimeDiff < 3600:
+                    sampleDelay = str(math.floor(sampleTimeDiff / 60)) + ' mins ago'
+                elif sampleTimeDiff < 7200:
+                    sampleDelay = str(math.floor(sampleTimeDiff / 3600)) + ' hour ago'
+                elif sampleTimeDiff < 86400:
+                    sampleDelay = str(math.floor(sampleTimeDiff / 3600)) + ' hours ago'
+                else:
+                    sampleDelay = str(math.floor(sampleTimeDiff / 86400)) + ' days ago'
                 deviceStatus = '[color=d73027ff]Error[/color]'
 
-            # Store outdoor AIR device status variables
-            Status['skySampleTime'] = lastSampleTime.strftime('%H:%M:%S')
-            Status['skyVoltage']    = '{:.2f}'.format(deviceVoltage)
-            Status['skyStatus']     = deviceStatus
+            # Store SKY device status variables
+            self.Status['skySampleTime'] = datetime.fromtimestamp(latestOb[0], Tz).strftime('%H:%M:%S')
+            self.Status['skyLastSample'] = sampleDelay
+            self.Status['skyVoltage']    = '{:.2f}'.format(deviceVoltage)
+            self.Status['skyStatus']     = deviceStatus
 
-    # Get outdoor AIR device status
-    if wfpiconsole.config['Station']['OutAirID']:
-        if 'outAirMsg' in wfpiconsole.Obs:
-            lastOb         = [x if x != None else NaN for x in wfpiconsole.Obs['outAirMsg']['obs'][0]]
-            lastSampleTime = datetime.fromtimestamp(lastOb[0],Tz)
-            lastSampleDiff = (Now - lastSampleTime).total_seconds()
-            if lastOb[6] != None:
-                deviceVoltage = float(lastOb[6])
-            else:
-                deviceVoltage = NaN
-            if lastSampleDiff < 300 and deviceVoltage > 1.9:
+        # Get AIR device status
+        if 'obs_air' in self.app.CurrentConditions.Obs:
+            latestOb       = self.app.CurrentConditions.Obs['obs_air']['obs'][0]
+            sampleTimeDiff = time.time() - latestOb[0]
+            deviceVoltage = float(latestOb[6])
+            if sampleTimeDiff < 300 and deviceVoltage > 1.9:
                 deviceStatus = '[color=9aba2fff]OK[/color]'
+                sampleDelay = ''
             else:
+                if sampleTimeDiff < 3600:
+                    sampleDelay = str(math.floor(sampleTimeDiff / 60)) + ' mins ago'
+                elif sampleTimeDiff < 7200:
+                    sampleDelay = str(math.floor(sampleTimeDiff / 3600)) + ' hour ago'
+                elif sampleTimeDiff < 86400:
+                    sampleDelay = str(math.floor(sampleTimeDiff / 3600)) + ' hours ago'
+                else:
+                    sampleDelay = str(math.floor(sampleTimeDiff / 86400)) + ' days ago'
                 deviceStatus = '[color=d73027ff]Error[/color]'
 
-            # Store outdoor AIR device status variables
-            Status['outAirSampleTime'] = lastSampleTime.strftime('%H:%M:%S')
-            Status['outAirVoltage']    = '{:.2f}'.format(deviceVoltage)
-            Status['outAirStatus']     = deviceStatus
+            # Store AIR device status variables
+            self.Status['airSampleTime'] = datetime.fromtimestamp(latestOb[0], Tz).strftime('%H:%M:%S')
+            self.Status['airLastSample'] = sampleDelay
+            self.Status['airVoltage']    = '{:.2f}'.format(deviceVoltage)
+            self.Status['airStatus']     = deviceStatus
 
-    # Get outdoor AIR device status
-    if wfpiconsole.config['Station']['InAirID']:
-        if 'inAirMsg' in wfpiconsole.Obs:
-            lastOb         = [x if x != None else NaN for x in wfpiconsole.Obs['inAirMsg']['obs'][0]]
-            lastSampleTime = datetime.fromtimestamp(lastOb[0],Tz)
-            lastSampleDiff = (Now - lastSampleTime).total_seconds()
-            if lastOb[6] != None:
-                deviceVoltage = float(lastOb[6])
-            else:
-                deviceVoltage = NaN
-            if lastSampleDiff < 300 and deviceVoltage > 1.9:
-                deviceStatus = '[color=9aba2fff]OK[/color]'
-            else:
-                deviceStatus = '[color=d73027ff]Error[/color]'
-
-            # Store outdoor AIR device status variables
-            Status['inAirSampleTime'] = lastSampleTime.strftime('%H:%M:%S')
-            Status['inAirVoltage']    = '{:.2f}'.format(deviceVoltage)
-            Status['inAirStatus']     = deviceStatus
-
-    # Return device status
-    return Status
-
-def getObservationCount(Status,wfpiconsole):
-
-    """ Gets number of observations in the last 24 hours for each device
-    attached to the station
-
-    INPUTS:
-        Status                 Dictionary holding device status information
-        wfpiconsole            wfpiconsole object
-
-    OUTPUT:
-        Status                 Dictionary holding device status information
-    """
-
-    # Define current time in station timezone
-    Tz = pytz.timezone(wfpiconsole.config['Station']['Timezone'])
-    Now = datetime.now(pytz.utc).astimezone(Tz)
-
-    # Get TEMPEST observation count
-    if wfpiconsole.config['Station']['TempestID']:
-        Device  = wfpiconsole.config['Station']['TempestID']
-        while not 'TempestMsg' in wfpiconsole.Obs:
-            time.sleep(0.01)
-        lastOb  = [x if x != None else NaN for x in wfpiconsole.Obs['TempestMsg']['obs'][0]]
-        Data24h = requestAPI.weatherflow.Last24h(Device,lastOb[0],wfpiconsole.config)
-        if requestAPI.weatherflow.verifyResponse(Data24h,'obs'):
-            Data24h = Data24h.json()['obs']
-            Status['tempestObCount'] = str(len(Data24h))
-
-    # Get SKY observation count
-    if wfpiconsole.config['Station']['SkyID']:
-        Device  = wfpiconsole.config['Station']['SkyID']
-        while not 'SkyMsg' in wfpiconsole.Obs:
-            time.sleep(0.01)
-        lastOb  = [x if x != None else NaN for x in wfpiconsole.Obs['SkyMsg']['obs'][0]]
-        Data24h = requestAPI.weatherflow.Last24h(Device,lastOb[0],wfpiconsole.config)
-        if requestAPI.weatherflow.verifyResponse(Data24h,'obs'):
-            Data24h = Data24h.json()['obs']
-            Status['skyObCount'] = str(len(Data24h))
-
-    # Get outdoor AIR observation count
-    if wfpiconsole.config['Station']['OutAirID']:
-        Device  = wfpiconsole.config['Station']['OutAirID']
-        while not 'outAirMsg' in wfpiconsole.Obs:
-            time.sleep(0.01)
-        lastOb  = [x if x != None else NaN for x in wfpiconsole.Obs['outAirMsg']['obs'][0]]
-        Data24h = requestAPI.weatherflow.Last24h(Device,lastOb[0],wfpiconsole.config)
-        if requestAPI.weatherflow.verifyResponse(Data24h,'obs'):
-            Data24h = Data24h.json()['obs']
-            Status['outAirObCount'] = str(len(Data24h))
-
-    # Get indoor AIR observation count
-    if wfpiconsole.config['Station']['InAirID']:
-        Device  = wfpiconsole.config['Station']['InAirID']
-        while not 'inAirMsg' in wfpiconsole.Obs:
-            time.sleep(0.01)
-        lastOb  = [x if x != None else NaN for x in wfpiconsole.Obs['inAirMsg']['obs'][0]]
-        Data24h = requestAPI.weatherflow.Last24h(Device,lastOb[0],wfpiconsole.config)
-        if requestAPI.weatherflow.verifyResponse(Data24h,'obs'):
-            Data24h = Data24h.json()['obs']
-            Status['inAirObCount'] = str(len(Data24h))
-
-    # Return device observation count
-    return Status
-
-
+        # Set hub status (i.e. stationStatus) based on device status
+        deviceStatus = []
+        if self.app.config['Station']['TempestID']:
+            deviceStatus.append(self.Status['tempestStatus'])
+        if self.app.config['Station']['SkyID']:
+            deviceStatus.append(self.Status['skyStatus'])
+        if self.app.config['Station']['OutAirID']:
+            deviceStatus.append(self.Status['airStatus'])
+        if all('-' in Status for Status in deviceStatus):
+            self.Status['stationStatus'] = '-'
+        elif all('Error' in Status for Status in deviceStatus):
+            self.Status['stationStatus'] = '[color=d73027ff]Offline[/color]'
+        elif all('OK' in Status for Status in deviceStatus):
+            self.Status['stationStatus'] = '[color=9aba2fff]Online[/color]'
+        else:
+            self.Status['stationStatus'] = '[color=d73027ff]Error[/color]'
