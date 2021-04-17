@@ -19,12 +19,18 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 from lib import derivedVariables as derive
 
 # Import required Python modules
-from datetime import datetime
+from kivy.logger  import Logger
+from datetime     import datetime
 import bisect
 import ephem
 import math
 import pytz
 import time
+
+# Define device type strings for accessing config file
+TEMPEST = 'Tempest'
+AIR = 'OutAir'
+SKY = 'Sky'
 
 
 def dewPoint(outTemp, humidity):
@@ -40,8 +46,13 @@ def dewPoint(outTemp, humidity):
     """
 
     # Return None if required variables are missing
-    if outTemp[0] is None or humidity[0] is None:
-        return [None, 'c']
+    errorOutput = [None, 'c']
+    if outTemp[0] is None:
+        Logger.warning('dewPoint: outTemp is None')
+        return errorOutput
+    elif humidity[0] is None:
+        Logger.warning('dewPoint: humidity is None')
+        return errorOutput
 
     # Calculate dew point
     if humidity[0] > 0:
@@ -73,8 +84,16 @@ def feelsLike(outTemp, humidity, windSpd, config):
     """
 
     # Return None if required variables are missing
-    if outTemp[0] is None or humidity[0] is None or windSpd[0] is None:
-        return [None, 'c', '-', '-']
+    errorOutput = [None, 'c', '-', '-']
+    if outTemp[0] is None:
+        Logger.warning('feelsLike: outTemp is None')
+        return errorOutput
+    elif humidity[0] is None:
+        Logger.warning('feelsLike: humidity is None')
+        return errorOutput
+    elif windSpd[0] is None:
+        Logger.warning('feelsLike: windSpd is None')
+        return errorOutput
 
     # Convert observation units as required
     TempF   = [outTemp[0] * (9 / 5) + 32, 'f']
@@ -138,15 +157,17 @@ def SLP(pressure, config):
     """
 
     # Return None if required variables are missing
+    errorOutput = [None, 'mb', None]
     if pressure[0] is None:
-        return [None, 'mb', None]
+        Logger.warning('SLP: pressure is None')
+        return errorOutput
 
     # Extract required configuration variables
     elevation = config['Station']['Elevation']
-    if config['Station']['OutAirHeight']:
-        height = config['Station']['OutAirHeight']
-    elif config['Station']['TempestHeight']:
-        height = config['Station']['TempestHeight']
+    if config['Station'][AIR + 'Height']:
+        height = config['Station'][AIR + 'Height']
+    elif config['Station'][TEMPEST + 'Height']:
+        height = config['Station'][TEMPEST + 'Height']
 
     # Define required constants
     P0 = 1013.25
@@ -180,15 +201,20 @@ def SLPTrend(pressure, obTime, apiData, config):
     """
 
     # Return None if required variables are missing
-    if pressure[0] is None or obTime[0] is None:
-        return [None, 'mb/hr', '-', '-']
+    errorOutput = [None, 'mb/hr', '-', '-']
+    if pressure[0] is None:
+        Logger.warning('SLPTrend: pressure is None')
+        return errorOutput
+    elif obTime[0] is None:
+        Logger.warning('SLPTrend: obTime is None')
+        return errorOutput
 
     # Define index of pressure in websocket packets
-    if config['Station']['OutAirID']:
-        device = config['Station']['OutAirID']
+    if config['Station'][AIR + 'ID']:
+        device = config['Station'][AIR + 'ID']
         index  = 1
-    elif config['Station']['TempestID']:
-        device = config['Station']['TempestID']
+    elif config['Station'][TEMPEST + 'ID']:
+        device = config['Station'][TEMPEST + 'ID']
         index  = 6
 
     # Extract required observations from WeatherFlow API data based on device
@@ -267,9 +293,13 @@ def SLPMax(pressure, obTime, maxPres, apiData, config):
     """
 
     # Return None if required variables are missing
-    if pressure[0] is None or obTime[0] is None:
-        errorOutput = [None, 'c', '-', None, time.time()]
-        return errorOutput, errorOutput
+    errorOutput = [None, 'mb', '-', None, time.time()]
+    if pressure[0] is None:
+        Logger.warning('SLPMax: pressure is None')
+        return errorOutput
+    elif obTime[0] is None:
+        Logger.warning('SLPMax: obTime is None')
+        return errorOutput
 
     # Calculate sea level pressure
     SLP = derive.SLP(pressure, config)
@@ -285,11 +315,11 @@ def SLPMax(pressure, obTime, maxPres, apiData, config):
         Format = '%H:%M'
 
     # Define index of temperature in websocket packets
-    if config['Station']['OutAirID']:
-        device = config['Station']['OutAirID']
+    if config['Station'][AIR + 'ID']:
+        device = config['Station'][AIR + 'ID']
         index  = 1
-    elif config['Station']['TempestID']:
-        device = config['Station']['TempestID']
+    elif config['Station'][TEMPEST + 'ID']:
+        device = config['Station'][TEMPEST + 'ID']
         index  = 6
 
     # If console is initialising, download all data for current day using
@@ -337,9 +367,13 @@ def SLPMin(pressure, obTime, minPres, apiData, config):
     """
 
     # Return None if required variables are missing
-    if pressure[0] is None or obTime[0] is None:
-        errorOutput = [None, 'c', '-', None, time.time()]
-        return errorOutput, errorOutput
+    errorOutput = [None, 'mb', '-', None, time.time()]
+    if pressure[0] is None:
+        Logger.warning('SLPMin: pressure is None')
+        return errorOutput
+    elif obTime[0] is None:
+        Logger.warning('SLPMin: obTime is None')
+        return errorOutput
 
     # Calculate sea level pressure
     SLP = derive.SLP(pressure, config)
@@ -355,11 +389,11 @@ def SLPMin(pressure, obTime, minPres, apiData, config):
         Format = '%H:%M'
 
     # Define index of temperature in websocket packets
-    if config['Station']['OutAirID']:
-        device = config['Station']['OutAirID']
+    if config['Station'][AIR + 'ID']:
+        device = config['Station'][AIR + 'ID']
         index  = 1
-    elif config['Station']['TempestID']:
-        device = config['Station']['TempestID']
+    elif config['Station'][TEMPEST + 'ID']:
+        device = config['Station'][TEMPEST + 'ID']
         index  = 6
 
     # If console is initialising, download all data for current day using
@@ -404,15 +438,20 @@ def tempDiff(outTemp, obTime, apiData, config):
     """
 
     # Return None if required variables are missing
-    if outTemp[0] is None or obTime[0] is None:
-        return [None, 'dc', '-']
+    errorOutput = [None, 'dc', '-']
+    if outTemp[0] is None:
+        Logger.warning('tempDiff: outTemp is None')
+        return errorOutput
+    elif obTime[0] is None:
+        Logger.warning('tempDiff: obTime is None')
+        return errorOutput
 
     # Define index of temperature in websocket packets
-    if config['Station']['OutAirID']:
-        device = config['Station']['OutAirID']
+    if config['Station'][AIR + 'ID']:
+        device = config['Station'][AIR + 'ID']
         index  = 2
-    elif config['Station']['TempestID']:
-        device = config['Station']['TempestID']
+    elif config['Station'][TEMPEST + 'ID']:
+        device = config['Station'][TEMPEST + 'ID']
         index  = 7
 
     # Extract required observations from WeatherFlow API data based on device
@@ -457,15 +496,20 @@ def tempTrend(outTemp, obTime, apiData, config):
     """
 
     # Return None if required variables are missing
-    if outTemp[0] is None or obTime[0] is None:
-        return [None, 'c/hr', 'c8c8c8ff']
+    errorOutput = [None, 'c/hr', 'c8c8c8ff']
+    if outTemp[0] is None:
+        Logger.warning('tempTrend: outTemp is None')
+        return errorOutput
+    elif obTime[0] is None:
+        Logger.warning('tempTrend: obTime is None')
+        return errorOutput
 
     # Define index of temperature in websocket packets
-    if config['Station']['OutAirID']:
-        device = config['Station']['OutAirID']
+    if config['Station'][AIR + 'ID']:
+        device = config['Station'][AIR + 'ID']
         index  = 2
-    elif config['Station']['TempestID']:
-        device = config['Station']['TempestID']
+    elif config['Station'][TEMPEST + 'ID']:
+        device = config['Station'][TEMPEST + 'ID']
         index  = 7
 
     # Extract required observations from WeatherFlow API data based on device
@@ -516,9 +560,13 @@ def tempMax(outTemp, obTime, maxTemp, apiData, config):
     """
 
     # Return None if required variables are missing
-    if outTemp[0] is None or obTime[0] is None:
-        errorOutput = [None, 'c', '-', None, time.time()]
-        return errorOutput, errorOutput
+    errorOutput = [None, 'c', '-', None, time.time()]
+    if outTemp[0] is None:
+        Logger.warning('tempMax: outTemp is None')
+        return errorOutput
+    elif obTime[0] is None:
+        Logger.warning('tempMax: obTime is None')
+        return errorOutput
 
     # Define current time in station timezone
     Tz = pytz.timezone(config['Station']['Timezone'])
@@ -531,11 +579,11 @@ def tempMax(outTemp, obTime, maxTemp, apiData, config):
         Format = '%H:%M'
 
     # Define index of temperature in websocket packets
-    if config['Station']['OutAirID']:
-        device = config['Station']['OutAirID']
+    if config['Station'][AIR + 'ID']:
+        device = config['Station'][AIR + 'ID']
         index  = 2
-    elif config['Station']['TempestID']:
-        device = config['Station']['TempestID']
+    elif config['Station'][TEMPEST + 'ID']:
+        device = config['Station'][TEMPEST + 'ID']
         index  = 7
 
     # If console is initialising, download all data for current day using
@@ -583,9 +631,13 @@ def tempMin(outTemp, obTime, minTemp, apiData, config):
     """
 
     # Return None if required variables are missing
-    if outTemp[0] is None or obTime[0] is None:
-        errorOutput = [None, 'c', '-', None, time.time()]
-        return errorOutput, errorOutput
+    errorOutput = [None, 'c', '-', None, time.time()]
+    if outTemp[0] is None:
+        Logger.warning('tempMin: outTemp is None')
+        return errorOutput
+    elif obTime[0] is None:
+        Logger.warning('tempMin: obTime is None')
+        return errorOutput
 
     # Define current time in station timezone
     Tz = pytz.timezone(config['Station']['Timezone'])
@@ -598,11 +650,11 @@ def tempMin(outTemp, obTime, minTemp, apiData, config):
         Format = '%H:%M'
 
     # Define index of temperature in websocket packets
-    if config['Station']['OutAirID']:
-        device = config['Station']['OutAirID']
+    if config['Station'][AIR + 'ID']:
+        device = config['Station'][AIR + 'ID']
         index  = 2
-    elif config['Station']['TempestID']:
-        device = config['Station']['TempestID']
+    elif config['Station'][TEMPEST + 'ID']:
+        device = config['Station'][TEMPEST + 'ID']
         index  = 7
 
     # If console is initialising, download all data for current day using
@@ -645,8 +697,10 @@ def strikeDeltaT(strikeTime):
     """
 
     # Return None if required variables are missing
+    errorOutput = [None, 's', None]
     if strikeTime[0] is None:
-        return [None, 's', None]
+        Logger.warning('strikeDeltaT: strikeTime is None')
+        return errorOutput
 
     # Calculate time since last lightning strike
     deltaT = time.time() - strikeTime[0]
@@ -672,15 +726,17 @@ def strikeFrequency(obTime, apiData, config):
     """
 
     # Return None if required variables are missing
+    errorOutput = [None, '/min', None, '/min']
     if obTime[0] is None:
-        return [None, '/min', None, '/min']
+        Logger.warning('strikeFrequency: obTime is None')
+        return errorOutput
 
     # Define index of total lightning strike counts in websocket packets
-    if config['Station']['OutAirID']:
-        device = config['Station']['OutAirID']
+    if config['Station'][AIR + 'ID']:
+        device = config['Station'][AIR + 'ID']
         index  = 4
-    elif config['Station']['TempestID']:
-        device = config['Station']['TempestID']
+    elif config['Station'][TEMPEST + 'ID']:
+        device = config['Station'][TEMPEST + 'ID']
         index  = 15
 
     # Extract lightning strike count over the last three hours. Return None for
@@ -753,8 +809,10 @@ def strikeCount(count, strikeCount, apiData, config):
     """
 
     # Return None if required variables are missing
+    errorOutput = [None, 'count', None, time.time()]
     if count[0] is None:
-        todayStrikes = monthStrikes = yearStrikes = [None, 'count', None, time.time()]
+        Logger.warning('strikeCount: count is None')
+        todayStrikes = monthStrikes = yearStrikes = errorOutput
         return {'today': todayStrikes, 'month': monthStrikes, 'year': yearStrikes}
 
     # Define current time in station timezone
@@ -762,12 +820,12 @@ def strikeCount(count, strikeCount, apiData, config):
     Now = datetime.now(pytz.utc).astimezone(Tz)
 
     # Define index of total lightning strike counts in websocket packets
-    if config['Station']['OutAirID']:
-        device = config['Station']['OutAirID']
+    if config['Station'][AIR + 'ID']:
+        device = config['Station'][AIR + 'ID']
         index1 = 4
         index2 = 4
-    elif config['Station']['TempestID']:
-        device = config['Station']['TempestID']
+    elif config['Station'][TEMPEST + 'ID']:
+        device = config['Station'][TEMPEST + 'ID']
         index1 = 15
         index2 = 24
 
@@ -862,8 +920,10 @@ def rainRate(minuteRain):
     """
 
     # Return None if required variables are missing
+    errorOutput = [None, 'mm/hr', '-', None]
     if minuteRain[0] is None:
-        return [None, 'mm/hr', '-', None]
+        Logger.warning('rainRate: minuteRain is None')
+        return errorOutput
 
     # Calculate instantaneous rain rate from instantaneous rain accumulation
     Rate = minuteRain[0] * 60
@@ -911,8 +971,10 @@ def rainAccumulation(dailyRain, rainAccum, apiData, config):
     """
 
     # Return None if required variables are missing
+    errorOutput = [None, 'mm', None, time.time()]
     if dailyRain[0] is None:
-        todayRain = yesterdayRain = monthRain = yearRain = [None, 'mm', None, time.time()]
+        Logger.warning('rainAccumulation: dailyRain is None')
+        todayRain = yesterdayRain = monthRain = yearRain = errorOutput
         return {'today': todayRain, 'yesterday': yesterdayRain, 'month': monthRain, 'year': yearRain}
 
     # Define current time in station timezone
@@ -920,12 +982,12 @@ def rainAccumulation(dailyRain, rainAccum, apiData, config):
     Now = datetime.now(pytz.utc).astimezone(Tz)
 
     # Define index of total daily rain accumulation in websocket packets
-    if config['Station']['SkyID']:
-        device = config['Station']['SkyID']
+    if config['Station'][SKY + 'ID']:
+        device = config['Station'][SKY + 'ID']
         index1 = 3
         index2 = 3
-    elif config['Station']['TempestID']:
-        device = config['Station']['TempestID']
+    elif config['Station'][TEMPEST + 'ID']:
+        device = config['Station'][TEMPEST + 'ID']
         index1 = 12
         index2 = 28
 
@@ -1045,19 +1107,21 @@ def avgWindSpeed(windSpd, avgWind, apiData, config):
     """
 
     # Return None if required variables are missing
+    errorOutput = [None, 'mps', None, None, time.time()]
     if windSpd[0] is None:
-        return [None, 'mps', None, None, time.time()]
+        Logger.warning('avgWindSpeed: windSpd is None')
+        return errorOutput
 
     # Define current time in station timezone
     Tz = pytz.timezone(config['Station']['Timezone'])
     Now = datetime.now(pytz.utc).astimezone(Tz)
 
     # Define index of wind speed in websocket packets
-    if config['Station']['SkyID']:
-        device = config['Station']['SkyID']
+    if config['Station'][SKY + 'ID']:
+        device = config['Station'][SKY + 'ID']
         index = 5
-    elif config['Station']['TempestID']:
-        device = config['Station']['TempestID']
+    elif config['Station'][TEMPEST + 'ID']:
+        device = config['Station'][TEMPEST + 'ID']
         index = 2
 
     # If console is initialising, download all data for current day using
@@ -1102,19 +1166,21 @@ def maxWindGust(windGust, maxGust, apiData, config):
     """
 
     # Return None if required variables are missing
+    errorOutput = [None, 'mps', None, time.time()]
     if windGust[0] is None:
-        return [None, 'mps', None, time.time()]
+        Logger.warning('maxWindGust: windGust is None')
+        return errorOutput
 
     # Define current time in station timezone
     Tz = pytz.timezone(config['Station']['Timezone'])
     Now = datetime.now(pytz.utc).astimezone(Tz)
 
     # Define index of wind speed in websocket packets
-    if config['Station']['SkyID']:
-        device = config['Station']['SkyID']
+    if config['Station'][SKY + 'ID']:
+        device = config['Station'][SKY + 'ID']
         index = 6
-    elif config['Station']['TempestID']:
-        device = config['Station']['TempestID']
+    elif config['Station'][TEMPEST + 'ID']:
+        device = config['Station'][TEMPEST + 'ID']
         index = 3
 
     # If console is initialising, download all data for current day using
@@ -1158,8 +1224,10 @@ def cardinalWindDir(windDir, windSpd=[1, 'mps']):
     """
 
     # Return None if required variables are missing
-    if windSpd[0] is None or windDir[0] is None:
-        return [windDir[0], windDir[1], '-', '-']
+    errorOutput = [windDir[0], windDir[1], '-', '-']
+    if windDir[0] is None:
+        Logger.warning('cardinalWindDir: windDir is None')
+        return errorOutput    
 
     # Define all possible cardinal wind directions and descriptions
     Direction = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW', 'N']
@@ -1195,8 +1263,10 @@ def beaufortScale(windSpd):
     """
 
     # Return None if required variables are missing
+    errorOutput = windSpd + ['-', '-', '-']
     if windSpd[0] is None:
-        return windSpd + ['-', '-', '-']
+        Logger.warning('beaufortScale: windSpd is None')
+        return errorOutput      
 
     # Define Beaufort scale cutoffs and Force numbers
     Cutoffs = [0.5, 1.5, 3.3, 5.5, 7.9, 10.7, 13.8, 17.1, 20.7, 24.4, 28.4, 32.6]
@@ -1226,8 +1296,10 @@ def UVIndex(uvLevel):
     """
 
     # Return None if required variables are missing
+    errorOutput = [None, 'index', '-', '#646464']
     if uvLevel[0] is None:
-        return [None, 'index', '-', '#646464']
+        Logger.warning('UVIndex: uvLevel is None')
+        return errorOutput   
 
     # Define UV Index cutoffs and level descriptions
     Cutoffs = [0, 3, 6, 8, 11]
@@ -1269,8 +1341,10 @@ def peakSunHours(radiation, peakSun, apiData, config):
     """
 
     # Return None if required variables are missing
+    errorOutput = [None, 'hrs', '-']
     if radiation[0] is None:
-        return [None, 'hrs', '-']
+        Logger.warning('peakSunHours: radiation is None')
+        return errorOutput   
 
     # Define current time in station timezone
     Tz = pytz.timezone(config['Station']['Timezone'])
@@ -1290,11 +1364,11 @@ def peakSunHours(radiation, peakSun, apiData, config):
         sunset            = peakSun[5]
 
     # Define index of radiation in websocket packets
-    if config['Station']['SkyID']:
-        device = config['Station']['SkyID']
+    if config['Station'][SKY + 'ID']:
+        device = config['Station'][SKY + 'ID']
         index = 10
-    elif config['Station']['TempestID']:
-        device = config['Station']['TempestID']
+    elif config['Station'][TEMPEST + 'ID']:
+        device = config['Station'][TEMPEST + 'ID']
         index = 11
 
     # If console is initialising, download all data for current day using

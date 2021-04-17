@@ -168,7 +168,6 @@ class wfpiconsole(App):
     System  = DictProperty([('Time', '-'), ('Date', '-')])
     Sched   = DictProperty([])
 
-
     # Define App class configParser properties
     BarometerMax = ConfigParserProperty('-', 'System',  'BarometerMax', 'app')
     BarometerMin = ConfigParserProperty('-', 'System',  'BarometerMin', 'app')
@@ -215,7 +214,7 @@ class wfpiconsole(App):
             self.scaleSuffix = '_lR.png'
 
     # INITIALISE CONFIGURATION FILE IF IT DOESN'T EXIST
-    # -------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     def build_config(self, config):
         config.clear()
         config.optionxform = str
@@ -223,7 +222,7 @@ class wfpiconsole(App):
         config.write()
 
     # BUILD 'WeatherFlowPiConsole' APP CLASS SETTINGS
-    # -------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     def build_settings(self, settings):
 
         # Register setting types
@@ -242,7 +241,7 @@ class wfpiconsole(App):
         self.settings = settings
 
     # OPEN 'WeatherFlowPiConsole' APP CLASS SETTINGS
-    # -------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     def display_settings(self, settings):
         self.mainMenu.dismiss(animation=False)
         if not self.screenManager.has_screen('Settings'):
@@ -253,7 +252,7 @@ class wfpiconsole(App):
         return True
 
     # CLOSE 'WeatherFlowPiConsole' APP CLASS SETTINGS
-    # -------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     def close_settings(self, *args):
         if self.screenManager.current == 'Settings':
             mainMenu().open(animation=False)
@@ -263,7 +262,7 @@ class wfpiconsole(App):
 
     # OVERLOAD 'on_config_change' TO MAKE NECESSARY CHANGES TO CONFIG VALUES
     # WHEN REQUIRED
-    # -------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     def on_config_change(self, config, section, key, value):
 
         # Toggle "Always On Mode"
@@ -352,13 +351,13 @@ class wfpiconsole(App):
                 Retries += 1
 
     # START WEBSOCKET SERVICE
-    # -------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     def startWebsocketService(self, *largs):
         self.service = threading.Thread(target=run_path, args=['service/websocket.py'], kwargs={'run_name': '__main__'}, daemon=True, name='Websocket')
         self.service.start()
 
     # UPDATE DISPLAY WITH NEW OBSERVATIONS SENT FROM WEBSOCKET SERVICE
-    # -------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     def updateDisplay(self, *payload):
         try:
             message = json.loads(payload[0].decode('utf8'))
@@ -367,9 +366,9 @@ class wfpiconsole(App):
             pass
         system.updateDisplay(type, message, self)
 
-# =============================================================================
+# ==============================================================================
 # CurrentConditions SCREEN CLASS
-# =============================================================================
+# ==============================================================================
 class CurrentConditions(Screen):
 
     Sager = DictProperty([])
@@ -379,8 +378,9 @@ class CurrentConditions(Screen):
 
     def __init__(self, **kwargs):
         super(CurrentConditions, self).__init__(**kwargs)
-        App.get_running_app().CurrentConditions = self
-        self.Station = station.Station(App.get_running_app())
+        app = App.get_running_app()
+        app.CurrentConditions = self
+        app.Station  = station.Station(app)
         self.Sager   = properties.Sager()
         self.Astro   = properties.Astro()
         self.Met     = properties.Met()
@@ -390,11 +390,10 @@ class CurrentConditions(Screen):
         self.addPanels()
 
         # Start Websocket service
-        App.get_running_app().startWebsocketService()
+        app.startWebsocketService()
 
         # Schedule Station.getDeviceStatus to be called each second
-        app = App.get_running_app()
-        app.Sched.deviceStatus = Clock.schedule_interval(self.Station.get_deviceStatus, 1.0)
+        app.Sched.deviceStatus = Clock.schedule_interval(app.Station.get_deviceStatus, 1.0)
 
         # Initialise Sunrise, Sunset, Moonrise and Moonset times
         astro.SunriseSunset(self.Astro,   app.config)
@@ -411,7 +410,7 @@ class CurrentConditions(Screen):
         threading.Thread(target=sagerForecast.Generate, args=(self.Sager,app.config), name="Sager", daemon=True).start()
 
     # ADD USER SELECTED PANELS TO CURRENT CONDITIONS SCREEN
-    # -------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     def addPanels(self):
 
         # Add primary panels to CurrentConditions screen
@@ -429,7 +428,7 @@ class CurrentConditions(Screen):
                 ii += 1
 
     # SWITCH BETWEEN PRIMARY AND SECONDARY PANELS ON CURRENT CONDITIONS SCREEN
-    # -------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     def switchPanel(self, Instance, overideButton=None):
 
         # Determine ID of button that has been pressed
@@ -767,7 +766,7 @@ class LightningButton(RelativeLayout):
 class BarometerPanel(RelativeLayout):
 
     # Define BarometerPanel class properties
-    barometerAngle = NumericProperty(0)
+    barometerArrow = StringProperty('-')
 
     # Initialise 'BarometerPanel' relative layout class
     def __init__(self, **kwargs):
@@ -781,11 +780,13 @@ class BarometerPanel(RelativeLayout):
 
     # Set Barometer arrow rotation angle to match current sea level pressure
     def setBarometerArrow(self):
-        if isinstance(App.get_running_app().CurrentConditions.Obs['SLP'][2], float):
-            if math.isnan(App.get_running_app().CurrentConditions.Obs['SLP'][2]):
-                self.barometerAngle = 0
-            else:
-                self.barometerAngle = (1000 - App.get_running_app().CurrentConditions.Obs['SLP'][2]) / 50 * 83.85
+        SLP = App.get_running_app().CurrentConditions.Obs['SLP'][2]
+        if SLP == '-':
+            pass
+        elif SLP is None:
+            self.barometerArrow = '-'
+        else:
+            self.barometerArrow = '{:.1f}'.format(SLP)
 
 
 class BarometerButton(RelativeLayout):
@@ -814,12 +815,24 @@ class mainMenu(ModalView):
             self.ids.deviceStatus.add_widget(tempestStatus())
         if self.app.config['Station']['SkyID']:
             self.ids.deviceStatus.add_widget(skyStatus())
-        if self.app.config['Station']['AirID']:
+        if self.app.config['Station']['OutAirID']:
             self.ids.deviceStatus.add_widget(outAirStatus())
 
         # Populate status fields
-        self.app.CurrentConditions.Station.get_observationCount()
-        self.app.CurrentConditions.Station.get_hubFirmware()
+        self.app.Station.get_observationCount()
+        self.app.Station.get_hubFirmware()
+        
+    # Exit console and shutdown system
+    def shutdownSystem(self, instance):
+        global SHUTDOWN
+        SHUTDOWN = 1
+        App.get_running_app().stop()
+
+    # Exit console and reboot system
+    def rebootSystem(self, instance):
+        global REBOOT
+        REBOOT = 1
+        App.get_running_app().stop()    
 
 
 class tempestStatus(BoxLayout):

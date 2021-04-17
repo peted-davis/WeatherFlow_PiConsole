@@ -31,7 +31,7 @@
             size: self.size
             radius: [14*app.scaleFactor]
 
-<MenuButton>:
+<MenuButton@Button>:
     font_size: dp(15.5*app.scaleFactor)
     font_name: 'fonts/Inter-SemiBold.ttf'
     color: utils.rgba('#d6d6d6ff')
@@ -149,16 +149,16 @@
         text: 'TEMPEST'
     StatusField:
         size_hint: (.12,1)
-        text: app.Station.Device['tempestStatus']
+        text: app.Station.Status['tempestStatus']
     StatusField:
         size_hint: (.22,1)
-        text: app.Station.Device['tempestSampleTime']
+        text: app.Station.Status['tempestSampleTime']
     StatusField:
         size_hint: (.20,1)
-        text: app.Station.Device['tempestVoltage']
+        text: app.Station.Status['tempestVoltage']
     StatusField:
         size_hint: (.31,1)
-        text: app.Station.Device['tempestObCount']
+        text: app.Station.Status['tempestObCount']
 
 <skyStatus>:
     size_hint: (1,.1)
@@ -168,16 +168,16 @@
         text: 'SKY'
     StatusField:
         size_hint: (.12,1)
-        text: app.Station.Device['skyStatus']
+        text: app.Station.Status['skyStatus']
     StatusField:
         size_hint: (.22,1)
-        text: app.Station.Device['skySampleTime']
+        text: app.Station.Status['skySampleTime']
     StatusField:
         size_hint: (.20,1)
-        text: app.Station.Device['skyVoltage']
+        text: app.Station.Status['skyVoltage']
     StatusField:
         size_hint: (.31,1)
-        text: app.Station.Device['skyObCount']
+        text: app.Station.Status['skyObCount']
 
 <outAirStatus>:
     size_hint: (1,.1)
@@ -187,16 +187,16 @@
         text: 'Outdoor AIR'
     StatusField:
         size_hint: (.12,1)
-        text: app.Station.Device['outAirStatus']
+        text: app.Station.Status['outAirStatus']
     StatusField:
         size_hint: (.22,1)
-        text: app.Station.Device['outAirSampleTime']
+        text: app.Station.Status['outAirSampleTime']
     StatusField:
         size_hint: (.20,1)
-        text: app.Station.Device['outAirVoltage']
+        text: app.Station.Status['outAirVoltage']
     StatusField:
         size_hint: (.31,1)
-        text: app.Station.Device['outAirObCount']
+        text: app.Station.Status['outAirObCount']
 
 <inAirStatus>:
     size_hint: (1,.1)
@@ -206,13 +206,13 @@
         text: 'Indoor AIR'
     StatusField:
         size_hint: (.12,1)
-        text: app.Station.Device['inAirStatus']
+        text: app.Station.Status['inAirStatus']
     StatusField:
         size_hint: (.22,1)
-        text: app.Station.Device['inAirSampleTime']
+        text: app.Station.Status['inAirSampleTime']
     StatusField:
         size_hint: (.20,1)
-        text: app.Station.Device['inAirVoltage']
+        text: app.Station.Status['inAirVoltage']
     StatusField:
         size_hint: (.31,1)
-        text: app.Station.Device['inAirObCount']
+        text: app.Station.Status['inAirObCount']

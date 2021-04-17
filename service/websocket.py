@@ -21,6 +21,7 @@
 from lib.observationParser      import obsParser
 from oscpy.server               import OSCThreadServer
 from oscpy.client               import OSCClient
+from kivy.logger                import Logger
 import configparser
 import websockets
 import threading
@@ -29,12 +30,6 @@ import socket
 import json
 import ssl
 import os
-
-# =============================================================================
-# IMPORT REQUIRED ANDROID MODULES
-# =============================================================================
-if 'ANDROID_ARGUMENT' in os.environ:
-    from android.storage import app_storage_path
 
 # =============================================================================
 # INITIALISE REQUIRED VARIABLES
@@ -47,11 +42,9 @@ oscSERVER = OSCThreadServer()
 oscSERVER.listen(address=b'localhost', port=3001, default=True)
 
 # Set config file path
-if 'ANDROID_ARGUMENT' in os.environ:
-    configFile = app_storage_path() + '/.wfpiconsole.ini'
-else:
-    configFile = 'wfpiconsole.ini'
+configFile = 'wfpiconsole.ini'
 
+#logging.basicConfig(format='%(asctime)s %(message)s')
 
 # =============================================================================
 # DEFINE 'websocketClient' CLASS
@@ -80,7 +73,7 @@ class websocketClient():
         self.obsParser = obsParser(oscCLIENT, oscSERVER, [1, 1, 1])
 
         # Initialise asyn loop and connect to specified Websocket URL
-        self.async_loop    = asyncio.new_event_loop()
+        self.async_loop = asyncio.new_event_loop()
         asyncio.set_event_loop(self.async_loop)
         self.async_loop.run_until_complete(self.__async__connect())
 
@@ -88,27 +81,28 @@ class websocketClient():
         Connected = False
         while not Connected:
             try:
+                Logger.info('Websocket: Opening connection')
                 self.websocket = await websockets.connect(self.url, ssl=ssl.SSLContext())
                 message        = await self.__async__getMessage()
                 try:
                     if 'type' in message and message['type'] == 'connection_opened':
-                        print('Connection open')
+                        Logger.info('Websocket: Connection open')
                         self.obsParser.flagAPI = [1, 1, 1, 1]
                         await self.__async__requestDevices()
                         Connected = True
                     else:
-                        print('Websocket: Message error: {}'.format(message))
+                        Logger.info('Websocket: Connection message error')
                         await self.websocket.close()
                         await asyncio.sleep(self.sleep_time)
                 except Exception as error:
-                    print('Connection error: {}'.format(error))
+                    Logger.info('Websocket: Connection error: {}'.format(error))
                     await self.websocket.close()
                     await asyncio.sleep(self.sleep_time)
             except (socket.gaierror, ConnectionRefusedError, websockets.exceptions.InvalidStatusCode) as error:
-                print('Connection error: {}'.format(error))
+                Logger.info('Websocket: Connection error: {}'.format(error))
                 await asyncio.sleep(self.sleep_time)
-            except Exception:
-                print('General error')
+            except Exception as error:
+                Logger.info('Websocket: General error: {}'.format(error))
                 await asyncio.sleep(self.sleep_time)
 
     async def __async__requestDevices(self):
@@ -141,15 +135,15 @@ class websocketClient():
                 try:
                     return json.loads(message)
                 except Exception:
-                    print('Parsing error %s', message)
+                    Logger.info('Websocket: Parsing error: {}'.format(message))
                     return {}
             except Exception:
                 try:
                     pong = await self.websocket.ping()
                     await asyncio.wait_for(pong, timeout=self.ping_timeout)
-                    print('Ping OK, keeping connection alive')
+                    Logger.info('Websocket: Ping OK, keeping connection alive')
                 except Exception:
-                    print('Ping error, closing connection')
+                    Logger.info('Websocket: Ping error, closing connection')
                     await self.websocket.close()
                     await asyncio.sleep(self.sleep_time)
                     await self.__async__connect()
@@ -178,9 +172,9 @@ class websocketClient():
             elif message['type'] in ['ack', 'evt_precip']:
                 pass
             else:
-                print('Unknown message type: %s' % json.dumps(message))
+                Logger.info('Websocket: Unknown message type: {}'.format(json.dumps(message)))
         else:
-            print('Unknown message type: %s' % json.dumps(message))
+            Logger.info('Websocket: Unknown message type: {}'.format(json.dumps(message)))
 
     def reloadConfig(self, payload):
         if json.loads(payload.decode('utf8')) == 1:
