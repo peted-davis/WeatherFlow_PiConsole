@@ -25,14 +25,14 @@ REBOOT = 0
 # CREATE OR UPDATE wfpiconsole.ini FILE
 # ==============================================================================
 # Import required modules
-#from lib     import config as configFile
-#from pathlib import Path
+from lib     import config as configFile
+from pathlib import Path
 
 # Create or update config file if required
-#if not Path('wfpiconsole.ini').is_file():
-#    configFile.create()
-#else:
-#    configFile.update()
+if not Path('wfpiconsole.ini').is_file():
+    configFile.create()
+else:
+    configFile.update()
     
 # ==============================================================================
 # INITIALISE KIVY GRAPHICS WINDOW BASED ON CURRENT HARDWARE TYPE
@@ -104,7 +104,6 @@ kivyconfig.write()
 # =============================================================================
 # IMPORT REQUIRED CORE KIVY MODULES
 # =============================================================================
-from kivy.network.urlrequest import UrlRequest
 from kivy.properties         import DictProperty, NumericProperty, BooleanProperty
 from kivy.properties         import ConfigParserProperty, StringProperty
 from kivy.properties         import ListProperty
@@ -213,13 +212,11 @@ class wfpiconsole(App):
         else:
             self.scaleSuffix = '_lR.png'
 
-    # INITIALISE CONFIGURATION FILE IF IT DOESN'T EXIST
+    # LOAD APP CONFIGURATION FILE
     # --------------------------------------------------------------------------
     def build_config(self, config):
-        config.clear()
         config.optionxform = str
-        config.setdefaults('Keys', {'WeatherFlow': ''})
-        config.write()
+        config.read('wfpiconsole.ini')
 
     # BUILD 'WeatherFlowPiConsole' APP CLASS SETTINGS
     # --------------------------------------------------------------------------
@@ -240,7 +237,7 @@ class wfpiconsole(App):
         self.use_kivy_settings = False
         self.settings = settings
 
-    # OPEN 'WeatherFlowPiConsole' APP CLASS SETTINGS
+    # OVERLOAD 'display_settings' TO OPEN SETTINGS SCREEN WITH SCREEN MANAGER
     # --------------------------------------------------------------------------
     def display_settings(self, settings):
         self.mainMenu.dismiss(animation=False)
@@ -251,7 +248,7 @@ class wfpiconsole(App):
         self.screenManager.current = 'Settings'
         return True
 
-    # CLOSE 'WeatherFlowPiConsole' APP CLASS SETTINGS
+    # OVERLOAD 'close_settings' TO CLOSE SETTINGS SCREEN WITH SCREEN MANAGER
     # --------------------------------------------------------------------------
     def close_settings(self, *args):
         if self.screenManager.current == 'Settings':
@@ -491,13 +488,18 @@ class ForecastPanel(RelativeLayout):
 
     # Initialise 'ForecastPanel' relative layout class
     def __init__(self, **kwargs):
-        super(ForecastPanel, self).__init__(**kwargs)
-        self.setForecastIcon()
-        if not hasattr(App.get_running_app(), 'ForecastPanel'):
-            App.get_running_app().ForecastPanel = []
-            App.get_running_app().ForecastPanel.append(self)
+        super().__init__(**kwargs)
+        if not hasattr(App.get_running_app(), self.__class__.__name__):
+            panelList = []
+            panelList.append(self)
+            setattr(App.get_running_app(), self.__class__.__name__, panelList)
         else:
-            App.get_running_app().ForecastPanel.append(self)
+            panelList = getattr(App.get_running_app(), self.__class__.__name__, 'panelList')
+            panelList.append(self)
+            setattr(App.get_running_app(), self.__class__.__name__, panelList)
+            
+        # Run required class functions 
+        self.setForecastIcon()
 
     # Set Forecast icon
     @mainthread
@@ -515,13 +517,16 @@ class ForecastButton(RelativeLayout):
 class SagerPanel(RelativeLayout):
 
     # Initialise 'SagerPanel' relative layout class
-    def __init__(self,**kwargs):
-        super(SagerPanel,self).__init__(**kwargs)
-        if not hasattr(App.get_running_app(),'SagerPanel'):
-            App.get_running_app().SagerPanel = []
-            App.get_running_app().SagerPanel.append(self)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        if not hasattr(App.get_running_app(), self.__class__.__name__):
+            panelList = []
+            panelList.append(self)
+            setattr(App.get_running_app(), self.__class__.__name__, panelList)
         else:
-            App.get_running_app().SagerPanel.append(self)
+            panelList = getattr(App.get_running_app(), self.__class__.__name__, 'panelList')
+            panelList.append(self)
+            setattr(App.get_running_app(), self.__class__.__name__, panelList)
 
 class SagerButton(RelativeLayout):
     pass
@@ -537,12 +542,17 @@ class TemperaturePanel(RelativeLayout):
 
     # Initialise 'TemperaturePanel' relative layout class
     def __init__(self, **kwargs):
-        super(TemperaturePanel, self).__init__(**kwargs)
-        if not hasattr(App.get_running_app(), 'TemperaturePanel'):
-            App.get_running_app().TemperaturePanel = []
-            App.get_running_app().TemperaturePanel.append(self)
+        super().__init__(**kwargs)
+        if not hasattr(App.get_running_app(), self.__class__.__name__):
+            panelList = []
+            panelList.append(self)
+            setattr(App.get_running_app(), self.__class__.__name__, panelList)
         else:
-            App.get_running_app().TemperaturePanel.append(self)
+            panelList = getattr(App.get_running_app(), self.__class__.__name__, 'panelList')
+            panelList.append(self)
+            setattr(App.get_running_app(), self.__class__.__name__, panelList)
+            
+        # Run required class functions
         self.setFeelsLikeIcon()
 
     # Set "Feels Like" icon
@@ -566,12 +576,17 @@ class WindSpeedPanel(RelativeLayout):
 
     # Initialise 'WindSpeedPanel' relative layout class
     def __init__(self, **kwargs):
-        super(WindSpeedPanel, self).__init__(**kwargs)
-        if not hasattr(App.get_running_app(), 'WindSpeedPanel'):
-            App.get_running_app().WindSpeedPanel = []
-            App.get_running_app().WindSpeedPanel.append(self)
+        super().__init__(**kwargs)
+        if not hasattr(App.get_running_app(), self.__class__.__name__):
+            panelList = []
+            panelList.append(self)
+            setattr(App.get_running_app(), self.__class__.__name__, panelList)
         else:
-            App.get_running_app().WindSpeedPanel.append(self)
+            panelList = getattr(App.get_running_app(), self.__class__.__name__, 'panelList')
+            panelList.append(self)
+            setattr(App.get_running_app(), self.__class__.__name__, panelList)
+            
+        # Run required class functions
         if App.get_running_app().CurrentConditions.Obs['rapidDir'][0] != '-':
             self.rapidWindDir = App.get_running_app().CurrentConditions.Obs['rapidDir'][0]
         self.setWindIcons()
@@ -625,12 +640,17 @@ class SunriseSunsetPanel(RelativeLayout):
 
     # Initialise 'SunriseSunsetPanel' relative layout class
     def __init__(self, **kwargs):
-        super(SunriseSunsetPanel, self).__init__(**kwargs)
-        if not hasattr(App.get_running_app(), 'SunriseSunsetPanel'):
-            App.get_running_app().SunriseSunsetPanel = []
-            App.get_running_app().SunriseSunsetPanel.append(self)
+        super().__init__(**kwargs)
+        if not hasattr(App.get_running_app(), self.__class__.__name__):
+            panelList = []
+            panelList.append(self)
+            setattr(App.get_running_app(), self.__class__.__name__, panelList)
         else:
-            App.get_running_app().SunriseSunsetPanel.append(self)
+            panelList = getattr(App.get_running_app(), self.__class__.__name__, 'panelList')
+            panelList.append(self)
+            setattr(App.get_running_app(), self.__class__.__name__, panelList)
+            
+        # Run required class functions
         self.setUVBackground()
 
     # Set current UV index backgroud
@@ -649,12 +669,15 @@ class MoonPhasePanel(RelativeLayout):
 
     # Initialise 'MoonPhasePanel' relative layout class
     def __init__(self, **kwargs):
-        super(MoonPhasePanel, self).__init__(**kwargs)
-        if not hasattr(App.get_running_app(), 'MoonPhasePanel'):
-            App.get_running_app().MoonPhasePanel = []
-            App.get_running_app().MoonPhasePanel.append(self)
+        super().__init__(**kwargs)
+        if not hasattr(App.get_running_app(), self.__class__.__name__):
+            panelList = []
+            panelList.append(self)
+            setattr(App.get_running_app(), self.__class__.__name__, panelList)
         else:
-            App.get_running_app().MoonPhasePanel.append(self)
+            panelList = getattr(App.get_running_app(), self.__class__.__name__, 'panelList')
+            panelList.append(self)
+            setattr(App.get_running_app(), self.__class__.__name__, panelList)
 
 
 class MoonPhaseButton(RelativeLayout):
@@ -672,12 +695,17 @@ class RainfallPanel(RelativeLayout):
 
     # Initialise 'RainfallPanel' relative layout class
     def __init__(self, **kwargs):
-        super(RainfallPanel, self).__init__(**kwargs)
-        if not hasattr(App.get_running_app(), 'RainfallPanel'):
-            App.get_running_app().RainfallPanel = []
-            App.get_running_app().RainfallPanel.append(self)
+        super().__init__(**kwargs)
+        if not hasattr(App.get_running_app(), self.__class__.__name__):
+            panelList = []
+            panelList.append(self)
+            setattr(App.get_running_app(), self.__class__.__name__, panelList)
         else:
-            App.get_running_app().RainfallPanel.append(self)
+            panelList = getattr(App.get_running_app(), self.__class__.__name__, 'panelList')
+            panelList.append(self)
+            setattr(App.get_running_app(), self.__class__.__name__, panelList)
+            
+        # Run required class functions
         self.animateRainRate()
 
     # Animate RainRate level
@@ -734,12 +762,17 @@ class LightningPanel(RelativeLayout):
 
     # Initialise 'LightningPanel' relative layout class
     def __init__(self, **kwargs):
-        super(LightningPanel, self).__init__(**kwargs)
-        if not hasattr(App.get_running_app(), 'LightningPanel'):
-            App.get_running_app().LightningPanel = []
-            App.get_running_app().LightningPanel.append(self)
+        super().__init__(**kwargs)
+        if not hasattr(App.get_running_app(), self.__class__.__name__):
+            panelList = []
+            panelList.append(self)
+            setattr(App.get_running_app(), self.__class__.__name__, panelList)
         else:
-            App.get_running_app().LightningPanel.append(self)
+            panelList = getattr(App.get_running_app(), self.__class__.__name__, 'panelList')
+            panelList.append(self)
+            setattr(App.get_running_app(), self.__class__.__name__, panelList)
+            
+        # Run required class functions
         self.setLightningBoltIcon()
 
     # Set lightning bolt icon
@@ -770,12 +803,17 @@ class BarometerPanel(RelativeLayout):
 
     # Initialise 'BarometerPanel' relative layout class
     def __init__(self, **kwargs):
-        super(BarometerPanel, self).__init__(**kwargs)
-        if not hasattr(App.get_running_app(), 'BarometerPanel'):
-            App.get_running_app().BarometerPanel = []
-            App.get_running_app().BarometerPanel.append(self)
+        super().__init__(**kwargs)
+        if not hasattr(App.get_running_app(), self.__class__.__name__):
+            panelList = []
+            panelList.append(self)
+            setattr(App.get_running_app(), self.__class__.__name__, panelList)
         else:
-            App.get_running_app().BarometerPanel.append(self)
+            panelList = getattr(App.get_running_app(), self.__class__.__name__, 'panelList')
+            panelList.append(self)
+            setattr(App.get_running_app(), self.__class__.__name__, panelList)
+            
+        # Run required class functions
         self.setBarometerArrow()
 
     # Set Barometer arrow rotation angle to match current sea level pressure
@@ -800,7 +838,7 @@ class mainMenu(ModalView):
 
     # Initialise 'mainMenu' ModalView class
     def __init__(self, **kwargs):
-        super(mainMenu, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.app = App.get_running_app()
         self.initialiseStatusPanels()
 
@@ -855,7 +893,7 @@ class TextScaleLabel(ToggleButtonBehavior, Label):
     _scale = NumericProperty(0)
 
     def __init__(self, **kwargs):
-        super(TextScaleLabel, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.allow_no_selection = False
         self.group = 'textScale'
         self.state = 'down' if float(App.get_running_app().textScale) == self._scale else 'normal'

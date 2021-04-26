@@ -44,8 +44,6 @@ oscSERVER.listen(address=b'localhost', port=3001, default=True)
 # Set config file path
 configFile = 'wfpiconsole.ini'
 
-#logging.basicConfig(format='%(asctime)s %(message)s')
-
 # =============================================================================
 # DEFINE 'websocketClient' CLASS
 # =============================================================================
@@ -70,7 +68,7 @@ class websocketClient():
         oscSERVER.bind(b'/config', self.reloadConfig)
 
         # Initialise Observation Parser
-        self.obsParser = obsParser(oscCLIENT, oscSERVER, [1, 1, 1])
+        self.obsParser = obsParser(oscCLIENT, oscSERVER, [1, 1, 1, 1])
 
         # Initialise asyn loop and connect to specified Websocket URL
         self.async_loop = asyncio.new_event_loop()
@@ -114,7 +112,7 @@ class websocketClient():
             deviceList.append('{"type":"listen_rapid_start",' + ' "device_id":'
                               + self.config['Station']['TempestID'] + ','
                               + ' "id":"rapidWind"}')
-        elif self.config['Station']['SkyID']:
+        if self.config['Station']['SkyID']:
             deviceList.append('{"type":"listen_start",'
                               + ' "device_id":'
                               + self.config['Station']['SkyID'] + ',' + ' "id":"Sky"}')
@@ -125,6 +123,10 @@ class websocketClient():
             deviceList.append('{"type":"listen_start",'
                               + ' "device_id":' + self.config['Station']['OutAirID'] + ','
                               + ' "id":"OutdoorAir"}')
+        if self.config['Station']['InAirID']:
+            deviceList.append('{"type":"listen_start",'
+                              + ' "device_id":' + self.config['Station']['InAirID'] + ','
+                              + ' "id":"IndoorAir"}')                              
         for device in deviceList:
             await self.websocket.send(device)
 
@@ -153,28 +155,37 @@ class websocketClient():
 
     def decodeMessage(self, message):
         if 'type' in message:
-            if message['type'] == 'obs_st':
-                if not hasattr(self.thread_list, 'obs_st'):
-                    self.thread_list['obs_st'] = threading.Thread(target=self.obsParser.parse_obs_st, args=(message, self.config, ), name="obs_st")
-                self.thread_list['obs_st'].start()
-            elif message['type'] == 'obs_sky':
-                if not hasattr(self.thread_list, 'obs_sky'):
-                    self.thread_list['obs_sky'] = threading.Thread(target=self.obsParser.parse_obs_sky, args=(message, self.config, ), name='obs_sky')
-                self.thread_list['obs_sky'].start()
-            elif message['type'] == 'obs_air':
-                if not hasattr(self.thread_list, 'obs_air'):
-                    self.thread_list['obs_air'] = threading.Thread(target=self.obsParser.parse_obs_air, args=(message, self.config, ), name='obs_air')
-                self.thread_list['obs_air'].start()
-            elif message['type'] == 'rapid_wind':
-                self.obsParser.parse_rapid_wind(message, self.config)
-            elif message['type'] == 'evt_strike':
-                self.obsParser.parse_evt_strike(message, self.config)
-            elif message['type'] in ['ack', 'evt_precip']:
+            if message['type'] in ['ack', 'evt_precip']:
                 pass
             else:
-                Logger.info('Websocket: Unknown message type: {}'.format(json.dumps(message)))
+                if 'device_id' in message:
+                    if message['type'] == 'obs_st':
+                        if not hasattr(self.thread_list, 'obs_st'):
+                            self.thread_list['obs_st'] = threading.Thread(target=self.obsParser.parse_obs_st, args=(message, self.config, ), name="obs_st")
+                        self.thread_list['obs_st'].start()
+                    elif message['type'] == 'obs_sky':
+                        if not hasattr(self.thread_list, 'obs_sky'):
+                            self.thread_list['obs_sky'] = threading.Thread(target=self.obsParser.parse_obs_sky, args=(message, self.config, ), name='obs_sky')
+                        self.thread_list['obs_sky'].start() 
+                    elif message['type'] == 'obs_air':
+                        if str(message['device_id']) == self.config['Station']['OutAirID']:
+                            if not hasattr(self.thread_list, 'obs_out_air'):
+                                self.thread_list['obs_out_air'] = threading.Thread(target=self.obsParser.parse_obs_out_air, args=(message, self.config, ), name='obs_out_air')
+                            self.thread_list['obs_out_air'].start()
+                        elif str(message['device_id']) == self.config['Station']['InAirID']:
+                            if not hasattr(self.thread_list, 'obs_in_air'):
+                                self.thread_list['obs_in_air'] = threading.Thread(target=self.obsParser.parse_obs_in_air, args=(message, self.config, ), name='obs_in_air')
+                            self.thread_list['obs_in_air'].start()
+                    elif message['type'] == 'rapid_wind':
+                        self.obsParser.parse_rapid_wind(message, self.config)
+                    elif message['type'] == 'evt_strike':
+                        self.obsParser.parse_evt_strike(message, self.config)
+                    else:
+                        Logger.info('Websocket: Unknown message type: {}'.format(json.dumps(message)))
+                else:
+                    Logger.info('Websocket: Missing device ID: {}'.format(json.dumps(message)))
         else:
-            Logger.info('Websocket: Unknown message type: {}'.format(json.dumps(message)))
+            Logger.info('Websocket: Missing message type: {}'.format(json.dumps(message)))
 
     def reloadConfig(self, payload):
         if json.loads(payload.decode('utf8')) == 1:
@@ -191,7 +202,7 @@ class websocketClient():
                     active_threads.append(True)
             if not active_threads:
                 break
-        self.obsParser.calcDerivedVariables(self.config, 'obs_all')
+        self.obsParser.formatDerivedVariables(self.config, 'obs_all')
 
 
 if __name__ == '__main__':

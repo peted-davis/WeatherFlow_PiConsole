@@ -147,7 +147,7 @@
 
     ## Forecast rain/snowfall
     TitleField:
-        text: app.CurrentConditions.Met['PrecipType'].title() + 'fall'
+        text: app.CurrentConditions.Met['PrecipType']
         pos_hint: {'x': 152/262, 'y': 65/202}
         size_hint_x: (100/262)
     MediumField:
@@ -180,7 +180,7 @@
 
     ## Panel background and title
     PanelBackground:
-        _panelTitle: 'Sager Forecast'
+        _panelTitle: 'Sager'
 
     ## Sager Weathercaster forecast
     MediumMultilineField:
@@ -210,6 +210,7 @@
     ## Panel background and title
     PanelBackground:
         _panelTitle: 'Temperature'
+        _panelStatus: app.Station.Status['outAirLastSample'] if app.config['Station']['OutAirID'] else app.Station.Status['tempestLastSample']
 
     ## Indoor temperature
     TitleField:
@@ -363,6 +364,7 @@
     ## Panel background and title
     PanelBackground:
         _panelTitle: 'Wind Speed'
+        _panelStatus: app.Station.Status['skyLastSample'] if app.config['Station']['SkyID'] else app.Station.Status['tempestLastSample']
 
     ## Rapid Wind wind speed and direction
     windRose:
@@ -473,6 +475,7 @@
     ## Panel background and title
     PanelBackground:
         _panelTitle: 'Solar  [size=' + str(int(self.ids.Title.font_size*0.8)) + ']|[/size]  UV'
+        _panelStatus: app.Station.Status['skyLastSample'] if app.config['Station']['SkyID'] else app.Station.Status['tempestLastSample']                                                                                                                                                                    
 
     ## Night bar
     BoxLayout:
@@ -726,6 +729,7 @@
     ## Panel background, title, and RainGauge
     RainfallBackground:
         _panelTitle: 'Rainfall'
+        _panelStatus: app.Station.Status['skyLastSample'] if app.config['Station']['SkyID'] else app.Station.Status['tempestLastSample']
     RainGauge:
 
     ## Current rain rate and text
@@ -817,6 +821,7 @@
     ## Panel background and title
     PanelBackground:
         _panelTitle: 'Lightning'
+        _panelStatus: app.Station.Status['outAirLastSample'] if app.config['Station']['OutAirID'] else app.Station.Status['tempestLastSample']                                                                                                                                                                    
 
     ## Last strike time
     TitleField:
@@ -968,6 +973,7 @@
     ## Panel background, title, and Barometer dial
     PanelBackground:
         _panelTitle: 'Barometer'
+        _panelStatus: app.Station.Status['outAirLastSample'] if app.config['Station']['OutAirID'] else app.Station.Status['tempestLastSample'] 
     barometerDial:
 
     ## Current pressure arrow
@@ -1052,7 +1058,7 @@
 <BarometerButton>:
     PanelButton:
         id: 'BarometerButton'
-        text: 'Pressure'
+        text: 'Barometer'
         on_release: app.CurrentConditions.switchPanel(self)
 
 ## =============================================================================

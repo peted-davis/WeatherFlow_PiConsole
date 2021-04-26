@@ -64,6 +64,12 @@ def Generate(sagerDict,Config):
     # Define required station variables for the Sager Weathercaster Forecast
     sagerDict['Lat'] = float(Config['Station']['Latitude'])
     sagerDict['Units'] = Config['Units']['Wind']
+    
+    # Get device ID
+    if Config['Station']['TempestID']:
+        device = Config['Station']['TempestID']
+    elif Config['Station']['SkyID']:
+        device = Config['Station']['SkyID']
 
     # DOWNLOAD WIND AND RAIN DATA FROM EITHER TEMPEST OR SKY MODULE
     # --------------------------------------------------------------------------
@@ -71,7 +77,7 @@ def Generate(sagerDict,Config):
     # module. If API call fails, return missing data error message
     if Config['Station']['TempestID']:
         Obs = {}
-        getTempestData(Obs,Now,Config)
+        getTempestData(Obs, Now, Config)
         if not Obs:
             sagerDict['Forecast'] = '[color=f05e40ff]ERROR:[/color] Missing TEMPEST data. Forecast will be regenerated in 60 minutes'
             sagerDict['Issued']   = datetime.now(pytz.utc).astimezone(Tz).strftime('%H:%M')
@@ -156,9 +162,9 @@ def Generate(sagerDict,Config):
     # DATA
     # --------------------------------------------------------------------------
     # Convert temperature and pressure data to Numpy arrays
-    Obs['Time'] = np.array(Obs['Time'],dtype=np.int64)
-    Obs['Pres'] = np.array(Obs['Pres'],dtype=np.float64)
-    Obs['Temp'] = np.array(Obs['Temp'],dtype=np.float64)
+    Obs['Time'] = np.array(Obs['Time'], dtype=np.int64)
+    Obs['Pres'] = np.array(Obs['Pres'], dtype=np.float64)
+    Obs['Temp'] = np.array(Obs['Temp'], dtype=np.float64)
 
     # Define required pressure variables for the Sager Weathercaster Forecast
     Pres6 = Obs['Pres'][:15]
@@ -170,8 +176,8 @@ def Generate(sagerDict,Config):
         Clock.schedule_once(lambda dt: Generate(sagerDict,Config),secondsSched)
         return sagerDict
     else:
-        sagerDict['Pres6'] = derive.SLP([np.nanmean(Pres6).tolist(),'mb'], Config)[0]
-        sagerDict['Pres']  = derive.SLP([np.nanmean(Pres).tolist(),'mb'], Config)[0]
+        sagerDict['Pres6'] = derive.SLP([np.nanmean(Pres6).tolist(),'mb'], device, Config)[0]
+        sagerDict['Pres']  = derive.SLP([np.nanmean(Pres).tolist(),'mb'], device, Config)[0]
 
     # Define required temperature variables for the Sager Weathercaster
     # Forecast

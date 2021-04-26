@@ -214,10 +214,10 @@ class Station(Widget):
                 deviceStatus = '[color=d73027ff]Error[/color]'
 
             # Store AIR device status variables
-            self.Status['airSampleTime'] = datetime.fromtimestamp(latestOb[0], Tz).strftime('%H:%M:%S')
-            self.Status['airLastSample'] = sampleDelay
-            self.Status['airVoltage']    = '{:.2f}'.format(deviceVoltage)
-            self.Status['airStatus']     = deviceStatus
+            self.Status['outAirSampleTime'] = datetime.fromtimestamp(latestOb[0], Tz).strftime('%H:%M:%S')
+            self.Status['outAirLastSample'] = sampleDelay
+            self.Status['outAirVoltage']    = '{:.2f}'.format(deviceVoltage)
+            self.Status['outAirStatus']     = deviceStatus
 
         # Set hub status (i.e. stationStatus) based on device status
         deviceStatus = []

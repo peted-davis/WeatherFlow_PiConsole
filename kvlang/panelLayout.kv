@@ -72,8 +72,9 @@
 ## =============================================================================
 ## PANEL BACKGROUNDS
 ## =============================================================================
-<PanelBackground@BoxLayout>:
+<PanelBackground@FloatLayout>:
     _panelTitle: str()
+    _panelStatus: str()
     pos_hint: {'x': 0/262, 'y': 0/202}
     size_hint: [1, 1]
     cols: 1
@@ -92,9 +93,13 @@
     PanelTitle:
         id: Title
         text: root._panelTitle
+    PanelStatus:
+        id: Status
+        text: root._panelStatus
 
-<RainfallBackground@BoxLayout>:
+<RainfallBackground@FloatLayout>:
     _panelTitle: str()
+    _panelStatus: str()
     pos_hint: {'x': 0/262, 'y': 47/202}
     size_hint: [1, 155/202]
     cols: 1
@@ -115,6 +120,11 @@
         size_hint: (1, 13/155)
         pos_hint: {'x': 0, 'y': 138/155}
         text: root._panelTitle
+    PanelStatus:
+        id: Status
+        size_hint: (0.97, 23 / 155)
+        pos_hint: {'x': 0.015, 'y': 133 / 155}
+        text: root._panelStatus
 
 <UpdateNotifBackground@BoxLayout>:
     _panelTitle: str()

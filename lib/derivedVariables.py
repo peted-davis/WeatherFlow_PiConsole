@@ -144,12 +144,13 @@ def feelsLike(outTemp, humidity, windSpd, config):
     return [FeelsLike[0], FeelsLike[1], Description[Ind], Icon[Ind]]
 
 
-def SLP(pressure, config):
+def SLP(pressure, device, config):
 
     """ Calculate the sea level pressure from the station pressure
 
     INPUTS:
         pressure            Station pressure from AIR/TEMPEST module    [mb]
+        device              Device ID that observation originates from
         config              Station configuration
 
     OUTPUT:
@@ -164,10 +165,10 @@ def SLP(pressure, config):
 
     # Extract required configuration variables
     elevation = config['Station']['Elevation']
-    if config['Station'][AIR + 'Height']:
-        height = config['Station'][AIR + 'Height']
-    elif config['Station'][TEMPEST + 'Height']:
-        height = config['Station'][TEMPEST + 'Height']
+    if str(device) == config['Station']['OutAirID']:
+        height = config['Station']['OutAirHeight']
+    elif str(device) == config['Station']['TempestID']:
+        height = config['Station']['TempestHeight']
 
     # Define required constants
     P0 = 1013.25
@@ -185,7 +186,7 @@ def SLP(pressure, config):
     return [SLP, 'mb', SLP]
 
 
-def SLPTrend(pressure, obTime, apiData, config):
+def SLPTrend(pressure, obTime, device, apiData, config):
 
     """ Calculate the pressure trend from the sea level pressure over the last
         three hours
@@ -193,6 +194,7 @@ def SLPTrend(pressure, obTime, apiData, config):
     INPUTS:
         pressure            Current station pressure                    [mb]
         obTime              Time of latest observation                  [s]
+        device              Device ID that observation originates from
         apiData             WeatherFlow REST API data
         config              Station configuration
 
@@ -210,11 +212,9 @@ def SLPTrend(pressure, obTime, apiData, config):
         return errorOutput
 
     # Define index of pressure in websocket packets
-    if config['Station'][AIR + 'ID']:
-        device = config['Station'][AIR + 'ID']
+    if str(device) == config['Station']['OutAirID']:
         index  = 1
-    elif config['Station'][TEMPEST + 'ID']:
-        device = config['Station'][TEMPEST + 'ID']
+    elif str(device) == config['Station']['TempestID']:
         index  = 6
 
     # Extract required observations from WeatherFlow API data based on device
@@ -234,8 +234,8 @@ def SLPTrend(pressure, obTime, apiData, config):
         return [None, 'mb/hr', '-', '-']
 
     # Convert station pressure into sea level pressure
-    pres3h = SLP(pres3h, config)
-    pres0h = SLP(pres0h, config)
+    pres3h = SLP(pres3h, device, config)
+    pres0h = SLP(pres0h, device, config)
 
     # Calculate three hour temperature trend
     Trend = (pres0h[0] - pres3h[0]) / ((time0h[0] - time3h[0]) / 3600)
@@ -277,19 +277,20 @@ def SLPTrend(pressure, obTime, apiData, config):
     return [Trend, 'mb/hr', TrendTxt, Tendency]
 
 
-def SLPMax(pressure, obTime, maxPres, apiData, config):
+def SLPMax(pressure, obTime, maxPres, device, apiData, config):
 
     """ Calculate maximum pressure since midnight station time
 
     INPUTS:
-        Time                Current observation time                [s]
-        Temp                Current pressure                        [mb]
-        maxPres             Current maximum pressure                [mb]
+        Time                Current observation time                    [s]
+        Temp                Current pressure                            [mb]
+        maxPres             Current maximum pressure                    [mb]
+        device              Device ID that observation originates from
         apiData             WeatherFlow REST API data
         config              Station configuration
 
     OUTPUT:
-        maxPres             Maximum pressure                        [mb]
+        maxPres             Maximum pressure                            [mb]
     """
 
     # Return None if required variables are missing
@@ -302,7 +303,7 @@ def SLPMax(pressure, obTime, maxPres, apiData, config):
         return errorOutput
 
     # Calculate sea level pressure
-    SLP = derive.SLP(pressure, config)
+    SLP = derive.SLP(pressure, device, config)
 
     # Define current time in station timezone
     Tz = pytz.timezone(config['Station']['Timezone'])
@@ -315,11 +316,9 @@ def SLPMax(pressure, obTime, maxPres, apiData, config):
         Format = '%H:%M'
 
     # Define index of temperature in websocket packets
-    if config['Station'][AIR + 'ID']:
-        device = config['Station'][AIR + 'ID']
+    if str(device) == config['Station']['OutAirID']:
         index  = 1
-    elif config['Station'][TEMPEST + 'ID']:
-        device = config['Station'][TEMPEST + 'ID']
+    elif str(device) == config['Station']['TempestID']:
         index  = 6
 
     # If console is initialising, download all data for current day using
@@ -329,7 +328,7 @@ def SLPMax(pressure, obTime, maxPres, apiData, config):
             dataToday = apiData[device]['today'].json()['obs']
             obTime = [[item[0], 's'] for item in dataToday if item[0] is not None]
             pressure = [[item[index], 'mb'] for item in dataToday if item[index] is not None]
-            SLP = [derive.SLP(P, config) for P in pressure]
+            SLP = [derive.SLP(P, device, config) for P in pressure]
             maxPres = [max(SLP)[0], 'mb', datetime.fromtimestamp(obTime[SLP.index(max(SLP))][0], Tz).strftime(Format), max(SLP)[0], obTime[SLP.index(max(SLP))][0]]
         else:
             maxPres = [None, 'mb', '-', None, time.time()]
@@ -351,19 +350,20 @@ def SLPMax(pressure, obTime, maxPres, apiData, config):
     return maxPres
 
 
-def SLPMin(pressure, obTime, minPres, apiData, config):
+def SLPMin(pressure, obTime, minPres, device, apiData, config):
 
     """ Calculate minimum pressure since midnight station time
 
     INPUTS:
-        Time                Current observation time                [s]
-        Temp                Current pressure                        [mb]
-        minPres             Current minimum pressure                [mb]
+        pressure            Current pressure                            [mb]
+        obTime              Current observation time                    [s]
+        minPres             Current minimum pressure                    [mb]
+        device              Device ID that observation originates from
         apiData             WeatherFlow REST API data
         config              Station configuration
 
     OUTPUT:
-        minPres             Minumum pressure                        [mb]
+        minPres             Minumum pressure                            [mb]
     """
 
     # Return None if required variables are missing
@@ -376,7 +376,7 @@ def SLPMin(pressure, obTime, minPres, apiData, config):
         return errorOutput
 
     # Calculate sea level pressure
-    SLP = derive.SLP(pressure, config)
+    SLP = derive.SLP(pressure, device, config)
 
     # Define current time in station timezone
     Tz = pytz.timezone(config['Station']['Timezone'])
@@ -389,11 +389,9 @@ def SLPMin(pressure, obTime, minPres, apiData, config):
         Format = '%H:%M'
 
     # Define index of temperature in websocket packets
-    if config['Station'][AIR + 'ID']:
-        device = config['Station'][AIR + 'ID']
+    if str(device) == config['Station']['OutAirID']:
         index  = 1
-    elif config['Station'][TEMPEST + 'ID']:
-        device = config['Station'][TEMPEST + 'ID']
+    elif str(device) == config['Station']['TempestID']:
         index  = 6
 
     # If console is initialising, download all data for current day using
@@ -403,7 +401,7 @@ def SLPMin(pressure, obTime, minPres, apiData, config):
             dataToday = apiData[device]['today'].json()['obs']
             obTime = [[item[0], 's'] for item in dataToday if item[0] is not None]
             pressure = [[item[index], 'mb'] for item in dataToday if item[index] is not None]
-            SLP = [derive.SLP(P, config) for P in pressure]
+            SLP = [derive.SLP(P, device, config) for P in pressure]
             minPres = [min(SLP)[0], 'mb', datetime.fromtimestamp(obTime[SLP.index(min(SLP))][0], Tz).strftime(Format), min(SLP)[0], obTime[SLP.index(max(SLP))][0]]
         else:
             minPres = [None, 'mb', '-', None, time.time()]
@@ -425,11 +423,14 @@ def SLPMin(pressure, obTime, minPres, apiData, config):
     return minPres
 
 
-def tempDiff(outTemp, obTime, apiData, config):
+def tempDiff(outTemp, obTime, device, apiData, config):
 
     """ Calculate 24 hour temperature difference
 
     INPUTS:
+        outTemp             Current temperature                         [deg C]
+        obTime              Current observation time                    [s]
+        device              Device ID that observation originates from
         apiData             WeatherFlow REST API data
         config              Station configuration
 
@@ -447,11 +448,9 @@ def tempDiff(outTemp, obTime, apiData, config):
         return errorOutput
 
     # Define index of temperature in websocket packets
-    if config['Station'][AIR + 'ID']:
-        device = config['Station'][AIR + 'ID']
+    if str(device) == config['Station']['OutAirID']:
         index  = 2
-    elif config['Station'][TEMPEST + 'ID']:
-        device = config['Station'][TEMPEST + 'ID']
+    elif str(device) == config['Station']['TempestID']:
         index  = 7
 
     # Extract required observations from WeatherFlow API data based on device
@@ -483,11 +482,14 @@ def tempDiff(outTemp, obTime, apiData, config):
     return [dTemp, 'dc', diffTxt]
 
 
-def tempTrend(outTemp, obTime, apiData, config):
+def tempTrend(outTemp, obTime, device, apiData, config):
 
     """ Calculate 3 hour temperature trend
 
     INPUTS:
+        outTemp             Current temperature                         [deg C]
+        obTime              Current observation time                    [s]
+        device              Device ID that observation originates from
         apiData             WeatherFlow REST API data
         config              Station configuration
 
@@ -505,11 +507,9 @@ def tempTrend(outTemp, obTime, apiData, config):
         return errorOutput
 
     # Define index of temperature in websocket packets
-    if config['Station'][AIR + 'ID']:
-        device = config['Station'][AIR + 'ID']
+    if str(device) == config['Station']['OutAirID']:
         index  = 2
-    elif config['Station'][TEMPEST + 'ID']:
-        device = config['Station'][TEMPEST + 'ID']
+    elif str(device) == config['Station']['TempestID']:
         index  = 7
 
     # Extract required observations from WeatherFlow API data based on device
@@ -543,15 +543,16 @@ def tempTrend(outTemp, obTime, apiData, config):
     return [Trend, 'c/hr', Color]
 
 
-def tempMax(outTemp, obTime, maxTemp, apiData, config):
+def tempMax(Temp, obTime, maxTemp, device, apiData, config):
 
     """ Calculate maximum temperature for specified device since midnight
         station time
 
     INPUTS:
-        Time                Current observation time                    [s]
         Temp                Current temperature                         [deg C]
+        obTime              Current observation time                    [s]
         maxTemp             Current maximum temperature                 [deg C]
+        device              Device ID that observation originates from
         apiData             WeatherFlow REST API data
         config              Station configuration
 
@@ -561,7 +562,7 @@ def tempMax(outTemp, obTime, maxTemp, apiData, config):
 
     # Return None if required variables are missing
     errorOutput = [None, 'c', '-', None, time.time()]
-    if outTemp[0] is None:
+    if Temp[0] is None:
         Logger.warning('tempMax: outTemp is None')
         return errorOutput
     elif obTime[0] is None:
@@ -579,11 +580,11 @@ def tempMax(outTemp, obTime, maxTemp, apiData, config):
         Format = '%H:%M'
 
     # Define index of temperature in websocket packets
-    if config['Station'][AIR + 'ID']:
-        device = config['Station'][AIR + 'ID']
+    if str(device) == config['Station']['OutAirID']:
         index  = 2
-    elif config['Station'][TEMPEST + 'ID']:
-        device = config['Station'][TEMPEST + 'ID']
+    elif str(device) == config['Station']['InAirID']:
+        index  = 2
+    elif str(device) == config['Station']['TempestID']:
         index  = 7
 
     # If console is initialising, download all data for current day using
@@ -592,19 +593,19 @@ def tempMax(outTemp, obTime, maxTemp, apiData, config):
         if apiData[device]['today'] is not None:
             dataToday = apiData[device]['today'].json()['obs']
             obTime  = [item[0] for item in dataToday if item[0] is not None]
-            outTemp = [item[index] for item in dataToday if item[index] is not None]
-            maxTemp = [max(outTemp), 'c', datetime.fromtimestamp(obTime[outTemp.index(max(outTemp))], Tz).strftime(Format), max(outTemp), obTime[outTemp.index(max(outTemp))]]
+            Temp = [item[index] for item in dataToday if item[index] is not None]
+            maxTemp = [max(Temp), 'c', datetime.fromtimestamp(obTime[Temp.index(max(Temp))], Tz).strftime(Format), max(Temp), obTime[Temp.index(max(Temp))]]
         else:
             maxTemp = [None, 'c', '-', None, time.time()]
 
     # Else if midnight has passed, reset maximum temperature
     elif Now.date() > datetime.fromtimestamp(maxTemp[4], Tz).date():
-        maxTemp = [outTemp[0], 'c', datetime.fromtimestamp(obTime[0], Tz).strftime(Format), outTemp[0], obTime[0]]
+        maxTemp = [Temp[0], 'c', datetime.fromtimestamp(obTime[0], Tz).strftime(Format), Temp[0], obTime[0]]
 
     # Else if current temperature is greater than maximum recorded temperature,
     # update maximum temperature
-    elif outTemp[0] > maxTemp[3]:
-        maxTemp = [outTemp[0], 'c', datetime.fromtimestamp(obTime[0], Tz).strftime(Format), outTemp[0], obTime[0]]
+    elif Temp[0] > maxTemp[3]:
+        maxTemp = [Temp[0], 'c', datetime.fromtimestamp(obTime[0], Tz).strftime(Format), Temp[0], obTime[0]]
 
     # Else maximum temperature unchanged, return existing values
     else:
@@ -614,15 +615,16 @@ def tempMax(outTemp, obTime, maxTemp, apiData, config):
     return maxTemp
 
 
-def tempMin(outTemp, obTime, minTemp, apiData, config):
+def tempMin(Temp, obTime, minTemp, device, apiData, config):
 
     """ Calculate minimum temperature for specified device since midnight
         station time
 
     INPUTS:
-        Time                Current observation time                    [s]
         Temp                Current temperature                         [deg C]
+        obTime              Current observation time                    [s]
         minTemp             Current minimum temperature                 [deg C]
+        device              Device ID
         apiData             WeatherFlow REST API data
         config              Station configuration
 
@@ -632,8 +634,8 @@ def tempMin(outTemp, obTime, minTemp, apiData, config):
 
     # Return None if required variables are missing
     errorOutput = [None, 'c', '-', None, time.time()]
-    if outTemp[0] is None:
-        Logger.warning('tempMin: outTemp is None')
+    if Temp[0] is None:
+        Logger.warning('tempMin: Temp is None')
         return errorOutput
     elif obTime[0] is None:
         Logger.warning('tempMin: obTime is None')
@@ -650,11 +652,11 @@ def tempMin(outTemp, obTime, minTemp, apiData, config):
         Format = '%H:%M'
 
     # Define index of temperature in websocket packets
-    if config['Station'][AIR + 'ID']:
-        device = config['Station'][AIR + 'ID']
+    if str(device) == config['Station']['OutAirID']:
         index  = 2
-    elif config['Station'][TEMPEST + 'ID']:
-        device = config['Station'][TEMPEST + 'ID']
+    elif str(device) == config['Station']['InAirID']:
+        index  = 2
+    elif str(device) == config['Station']['TempestID']:
         index  = 7
 
     # If console is initialising, download all data for current day using
@@ -663,19 +665,19 @@ def tempMin(outTemp, obTime, minTemp, apiData, config):
         if apiData[device]['today'] is not None:
             dataToday = apiData[device]['today'].json()['obs']
             obTime  = [item[0] for item in dataToday if item[0] is not None]
-            outTemp = [item[index] for item in dataToday if item[index] is not None]
-            minTemp = [min(outTemp), 'c', datetime.fromtimestamp(obTime[outTemp.index(min(outTemp))], Tz).strftime(Format), min(outTemp), obTime[outTemp.index(max(outTemp))]]
+            Temp = [item[index] for item in dataToday if item[index] is not None]
+            minTemp = [min(Temp), 'c', datetime.fromtimestamp(obTime[Temp.index(min(Temp))], Tz).strftime(Format), min(Temp), obTime[Temp.index(max(Temp))]]
         else:
             minTemp = [None, 'c', '-', None, time.time()]
 
     # Else if midnight has passed, reset minimum temperature
     elif Now.date() > datetime.fromtimestamp(minTemp[4], Tz).date():
-        minTemp = [outTemp[0], 'c', datetime.fromtimestamp(obTime[0], Tz).strftime(Format), outTemp[0], obTime[0]]
+        minTemp = [Temp[0], 'c', datetime.fromtimestamp(obTime[0], Tz).strftime(Format), Temp[0], obTime[0]]
 
     # Else if current temperature is less than minimum recorded temperature,
     # update minimum temperature
-    elif outTemp[0] < minTemp[3]:
-        minTemp = [outTemp[0], 'c', datetime.fromtimestamp(obTime[0], Tz).strftime(Format), outTemp[0], obTime[0]]
+    elif Temp[0] < minTemp[3]:
+        minTemp = [Temp[0], 'c', datetime.fromtimestamp(obTime[0], Tz).strftime(Format), Temp[0], obTime[0]]
 
     # Else minimum temperature unchanged, return existing values
     else:
@@ -710,13 +712,14 @@ def strikeDeltaT(strikeTime):
     return deltaT
 
 
-def strikeFrequency(obTime, apiData, config):
+def strikeFrequency(obTime, device, apiData, config):
 
     """ Calculate lightning strike frequency over the previous 10 minutes and
         three hours
 
     INPUTS:
         obTime              Time of latest observation
+        device              Device ID
         apiData             WeatherFlow REST API data
         config              Station configuration
 
@@ -732,11 +735,9 @@ def strikeFrequency(obTime, apiData, config):
         return errorOutput
 
     # Define index of total lightning strike counts in websocket packets
-    if config['Station'][AIR + 'ID']:
-        device = config['Station'][AIR + 'ID']
+    if str(device) == config['Station']['OutAirID']:
         index  = 4
-    elif config['Station'][TEMPEST + 'ID']:
-        device = config['Station'][TEMPEST + 'ID']
+    elif str(device) == config['Station']['TempestID']:
         index  = 15
 
     # Extract lightning strike count over the last three hours. Return None for
@@ -787,7 +788,7 @@ def strikeFrequency(obTime, apiData, config):
     return strikeFrequency10m + strikeFrequency3h
 
 
-def strikeCount(count, strikeCount, apiData, config):
+def strikeCount(count, strikeCount, device, apiData, config):
 
     """ Calculate the number of lightning strikes for the last day/month/year
 
@@ -797,6 +798,7 @@ def strikeCount(count, strikeCount, apiData, config):
             Today               Number of lightning strikes today           [Count]
             Yesterday           Number of lightning strikes in last month   [Count]
             Year                Number of lightning strikes in last year    [Count]
+        device              Device ID
         apiData             WeatherFlow REST API data
         config              Station configuration
 
@@ -820,12 +822,10 @@ def strikeCount(count, strikeCount, apiData, config):
     Now = datetime.now(pytz.utc).astimezone(Tz)
 
     # Define index of total lightning strike counts in websocket packets
-    if config['Station'][AIR + 'ID']:
-        device = config['Station'][AIR + 'ID']
+    if str(device) == config['Station']['OutAirID']:
         index1 = 4
         index2 = 4
-    elif config['Station'][TEMPEST + 'ID']:
-        device = config['Station'][TEMPEST + 'ID']
+    elif str(device) == config['Station']['TempestID']:
         index1 = 15
         index2 = 24
 
@@ -948,7 +948,7 @@ def rainRate(minuteRain):
     return [Rate, 'mm/hr', RateText, Rate]
 
 
-def rainAccumulation(dailyRain, rainAccum, apiData, config):
+def rainAccumulation(dailyRain, rainAccum, device, apiData, config):
 
     """ Calculate the rain accumulation for today/yesterday/month/year
 
@@ -959,6 +959,7 @@ def rainAccumulation(dailyRain, rainAccum, apiData, config):
             Yesterday           Rain accumulation yesterday                 [mm]
             Month               Rain accumulation for the current month     [mm]
             Year                Rain accumulation for the current year      [mm]
+        device              Device ID
         apiData             WeatherFlow REST API data
         config              Station configuration
 
@@ -982,12 +983,10 @@ def rainAccumulation(dailyRain, rainAccum, apiData, config):
     Now = datetime.now(pytz.utc).astimezone(Tz)
 
     # Define index of total daily rain accumulation in websocket packets
-    if config['Station'][SKY + 'ID']:
-        device = config['Station'][SKY + 'ID']
+    if str(device) == config['Station']['SkyID']:
         index1 = 3
         index2 = 3
-    elif config['Station'][TEMPEST + 'ID']:
-        device = config['Station'][TEMPEST + 'ID']
+    elif str(device) == config['Station']['TempestID']:
         index1 = 12
         index2 = 28
 
@@ -1092,13 +1091,14 @@ def rainAccumulation(dailyRain, rainAccum, apiData, config):
     return {'today': todayRain, 'yesterday': yesterdayRain, 'month': monthRain, 'year': yearRain}
 
 
-def avgWindSpeed(windSpd, avgWind, apiData, config):
+def avgWindSpeed(windSpd, avgWind, device, apiData, config):
 
     """ Calculate the average windspeed since midnight station time
 
     INPUTS:
         windSpd             Current wind speed                            [m/s]
         avgWind             Current average wind speed since midnight     [m/s]
+        device              Device ID
         apiData             WeatherFlow REST API data
         config              Station configuration
 
@@ -1117,11 +1117,9 @@ def avgWindSpeed(windSpd, avgWind, apiData, config):
     Now = datetime.now(pytz.utc).astimezone(Tz)
 
     # Define index of wind speed in websocket packets
-    if config['Station'][SKY + 'ID']:
-        device = config['Station'][SKY + 'ID']
+    if str(device) == config['Station']['SkyID']:
         index = 5
-    elif config['Station'][TEMPEST + 'ID']:
-        device = config['Station'][TEMPEST + 'ID']
+    elif str(device) == config['Station']['TempestID']:
         index = 2
 
     # If console is initialising, download all data for current day using
@@ -1150,14 +1148,14 @@ def avgWindSpeed(windSpd, avgWind, apiData, config):
     return windAvg
 
 
-def maxWindGust(windGust, maxGust, apiData, config):
+def maxWindGust(windGust, maxGust, device, apiData, config):
 
     """ Calculate the maximum wind gust since midnight station time
 
     INPUTS:
         windGust            Current wind gust                             [m/s]
         maxGust             Current maximum wind gust since midnight      [m/s]
-        Device              Device ID
+        device              Device ID
         apiData             WeatherFlow REST API data
         config              Station configuration
 
@@ -1176,11 +1174,9 @@ def maxWindGust(windGust, maxGust, apiData, config):
     Now = datetime.now(pytz.utc).astimezone(Tz)
 
     # Define index of wind speed in websocket packets
-    if config['Station'][SKY + 'ID']:
-        device = config['Station'][SKY + 'ID']
+    if str(device) == config['Station']['SkyID']:
         index = 6
-    elif config['Station'][TEMPEST + 'ID']:
-        device = config['Station'][TEMPEST + 'ID']
+    elif str(device) == config['Station']['TempestID']:
         index = 3
 
     # If console is initialising, download all data for current day using
@@ -1325,14 +1321,14 @@ def UVIndex(uvLevel):
     return uvIndex
 
 
-def peakSunHours(radiation, peakSun, apiData, config):
+def peakSunHours(radiation, peakSun, device, apiData, config):
 
     """ Calculate peak sun hours since midnight and daily solar potential
 
     INPUTS:
         Radiation           Current solar radiation                        [W/m^2]
-        maxGust             Current peak sun hours since midnight          [hours]
-        Astro               Dictionary containing sunrise/sunset info
+        peakSun             Current peak sun hours since midnight          [hours]
+        device              Device ID 
         apiData             WeatherFlow REST API data
         config              Station configuration
 
@@ -1364,11 +1360,9 @@ def peakSunHours(radiation, peakSun, apiData, config):
         sunset            = peakSun[5]
 
     # Define index of radiation in websocket packets
-    if config['Station'][SKY + 'ID']:
-        device = config['Station'][SKY + 'ID']
+    if str(device) == config['Station']['SkyID']:
         index = 10
-    elif config['Station'][TEMPEST + 'ID']:
-        device = config['Station'][TEMPEST + 'ID']
+    elif str(device) == config['Station']['TempestID']:
         index = 11
 
     # If console is initialising, download all data for current day using
