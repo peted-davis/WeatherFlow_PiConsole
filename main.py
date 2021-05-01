@@ -17,7 +17,7 @@
 
 # ==============================================================================
 # DEFINE GOBAL VARIABLES
-# =============================================================================
+# ==============================================================================
 SHUTDOWN = 0
 REBOOT = 0
 
@@ -101,9 +101,9 @@ else:
 # Save wfpiconsole Kivy configuration file
 kivyconfig.write()
 
-# =============================================================================
+# ==============================================================================
 # IMPORT REQUIRED CORE KIVY MODULES
-# =============================================================================
+# ==============================================================================
 from kivy.properties         import DictProperty, NumericProperty, BooleanProperty
 from kivy.properties         import ConfigParserProperty, StringProperty
 from kivy.properties         import ListProperty
@@ -113,11 +113,12 @@ from kivy.factory            import Factory
 from kivy.metrics            import dp, sp
 from kivy.clock              import Clock, mainthread
 from kivy.utils              import platform
+from kivy.lang               import Builder
 from kivy.app                import App
 
-# =============================================================================
+# ==============================================================================
 # IMPORT REQUIRED LIBRARY MODULES
-# =============================================================================
+# ==============================================================================
 from lib import astronomical      as astro
 from lib import sager             as sagerForecast
 from lib import settingScreens
@@ -127,9 +128,15 @@ from lib import station
 from lib import system
 from lib import config
 
-# =============================================================================
+# ==============================================================================
+# IMPORT REQUIRED USER MODULES
+# ==============================================================================
+if Path('user/customPanels.py').is_file():
+    from user.customPanels import *
+
+# ==============================================================================
 # IMPORT REQUIRED SYSTEM MODULES
-# =============================================================================
+# ==============================================================================
 from oscpy.server import OSCThreadServer
 from oscpy.client import OSCClient
 from functools    import partial
@@ -140,9 +147,9 @@ import socket
 import math
 import json
 
-# =============================================================================
+# ==============================================================================
 # IMPORT REQUIRED KIVY GRAPHICAL AND SETTINGS MODULES
-# =============================================================================
+# ==============================================================================
 from kivy.uix.relativelayout import RelativeLayout
 from kivy.uix.screenmanager  import ScreenManager, Screen, NoTransition
 from kivy.uix.togglebutton   import ToggleButton
@@ -158,9 +165,9 @@ from kivy.uix.widget         import Widget
 from kivy.uix.popup          import Popup
 from kivy.uix.label          import Label
 
-# =============================================================================
+# ==============================================================================
 # DEFINE 'WeatherFlowPiConsole' APP CLASS
-# =============================================================================
+# ==============================================================================
 class wfpiconsole(App):
 
     # Define App class dictionary properties
@@ -177,7 +184,7 @@ class wfpiconsole(App):
     scaleSuffix = StringProperty('_lR.png')
 
     # BUILD 'WeatherFlowPiConsole' APP CLASS
-    # -------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     def build(self):
 
         # Calculate initial ScaleFactor and bind self.setScaleFactor to Window
@@ -197,6 +204,10 @@ class wfpiconsole(App):
         self.oscCLIENT = OSCClient('localhost', 3001)
         self.oscSERVER.listen(address=b'localhost', port=3002, default=True)
         self.oscSERVER.bind(b'/updateDisplay', self.updateDisplay)
+        
+        # Load Custom Panel KV file if present
+        if Path('user/customPanels.py').is_file():
+            Builder.load_file('user/customPanels.kv')
 
         # Initialise ScreenManager
         self.screenManager = screenManager(transition=NoTransition())
@@ -471,16 +482,16 @@ class CurrentConditions(Screen):
             App.get_running_app().CurrentConditions.buttonList[ii] = [button[0], button[1], newButton, 'Primary']
 
 
-# =============================================================================
+# ==============================================================================
 # screenManager SCREEN MANAGER CLASS
-# =============================================================================
+# ==============================================================================
 class screenManager(ScreenManager):
     pass
 
 
-# =============================================================================
+# ==============================================================================
 # ForecastPanel RELATIVE LAYOUT CLASS
-# =============================================================================
+# ==============================================================================
 class ForecastPanel(RelativeLayout):
 
     # Define TemperaturePanel class properties
@@ -532,9 +543,9 @@ class SagerButton(RelativeLayout):
     pass
 
 
-# =============================================================================
+# ==============================================================================
 # TemperaturePanel RELATIVE LAYOUT CLASS
-# =============================================================================
+# ==============================================================================
 class TemperaturePanel(RelativeLayout):
 
     # Define TemperaturePanel class properties
@@ -564,9 +575,9 @@ class TemperatureButton(RelativeLayout):
     pass
 
 
-# =============================================================================
+# ==============================================================================
 # WindSpeedPanel RELATIVE LAYOUT CLASS
-# =============================================================================
+# ==============================================================================
 class WindSpeedPanel(RelativeLayout):
 
     # Define WindSpeedPanel class properties
@@ -630,9 +641,9 @@ class WindSpeedButton(RelativeLayout):
     pass
 
 
-# =============================================================================
+# ==============================================================================
 # SunriseSunsetPanel RELATIVE LAYOUT CLASS
-# =============================================================================
+# ==============================================================================
 class SunriseSunsetPanel(RelativeLayout):
 
     # Define SunriseSunsetPanel class properties
@@ -662,9 +673,9 @@ class SunriseSunsetButton(RelativeLayout):
     pass
 
 
-# =============================================================================
+# ==============================================================================
 # MoonPhasePanel RELATIVE LAYOUT CLASS
-# =============================================================================
+# ==============================================================================
 class MoonPhasePanel(RelativeLayout):
 
     # Initialise 'MoonPhasePanel' relative layout class
@@ -684,9 +695,9 @@ class MoonPhaseButton(RelativeLayout):
     pass
 
 
-# =============================================================================
+# ==============================================================================
 # RainfallPanel RELATIVE LAYOUT CLASS
-# =============================================================================
+# ==============================================================================
 class RainfallPanel(RelativeLayout):
 
     # Define RainfallPanel class properties
@@ -751,9 +762,9 @@ class RainfallButton(RelativeLayout):
     pass
 
 
-# =============================================================================
+# ==============================================================================
 # LightningPanel RELATIVE LAYOUT CLASS
-# =============================================================================
+# ==============================================================================
 class LightningPanel(RelativeLayout):
 
     # Define LightningPanel class properties
@@ -793,9 +804,9 @@ class LightningButton(RelativeLayout):
     pass
 
 
-# =============================================================================
+# ==============================================================================
 # BarometerPanel RELATIVE LAYOUT CLASS
-# =============================================================================
+# ==============================================================================
 class BarometerPanel(RelativeLayout):
 
     # Define BarometerPanel class properties
