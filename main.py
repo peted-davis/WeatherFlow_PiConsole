@@ -33,7 +33,7 @@ if not Path('wfpiconsole.ini').is_file():
     configFile.create()
 else:
     configFile.update()
-    
+
 # ==============================================================================
 # INITIALISE KIVY GRAPHICS WINDOW BASED ON CURRENT HARDWARE TYPE
 # ==============================================================================
@@ -52,7 +52,7 @@ if config['System']['Hardware'] in ['Pi4','Linux']:
     os.environ['KIVY_WINDOW']   = 'sdl2'
 elif config['System']['Hardware'] in ['PiB','Pi3']:
     os.environ['KIVY_GL_BACKEND'] = 'gl'
-    
+
 # ==============================================================================
 # INITIALISE KIVY WINDOW PROPERTIES BASED ON OPTIONS SET IN wfpiconsole.ini
 # ==============================================================================
@@ -178,7 +178,7 @@ class wfpiconsole(App):
     BarometerMax = ConfigParserProperty('-', 'System',  'BarometerMax', 'app')
     BarometerMin = ConfigParserProperty('-', 'System',  'BarometerMin', 'app')
     IndoorTemp   = ConfigParserProperty('-', 'Display', 'IndoorTemp',   'app')
-    
+
     # Define display properties
     scaleFactor = NumericProperty(1)
     scaleSuffix = StringProperty('_lR.png')
@@ -204,7 +204,7 @@ class wfpiconsole(App):
         self.oscCLIENT = OSCClient('localhost', 3001)
         self.oscSERVER.listen(address=b'localhost', port=3002, default=True)
         self.oscSERVER.bind(b'/updateDisplay', self.updateDisplay)
-        
+
         # Load Custom Panel KV file if present
         if Path('user/customPanels.py').is_file():
             Builder.load_file('user/customPanels.kv')
@@ -413,7 +413,7 @@ class CurrentConditions(Screen):
 
         # Schedule WeatherFlow weather forecast download
         app.Sched.metDownload = Clock.schedule_once(partial(forecast.startDownload, app, False))
-        
+
         # Generate Sager Weathercaster forecast
         threading.Thread(target=sagerForecast.Generate, args=(self.Sager,app.config), name="Sager", daemon=True).start()
 
@@ -508,8 +508,8 @@ class ForecastPanel(RelativeLayout):
             panelList = getattr(App.get_running_app(), self.__class__.__name__, 'panelList')
             panelList.append(self)
             setattr(App.get_running_app(), self.__class__.__name__, panelList)
-            
-        # Run required class functions 
+
+        # Run required class functions
         self.setForecastIcon()
 
     # Set Forecast icon
@@ -562,7 +562,7 @@ class TemperaturePanel(RelativeLayout):
             panelList = getattr(App.get_running_app(), self.__class__.__name__, 'panelList')
             panelList.append(self)
             setattr(App.get_running_app(), self.__class__.__name__, panelList)
-            
+
         # Run required class functions
         self.setFeelsLikeIcon()
 
@@ -596,7 +596,7 @@ class WindSpeedPanel(RelativeLayout):
             panelList = getattr(App.get_running_app(), self.__class__.__name__, 'panelList')
             panelList.append(self)
             setattr(App.get_running_app(), self.__class__.__name__, panelList)
-            
+
         # Run required class functions
         if App.get_running_app().CurrentConditions.Obs['rapidDir'][0] != '-':
             self.rapidWindDir = App.get_running_app().CurrentConditions.Obs['rapidDir'][0]
@@ -660,7 +660,7 @@ class SunriseSunsetPanel(RelativeLayout):
             panelList = getattr(App.get_running_app(), self.__class__.__name__, 'panelList')
             panelList.append(self)
             setattr(App.get_running_app(), self.__class__.__name__, panelList)
-            
+
         # Run required class functions
         self.setUVBackground()
 
@@ -715,7 +715,7 @@ class RainfallPanel(RelativeLayout):
             panelList = getattr(App.get_running_app(), self.__class__.__name__, 'panelList')
             panelList.append(self)
             setattr(App.get_running_app(), self.__class__.__name__, panelList)
-            
+
         # Run required class functions
         self.animateRainRate()
 
@@ -782,7 +782,7 @@ class LightningPanel(RelativeLayout):
             panelList = getattr(App.get_running_app(), self.__class__.__name__, 'panelList')
             panelList.append(self)
             setattr(App.get_running_app(), self.__class__.__name__, panelList)
-            
+
         # Run required class functions
         self.setLightningBoltIcon()
 
@@ -823,7 +823,7 @@ class BarometerPanel(RelativeLayout):
             panelList = getattr(App.get_running_app(), self.__class__.__name__, 'panelList')
             panelList.append(self)
             setattr(App.get_running_app(), self.__class__.__name__, panelList)
-            
+
         # Run required class functions
         self.setBarometerArrow()
 
@@ -870,7 +870,7 @@ class mainMenu(ModalView):
         # Populate status fields
         self.app.Station.get_observationCount()
         self.app.Station.get_hubFirmware()
-        
+
     # Exit console and shutdown system
     def shutdownSystem(self, instance):
         global SHUTDOWN
@@ -881,7 +881,7 @@ class mainMenu(ModalView):
     def rebootSystem(self, instance):
         global REBOOT
         REBOOT = 1
-        App.get_running_app().stop()    
+        App.get_running_app().stop()
 
 
 class tempestStatus(BoxLayout):

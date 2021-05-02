@@ -230,8 +230,8 @@ class Station(Widget):
         if all('-' in Status for Status in deviceStatus):
             self.Status['stationStatus'] = '-'
         elif all('Error' in Status for Status in deviceStatus):
-            self.Status['stationStatus'] = '[color=d73027ff]Offline[/color]'
+            self.Status['stationStatus'] = 'Offline'
         elif all('OK' in Status for Status in deviceStatus):
-            self.Status['stationStatus'] = '[color=9aba2fff]Online[/color]'
+            self.Status['stationStatus'] = 'Online'
         else:
-            self.Status['stationStatus'] = '[color=d73027ff]Error[/color]'
+            self.Status['stationStatus'] = 'Error'

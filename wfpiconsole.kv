@@ -275,7 +275,7 @@
         text: app.CurrentConditions.Obs['outTempMax'][2]
         pos_hint: {'x': 196.5/262 if app.IndoorTemp == '1' else 65.5/262, 'y': 86/202}
         size_hint_x: (65.5/262)
-        
+
     ## 24 hour temperature difference
     TitleField:
         text: '24 hr Difference'
@@ -302,7 +302,7 @@
         text: '[color=' + self._color + ']' + app.CurrentConditions.Obs['outTempTrend'][0] + '[/color]' + app.CurrentConditions.Obs['outTempTrend'][1]
         pos_hint: {'x': 128 / 262, 'y': 86 / 202}
         size_hint_x: (128 / 262)
-        opacity: 0 if app.IndoorTemp == '1' else 1        
+        opacity: 0 if app.IndoorTemp == '1' else 1
 
     ## 'Feels like' temperature
     TitleField:
@@ -471,7 +471,7 @@
     ## Panel background and title
     PanelBackground:
         _panelTitle: 'Solar  [size=' + str(int(self.ids.Title.font_size*0.8)) + ']|[/size]  UV'
-        _panelStatus: app.Station.Status['skyLastSample'] if app.config['Station']['SkyID'] else app.Station.Status['tempestLastSample']                                                                                                                                                                    
+        _panelStatus: app.Station.Status['skyLastSample'] if app.config['Station']['SkyID'] else app.Station.Status['tempestLastSample']
 
     ## Night bar
     BoxLayout:
@@ -795,11 +795,17 @@
     TimeDateField:
         text: app.System['Date']
         pos_hint: {'x': 0/262, 'y': 24/202}
-        size_hint_x: (262/262)
+        size_hint_x: (182/262) if app.Station.Status['stationStatus'] == 'Offline' else (262/262)
     TimeDateField:
         text: app.System['Time']
         pos_hint: {'x': 0/262, 'y': 3/202}
-        size_hint_x: (262/262)
+        size_hint_x: (182/262) if app.Station.Status['stationStatus'] == 'Offline' else (262/262)
+    TimeDateField:
+        text: app.Station.Status['stationStatus']
+        color: utils.rgba('#d73027ff')
+        pos_hint: {'x': 182/262, 'y': 13.5/202}
+        size_hint_x: (80/262)
+        opacity: 1 if app.Station.Status['stationStatus'] == 'Offline' else 0
 
 <RainfallButton>:
     PanelButton:
@@ -814,7 +820,7 @@
     ## Panel background and title
     PanelBackground:
         _panelTitle: 'Lightning'
-        _panelStatus: app.Station.Status['outAirLastSample'] if app.config['Station']['OutAirID'] else app.Station.Status['tempestLastSample']                                                                                                                                                                    
+        _panelStatus: app.Station.Status['outAirLastSample'] if app.config['Station']['OutAirID'] else app.Station.Status['tempestLastSample']
 
     ## Last strike time
     TitleField:
@@ -965,7 +971,7 @@
     ## Panel background, title, and Barometer dial
     PanelBackground:
         _panelTitle: 'Barometer'
-        _panelStatus: app.Station.Status['outAirLastSample'] if app.config['Station']['OutAirID'] else app.Station.Status['tempestLastSample'] 
+        _panelStatus: app.Station.Status['outAirLastSample'] if app.config['Station']['OutAirID'] else app.Station.Status['tempestLastSample']
     barometerDial:
 
     ## Current pressure arrow
@@ -1123,7 +1129,8 @@
                             font_size: dp(16*app.scaleFactor)
                             text: app.config['Station']['Name']
                         MenuField:
-                            text: 'Station status: ' + app.Station.Status['stationStatus']
+                            _color: '#9aba2fff' if app.Station.Status['stationStatus'] == 'Online' else '#c8c8c8ff' if app.Station.Status['stationStatus'] == '-' else '#d73027ff'
+                            text: 'Station status: [color=' + self._color + ']' + app.Station.Status['stationStatus'] + '[/color]'
                     GridLayout:
                         cols: 2
                         orientation: 'vertical'
@@ -1183,7 +1190,7 @@
                             on_release: self.rebootSystem()
                         MenuButton:
                             text: 'Shutdown'
-                            on_release: self.shutdownSystem()                       
+                            on_release: self.shutdownSystem()
             MainMenuTab:
                 text: 'Credits'
                 MainMenuLayout:

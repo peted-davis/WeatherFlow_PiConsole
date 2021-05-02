@@ -81,7 +81,7 @@ def JSON(Section):
                   'desc':'Set console other units', 'section':'Units', 'key':'Other'}
                 ]
     elif 'Primary' in Section:
-        
+
         Data =  [
                  {'type':'ScrollOptions', 'options':primaryPanelList,'title':'Panel One',
                   'desc':'Set primary display for Panel One', 'section':'PrimaryPanels', 'key':'PanelOne'},
