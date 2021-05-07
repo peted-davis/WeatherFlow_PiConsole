@@ -242,6 +242,11 @@ def SLPTrend(pressure, obTime, device, apiData, config):
     try:
         Trend = (pres0h[0] - pres3h[0]) / ((time0h[0] - time3h[0]) / 3600)
     except Exception as Error:
+        print('dTime: ', dTime)
+        print('pres0h: ', pres0h)
+        print('pres3h: ', pres3h)
+        print('time0h: ', time0h)
+        print('time3h: ', time3h)
         Logger.warning(f'SLPTrend: {system.logTime()} - {Error}')
         return errorOutput
 
@@ -1258,8 +1263,11 @@ def cardinalWindDir(windDir, windSpd=[1, 'mps']):
 
     # Return None if required variables are missing
     errorOutput = [windDir[0], windDir[1], '-', '-']
-    if windDir[0] is None:
+    if windDir[0] is None and windSpeed is not 0:
         Logger.warning(f'cardinalWindDir: {system.logTime()} - windDir is None')
+        return errorOutput
+    elif windSpd[0] is None
+        Logger.warning(f'cardinalWindDir: {system.logTime()} - windSpd is None')
         return errorOutput
 
     # Define all possible cardinal wind directions and descriptions
