@@ -15,13 +15,14 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
-# =============================================================================
+# ==============================================================================
 # IMPORT REQUIRED MODULES
-# =============================================================================
+# ==============================================================================
 from lib.observationParser      import obsParser
 from oscpy.server               import OSCThreadServer
 from oscpy.client               import OSCClient
 from kivy.logger                import Logger
+from lib                        import system
 import configparser
 import websockets
 import threading
@@ -31,9 +32,9 @@ import json
 import ssl
 import os
 
-# =============================================================================
+# ==============================================================================
 # INITIALISE REQUIRED VARIABLES
-# =============================================================================
+# ==============================================================================
 # Initialise OSC client (send messages)
 oscCLIENT = OSCClient('localhost', 3002)
 
@@ -44,9 +45,9 @@ oscSERVER.listen(address=b'localhost', port=3001, default=True)
 # Set config file path
 configFile = 'wfpiconsole.ini'
 
-# =============================================================================
+# ==============================================================================
 # DEFINE 'websocketClient' CLASS
-# =============================================================================
+# ==============================================================================
 class websocketClient():
 
     def __init__(self):
@@ -60,7 +61,7 @@ class websocketClient():
         self.thread_list   = {}
         self.reply_timeout = 60
         self.ping_timeout  = 120
-        self.sleep_time    = 5
+        self.sleep_time    = 10
         self.websocket     = None
         self.url           = 'wss://ws.weatherflow.com/swd/data?token=' + self.config['Keys']['WeatherFlow']
 
@@ -79,28 +80,28 @@ class websocketClient():
         Connected = False
         while not Connected:
             try:
-                Logger.info('Websocket: Opening connection')
+                Logger.info(f'Websocket: {system.logTime()} - Opening connection')
                 self.websocket = await websockets.connect(self.url, ssl=ssl.SSLContext())
                 message        = await self.__async__getMessage()
                 try:
                     if 'type' in message and message['type'] == 'connection_opened':
-                        Logger.info('Websocket: Connection open')
+                        Logger.info(f'Websocket: {system.logTime()} - Connection open')
                         self.obsParser.flagAPI = [1, 1, 1, 1]
                         await self.__async__requestDevices()
                         Connected = True
                     else:
-                        Logger.info('Websocket: Connection message error')
+                        Logger.error(f'Websocket: {system.logTime()} - Connection message error')
                         await self.websocket.close()
                         await asyncio.sleep(self.sleep_time)
                 except Exception as error:
-                    Logger.info('Websocket: Connection error: {}'.format(error))
+                    Logger.error(f'Websocket: {system.logTime()} - Connection error: {error}')
                     await self.websocket.close()
                     await asyncio.sleep(self.sleep_time)
             except (socket.gaierror, ConnectionRefusedError, websockets.exceptions.InvalidStatusCode) as error:
-                Logger.info('Websocket: Connection error: {}'.format(error))
+                Logger.error(f'Websocket: {system.logTime()} - Connection error: {error}')
                 await asyncio.sleep(self.sleep_time)
             except Exception as error:
-                Logger.info('Websocket: General error: {}'.format(error))
+                Logger.error(f'Websocket: {system.logTime()} - General error: {error}')
                 await asyncio.sleep(self.sleep_time)
 
     async def __async__requestDevices(self):
@@ -137,15 +138,15 @@ class websocketClient():
                 try:
                     return json.loads(message)
                 except Exception:
-                    Logger.info('Websocket: Parsing error: {}'.format(message))
+                    Logger.error('Websocket: {system.logTime()} - Parsing error: {message}')
                     return {}
             except Exception:
                 try:
                     pong = await self.websocket.ping()
                     await asyncio.wait_for(pong, timeout=self.ping_timeout)
-                    Logger.info('Websocket: Ping OK, keeping connection alive')
+                    Logger.info(f'Websocket: {system.logTime()} - Ping OK, keeping connection alive')
                 except Exception:
-                    Logger.info('Websocket: Ping error, closing connection')
+                    Logger.error(f'Websocket: {system.logTime()} - Ping error, closing connection')
                     await self.websocket.close()
                     await asyncio.sleep(self.sleep_time)
                     await self.__async__connect()
@@ -181,11 +182,11 @@ class websocketClient():
                     elif message['type'] == 'evt_strike':
                         self.obsParser.parse_evt_strike(message, self.config)
                     else:
-                        Logger.info('Websocket: Unknown message type: {}'.format(json.dumps(message)))
+                        Logger.error(f'Websocket: {system.logTime()} - Unknown message type: {json.dumps(message)}')
                 else:
-                    Logger.info('Websocket: Missing device ID: {}'.format(json.dumps(message)))
+                    Logger.info(f'Websocket: {system.logTime()} - Missing device ID: {json.dumps(message)}')
         else:
-            Logger.info('Websocket: Missing message type: {}'.format(json.dumps(message)))
+            Logger.info(f'Websocket: {system.logTime()} - Missing message type: {json.dumps(message)}')
 
     def reloadConfig(self, payload):
         if json.loads(payload.decode('utf8')) == 1:

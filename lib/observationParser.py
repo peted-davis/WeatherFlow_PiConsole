@@ -158,20 +158,20 @@ class obsParser():
                 or self.deviceObs['windAvg'][0] is None
                 or self.deviceObs['gustMax'][0] is None
                 or self.deviceObs['peakSun'][0] is None
-                or self.deviceObs['strikeCount']['Today'][0] is None):
+                or self.deviceObs['strikeCount']['today'][0] is None):
             self.apiData[device_id]['today'] = requestAPI.weatherflow.Today(device_id, config)
         if (self.apiData[device_id]['flagAPI']
                 or self.deviceObs['rainAccum']['yesterday'][0] is None):
             self.apiData[device_id]['yesterday'] = requestAPI.weatherflow.Yesterday(device_id, config)
         if (self.apiData[device_id]['flagAPI']
-                or self.deviceObs['rainAccum']['month'][0]
+                or self.deviceObs['rainAccum']['month'][0] is None
                 or self.deviceObs['strikeCount']['month'][0] is None):
             self.apiData[device_id]['month'] = requestAPI.weatherflow.Month(device_id, config)
         if (self.apiData[device_id]['flagAPI']
                 or self.deviceObs['rainAccum']['year'][0] is None
                 or self.deviceObs['strikeCount']['year'][0] is None):
             self.apiData[device_id]['year']  = requestAPI.weatherflow.Year(device_id, config)
-        self.apiData[device_id]['flagAPI'] = 0
+        self.flagAPI[0] = 0
         
         # Calculate derived observations
         self.calcDerivedVariables(device_id, config, 'obs_st')
@@ -233,7 +233,7 @@ class obsParser():
         if (self.apiData[device_id]['flagAPI']
                 or self.deviceObs['rainAccum']['year'][0] is None):
             self.apiData[device_id]['year'] = requestAPI.weatherflow.Year(device_id, config)
-        self.apiData[device_id]['flagAPI'] = 0
+        self.flagAPI[1] = 0
 
         # Calculate derived observations
         self.calcDerivedVariables(device_id, config, 'obs_sky')
@@ -287,7 +287,7 @@ class obsParser():
                 or self.deviceObs['SLPMax'][0] is None
                 or self.deviceObs['outTempMin'][0] is None
                 or self.deviceObs['outTempMax'][0] is None
-                or self.deviceObs['strikeCount']['Today'][0] is None):
+                or self.deviceObs['strikeCount']['today'][0] is None):
             self.apiData[device_id]['today'] = requestAPI.weatherflow.Today(device_id, config)
         if (self.apiData[device_id]['flagAPI']
                 or self.deviceObs['strikeCount']['month'][0] is None):
@@ -295,7 +295,7 @@ class obsParser():
         if (self.apiData[device_id]['flagAPI']
                 or self.deviceObs['strikeCount']['year'][0] is None):
             self.apiData[device_id]['year']  = requestAPI.weatherflow.Year(device_id, config)
-        self.apiData[device_id]['flagAPI'] = 0
+        self.flagAPI[2] = 0
         
         # Calculate derived observations
         self.calcDerivedVariables(device_id, config, 'obs_out_air')
@@ -335,6 +335,7 @@ class obsParser():
                 or self.deviceObs['inTempMin'][0] is None
                 or self.deviceObs['inTempMax'][0] is None):
             self.apiData[device_id]['today'] = requestAPI.weatherflow.Today(device_id, config)
+        self.flagAPI[3] = 0
         
         # Calculate derived observations
         self.calcDerivedVariables(device_id, config, 'obs_in_air')

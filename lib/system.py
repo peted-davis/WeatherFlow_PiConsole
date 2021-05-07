@@ -115,3 +115,8 @@ def updateDisplay(type, derivedObs, Console):
             if hasattr(Console, 'TemperaturePanel'):
                 for panel in getattr(Console, 'TemperaturePanel'):
                     panel.setFeelsLikeIcon()
+
+
+def logTime():
+
+    return datetime.now().strftime('%Y-%M-%d %H:%M:%S')
