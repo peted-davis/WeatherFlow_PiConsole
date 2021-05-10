@@ -725,7 +725,22 @@
         _panelTitle: 'Rainfall'
         _panelStatus: app.Station.Status['skyLastSample'] if app.config['Station']['SkyID'] else app.Station.Status['tempestLastSample']
     RainGauge:
-
+        id: rainGauge
+        pos_hint: {'x': 198 / 262, 'y': 80 / 202}
+        size_hint: (41 / 262, 99 / 202)
+        StencilView:
+            pos_hint: {'x': 4 / rainGauge._width, 'y': 1 / rainGauge._height}
+            size_hint: [1 - 8 / rainGauge._width, 1 - 1 / rainGauge._height]
+            FloatLayout:
+                width: self.parent.width * 8
+                height: self.parent.height
+                pos: self.parent.pos
+                Image:
+                    keep_ratio: 0
+                    allow_stretch: 1
+                    source: 'icons/misc/rainIntensity' + app.scaleSuffix
+                    pos_hint: {'x': root.rainRatePosX, 'y': root.rainRatePosY}
+        
     ## Current rain rate and text
     SmallField:
         text: app.CurrentConditions.Obs['RainRate'][2]
@@ -735,21 +750,6 @@
         text: app.CurrentConditions.Obs['RainRate'][0] + app.CurrentConditions.Obs['RainRate'][1]
         pos_hint: {'x': 175/262, 'y': 57/202}
         size_hint_x: (86/262)
-
-    ## Rain rate animation
-    StencilView:
-        pos_hint: {'x': 202/262, 'y': 81/202}
-        size_hint: (33/262, 108/202)
-        FloatLayout:
-            width: self.parent.height*(264/108)
-            height: self.parent.height
-            pos: self.parent.pos
-            Image:
-                source: 'icons/misc/rainIntensity' + app.scaleSuffix
-                keep_ratio: 0
-                allow_stretch: 1
-                size_hint: (1,1)
-                pos_hint: {'x': root.rainRatePosX, 'y': root.rainRatePosY}
 
     ## Total daily rainfall
     TitleField:

@@ -221,17 +221,24 @@ def SLPTrend(pressure, obTime, device, apiData, config):
     # Extract required observations from WeatherFlow API data based on device
     # type indicated in API call
     if apiData[device]['24Hrs'] is not None and verifyResponse(apiData[device]['24Hrs'], 'obs'):
-        apiTime = [ob[0] for ob in apiData[device]['24Hrs'].json()['obs']]
-        dTime   = [abs(T - (obTime[0] - 3 * 3600)) for T in apiTime]
-        if min(dTime) < 5 * 60:
-            apiPres = [ob[index] for ob in apiData[device]['24Hrs'].json()['obs']]
-            pres3h  = [apiPres[dTime.index(min(dTime))], 'mb']
-            time3h  = [apiTime[dTime.index(min(dTime))], 's']
-            pres0h  = pressure
-            time0h  = obTime
-        else:
+        data24hrs = apiData[device]['24Hrs'].json()['obs']
+        apiTime   = [ob[0]     for ob in data24hrs if ob[index] is not None]
+        apiPres   = [ob[index] for ob in data24hrs if ob[index] is not None]
+        try:
+            dTime = [abs(T - (obTime[0] - 3 * 3600)) for T in apiTime]
+            if min(dTime) < 5 * 60:
+                pres3h  = [apiPres[dTime.index(min(dTime))], 'mb']
+                time3h  = [apiTime[dTime.index(min(dTime))], 's']
+                pres0h  = pressure
+                time0h  = obTime
+            else:
+                Logger.warning(f'SLPTrend: {system.logTime()} - no data in 3 hour window')
+                return errorOutput
+        except Exception as Error:
+            Logger.warning(f'SLPTrend: {system.logTime()} - {Error}')
             return errorOutput
     else:
+        Logger.warning(f'SLPTrend: {system.logTime()} - API call failed')
         return errorOutput
 
     # Convert station pressure into sea level pressure
@@ -242,11 +249,6 @@ def SLPTrend(pressure, obTime, device, apiData, config):
     try:
         Trend = (pres0h[0] - pres3h[0]) / ((time0h[0] - time3h[0]) / 3600)
     except Exception as Error:
-        print('dTime: ', dTime)
-        print('pres0h: ', pres0h)
-        print('pres3h: ', pres3h)
-        print('time0h: ', time0h)
-        print('time3h: ', time3h)
         Logger.warning(f'SLPTrend: {system.logTime()} - {Error}')
         return errorOutput
 
@@ -337,7 +339,7 @@ def SLPMax(pressure, obTime, maxPres, device, apiData, config):
         if apiData[device]['today'] is not None and verifyResponse(apiData[device]['today'], 'obs'):
             dataToday = apiData[device]['today'].json()['obs']
             pressure  = [[item[index], 'mb'] for item in dataToday if item[index] is not None]
-            obTime    = [[item[0], 's'] for item in dataToday if item[0] is not None]
+            obTime    = [[item[0], 's']      for item in dataToday if item[index] is not None]
             SLP       = [derive.SLP(P, device, config) for P in pressure]
         else:
             return errorOutput
@@ -414,7 +416,7 @@ def SLPMin(pressure, obTime, minPres, device, apiData, config):
         if apiData[device]['today'] is not None and verifyResponse(apiData[device]['today'], 'obs'):
             dataToday = apiData[device]['today'].json()['obs']
             pressure  = [[item[index], 'mb'] for item in dataToday if item[index] is not None]
-            obTime    = [[item[0], 's'] for item in dataToday if item[0] is not None]
+            obTime    = [[item[0], 's']      for item in dataToday if item[index] is not None]
             SLP       = [derive.SLP(P, device, config) for P in pressure]
         else:
             return errorOutput
@@ -474,15 +476,22 @@ def tempDiff(outTemp, obTime, device, apiData, config):
     # Extract required observations from WeatherFlow API data based on device
     # type indicated in API call
     if apiData[device]['24Hrs'] is not None and verifyResponse(apiData[device]['24Hrs'], 'obs'):
-        apiTime = [ob[0] for ob in apiData[device]['24Hrs'].json()['obs']]
-        dTime   = obTime[0] - apiTime[0]
-        if dTime > 86400 - (5 * 60) and dTime < 86400 + (5 * 60):
-            apiTemp = [ob[index] for ob in apiData[device]['24Hrs'].json()['obs']]
-            temp24h = apiTemp[0]
-            temp0h  = outTemp[0]
-        else:
+        data24hrs = apiData[device]['24Hrs'].json()['obs']
+        apiTime   = [ob[0]     for ob in data24hrs if ob[index] is not None]
+        apiTemp   = [ob[index] for ob in data24hrs if ob[index] is not None]
+        try:
+            dTime   = obTime[0] - apiTime[0]
+            if dTime > 86400 - (5 * 60) and dTime < 86400 + (5 * 60):
+                temp24h = apiTemp[0]
+                temp0h  = outTemp[0]
+            else:
+                Logger.warning(f'tempDiff: {system.logTime()} - no data in 24 hour window')
+                return errorOutput
+        except Exception as Error:
+            Logger.warning(f'tempDiff: {system.logTime()} - {Error}')
             return errorOutput
     else:
+        Logger.warning(f'tempDiff: {system.logTime()} - API call failed')
         return errorOutput
 
     # Calculate 24 hour temperature Difference
@@ -537,17 +546,24 @@ def tempTrend(outTemp, obTime, device, apiData, config):
     # Extract required observations from WeatherFlow API data based on device
     # type indicated in API call
     if apiData[device]['24Hrs'] is not None and verifyResponse(apiData[device]['24Hrs'], 'obs'):
-        apiTime = [ob[0] for ob in apiData[device]['24Hrs'].json()['obs']]
-        dTime   = [abs(T - (obTime[0] - 3 * 3600)) for T in apiTime]
-        if min(dTime) < 5 * 60:
-            apiTemp = [ob[index] for ob in apiData[device]['24Hrs'].json()['obs']]
-            temp3h  = apiTemp[dTime.index(min(dTime))]
-            time3h  = apiTime[dTime.index(min(dTime))]
-            temp0h  = outTemp[0]
-            time0h  = obTime[0]
-        else:
+        data24hrs = apiData[device]['24Hrs'].json()['obs']
+        apiTime   = [ob[0]     for ob in data24hrs if ob[index] is not None]
+        apiTemp   = [ob[index] for ob in data24hrs if ob[index] is not None]
+        try:
+            dTime   = [abs(T - (obTime[0] - 3 * 3600)) for T in apiTime]
+            if min(dTime) < 5 * 60:
+                temp3h  = apiTemp[dTime.index(min(dTime))]
+                time3h  = apiTime[dTime.index(min(dTime))]
+                temp0h  = outTemp[0]
+                time0h  = obTime[0]
+            else:
+                Logger.warning(f'tempTrend: {system.logTime()} - no data in 3 hour window')
+                return errorOutput
+        except Exception as Error:
+            Logger.warning(f'tempTrend: {system.logTime()} - {Error}')
             return errorOutput
     else:
+        Logger.warning(f'tempTrend: {system.logTime()} - API call failed')
         return errorOutput
 
     # Calculate three hour temperature trend
@@ -618,9 +634,10 @@ def tempMax(Temp, obTime, maxTemp, device, apiData, config):
     if maxTemp[0] is None:
         if apiData[device]['today'] is not None and verifyResponse(apiData[device]['today'], 'obs'):
             dataToday = apiData[device]['today'].json()['obs']
-            obTime    = [item[0] for item in dataToday if item[0] is not None]
+            obTime    = [item[0]     for item in dataToday if item[index] is not None]
             Temp      = [item[index] for item in dataToday if item[index] is not None]
         else:
+            Logger.warning(f'tempMax: {system.logTime()} - API call failed')
             return errorOutput
         try:
             maxTemp = [max(Temp), 'c', datetime.fromtimestamp(obTime[Temp.index(max(Temp))], Tz).strftime(Format), max(Temp), obTime[Temp.index(max(Temp))]]
@@ -694,9 +711,10 @@ def tempMin(Temp, obTime, minTemp, device, apiData, config):
     if minTemp[0] is None:
         if apiData[device]['today'] is not None and verifyResponse(apiData[device]['today'], 'obs'):
             dataToday = apiData[device]['today'].json()['obs']
-            obTime    = [item[0] for item in dataToday if item[0] is not None]
+            obTime    = [item[0]     for item in dataToday if item[index] is not None]
             Temp      = [item[index] for item in dataToday if item[index] is not None]
         else:
+            Logger.warning(f'tempMin: {system.logTime()} - API call failed')
             return errorOutput
         try:
             minTemp = [min(Temp), 'c', datetime.fromtimestamp(obTime[Temp.index(min(Temp))], Tz).strftime(Format), min(Temp), obTime[Temp.index(min(Temp))]]
@@ -765,7 +783,7 @@ def strikeFrequency(obTime, device, apiData, config):
     # Return None if required variables are missing
     errorOutput = [None, '/min', None, '/min']
     if obTime[0] is None:
-        Logger.warning(f'strikeFrequency: {system.logTime()} - obTime is None')
+        Logger.warning(f'strikeFreq: {system.logTime()} - obTime is None')
         return errorOutput
 
     # Define index of total lightning strike counts in websocket packets
@@ -777,13 +795,20 @@ def strikeFrequency(obTime, device, apiData, config):
     # Extract lightning strike count over the last three hours. Return None for
     # strikeFrequency if API call has failed
     if apiData[device]['24Hrs'] is not None and verifyResponse(apiData[device]['24Hrs'], 'obs'):
-        apiTime = [ob[0] for ob in apiData[device]['24Hrs'].json()['obs']]
-        dTime   = [abs(T - (obTime[0] - 3 * 3600)) for T in apiTime]
-        if min(dTime) < 5 * 60:
-            count3h = [ob[index] for ob in apiData[device]['24Hrs'].json()['obs'][dTime.index(min(dTime)):]]
-        else:
+        data24hrs = apiData[device]['24Hrs'].json()['obs']
+        apiTime   = [ob[0] for ob in data24hrs if ob[index] is not None]
+        try:
+            dTime   = [abs(T - (obTime[0] - 3 * 3600)) for T in apiTime]
+            if min(dTime) < 5 * 60:
+                count3h = [ob[index] for ob in data24hrs[dTime.index(min(dTime)):] if ob[index] is not None]
+            else:
+                Logger.warning(f'strikeFreq: {system.logTime()} - no data in 3 hour window')
+                count3h = None
+        except Exception as Error:
+            Logger.warning(f'strikeFreq: {system.logTime()} - {Error}')
             count3h = None
     else:
+        Logger.warning(f'strikeFreq: {system.logTime()} - API call failed')
         count3h = None
 
     # Calculate average strike frequency over the last three hours
@@ -796,14 +821,20 @@ def strikeFrequency(obTime, device, apiData, config):
     else:
         strikeFrequency3h = [None, '/min']
 
-    # Extract lightning strike count over the last three hours. Return None for
+    # Extract lightning strike count over the last 10 minutes. Return None for
     # strikeFrequency if API call has failed
     if apiData[device]['24Hrs'] is not None and verifyResponse(apiData[device]['24Hrs'], 'obs'):
-        apiTime = [ob[0] for ob in apiData[device]['24Hrs'].json()['obs']]
-        dTime   = [abs(T - (obTime[0] - 600)) for T in apiTime]
-        if min(dTime) < 2 * 60:
-            count10m = [ob[index] for ob in apiData[device]['24Hrs'].json()['obs'][dTime.index(min(dTime)):]]
-        else:
+        data24hrs = apiData[device]['24Hrs'].json()['obs']
+        apiTime   = [ob[0] for ob in data24hrs if ob[index] is not None]
+        try:
+            dTime   = [abs(T - (obTime[0] - 600)) for T in apiTime]
+            if min(dTime) < 2 * 60:
+                count10m = [ob[index] for ob in data24hrs[dTime.index(min(dTime)):] if ob[index] is not None]
+            else:
+                Logger.warning(f'strikeFreq: {system.logTime()} - no data in 10 minute window')
+                count10m = None
+        except Exception as Error:
+            Logger.warning(f'strikeFreq: {system.logTime()} - {Error}')
             count10m = None
     else:
         count10m = None
@@ -869,8 +900,13 @@ def strikeCount(count, strikeCount, device, apiData, config):
         if apiData[device]['today'] is not None and verifyResponse(apiData[device]['today'], 'obs'):
             dataToday    = apiData[device]['today'].json()['obs']
             apiStrikes   = [item[index1] for item in dataToday if item[index1] is not None]
-            todayStrikes = [sum(x for x in apiStrikes), 'count', sum(x for x in apiStrikes), time.time()]
         else:
+            Logger.warning(f'strikeCount: {system.logTime()} - API call failed')
+            todayStrikes = errorOutput
+        try:
+            todayStrikes = [sum(x for x in apiStrikes), 'count', sum(x for x in apiStrikes), time.time()]
+        except Exception as Error:
+            Logger.warning(f'strikeCount: {system.logTime()} - {Error}')
             todayStrikes = errorOutput
 
     # Else if midnight has passed, reset daily lightning strike count to zero
@@ -889,14 +925,16 @@ def strikeCount(count, strikeCount, device, apiData, config):
         if apiData[device]['month'] is not None and verifyResponse(apiData[device]['month'], 'obs'):
             dataMonth    = apiData[device]['month'].json()['obs']
             apiStrikes   = [item[index2] for item in dataMonth if item[index2] is not None]
+        else:
+            Logger.warning(f'strikeCount: {system.logTime()} - API call failed')
+            monthStrikes = errorOutput
+        try:
             monthStrikes = [sum(x for x in apiStrikes), 'count', sum(x for x in apiStrikes), time.time()]
-
-            # Adjust monthly lightning strike total for strikes that have been
-            # recorded today
             if todayStrikes[0] is not None:
                 monthStrikes[0] += todayStrikes[0]
                 monthStrikes[2] += todayStrikes[2]
-        else:
+        except Exception as Error:
+            Logger.warning(f'strikeCount: {system.logTime()} - {Error}')
             monthStrikes = errorOutput
 
     # Else if the end of the month has passed, reset monthly lightning strike
@@ -916,14 +954,16 @@ def strikeCount(count, strikeCount, device, apiData, config):
         if apiData[device]['year'] is not None and verifyResponse(apiData[device]['year'], 'obs'):
             dataYear    = apiData[device]['year'].json()['obs']
             apiStrikes  = [item[index2] for item in dataYear if item[index2] is not None]
+        else:
+            Logger.warning(f'strikeCount: {system.logTime()} - API call failed')
+            yearStrikes = errorOutput
+        try:
             yearStrikes = [sum(x for x in apiStrikes), 'count', sum(x for x in apiStrikes), time.time()]
-
-            # Adjust yearly lightning strike total for strikes that have been
-            # recorded today
             if todayStrikes[0] is not None:
                 yearStrikes[0] += todayStrikes[0]
                 yearStrikes[2] += todayStrikes[2]
-        else:
+        except Exception as Error:
+            Logger.warning(f'strikeCount: {system.logTime()} - {Error}')
             yearStrikes = errorOutput
 
     # Else if the end of the year has passed, reset monthly and yearly lightning
@@ -1008,7 +1048,7 @@ def rainAccumulation(dailyRain, rainAccum, device, apiData, config):
     # Return None if required variables are missing
     errorOutput = [None, 'mm', None, time.time()]
     if dailyRain[0] is None:
-        Logger.warning(f'rainAccumulation: {system.logTime()} - dailyRain is None')
+        Logger.warning(f'rainAccum: {system.logTime()} - dailyRain is None')
         todayRain = yesterdayRain = monthRain = yearRain = errorOutput
         return {'today': todayRain, 'yesterday': yesterdayRain, 'month': monthRain, 'year': yearRain}
 
@@ -1033,8 +1073,13 @@ def rainAccumulation(dailyRain, rainAccum, device, apiData, config):
         if apiData[device]['yesterday'] is not None and verifyResponse(apiData[device]['yesterday'], 'obs'):
             yesterdayData = apiData[device]['yesterday'].json()['obs']
             rainData = [item[index1] for item in yesterdayData if item[index1] is not None]
-            yesterdayRain = [sum(x for x in rainData), 'mm', sum(x for x in rainData), time.time()]
         else:
+            Logger.warning(f'rainAccum: {system.logTime()} - API call failed')
+            yesterdayRain = errorOutput
+        try:
+            yesterdayRain = [sum(x for x in rainData), 'mm', sum(x for x in rainData), time.time()]
+        except Exception as Error:
+            Logger.warning(f'rainAccum: {system.logTime()} - {Error}')
             yesterdayRain = errorOutput
 
     # Else if midnight has passed, set yesterday rainfall accumulation equal to
@@ -1057,12 +1102,15 @@ def rainAccumulation(dailyRain, rainAccum, device, apiData, config):
         if apiData[device]['month'] is not None and verifyResponse(apiData[device]['month'], 'obs'):
             monthData = apiData[device]['month'].json()['obs']
             rainData = [item[index2] for item in monthData if item[index2] is not None]
+        else:
+            Logger.warning(f'rainAccum: {system.logTime()} - API call failed')
+            monthRain = errorOutput
+        try:
             monthRain = [sum(x for x in rainData), 'mm', sum(x for x in rainData), time.time()]
-
-            # Adjust monthly rainfall total for rain that has fallen today
             if not math.isnan(dailyRain[0]):
                 monthRain[0] += dailyRain[0]
-        else:
+        except Exception as Error:
+            Logger.warning(f'rainAccum: {system.logTime()} - {Error}')
             monthRain = errorOutput
 
     # Else if the end of the month has passed, reset monthly rain accumulation
@@ -1094,12 +1142,15 @@ def rainAccumulation(dailyRain, rainAccum, device, apiData, config):
         if apiData[device]['year'] is not None and verifyResponse(apiData[device]['year'], 'obs'):
             yearData = apiData[device]['year'].json()['obs']
             rainData = [item[index2] for item in yearData if item[index2] is not None]
+        else:
+            Logger.warning(f'rainAccum: {system.logTime()} - API call failed')
+            yearRain = errorOutput
+        try:
             yearRain = [sum(x for x in rainData), 'mm', sum(x for x in rainData), time.time()]
-
-            # Adjust yearly rainfall total for rain that has fallen today
             if not math.isnan(dailyRain[0]):
                 yearRain[0] += dailyRain[0]
-        else:
+        except Exception as Error:
+            Logger.warning(f'rainAccum: {system.logTime()} - {Error}')
             yearRain = errorOutput
 
     # Else if the end of the year has passed, reset monthly and yearly rain
@@ -1143,7 +1194,7 @@ def avgWindSpeed(windSpd, avgWind, device, apiData, config):
     # Return None if required variables are missing
     errorOutput = [None, 'mps', None, None, time.time()]
     if windSpd[0] is None:
-        Logger.warning(f'avgWindSpeed: {system.logTime()} - windSpd is None')
+        Logger.warning(f'avgSpeed: {system.logTime()} - windSpd is None')
         return errorOutput
 
     # Define current time in station timezone
@@ -1163,12 +1214,13 @@ def avgWindSpeed(windSpd, avgWind, device, apiData, config):
             todayData = apiData[device]['today'].json()['obs']
             windSpd = [item[index] for item in todayData if item[index] is not None]
         else:
+            Logger.warning(f'avgSpeed: {system.logTime()} - API call failed')
             return errorOutput
         try:
             average = sum(x for x in windSpd) / len(windSpd)
             windAvg = [average, 'mps', average, len(windSpd), time.time()]
         except Exception as Error:
-            Logger.warning(f'avgWindSpeed: {system.logTime()} - {Error}')
+            Logger.warning(f'avgSpeed: {system.logTime()} - {Error}')
             return errorOutput
 
     # Else if midnight has passed, reset daily averaged wind speed
@@ -1204,7 +1256,7 @@ def maxWindGust(windGust, maxGust, device, apiData, config):
     # Return None if required variables are missing
     errorOutput = [None, 'mps', None, time.time()]
     if windGust[0] is None:
-        Logger.warning(f'maxWindGust: {system.logTime()} - windGust is None')
+        Logger.warning(f'maxGust: {system.logTime()} - windGust is None')
         return errorOutput
 
     # Define current time in station timezone
@@ -1224,11 +1276,12 @@ def maxWindGust(windGust, maxGust, device, apiData, config):
             todayData = apiData[device]['today'].json()['obs']
             windGust = [item[index] for item in todayData if item[index] is not None]
         else:
+            Logger.warning(f'maxGust: {system.logTime()} - API call failed')
             return errorOutput
         try:
             maxGust  = [max(x for x in windGust), 'mps', max(x for x in windGust), time.time()]
         except Exception as Error:
-            Logger.warning(f'maxWindGust: {system.logTime()} - {Error}')
+            Logger.warning(f'maxGust: {system.logTime()} - {Error}')
             return errorOutput
 
     # Else if midnight has passed, reset maximum recorded wind gust
@@ -1263,11 +1316,11 @@ def cardinalWindDir(windDir, windSpd=[1, 'mps']):
 
     # Return None if required variables are missing
     errorOutput = [windDir[0], windDir[1], '-', '-']
-    if windDir[0] is None and windSpeed is not 0:
-        Logger.warning(f'cardinalWindDir: {system.logTime()} - windDir is None')
+    if windDir[0] is None and windSpd is not 0:
+        Logger.warning(f'cardDir: {system.logTime()} - windDir is None')
         return errorOutput
-    elif windSpd[0] is None
-        Logger.warning(f'cardinalWindDir: {system.logTime()} - windSpd is None')
+    elif windSpd[0] is None:
+        Logger.warning(f'cardDir: {system.logTime()} - windSpd is None')
         return errorOutput
 
     # Define all possible cardinal wind directions and descriptions
@@ -1306,7 +1359,7 @@ def beaufortScale(windSpd):
     # Return None if required variables are missing
     errorOutput = windSpd + ['-', '-', '-']
     if windSpd[0] is None:
-        Logger.warning(f'beaufortScale: {system.logTime()} - windSpd is None')
+        Logger.warning(f'beauScale: {system.logTime()} - windSpd is None')
         return errorOutput
 
     # Define Beaufort scale cutoffs and Force numbers
@@ -1384,7 +1437,7 @@ def peakSunHours(radiation, peakSun, device, apiData, config):
     # Return None if required variables are missing
     errorOutput = [None, 'hrs', '-']
     if radiation[0] is None:
-        Logger.warning(f'peakSunHours: {system.logTime()} - radiation is None')
+        Logger.warning(f'peakSun: {system.logTime()} - radiation is None')
         return errorOutput
 
     # Define current time in station timezone
@@ -1417,14 +1470,15 @@ def peakSunHours(radiation, peakSun, device, apiData, config):
             dataToday = apiData[device]['today'].json()['obs']
             radiation = [item[index] for item in dataToday if item[index] is not None]
         else:
+            Logger.warning(f'peakSun: {system.logTime()} - API call failed')
             return errorOutput
         try:
             watthrs = sum([item * (1 / 60) for item in radiation])
             peakSun = [watthrs / 1000, 'hrs', watthrs, sunrise, sunset, time.time()]
         except exception as Error:
-            Logger.warning(f'peakSunHours: {system.logTime()} - {Error}')
-            return errorOutput            
-     
+            Logger.warning(f'peakSun: {system.logTime()} - {Error}')
+            return errorOutput
+
     # Else if midnight has passed, reset Peak Sun Hours
     elif Now.date() > datetime.fromtimestamp(peakSun[6], Tz).date():
         watthrs = radiation[0] * (1 / 60)

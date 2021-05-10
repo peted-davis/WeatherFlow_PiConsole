@@ -30,8 +30,8 @@ device_obs = {
     'obTime':       [None, 's'],       'pressure':     [None, 'mb'],      'outTemp':      [None, 'c'],
     'inTemp':       [None, 'c'],       'humidity':     [None, '%'],       'windSpd':      [None, 'mps'],
     'windGust':     [None, 'mps'],     'windDir':      [None, 'degrees'], 'rapidWindSpd': [None, 'mps'],
-    'rapidWindDir': [None, 'degrees'], 'uvIndex':      [None, 'index'],   'radiation':    [None, 'Wm2'],     
-    'minuteRain':   [None, 'mm'],      'dailyRain':    [None, 'mm'],      'strikeMinute': [None, 'count'],   
+    'rapidWindDir': [None, 'degrees'], 'uvIndex':      [None, 'index'],   'radiation':    [None, 'Wm2'],
+    'minuteRain':   [None, 'mm'],      'dailyRain':    [None, 'mm'],      'strikeMinute': [None, 'count'],
     'strikeTime':   [None, 's'],       'strikeDist':   [None, 'km'],      'strike3hr':    [None, 'count'],
     'SLPMin':       [None, 'mb'],      'SLPMax':       [None, 'mb'],      'outTempMin':   [None, 'c'],
     'outTempMax':   [None, 'c'],       'inTempMin':    [None, 'c'],       'inTempMax':   [None, 'c'],
@@ -142,7 +142,7 @@ class obsParser():
         if self.deviceObs['windSpd'][0] == 0:
             self.deviceObs['windDir'] = [None, 'degrees']
 
-        # Extract lightning strike data from the latest TEMPEST Websocket JSON 
+        # Extract lightning strike data from the latest TEMPEST Websocket JSON
         # "Summary" object
         self.deviceObs['strikeTime'] = [message['summary']['strike_last_epoch'] if 'strike_last_epoch' in message['summary'] else None, 's']
         self.deviceObs['strikeDist'] = [message['summary']['strike_last_dist']  if 'strike_last_dist'  in message['summary'] else None, 'km']
@@ -172,7 +172,7 @@ class obsParser():
                 or self.deviceObs['strikeCount']['year'][0] is None):
             self.apiData[device_id]['year']  = requestAPI.weatherflow.Year(device_id, config)
         self.flagAPI[0] = 0
-        
+
         # Calculate derived observations
         self.calcDerivedVariables(device_id, config, 'obs_st')
 
@@ -296,7 +296,7 @@ class obsParser():
                 or self.deviceObs['strikeCount']['year'][0] is None):
             self.apiData[device_id]['year']  = requestAPI.weatherflow.Year(device_id, config)
         self.flagAPI[2] = 0
-        
+
         # Calculate derived observations
         self.calcDerivedVariables(device_id, config, 'obs_out_air')
 
@@ -308,35 +308,35 @@ class obsParser():
             message             obs_air Websocket message
             config              Console configuration object
         """
-        
+
         # Extract latest indoor AIR Websocket JSON
         if 'obs' in message:
             latestOb = message['obs'][0]
         else:
             return
-            
+
         # Extract indoor AIR device_id. Initialise API data dictionary
         device_id = message['device_id']
         self.apiData[device_id] = {'flagAPI': self.flagAPI[3],
                                    'today': None}
-                                   
+
         # Discard duplicate indoor AIR Websocket messages
         if 'obs_in_air' in self.displayObs:
             if self.displayObs['obs_in_air']['obs'][0] == latestOb[0]:
                 return
         self.displayObs['obs_in_air'] = message
-        
+
         # Extract required observations from latest indoor AIR Websocket JSON
         self.deviceObs['obTime'] = [latestOb[0], 's']
         self.deviceObs['inTemp'] = [latestOb[2], 'c']
-        
+
         # Request required indoor AIR data from the WeatherFlow API
         if (self.apiData[device_id]['flagAPI']
                 or self.deviceObs['inTempMin'][0] is None
                 or self.deviceObs['inTempMax'][0] is None):
             self.apiData[device_id]['today'] = requestAPI.weatherflow.Today(device_id, config)
         self.flagAPI[3] = 0
-        
+
         # Calculate derived observations
         self.calcDerivedVariables(device_id, config, 'obs_in_air')
 
@@ -355,7 +355,7 @@ class obsParser():
             latestOb = message['ob']
         else:
             return
-            
+
         # Extract device ID
         device_id = message['device_id']
 
@@ -460,9 +460,9 @@ class obsParser():
             self.deviceObs['gustMax']   = derive.maxWindGust(self.deviceObs['windGust'], self.deviceObs['gustMax'], device, self.apiData, config)
             self.deviceObs['rainRate']  = derive.rainRate(self.deviceObs['minuteRain'])
             self.deviceObs['rainAccum'] = derive.rainAccumulation(self.deviceObs['dailyRain'], self.deviceObs['rainAccum'], device, self.apiData, config)
-            
+
         # Derive variables from available obs_out_air and obs_st observations
-        if device_type == 'obs_in_air': 
+        if device_type == 'obs_in_air':
             self.deviceObs['inTempMax']   = derive.tempMax(self.deviceObs['inTemp'], self.deviceObs['obTime'], self.deviceObs['inTempMax'], device, self.apiData, config)
             self.deviceObs['inTempMin']   = derive.tempMin(self.deviceObs['inTemp'], self.deviceObs['obTime'], self.deviceObs['inTempMin'], device, self.apiData, config)
 
@@ -473,11 +473,11 @@ class obsParser():
         # Derive variables from available evt_strike observations
         if device_type == 'evt_strike':
             self.deviceObs['strikeDeltaT'] = derive.strikeDeltaT(self.deviceObs['strikeTime'])
-            
+
         self.formatDerivedVariables(config, device_type)
 
     def formatDerivedVariables(self, config, device_type):
-    
+
         """ Format derived variables from available device observations
 
         INPUTS:
