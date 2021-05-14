@@ -400,7 +400,7 @@ class obsParser():
         """
 
         # Extract latest evt_strike Websocket JSON
-        if 'ob' in message:
+        if 'evt' in message:
             latestEvt = message['evt']
         else:
             return
@@ -412,14 +412,13 @@ class obsParser():
         if 'evt_strike' in self.displayObs:
             if self.displayObs['evt_strike']['evt'][0] == latestEvt[0]:
                 return
-        self.displayObs['evt_strike'] = message
 
         # Extract required observations from latest evt_strike Websocket JSON
-        self.deviceObs['strikeTime'] = [message['evt'][0], 's']
-        self.deviceObs['strikeDist'] = [message['evt'][1], 'km']
+        self.deviceObs['strikeTime'] = [latestEvt[0], 's']
+        self.deviceObs['strikeDist'] = [latestEvt[1], 'km']
 
         # Store latest Rapid Wind wfpiconsole.Observation JSON message
-        self.displayObs['evtStrikeMsg'] = message
+        self.displayObs['evt_strike'] = message
 
         # Calculate derived observations
         self.calcDerivedVariables(device_id, config, 'evt_strike')

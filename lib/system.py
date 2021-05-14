@@ -86,7 +86,7 @@ def updateDisplay(type, derivedObs, Console):
         if Console.config['Display']['LightningPanel'] == '1':
             for ii, Button in enumerate(Console.CurrentConditions.buttonList):
                 if "Lightning" in Button[2]:
-                    Console.CurrentConditions.SwitchPanel([], Button)
+                    Console.CurrentConditions.switchPanel([], Button)
         if hasattr(Console, 'LightningPanel'):
             for panel in getattr(Console, 'LightningPanel'):
                 panel.setLightningBoltIcon()

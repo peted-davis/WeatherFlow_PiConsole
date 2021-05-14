@@ -127,7 +127,7 @@ class websocketClient():
         if self.config['Station']['InAirID']:
             deviceList.append('{"type":"listen_start",'
                               + ' "device_id":' + self.config['Station']['InAirID'] + ','
-                              + ' "id":"IndoorAir"}')                              
+                              + ' "id":"IndoorAir"}')
         for device in deviceList:
             await self.websocket.send(device)
 
@@ -167,7 +167,7 @@ class websocketClient():
                     elif message['type'] == 'obs_sky':
                         if not hasattr(self.thread_list, 'obs_sky'):
                             self.thread_list['obs_sky'] = threading.Thread(target=self.obsParser.parse_obs_sky, args=(message, self.config, ), name='obs_sky')
-                        self.thread_list['obs_sky'].start() 
+                        self.thread_list['obs_sky'].start()
                     elif message['type'] == 'obs_air':
                         if str(message['device_id']) == self.config['Station']['OutAirID']:
                             if not hasattr(self.thread_list, 'obs_out_air'):

@@ -1316,11 +1316,11 @@ def cardinalWindDir(windDir, windSpd=[1, 'mps']):
 
     # Return None if required variables are missing
     errorOutput = [windDir[0], windDir[1], '-', '-']
-    if windDir[0] is None and windSpd is not 0:
-        Logger.warning(f'cardDir: {system.logTime()} - windDir is None')
+    if windDir[0] is None and windSpd[0] is not 0:
+        Logger.warning(f'cardWindDir: {system.logTime()} - windDir is None')
         return errorOutput
     elif windSpd[0] is None:
-        Logger.warning(f'cardDir: {system.logTime()} - windSpd is None')
+        Logger.warning(f'cardWindDir: {system.logTime()} - windSpd is None')
         return errorOutput
 
     # Define all possible cardinal wind directions and descriptions
@@ -1359,7 +1359,7 @@ def beaufortScale(windSpd):
     # Return None if required variables are missing
     errorOutput = windSpd + ['-', '-', '-']
     if windSpd[0] is None:
-        Logger.warning(f'beauScale: {system.logTime()} - windSpd is None')
+        Logger.warning(f'beaufScale: {system.logTime()} - windSpd is None')
         return errorOutput
 
     # Define Beaufort scale cutoffs and Force numbers
