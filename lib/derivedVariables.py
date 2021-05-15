@@ -1316,7 +1316,9 @@ def cardinalWindDir(windDir, windSpd=[1, 'mps']):
 
     # Return None if required variables are missing
     errorOutput = [windDir[0], windDir[1], '-', '-']
-    if windDir[0] is None and windSpd[0] is not 0:
+    if windDir[0] is None and windSpd[0] != 0.0:
+        print('windDir is: ', windDir[0])
+        print('windSpd is: ', windSpd[0])
         Logger.warning(f'cardWindDir: {system.logTime()} - windDir is None')
         return errorOutput
     elif windSpd[0] is None:

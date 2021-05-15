@@ -122,7 +122,6 @@ class obsParser():
         if 'obs_st' in self.displayObs:
             if self.displayObs['obs_st']['obs'][0] == latestOb[0]:
                 return
-        self.displayObs['obs_st'] = message
 
         # Extract required observations from latest TEMPEST Websocket JSON
         self.deviceObs['obTime']       = [latestOb[0],  's']
@@ -139,8 +138,8 @@ class obsParser():
         self.deviceObs['dailyRain']    = [latestOb[18], 'mm']
 
         # Set wind direction to None if wind speed is zero
-        if self.deviceObs['windSpd'][0] == 0:
-            self.deviceObs['windDir'] = [None, 'degrees']
+        #if self.deviceObs['windSpd'][0] == 0:
+        #    self.deviceObs['windDir'] = [None, 'degrees']
 
         # Extract lightning strike data from the latest TEMPEST Websocket JSON
         # "Summary" object
@@ -173,6 +172,9 @@ class obsParser():
             self.apiData[device_id]['year']  = requestAPI.weatherflow.Year(device_id, config)
         self.flagAPI[0] = 0
 
+        # Store latest TEMPEST JSON message
+        self.displayObs['obs_st'] = message
+
         # Calculate derived observations
         self.calcDerivedVariables(device_id, config, 'obs_st')
 
@@ -203,7 +205,6 @@ class obsParser():
         if 'obs_sky' in self.displayObs:
             if self.displayObs['obs_sky']['obs'][0] == latestOb[0]:
                 return
-        self.displayObs['obs_sky'] = message
 
         # Extract required observations from latest SKY Websocket JSON
         self.deviceObs['uvIndex']    = [latestOb[2],  'index']
@@ -215,8 +216,8 @@ class obsParser():
         self.deviceObs['dailyRain']  = [latestOb[11], 'mm']
 
         # Set wind direction to None if wind speed is zero
-        if self.deviceObs['windSpd'][0] == 0:
-            self.deviceObs['windDir'] = [None, 'degrees']
+        #if self.deviceObs['windSpd'][0] == 0:
+        #   self.deviceObs['windDir'] = [None, 'degrees']
 
         # Request required SKY data from the WeatherFlow API
         if (self.apiData[device_id]['flagAPI']
@@ -234,6 +235,9 @@ class obsParser():
                 or self.deviceObs['rainAccum']['year'][0] is None):
             self.apiData[device_id]['year'] = requestAPI.weatherflow.Year(device_id, config)
         self.flagAPI[1] = 0
+
+        # Store latest SKY JSON message
+        self.displayObs['obs_sky'] = message
 
         # Calculate derived observations
         self.calcDerivedVariables(device_id, config, 'obs_sky')
@@ -265,7 +269,6 @@ class obsParser():
         if 'obs_out_air' in self.displayObs:
             if self.displayObs['obs_out_air']['obs'][0] == latestOb[0]:
                 return
-        self.displayObs['obs_out_air'] = message
 
         # Extract required observations from latest outdoor AIR Websocket JSON
         self.deviceObs['obTime']       = [latestOb[0], 's']
@@ -297,6 +300,9 @@ class obsParser():
             self.apiData[device_id]['year']  = requestAPI.weatherflow.Year(device_id, config)
         self.flagAPI[2] = 0
 
+        # Store latest outdoor AIR JSON message
+        self.displayObs['obs_out_air'] = message
+
         # Calculate derived observations
         self.calcDerivedVariables(device_id, config, 'obs_out_air')
 
@@ -324,7 +330,6 @@ class obsParser():
         if 'obs_in_air' in self.displayObs:
             if self.displayObs['obs_in_air']['obs'][0] == latestOb[0]:
                 return
-        self.displayObs['obs_in_air'] = message
 
         # Extract required observations from latest indoor AIR Websocket JSON
         self.deviceObs['obTime'] = [latestOb[0], 's']
@@ -336,6 +341,9 @@ class obsParser():
                 or self.deviceObs['inTempMax'][0] is None):
             self.apiData[device_id]['today'] = requestAPI.weatherflow.Today(device_id, config)
         self.flagAPI[3] = 0
+
+        # Store latest indoor AIR JSON message
+        self.displayObs['obs_in_air'] = message
 
         # Calculate derived observations
         self.calcDerivedVariables(device_id, config, 'obs_in_air')
@@ -362,7 +370,6 @@ class obsParser():
         # Discard duplicate rapid_wind Websocket messages
         if 'rapid_wind' in self.displayObs:
             if self.displayObs['rapid_wind']['ob'][0] == latestOb[0]:
-                Logger.warning('Discarding duplicate rapid_wind Websocket message')
                 return
 
         # Extract required observations from latest rapid_wind Websocket JSON
@@ -417,7 +424,7 @@ class obsParser():
         self.deviceObs['strikeTime'] = [latestEvt[0], 's']
         self.deviceObs['strikeDist'] = [latestEvt[1], 'km']
 
-        # Store latest Rapid Wind wfpiconsole.Observation JSON message
+        # Store latest evt_strike JSON message
         self.displayObs['evt_strike'] = message
 
         # Calculate derived observations
