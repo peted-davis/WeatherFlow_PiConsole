@@ -151,78 +151,22 @@
 ## =============================================================================
 ## DEVICE STATUS PANELS
 ## =============================================================================
-<tempestStatus>:
+<deviceStatusPanel>:
     size_hint: (1,.1)
     orientation: 'horizontal'
     StatusField:
         size_hint: (.15,1)
-        text: 'TEMPEST'
+        text: root.Device
     StatusField:
         size_hint: (.12,1)
-        text: app.Station.Status['tempestStatus']
+        text: root.Status
     StatusField:
+        id: test
         size_hint: (.22,1)
-        text: app.Station.Status['tempestSampleTime']
+        text: root.SampleTime
     StatusField:
         size_hint: (.20,1)
-        text: app.Station.Status['tempestVoltage']
+        text: root.Voltage
     StatusField:
         size_hint: (.31,1)
-        text: app.Station.Status['tempestObCount']
-
-<skyStatus>:
-    size_hint: (1,.1)
-    orientation: 'horizontal'
-    StatusField:
-        size_hint: (.15,1)
-        text: 'SKY'
-    StatusField:
-        size_hint: (.12,1)
-        text: app.Station.Status['skyStatus']
-    StatusField:
-        size_hint: (.22,1)
-        text: app.Station.Status['skySampleTime']
-    StatusField:
-        size_hint: (.20,1)
-        text: app.Station.Status['skyVoltage']
-    StatusField:
-        size_hint: (.31,1)
-        text: app.Station.Status['skyObCount']
-
-<outAirStatus>:
-    size_hint: (1,.1)
-    orientation: 'horizontal'
-    StatusField:
-        size_hint: (.15,1)
-        text: 'Outdoor AIR'
-    StatusField:
-        size_hint: (.12,1)
-        text: app.Station.Status['outAirStatus']
-    StatusField:
-        size_hint: (.22,1)
-        text: app.Station.Status['outAirSampleTime']
-    StatusField:
-        size_hint: (.20,1)
-        text: app.Station.Status['outAirVoltage']
-    StatusField:
-        size_hint: (.31,1)
-        text: app.Station.Status['outAirObCount']
-
-<inAirStatus>:
-    size_hint: (1,.1)
-    orientation: 'horizontal'
-    StatusField:
-        size_hint: (.15,1)
-        text: 'Indoor AIR'
-    StatusField:
-        size_hint: (.12,1)
-        text: app.Station.Status['inAirStatus']
-    StatusField:
-        size_hint: (.22,1)
-        text: app.Station.Status['inAirSampleTime']
-    StatusField:
-        size_hint: (.20,1)
-        text: app.Station.Status['inAirVoltage']
-    StatusField:
-        size_hint: (.31,1)
-        text: app.Station.Status['inAirObCount']
+        text: root.ObCount

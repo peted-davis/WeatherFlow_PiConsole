@@ -94,7 +94,9 @@ def Status():
     return [('tempestSampleTime', '-'), ('tempestLastSample', ' '), ('tempestVoltage', '-'),
             ('tempestStatus', '-'),     ('tempestObCount', '-'),    ('skySampleTime', '-'),
             ('skyLastSample', ' '),     ('skyVoltage', '-'),        ('skyStatus', '-'),
-            ('skyObCount', '-'),        ('airSampleTime', '-'),     ('airLastSample', ' '),
-            ('airVoltage', '-'),        ('airStatus', '-'),         ('airObCount', '-'),
-            ('stationStatus', '-'),     ('hubFirmware', '-')
+            ('skyObCount', '-'),        ('outAirSampleTime', '-'),  ('outAirLastSample', ' '),
+            ('outAirVoltage', '-'),     ('outAirStatus', '-'),      ('outAirObCount', '-'),
+            ('inAirSampleTime', '-'),   ('inAirLastSample', ' '),   ('inAirVoltage', '-'),
+            ('inAirStatus', '-'),       ('inAirObCount', '-'),      ('stationStatus', '-'),
+            ('hubFirmware', '-')
             ]

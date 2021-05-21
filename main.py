@@ -273,13 +273,6 @@ class wfpiconsole(App):
     # --------------------------------------------------------------------------
     def on_config_change(self, config, section, key, value):
 
-        # Toggle "Always On Mode"
-        if section == 'Display' and key == 'AlwaysOn':
-            if bool(int(value)):
-                self.setAlwaysOnMode()
-            else:
-                self.clearAlwaysOnMode()
-
         # Update current weather forecast when temperature or wind speed units
         # are changed
         if section == 'Units' and key in ['Temp', 'Wind']:
@@ -349,7 +342,7 @@ class wfpiconsole(App):
                                     item.value = ''
                                     break
 
-        # Send configuration changed notification to Websocket servicename
+        # Send configuration changed notification to Websocket service
         Retries = 0
         while Retries < 3:
             try:
@@ -861,11 +854,13 @@ class mainMenu(ModalView):
 
         # Add device status panels based on devices connected to station
         if self.app.config['Station']['TempestID']:
-            self.ids.deviceStatus.add_widget(tempestStatus())
+            self.ids.devicePanel.add_widget(self.app.Station.tempestStatusPanel)
         if self.app.config['Station']['SkyID']:
-            self.ids.deviceStatus.add_widget(skyStatus())
+            self.ids.devicePanel.add_widget(self.app.Station.skyStatusPanel)
         if self.app.config['Station']['OutAirID']:
-            self.ids.deviceStatus.add_widget(outAirStatus())
+            self.ids.devicePanel.add_widget(self.app.Station.outAirStatusPanel)
+        if self.app.config['Station']['InAirID']:
+            self.ids.devicePanel.add_widget(self.app.Station.inAirStatusPanel)
 
         # Populate status fields
         self.app.Station.get_observationCount()
@@ -883,31 +878,9 @@ class mainMenu(ModalView):
         REBOOT = 1
         App.get_running_app().stop()
 
-
-class tempestStatus(BoxLayout):
-    pass
-
-
-class skyStatus(BoxLayout):
-    pass
-
-
-class outAirStatus(BoxLayout):
-    pass
-
-
-# =============================================================================
-# TextScaleLabel CLASS
-# =============================================================================
-class TextScaleLabel(ToggleButtonBehavior, Label):
-    active = BooleanProperty(False)
-    _scale = NumericProperty(0)
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.allow_no_selection = False
-        self.group = 'textScale'
-        self.state = 'down' if float(App.get_running_app().textScale) == self._scale else 'normal'
+    # Delete device status panel widgets when closing main menu
+    def on_dismiss(self):
+        self.ids.devicePanel.clear_widgets()
 
 
 # =============================================================================

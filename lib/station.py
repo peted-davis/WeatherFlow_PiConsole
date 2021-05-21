@@ -20,9 +20,11 @@ from lib import properties
 
 # Import required Python modules
 from kivy.network.urlrequest import UrlRequest
-from kivy.properties         import DictProperty
+from kivy.uix.boxlayout      import BoxLayout
+from kivy.properties         import DictProperty, StringProperty, ObjectProperty
 from kivy.uix.widget         import Widget
 from datetime                import datetime
+from kivy.app                import App
 import certifi
 import time
 import math
@@ -44,6 +46,16 @@ class Station(Widget):
         super(Station, self).__init__(**kwargs)
         self.Status = properties.Status()
         self.app = App
+
+        # Initialise required device status panels
+        if self.app.config['Station']['TempestID']:
+            self.tempestStatusPanel = deviceStatusPanel(self, 'tempest')
+        if self.app.config['Station']['SkyID']:
+            self.skyStatusPanel = deviceStatusPanel(self, 'Sky')
+        if self.app.config['Station']['OutAirID']:
+            self.outAirStatusPanel = deviceStatusPanel(self, 'outAir')
+        if self.app.config['Station']['InAirID']:
+            self.inAirStatusPanel = deviceStatusPanel(self, 'inAir')
 
     def get_hubFirmware(self):
 
@@ -99,7 +111,9 @@ class Station(Widget):
         if self.app.config['Station']['SkyID']:
             urlList.append(Template.format(self.app.config['Station']['SkyID'],     startTime, endTime, self.app.config['Keys']['WeatherFlow']))
         if self.app.config['Station']['OutAirID']:
-            urlList.append(Template.format(self.app.config['Station']['OutAirID'],     startTime, endTime, self.app.config['Keys']['WeatherFlow']))
+            urlList.append(Template.format(self.app.config['Station']['OutAirID'],  startTime, endTime, self.app.config['Keys']['WeatherFlow']))
+        if self.app.config['Station']['InAirID']:
+            urlList.append(Template.format(self.app.config['Station']['InAirID'],  startTime, endTime, self.app.config['Keys']['WeatherFlow']))
         for URL in urlList:
             UrlRequest(URL,
                        on_success=self.parse_observationCount,
@@ -119,7 +133,9 @@ class Station(Widget):
                 elif str(response['device_id']) == self.app.config['Station']['SkyID']:
                     self.Status['skyObCount'] = str(len(response['obs']))
                 elif str(response['device_id']) == self.app.config['Station']['OutAirID']:
-                    self.Status['airObCount'] = str(len(response['obs']))
+                    self.Status['outAirObCount'] = str(len(response['obs']))
+                elif str(response['device_id']) == self.app.config['Station']['InAirID']:
+                    self.Status['inAirObCount'] = str(len(response['obs']))
 
     def fail_observationCount(self, request, response):
 
@@ -133,7 +149,9 @@ class Station(Widget):
         elif deviceID == self.app.config['Station']['SkyID']:
             self.Status['skyObCount'] = '[color=d73027ff]Error[/color]'
         elif deviceID == self.app.config['Station']['OutAirID']:
-            self.Status['airObCount'] = '[color=d73027ff]Error[/color]'
+            self.Status['outAirObCount'] = '[color=d73027ff]Error[/color]'
+        elif deviceID == self.app.config['Station']['InAirID']:
+            self.Status['inAirObCount'] = '[color=d73027ff]Error[/color]'
 
     def get_deviceStatus(self, dt):
 
@@ -148,10 +166,10 @@ class Station(Widget):
         if 'obs_st' in self.app.CurrentConditions.Obs:
             latestOb       = self.app.CurrentConditions.Obs['obs_st']['obs'][0]
             sampleTimeDiff = time.time() - latestOb[0]
-            deviceVoltage = float(latestOb[16])
+            deviceVoltage  = float(latestOb[16])
             if sampleTimeDiff < 300 and deviceVoltage > 2.355:
                 deviceStatus = '[color=9aba2fff]OK[/color]'
-                sampleDelay = ''
+                sampleDelay  = ''
             else:
                 if sampleTimeDiff < 3600:
                     sampleDelay = str(math.floor(sampleTimeDiff / 60)) + ' mins ago'
@@ -173,10 +191,10 @@ class Station(Widget):
         if 'obs_sky' in self.app.CurrentConditions.Obs:
             latestOb       = self.app.CurrentConditions.Obs['obs_sky']['obs'][0]
             sampleTimeDiff = time.time() - latestOb[0]
-            deviceVoltage = float(latestOb[8])
+            deviceVoltage  = float(latestOb[8])
             if sampleTimeDiff < 300 and deviceVoltage > 2.0:
                 deviceStatus = '[color=9aba2fff]OK[/color]'
-                sampleDelay = ''
+                sampleDelay  = ''
             else:
                 if sampleTimeDiff < 3600:
                     sampleDelay = str(math.floor(sampleTimeDiff / 60)) + ' mins ago'
@@ -194,14 +212,39 @@ class Station(Widget):
             self.Status['skyVoltage']    = '{:.2f}'.format(deviceVoltage)
             self.Status['skyStatus']     = deviceStatus
 
-        # Get AIR device status
-        if 'obs_air' in self.app.CurrentConditions.Obs:
-            latestOb       = self.app.CurrentConditions.Obs['obs_air']['obs'][0]
+        # Get outdoor AIR device status
+        if 'obs_out_air' in self.app.CurrentConditions.Obs:
+            latestOb       = self.app.CurrentConditions.Obs['obs_out_air']['obs'][0]
             sampleTimeDiff = time.time() - latestOb[0]
-            deviceVoltage = float(latestOb[6])
+            deviceVoltage  = float(latestOb[6])
             if sampleTimeDiff < 300 and deviceVoltage > 1.9:
                 deviceStatus = '[color=9aba2fff]OK[/color]'
-                sampleDelay = ''
+                sampleDelay  = ''
+            else:
+                if sampleTimeDiff < 3600:
+                    sampleDelay = str(math.floor(sampleTimeDiff / 60)) + ' mins ago'
+                elif sampleTimeDiff < 7200:
+                    sampleDelay = str(math.floor(sampleTimeDiff / 3600)) + ' hour ago'
+                elif sampleTimeDiff < 86400:
+                    sampleDelay = str(math.floor(sampleTimeDiff / 3600)) + ' hours ago'
+                else:
+                    sampleDelay = str(math.floor(sampleTimeDiff / 86400)) + ' days ago'
+                deviceStatus = '[color=d73027ff]Error[/color]'
+
+            # Store outdoor AIR device status variables
+            self.Status['outAirSampleTime'] = datetime.fromtimestamp(latestOb[0], Tz).strftime('%H:%M:%S')
+            self.Status['outAirLastSample'] = sampleDelay
+            self.Status['outAirVoltage']    = '{:.2f}'.format(deviceVoltage)
+            self.Status['outAirStatus']     = deviceStatus
+
+        # Get indoor AIR device status
+        if 'obs_in_air' in self.app.CurrentConditions.Obs:
+            latestOb       = self.app.CurrentConditions.Obs['obs_in_air']['obs'][0]
+            sampleTimeDiff = time.time() - latestOb[0]
+            deviceVoltage  = float(latestOb[6])
+            if sampleTimeDiff < 300 and deviceVoltage > 1.9:
+                deviceStatus = '[color=9aba2fff]OK[/color]'
+                sampleDelay  = ''
             else:
                 if sampleTimeDiff < 3600:
                     sampleDelay = str(math.floor(sampleTimeDiff / 60)) + ' mins ago'
@@ -214,20 +257,22 @@ class Station(Widget):
                 deviceStatus = '[color=d73027ff]Error[/color]'
 
             # Store AIR device status variables
-            self.Status['outAirSampleTime'] = datetime.fromtimestamp(latestOb[0], Tz).strftime('%H:%M:%S')
-            self.Status['outAirLastSample'] = sampleDelay
-            self.Status['outAirVoltage']    = '{:.2f}'.format(deviceVoltage)
-            self.Status['outAirStatus']     = deviceStatus
+            self.Status['inAirSampleTime'] = datetime.fromtimestamp(latestOb[0], Tz).strftime('%H:%M:%S')
+            self.Status['inAirLastSample'] = sampleDelay
+            self.Status['inAirVoltage']    = '{:.2f}'.format(deviceVoltage)
+            self.Status['inAirStatus']     = deviceStatus
 
         # Set hub status (i.e. stationStatus) based on device status
         deviceStatus = []
-        if self.app.config['Station']['TempestID']:
+        if 'obs_st' in self.app.CurrentConditions.Obs:
             deviceStatus.append(self.Status['tempestStatus'])
-        if self.app.config['Station']['SkyID']:
+        if 'obs_sky' in self.app.CurrentConditions.Obs:
             deviceStatus.append(self.Status['skyStatus'])
-        if self.app.config['Station']['OutAirID']:
-            deviceStatus.append(self.Status['airStatus'])
-        if all('-' in Status for Status in deviceStatus):
+        if 'obs_out_air' in self.app.CurrentConditions.Obs:
+            deviceStatus.append(self.Status['outAirStatus'])
+        if 'obs_in_air' in self.app.CurrentConditions.Obs:
+            deviceStatus.append(self.Status['inAirStatus'])
+        if not deviceStatus or all('-' in Status for Status in deviceStatus):
             self.Status['stationStatus'] = '-'
         elif all('Error' in Status for Status in deviceStatus):
             self.Status['stationStatus'] = 'Offline'
@@ -235,3 +280,37 @@ class Station(Widget):
             self.Status['stationStatus'] = 'Online'
         else:
             self.Status['stationStatus'] = 'Error'
+
+
+# =============================================================================
+# DEFINE 'deviceStatusPanel' CLASS
+# =============================================================================
+class deviceStatusPanel(BoxLayout):
+
+    stationStatus = DictProperty([])
+    SampleTime = StringProperty('-')
+    Station = ObjectProperty()
+    Voltage =  StringProperty('-')
+    ObCount =  StringProperty('-')
+    Device = StringProperty('-')
+    Status = StringProperty('-')
+
+    def __init__(self, station, device_type, **kwargs):
+        super().__init__(**kwargs)
+        self.device_type = device_type
+        self.station = station
+        self.station.bind(Status=self.setter('stationStatus'))
+        self.bind(stationStatus=self.statusChange)
+
+        # Define device display name for status panel
+        if 'out' in self.device_type:
+            self.Device = 'AIR (outdoor)'
+        elif 'in' in self.device_type:
+            self.Device = 'AIR (indoor)'
+        else:
+            self.Device = self.device_type.upper()
+
+    def statusChange(self, _instance, newStatus):
+        for field, value in newStatus.items():
+            if self.device_type in field:
+                setattr(self, field.replace(self.device_type,''), value)

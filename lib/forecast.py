@@ -127,7 +127,7 @@ def Download(console):
         WindSpd      = [hourlyCurrent['wind_avg'], 'mps']
         WindGust     = [hourlyCurrent['wind_gust'], 'mps']
         WindDir      = [hourlyCurrent['wind_direction'], 'degrees']
-        Icon         =  hourlyCurrent['icon'].replace('cc-', '')
+        Icon         =  hourlyCurrent['icon']
 
         # Extract Precipitation Type, Percent, and Amount from current hourly
         # forecast
@@ -200,12 +200,12 @@ def Download(console):
         if Icon in ['clear-day', 'clear-night', 'rainy', 'possibly-rainy-day',
                     'possibly-rainy-night', 'snow', 'possibly-snow-day',
                     'possibly-snow-night', 'sleet', 'possibly-sleet-day',
-                    'possibly-sleet-night', 'thunderstorm', 'possibly-thunderstorm-day'
+                    'possibly-sleet-night', 'thunderstorm', 'possibly-thunderstorm-day',
                     'possibly-thunderstorm-night', 'windy', 'foggy', 'cloudy',
                     'partly-cloudy-day', 'partly-cloudy-night']:
             metData['Icon'] = Icon
         else:
-            metData['Icon'] = '--'
+            metData['Icon'] = '-'
 
     # Unable to extract forecast data from JSON object. Set set forecast
     # variables to blank and indicate to user that forecast is unavailable

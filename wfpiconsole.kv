@@ -740,7 +740,7 @@
                     allow_stretch: 1
                     source: 'icons/misc/rainIntensity' + app.scaleSuffix
                     pos_hint: {'x': root.rainRatePosX, 'y': root.rainRatePosY}
-        
+
     ## Current rain rate and text
     SmallField:
         text: app.CurrentConditions.Obs['RainRate'][2]
@@ -1167,7 +1167,7 @@
                             size_hint: (.31,1)
                             text: '24 hr Observation Count'
                     BoxLayout:
-                        id: deviceStatus
+                        id: devicePanel
                         size_hint: (1, .4)
                         orientation: 'vertical'
                         padding: [dp(0), dp(0), dp(0), dp(10)]

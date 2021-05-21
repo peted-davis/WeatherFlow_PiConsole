@@ -491,7 +491,7 @@ class obsParser():
             device_type         Device type
         """
 
-        # Convert derived variables from obs_out_air and obs_st observations
+        # Convert derived variable units from obs_out_air and obs_st observations
         if device_type in ('obs_out_air', 'obs_st', 'obs_all'):
             outTemp        = observation.Units(self.deviceObs['outTemp'],              config['Units']['Temp'])
             feelsLike      = observation.Units(self.deviceObs['feelsLike'],            config['Units']['Temp'])
@@ -513,7 +513,7 @@ class obsParser():
             strikeMonth    = observation.Units(self.deviceObs['strikeCount']['month'], config['Units']['Other'])
             strikeYear     = observation.Units(self.deviceObs['strikeCount']['year'],  config['Units']['Other'])
 
-        # Convert derived variables from obs_sky and obs_st observations
+        # Convert derived variable units from obs_sky and obs_st observations
         if device_type in ('obs_sky', 'obs_st', 'obs_all'):
             rainRate       = observation.Units(self.deviceObs['rainRate'],               config['Units']['Precip'])
             todayRain      = observation.Units(self.deviceObs['rainAccum']['today'],     config['Units']['Precip'])
@@ -529,18 +529,18 @@ class obsParser():
             windAvg        = observation.Units(self.deviceObs['windAvg'],                config['Units']['Wind'])
             windMax        = observation.Units(self.deviceObs['gustMax'],                config['Units']['Wind'])
 
-        # Convert derived variables from obs_in_air observations
+        # Convert derived variable units from obs_in_air observations
         if device_type in ('obs_in_air',  'obs_all'):
             inTemp         = observation.Units(self.deviceObs['inTemp'],    config['Units']['Temp'])
             inTempMax      = observation.Units(self.deviceObs['inTempMax'], config['Units']['Temp'])
             inTempMin      = observation.Units(self.deviceObs['inTempMin'], config['Units']['Temp'])
 
-        # Convert derived variables from rapid_wind observations
+        # Convert derived variable units from rapid_wind observations
         if device_type in ('rapid_wind', 'obs_all'):
             rapidWindSpd   = observation.Units(self.deviceObs['rapidWindSpd'], config['Units']['Wind'])
             rapidWindDir   = observation.Units(self.deviceObs['rapidWindDir'], 'degrees')
 
-        # Derive variables from available evt_strike observations
+        # Convert derived variable units from available evt_strike observations
         if device_type in ('evt_strike', 'obs_all'):
             strikeDist     = observation.Units(self.deviceObs['strikeDist'],   config['Units']['Distance'])
             strikeDeltaT   = observation.Units(self.deviceObs['strikeDeltaT'], config['Units']['Other'])
