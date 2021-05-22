@@ -321,12 +321,6 @@ def SLPMax(pressure, obTime, maxPres, device, apiData, config):
     Tz = pytz.timezone(config['Station']['Timezone'])
     Now = datetime.now(pytz.utc).astimezone(Tz)
 
-    # Set time format based on user configuration
-    if config['Display']['TimeFormat'] == '12 hr':
-        Format = '%-I:%M %P'
-    else:
-        Format = '%H:%M'
-
     # Define index of temperature in websocket packets
     if str(device) == config['Station']['OutAirID']:
         index  = 1
@@ -339,10 +333,10 @@ def SLPMax(pressure, obTime, maxPres, device, apiData, config):
         if apiData[device]['today'] is not None and verifyResponse(apiData[device]['today'], 'obs'):
             dataToday = apiData[device]['today'].json()['obs']
             pressure  = [[item[index], 'mb'] for item in dataToday if item[index] is not None]
-            obTime    = [[item[0], 's']      for item in dataToday if item[index] is not None]
+            obTime    = [item[0]             for item in dataToday if item[index] is not None]
             SLP       = [derive.SLP(P, device, config) for P in pressure]
             try:
-                maxPres   = [max(SLP)[0], 'mb', datetime.fromtimestamp(obTime[SLP.index(max(SLP))][0], Tz).strftime(Format), max(SLP)[0], obTime[SLP.index(max(SLP))][0]]
+                maxPres   = [max(SLP)[0], 'mb', obTime[SLP.index(max(SLP))], 's', max(SLP)[0], obTime[SLP.index(max(SLP))]]
             except Exception as Error:
                 Logger.warning(f'SLPMax: {system.logTime()} - {Error}')
                 return errorOutput
@@ -351,17 +345,17 @@ def SLPMax(pressure, obTime, maxPres, device, apiData, config):
             return errorOutput
 
     # Else if midnight has passed, reset maximum pressure
-    elif Now.date() > datetime.fromtimestamp(maxPres[4], Tz).date():
-        maxPres = [SLP[0], 'mb', datetime.fromtimestamp(obTime[0], Tz).strftime(Format), SLP[0], obTime[0]]
+    elif Now.date() > datetime.fromtimestamp(maxPres[5], Tz).date():
+        maxPres = [SLP[0], 'mb', obTime[0], 's', SLP[0], obTime[0]]
 
     # Else if current pressure is greater than maximum recorded pressure, update
     # maximum pressure
-    elif SLP[0] > maxPres[3]:
-        maxPres = [SLP[0], 'mb', datetime.fromtimestamp(obTime[0], Tz).strftime(Format), SLP[0], obTime[0]]
+    elif SLP[0] > maxPres[4]:
+        maxPres = [SLP[0], 'mb', obTime[0], 's', SLP[0], obTime[0]]
 
     # Else maximum pressure unchanged, return existing values
     else:
-        maxPres = [maxPres[3], 'mb', maxPres[2], maxPres[3], obTime[0]]
+        maxPres = [maxPres[4], 'mb', maxPres[2], 's', maxPres[4], obTime[0]]
 
     # Return required variables
     return maxPres
@@ -399,12 +393,6 @@ def SLPMin(pressure, obTime, minPres, device, apiData, config):
     Tz = pytz.timezone(config['Station']['Timezone'])
     Now = datetime.now(pytz.utc).astimezone(Tz)
 
-    # Set time format based on user configuration
-    if config['Display']['TimeFormat'] == '12 hr':
-        Format = '%-I:%M %P'
-    else:
-        Format = '%H:%M'
-
     # Define index of temperature in websocket packets
     if str(device) == config['Station']['OutAirID']:
         index  = 1
@@ -417,10 +405,10 @@ def SLPMin(pressure, obTime, minPres, device, apiData, config):
         if apiData[device]['today'] is not None and verifyResponse(apiData[device]['today'], 'obs'):
             dataToday = apiData[device]['today'].json()['obs']
             pressure  = [[item[index], 'mb'] for item in dataToday if item[index] is not None]
-            obTime    = [[item[0], 's']      for item in dataToday if item[index] is not None]
+            obTime    = [item[0]             for item in dataToday if item[index] is not None]
             SLP       = [derive.SLP(P, device, config) for P in pressure]
             try:
-                minPres   = [min(SLP)[0], 'mb', datetime.fromtimestamp(obTime[SLP.index(min(SLP))][0], Tz).strftime(Format), min(SLP)[0], obTime[SLP.index(min(SLP))][0]]
+                minPres   = [min(SLP)[0], 'mb', obTime[SLP.index(min(SLP))], 's', min(SLP)[0], obTime[SLP.index(min(SLP))]]
             except Exception as Error:
                 Logger.warning(f'SLPMin: {system.logTime()} - {Error}')
                 return errorOutput
@@ -429,17 +417,17 @@ def SLPMin(pressure, obTime, minPres, device, apiData, config):
             return errorOutput
 
     # Else if midnight has passed, reset maximum and minimum pressure
-    elif Now.date() > datetime.fromtimestamp(minPres[4], Tz).date():
-        minPres = [SLP[0], 'mb', datetime.fromtimestamp(obTime[0], Tz).strftime(Format), SLP[0], obTime[0]]
+    elif Now.date() > datetime.fromtimestamp(minPres[5], Tz).date():
+        minPres = [SLP[0], 'mb', obTime[0], 's', SLP[0], obTime[0]]
 
     # Else if current pressure is less than minimum recorded pressure, update
     # minimum pressure and time
-    elif SLP[0] < minPres[3]:
-        minPres = [SLP[0], 'mb', datetime.fromtimestamp(obTime[0], Tz).strftime(Format), SLP[0], obTime[0]]
+    elif SLP[0] < minPres[4]:
+        minPres = [SLP[0], 'mb', obTime[0], 's', SLP[0], obTime[0]]
 
     # Else minimum pressure unchanged, return existing values
     else:
-        minPres = [minPres[3], 'mb', minPres[2], minPres[3], obTime[0]]
+        minPres = [minPres[4], 'mb', minPres[2], 's', minPres[4], obTime[0]]
 
     # Return required variables
     return minPres
@@ -617,12 +605,6 @@ def tempMax(Temp, obTime, maxTemp, device, apiData, config):
     Tz = pytz.timezone(config['Station']['Timezone'])
     Now = datetime.now(pytz.utc).astimezone(Tz)
 
-    # Set time format based on user configuration
-    if config['Display']['TimeFormat'] == '12 hr':
-        Format = '%-I:%M %P'
-    else:
-        Format = '%H:%M'
-
     # Define index of temperature in websocket packets
     if str(device) == config['Station']['OutAirID']:
         index  = 2
@@ -639,7 +621,7 @@ def tempMax(Temp, obTime, maxTemp, device, apiData, config):
             obTime    = [item[0]     for item in dataToday if item[index] is not None]
             Temp      = [item[index] for item in dataToday if item[index] is not None]
             try:
-                maxTemp = [max(Temp), 'c', datetime.fromtimestamp(obTime[Temp.index(max(Temp))], Tz).strftime(Format), max(Temp), obTime[Temp.index(max(Temp))]]
+                maxTemp = [max(Temp), 'c', obTime[Temp.index(max(Temp))], 's', max(Temp), obTime[Temp.index(max(Temp))]]
             except Exception as Error:
                 Logger.warning(f'tempMax: {system.logTime()} - {Error}')
                 return errorOutput
@@ -648,17 +630,17 @@ def tempMax(Temp, obTime, maxTemp, device, apiData, config):
             return errorOutput
 
     # Else if midnight has passed, reset maximum temperature
-    elif Now.date() > datetime.fromtimestamp(maxTemp[4], Tz).date():
-        maxTemp = [Temp[0], 'c', datetime.fromtimestamp(obTime[0], Tz).strftime(Format), Temp[0], obTime[0]]
+    elif Now.date() > datetime.fromtimestamp(maxTemp[5], Tz).date():
+        maxTemp = [Temp[0], 'c', obTime[0], 's', Temp[0], obTime[0]]
 
     # Else if current temperature is greater than maximum recorded temperature,
     # update maximum temperature
-    elif Temp[0] > maxTemp[3]:
-        maxTemp = [Temp[0], 'c', datetime.fromtimestamp(obTime[0], Tz).strftime(Format), Temp[0], obTime[0]]
+    elif Temp[0] > maxTemp[4]:
+        maxTemp = [Temp[0], 'c', obTime[0], 's', Temp[0], obTime[0]]
 
     # Else maximum temperature unchanged, return existing values
     else:
-        maxTemp = [maxTemp[3], 'c', maxTemp[2], maxTemp[3], obTime[0]]
+        maxTemp = [maxTemp[4], 'c', maxTemp[2], 's', maxTemp[4], obTime[0]]
 
     # Return required variables
     return maxTemp
@@ -694,12 +676,6 @@ def tempMin(Temp, obTime, minTemp, device, apiData, config):
     Tz = pytz.timezone(config['Station']['Timezone'])
     Now = datetime.now(pytz.utc).astimezone(Tz)
 
-    # Set time format based on user configuration
-    if config['Display']['TimeFormat'] == '12 hr':
-        Format = '%-I:%M %P'
-    else:
-        Format = '%H:%M'
-
     # Define index of temperature in websocket packets
     if str(device) == config['Station']['OutAirID']:
         index  = 2
@@ -716,7 +692,7 @@ def tempMin(Temp, obTime, minTemp, device, apiData, config):
             obTime    = [item[0]     for item in dataToday if item[index] is not None]
             Temp      = [item[index] for item in dataToday if item[index] is not None]
             try:
-                minTemp = [min(Temp), 'c', datetime.fromtimestamp(obTime[Temp.index(min(Temp))], Tz).strftime(Format), min(Temp), obTime[Temp.index(min(Temp))]]
+                minTemp = [min(Temp), 'c', obTime[Temp.index(min(Temp))], 's', min(Temp), obTime[Temp.index(min(Temp))]]
             except Exception as Error:
                 Logger.warning(f'tempMin: {system.logTime()} - {Error}')
                 return errorOutput
@@ -725,17 +701,17 @@ def tempMin(Temp, obTime, minTemp, device, apiData, config):
             return errorOutput
 
     # Else if midnight has passed, reset minimum temperature
-    elif Now.date() > datetime.fromtimestamp(minTemp[4], Tz).date():
-        minTemp = [Temp[0], 'c', datetime.fromtimestamp(obTime[0], Tz).strftime(Format), Temp[0], obTime[0]]
+    elif Now.date() > datetime.fromtimestamp(minTemp[5], Tz).date():
+        minTemp = [Temp[0], 'c', obTime[0], 's', Temp[0], obTime[0]]
 
     # Else if current temperature is less than minimum recorded temperature,
     # update minimum temperature
-    elif Temp[0] < minTemp[3]:
-        minTemp = [Temp[0], 'c', datetime.fromtimestamp(obTime[0], Tz).strftime(Format), Temp[0], obTime[0]]
+    elif Temp[0] < minTemp[4]:
+        minTemp = [Temp[0], 'c', obTime[0], 's', Temp[0], obTime[0]]
 
     # Else minimum temperature unchanged, return existing values
     else:
-        minTemp = [minTemp[3], 'c', minTemp[2], minTemp[3], obTime[0]]
+        minTemp = [minTemp[4], 'c', minTemp[2], 's', minTemp[4], obTime[0]]
 
     # Return required variables
     return minTemp

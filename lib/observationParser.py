@@ -552,13 +552,13 @@ class obsParser():
             self.displayObs['DewPoint']      = observation.Format(dewPoint,     'Temp')
             self.displayObs['outTempDiff']   = observation.Format(outTempDiff,  'Temp')
             self.displayObs['outTempTrend']  = observation.Format(outTempTrend, 'Temp')
-            self.displayObs['outTempMax']    = observation.Format(outTempMax,   'Temp')
-            self.displayObs['outTempMin']    = observation.Format(outTempMin,   'Temp')
+            self.displayObs['outTempMax']    = observation.Format(outTempMax,   ['Temp', 'Time'], config)
+            self.displayObs['outTempMin']    = observation.Format(outTempMin,   ['Temp', 'Time'], config)
             self.displayObs['Humidity']      = observation.Format(humidity,     'Humidity')
             self.displayObs['SLP']           = observation.Format(SLP,          'Pressure')
             self.displayObs['SLPTrend']      = observation.Format(SLPTrend,     'Pressure')
-            self.displayObs['SLPMax']        = observation.Format(SLPMax,       'Pressure')
-            self.displayObs['SLPMin']        = observation.Format(SLPMin,       'Pressure')
+            self.displayObs['SLPMax']        = observation.Format(SLPMax,       ['Pressure', 'Time'], config)
+            self.displayObs['SLPMin']        = observation.Format(SLPMin,       ['Pressure', 'Time'], config)
             self.displayObs['StrikeDist']    = observation.Format(strikeDist,   'StrikeDistance')
             self.displayObs['StrikeDeltaT']  = observation.Format(strikeDeltaT, 'TimeDelta')
             self.displayObs['StrikeFreq']    = observation.Format(strikeFreq,   'StrikeFrequency')
@@ -586,8 +586,8 @@ class obsParser():
         # Format derived variables from obs_in_air observations
         if device_type in ('obs_in_air', 'obs_all'):
             self.displayObs['inTemp']        = observation.Format(inTemp,    'Temp')
-            self.displayObs['inTempMax']     = observation.Format(inTempMax, 'Temp')
-            self.displayObs['inTempMin']     = observation.Format(inTempMin, 'Temp')
+            self.displayObs['inTempMax']     = observation.Format(inTempMax, ['Temp', 'Time'], config)
+            self.displayObs['inTempMin']     = observation.Format(inTempMin, ['Temp', 'Time'], config)
 
         # Format derived variables from rapid_wind observations
         if device_type in ('rapid_wind', 'obs_all'):

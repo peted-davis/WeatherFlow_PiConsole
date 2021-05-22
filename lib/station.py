@@ -51,7 +51,7 @@ class Station(Widget):
         if self.app.config['Station']['TempestID']:
             self.tempestStatusPanel = deviceStatusPanel(self, 'tempest')
         if self.app.config['Station']['SkyID']:
-            self.skyStatusPanel = deviceStatusPanel(self, 'Sky')
+            self.skyStatusPanel = deviceStatusPanel(self, 'sky')
         if self.app.config['Station']['OutAirID']:
             self.outAirStatusPanel = deviceStatusPanel(self, 'outAir')
         if self.app.config['Station']['InAirID']:

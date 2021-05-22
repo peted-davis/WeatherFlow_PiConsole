@@ -278,6 +278,13 @@ class wfpiconsole(App):
         if section == 'Units' and key in ['Temp', 'Wind']:
             self.Sched.metDownload = Clock.schedule_once(partial(forecast.startDownload, self, True))
 
+        # Update current weather forecast, sunrise/sunset and moonrise/moonset
+        # times when time format changed
+        if section == 'Display' and key in 'TimeFormat':
+            self.Sched.metDownload = Clock.schedule_once(partial(forecast.startDownload, self, True))
+            astro.Format(self.CurrentConditions.Astro,   self.config, 'Sun')
+            astro.Format(self.CurrentConditions.Astro,   self.config, 'Moon')
+
         # Update "Feels Like" temperature cutoffs in wfpiconsole.ini and the
         # settings screen when temperature units are changed
         if section == 'Units' and key == 'Temp':

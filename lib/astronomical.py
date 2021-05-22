@@ -98,8 +98,6 @@ def SunriseSunset(astroData,Config):
     # Format sunrise/sunset labels based on date of next sunrise
     astroData = Format(astroData,Config,'Sun')
 
-    # Return astroData
-    return astroData
 
 def MoonriseMoonset(astroData,Config):
 
@@ -171,8 +169,6 @@ def MoonriseMoonset(astroData,Config):
     # Format sunrise/sunset labels based on date of next sunrise
     astroData = Format(astroData,Config,'Moon')
 
-    # Return astroData
-    return astroData
 
 def Format(astroData,Config,Type):
 
@@ -195,10 +191,10 @@ def Format(astroData,Config,Type):
 
     # Set time format based on user configuration
     if Config['Display']['TimeFormat'] == '12 hr':
-        if Config['System']['Hardware'] != 'Other':
-            Format = '%-I:%M %P'
+        if Config['System']['Hardware'] == 'Other':
+            Format = '%#I:%M %p'
         else:
-            Format = '%I:%M %p'
+            Format = '%-I:%M %p'
     else:
         Format = '%H:%M'
 
@@ -240,8 +236,6 @@ def Format(astroData,Config,Type):
         elif astroData['NewMoon'][1].date() == Now.date():
             astroData['NewMoon'] = ['[color=ff8837ff]Today[/color]',astroData['NewMoon'][1]]
 
-    # Return dictionary holding sunrise/sunset and moonrise/moonset data
-    return astroData
 
 def sunTransit(astroData, Config, *largs):
 
@@ -325,8 +319,6 @@ def sunTransit(astroData, Config, *largs):
         astroData = Format(astroData,Config,"Sun")
         astroData = Format(astroData,Config,"Moon")
 
-    # Return dictionary containing sun transit data
-    return astroData
 
 def moonPhase(astroData, Config, *largs):
 
@@ -383,6 +375,3 @@ def moonPhase(astroData, Config, *largs):
 
     # Define Kivy Label binds
     astroData['Phase'] = [PhaseIcon,PhaseTxt,Illumination]
-
-    # Return dictionary containing moon phase data
-    return astroData

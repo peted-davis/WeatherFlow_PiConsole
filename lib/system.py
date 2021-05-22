@@ -57,9 +57,8 @@ def realtimeClock(System, Config, *largs):
             Tz = pytz.timezone(Config['Station']['Timezone'])
 
             # Format realtime Clock
-            System['Time'] = [datetime.fromtimestamp(time.time(), Tz).strftime(TimeFormat), '-']
-            System['Date'] = [datetime.fromtimestamp(time.time(), Tz).strftime(DateFormat), '-']
-            print(System['Date'][0])
+            System['Time'] = datetime.fromtimestamp(time.time(), Tz).strftime(TimeFormat)
+            System['Date'] = datetime.fromtimestamp(time.time(), Tz).strftime(DateFormat)
 
 @mainthread
 def updateDisplay(type, derivedObs, Console):

@@ -36,7 +36,7 @@ def startDownload(console, forceDownload, *largs):
     """ Start weather forecast download thread, or schedule next download time
 
     INPUTS:
-        console         console object
+        console             console object
         forceDownload       Boolean specifying whether to force a new download
 
     OUTPUT:
@@ -82,10 +82,10 @@ def Download(console):
 
     # Set time format based on user configuration
     if config['Display']['TimeFormat'] == '12 hr':
-        if config['System']['Hardware'] != 'Other':
-            TimeFormat = '%-I %P'
+        if config['System']['Hardware'] == 'Other':
+            TimeFormat = '%#I %p'
         else:
-            TimeFormat = '%I %p'
+            TimeFormat = '%-I %p'
     else:
         TimeFormat = '%H:%M'
 
