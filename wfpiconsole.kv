@@ -27,6 +27,7 @@
 #:include kvlang/displayElements.kv
 #:include kvlang/displayFields.kv
 #:include kvlang/panelLayout.kv
+#:include kvlang/settings.kv
 
 ## =============================================================================
 ## CURRRENT CONDITIONS SCREEN
@@ -249,31 +250,31 @@
     ## Outdoor temperature
     TitleField:
         text: 'Outdoor'
-        pos_hint: {'x': 131/262 if app.IndoorTemp == '1' else 0/262, 'y': 166/202}
+        pos_hint: {'x': 131/262 if app.IndoorTemp == '1' else 3/262, 'y': 166/202}
         size_hint_x: 131/262
     LargeField:
         text: app.CurrentConditions.Obs['outTemp'][0] + app.CurrentConditions.Obs['outTemp'][1]
-        pos_hint: {'x': 131/262 if app.IndoorTemp == '1' else 0/262, 'y': 132/202}
+        pos_hint: {'x': 131/262 if app.IndoorTemp == '1' else 3/262, 'y': 132/202}
         size_hint_x: (131/262)
 
     ## Outdoor temperature minimum
     MediumField:
         text: '[size=' + str(int(self.font_size*0.88)) + '][color=00a4b4ff]' + app.CurrentConditions.Obs['outTempMin'][0] + '[size=' + str(int(self.font_size*0.83)) + ']' + app.CurrentConditions.Obs['outTempMin'][1] + '[/color][/size][/size]'
-        pos_hint: {'x': 131/262 if app.IndoorTemp == '1' else 0/262, 'y': 106/202}
+        pos_hint: {'x': 131/262 if app.IndoorTemp == '1' else 3/262, 'y': 106/202}
         size_hint_x: (65.5/262)
     SmallField:
         text: app.CurrentConditions.Obs['outTempMin'][2]
-        pos_hint: {'x': 131/262 if app.IndoorTemp == '1' else 0/262, 'y': 86/202}
+        pos_hint: {'x': 131/262 if app.IndoorTemp == '1' else 3/262, 'y': 86/202}
         size_hint_x: (65.5/262)
 
     ## Outdoor temperature maximum
     MediumField:
         text: '[size=' + str(int(self.font_size*0.88)) + '][color=f05e40ff]' + app.CurrentConditions.Obs['outTempMax'][0] + '[size=' + str(int(self.font_size*0.83)) + ']' + app.CurrentConditions.Obs['outTempMax'][1] + '[/color][/size][/size]'
-        pos_hint: {'x': 196.5/262 if app.IndoorTemp == '1' else 65.5/262, 'y': 106/202}
+        pos_hint: {'x': 196.5/262 if app.IndoorTemp == '1' else 68.5/262, 'y': 106/202}
         size_hint_x: (65.5/262)
     SmallField:
         text: app.CurrentConditions.Obs['outTempMax'][2]
-        pos_hint: {'x': 196.5/262 if app.IndoorTemp == '1' else 65.5/262, 'y': 86/202}
+        pos_hint: {'x': 196.5/262 if app.IndoorTemp == '1' else 68.5/262, 'y': 86/202}
         size_hint_x: (65.5/262)
 
     ## 24 hour temperature difference
@@ -565,7 +566,7 @@
     SmallField:
         text: app.CurrentConditions.Astro['Sunrise'][1]
         pos_hint: {'x': 13/262, 'y': 73/202}
-        size_hint: (80/262, 17/202)
+        size_hint: (160/262, 17/202)
         text_size: self.size
         halign: 'left'
 
@@ -578,8 +579,8 @@
         halign: 'right'
     SmallField:
         text: app.CurrentConditions.Astro['Sunset'][1]
-        pos_hint: {'x': 169/262, 'y': 73/202}
-        size_hint: (80/262, 17/202)
+        pos_hint: {'x': 89/262, 'y': 73/202}
+        size_hint: (160/262, 17/202)
         text_size: self.size
         halign: 'right'
 
@@ -795,17 +796,11 @@
     TimeDateField:
         text: app.System['Date']
         pos_hint: {'x': 0/262, 'y': 24/202}
-        size_hint_x: (182/262) if app.Station.Status['stationStatus'] == 'Offline' else (262/262)
+        size_hint_x: (262/262)
     TimeDateField:
         text: app.System['Time']
         pos_hint: {'x': 0/262, 'y': 3/202}
-        size_hint_x: (182/262) if app.Station.Status['stationStatus'] == 'Offline' else (262/262)
-    TimeDateField:
-        text: app.Station.Status['stationStatus']
-        color: utils.rgba('#d73027ff')
-        pos_hint: {'x': 182/262, 'y': 13.5/202}
-        size_hint_x: (80/262)
-        opacity: 1 if app.Station.Status['stationStatus'] == 'Offline' else 0
+        size_hint_x: (262/262)
 
 <RainfallButton>:
     PanelButton:

@@ -41,7 +41,10 @@ def realtimeClock(System, Config, *largs):
     if 'Display' in Config:
         if 'TimeFormat' in Config['Display'] and 'DateFormat' in Config['Display']:
             if Config['Display']['TimeFormat'] == '12 hr':
-                TimeFormat = '%I:%M:%S %p'
+                if Config['System']['Hardware'] == 'Other':
+                    TimeFormat = '%#I:%M:%S %p'
+                else:
+                    TimeFormat = '%-I:%M:%S %p'
             else:
                 TimeFormat = '%H:%M:%S'
             if Config['Display']['DateFormat']  == 'Mon, Jan 01 0000':

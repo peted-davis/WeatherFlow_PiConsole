@@ -96,7 +96,7 @@ def SunriseSunset(astroData,Config):
     astroData['Dusk'][2]    = (duskMidnight-dawnMidnight)/86400
 
     # Format sunrise/sunset labels based on date of next sunrise
-    astroData = Format(astroData,Config,'Sun')
+    Format(astroData, Config, 'Sun')
 
 
 def MoonriseMoonset(astroData,Config):
@@ -124,7 +124,7 @@ def MoonriseMoonset(astroData,Config):
 
         # Set Observer time to midnight today in UTC
         UTC = datetime.now(pytz.utc)
-        Midnight = datetime(UTC.year,UTC.month,UTC.day,0,0,0)
+        Midnight = datetime(UTC.year, UTC.month, UTC.day, 0, 0, 0)
         Observer.date = Midnight.strftime('%Y/%m/%d %H:%M:%S')
 
     # Moonset has passed. Calculate time of next moonrise starting at
@@ -163,14 +163,14 @@ def MoonriseMoonset(astroData,Config):
     NewMoon = pytz.utc.localize(NewMoon.datetime())
 
     # Define next new/full moon in station time zone
-    astroData['FullMoon'] = [FullMoon.astimezone(Tz).strftime('%b %d'),FullMoon]
-    astroData['NewMoon']  = [NewMoon.astimezone(Tz).strftime('%b %d'), NewMoon]
+    astroData['FullMoon'] = [FullMoon.astimezone(Tz).strftime('%b %d'), FullMoon]
+    astroData['NewMoon']  = [NewMoon.astimezone(Tz).strftime('%b %d'),  NewMoon]
 
     # Format sunrise/sunset labels based on date of next sunrise
-    astroData = Format(astroData,Config,'Moon')
+    Format(astroData,Config,'Moon')
 
 
-def Format(astroData,Config,Type):
+def Format(astroData, Config, Type):
 
     """ Format the sunrise/sunset labels and moonrise/moonset labels based on
     the current time of day in the station timezone
@@ -308,16 +308,16 @@ def sunTransit(astroData, Config, *largs):
 
     # Once dusk has passed calculate new sunrise/sunset times
     if Now.replace(microsecond=0) >= astroData['Dusk'][0]:
-        astroData = SunriseSunset(astroData,Config)
+        SunriseSunset(astroData, Config)
 
     # Once moonset has passed, calculate new moonrise/moonset times
     if Now.replace(microsecond=0) > astroData['Moonset'][0]:
-        astroData = MoonriseMoonset(astroData,Config)
+        MoonriseMoonset(astroData, Config)
 
     # At midnight update sunrise/sunset times
     if astroData['Reformat'] and Now.replace(second=0).replace(microsecond=0).time() == time(0,0,0):
-        astroData = Format(astroData,Config,"Sun")
-        astroData = Format(astroData,Config,"Moon")
+        Format(astroData, Config, 'Sun')
+        Format(astroData, Config, 'Moon')
 
 
 def moonPhase(astroData, Config, *largs):
@@ -374,4 +374,4 @@ def moonPhase(astroData, Config, *largs):
     Illumination = '{:.0f}'.format(Moon.phase)
 
     # Define Kivy Label binds
-    astroData['Phase'] = [PhaseIcon,PhaseTxt,Illumination]
+    astroData['Phase'] = [PhaseIcon, PhaseTxt, Illumination]
