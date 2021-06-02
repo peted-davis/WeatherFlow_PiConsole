@@ -121,4 +121,4 @@ def updateDisplay(type, derivedObs, Console):
 
 def logTime():
 
-    return datetime.now().strftime('%Y-%M-%d %H:%M:%S')
+    return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
