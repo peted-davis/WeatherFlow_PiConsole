@@ -1,6 +1,6 @@
 <-MenuSidebar>:
     size_hint_x: None
-    width: '200dp'
+    width: min(dp(200*app.scaleFactor), dp(300))
     buttons_layout: menu
     close_button: button
     GridLayout:
@@ -21,9 +21,9 @@
         text: 'Close'
         id: button
         size_hint: None, None
-        width: root.width - dp(20)
+        width: root.width - dp(20*app.scaleFactor)
         height: max(50, self.texture_size[1] + dp(20))
-        pos: root.x + dp(10), root.y + dp(10)
+        pos: root.x + dp(10*app.scaleFactor), root.y + dp(10)
         font_size: sp(15*app.scaleFactor)
 
 <-SettingItem>:
