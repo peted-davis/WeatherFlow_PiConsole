@@ -1182,10 +1182,10 @@
                             on_release: app.stop()
                         MenuButton:
                             text: 'Reboot'
-                            on_release: self.rebootSystem()
+                            on_release: root.rebootSystem()
                         MenuButton:
                             text: 'Shutdown'
-                            on_release: self.shutdownSystem()
+                            on_release: root.shutdownSystem()
             MainMenuTab:
                 text: 'Credits'
                 MainMenuLayout:

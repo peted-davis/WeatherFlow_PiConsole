@@ -137,10 +137,11 @@ if Path('user/customPanels.py').is_file():
 # ==============================================================================
 # IMPORT REQUIRED SYSTEM MODULES
 # ==============================================================================
-from oscpy.server import OSCThreadServer
-from oscpy.client import OSCClient
-from functools    import partial
-from runpy        import run_path
+from oscpy.server  import OSCThreadServer
+from oscpy.client  import OSCClient
+from functools     import partial
+from runpy         import run_path
+import subprocess
 import threading
 import certifi
 import socket
@@ -874,13 +875,13 @@ class mainMenu(ModalView):
         self.app.Station.get_hubFirmware()
 
     # Exit console and shutdown system
-    def shutdownSystem(self, instance):
+    def shutdownSystem(self):
         global SHUTDOWN
         SHUTDOWN = 1
         App.get_running_app().stop()
 
     # Exit console and reboot system
-    def rebootSystem(self, instance):
+    def rebootSystem(self):
         global REBOOT
         REBOOT = 1
         App.get_running_app().stop()
@@ -901,8 +902,11 @@ class SettingScrollOptions(SettingOptions):
         content         = BoxLayout(orientation='vertical', spacing='5dp')
         scrollview      = ScrollView(do_scroll_x=False, bar_inactive_color=[.7, .7, .7, 0.9], bar_width=4)
         scrollcontent   = GridLayout(cols=1, spacing='5dp', size_hint=(0.95, None))
-        self.popup      = Popup(content=content, title=self.title, size_hint=(0.25, 0.8),
-                                auto_dismiss=False, separator_color=[1, 1, 1, 1])
+        self.popup      = Popup(content=content,
+                                title=self.title,
+                                size_hint=(0.25, 0.8),
+                                auto_dismiss=False,
+                                separator_color=[1, 1, 1, 1])
 
         # Add all the options to the ScrollView
         scrollcontent.bind(minimum_height=scrollcontent.setter('height'))
@@ -910,7 +914,11 @@ class SettingScrollOptions(SettingOptions):
         uid = str(self.uid)
         for option in self.options:
             state = 'down' if option == self.value else 'normal'
-            btn = ToggleButton(text=option, state=state, group=uid, height=dp(58), size_hint=(0.9, None))
+            btn = ToggleButton(text=option,
+                               state=state,
+                               group=uid,
+                               height=dp(58),
+                               size_hint=(0.9, None))
             btn.bind(on_release=self._set_option)
             scrollcontent.add_widget(btn)
 
@@ -918,7 +926,9 @@ class SettingScrollOptions(SettingOptions):
         scrollview.add_widget(scrollcontent)
         content.add_widget(scrollview)
         content.add_widget(SettingSpacer())
-        btn = Button(text='Cancel', height=dp(58), size_hint=(1, None))
+        btn = Button(text='Cancel',
+                     height=dp(58),
+                     size_hint=(1, None))
         btn.bind(on_release=self.popup.dismiss)
         content.add_widget(btn)
         self.popup.open()
@@ -933,21 +943,31 @@ class SettingFixedOptions(SettingOptions):
 
         # Create the popup
         content     = BoxLayout(orientation='vertical', spacing='5dp')
-        self.popup  = Popup(content=content, title=self.title, size_hint=(0.25, None),
-                            auto_dismiss=False, separator_color=[1, 1, 1, 1], height=dp(134) + dp(min(len(self.options), 4) * 63))
+        self.popup  = Popup(content=content,
+                            title=self.title,
+                            size_hint=(0.25, None),
+                            auto_dismiss=False,
+                            separator_color=[1, 1, 1, 1],
+                            height=dp(134) + dp(min(len(self.options), 4) * 63))
 
         # Add all the options to the Popup
         content.add_widget(Widget(size_hint_y=None, height=dp(1)))
         uid = str(self.uid)
         for option in self.options:
             state = 'down' if option == self.value else 'normal'
-            btn = ToggleButton(text=option, state=state, group=uid, height=dp(58), size_hint=(1, None))
+            btn = ToggleButton(text=option,
+                               state=state,
+                               group=uid,
+                               height=dp(58),
+                               size_hint=(1, None))
             btn.bind(on_release=self._set_option)
             content.add_widget(btn)
 
         # Add a cancel button to return on the previous panel
         content.add_widget(SettingSpacer())
-        btn = Button(text='Cancel', height=dp(58), size_hint=(1, None))
+        btn = Button(text='Cancel',
+                     height=dp(58),
+                     size_hint=(1, None))
         btn.bind(on_release=self.popup.dismiss)
         content.add_widget(btn)
         self.popup.open()
@@ -962,8 +982,12 @@ class SettingTextScale(SettingString):
 
         # Create Popup layout
         content     = BoxLayout(orientation='vertical', spacing=dp(5))
-        self.popup  = Popup(content=content, title=self.title, size_hint=(0.6, None),
-                            auto_dismiss=False, separator_color=[1, 1, 1, 0.3], height=dp(150))
+        self.popup  = Popup(content=content,
+                            title=self.title,
+                            size_hint=(0.6, None),
+                            auto_dismiss=False,
+                            separator_color=[1, 1, 1, 0.3],
+                            height=dp(150))
 
         # Add toggle buttons to change the text scale
         self.toggles = BoxLayout()
@@ -971,7 +995,11 @@ class SettingTextScale(SettingString):
         scale = [0.50, 0.75, 1.00, 1.25, 1.50]
         display = [0.70, 0.85, 1.00, 1.15, 1.30]
         for index, value in enumerate(text):
-            self.toggles.add_widget(TextScaleLabel(text=value, font_size=sp(18 * display[index]), on_press=self._set_value, _scale=scale[index], on_release=self.popup.dismiss))
+            self.toggles.add_widget(TextScaleLabel(text=value,
+                                                   font_size=sp(18 * display[index]),
+                                                   on_press=self._set_value,
+                                                   _scale=scale[index],
+                                                   on_release=self.popup.dismiss))
         content.add_widget(BoxLayout(size_hint_y=0.05))
         content.add_widget(self.toggles)
 
@@ -1003,12 +1031,21 @@ class SettingToggleTemperature(SettingString):
 
         # Create Popup layout
         content     = BoxLayout(orientation='vertical', spacing=dp(5))
-        self.popup  = Popup(content=content, title=self.title, size_hint=(0.25, None),
-                            auto_dismiss=False, separator_color=[1, 1, 1, 0], height=dp(234))
+        self.popup  = Popup(content=content,
+                            title=self.title,
+                            size_hint=(0.25, None),
+                            auto_dismiss=False,
+                            separator_color=[1, 1, 1, 0],
+                            height=dp(234))
         content.add_widget(SettingSpacer())
 
         # Create the label to show the numeric value
-        self.Label = Label(text=self.value + Units, markup=True, font_size=sp(24), size_hint_y=None, height=dp(50), halign='left')
+        self.Label = Label(text=self.value + Units,
+                           markup=True,
+                           font_size=sp(24),
+                           size_hint_y=None,
+                           height=dp(50),
+                           halign='left')
         content.add_widget(self.Label)
 
         # Add a plus and minus increment button to change the value by +/- one
