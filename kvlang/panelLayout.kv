@@ -31,7 +31,7 @@
             size: self.size
             radius: [14*app.scaleFactor]
 
-<MenuButton>:
+<MenuButton@Button>:
     font_size: dp(15.5*app.scaleFactor)
     font_name: 'fonts/Inter-SemiBold.ttf'
     color: utils.rgba('#d6d6d6ff')
@@ -72,8 +72,9 @@
 ## =============================================================================
 ## PANEL BACKGROUNDS
 ## =============================================================================
-<PanelBackground@BoxLayout>:
+<PanelBackground@FloatLayout>:
     _panelTitle: str()
+    _panelStatus: str()
     pos_hint: {'x': 0/262, 'y': 0/202}
     size_hint: [1, 1]
     cols: 1
@@ -92,9 +93,13 @@
     PanelTitle:
         id: Title
         text: root._panelTitle
+    PanelStatus:
+        id: Status
+        text: root._panelStatus
 
-<RainfallBackground@BoxLayout>:
+<RainfallBackground@FloatLayout>:
     _panelTitle: str()
+    _panelStatus: str()
     pos_hint: {'x': 0/262, 'y': 47/202}
     size_hint: [1, 155/202]
     cols: 1
@@ -115,6 +120,11 @@
         size_hint: (1, 13/155)
         pos_hint: {'x': 0, 'y': 138/155}
         text: root._panelTitle
+    PanelStatus:
+        id: Status
+        size_hint: (0.97, 23 / 155)
+        pos_hint: {'x': 0.015, 'y': 133 / 155}
+        text: root._panelStatus
 
 <UpdateNotifBackground@BoxLayout>:
     _panelTitle: str()
@@ -141,78 +151,22 @@
 ## =============================================================================
 ## DEVICE STATUS PANELS
 ## =============================================================================
-<tempestStatus>:
+<deviceStatusPanel>:
     size_hint: (1,.1)
     orientation: 'horizontal'
     StatusField:
         size_hint: (.15,1)
-        text: 'TEMPEST'
+        text: root.Device
     StatusField:
         size_hint: (.12,1)
-        text: app.Station.Device['tempestStatus']
+        text: root.Status
     StatusField:
+        id: test
         size_hint: (.22,1)
-        text: app.Station.Device['tempestSampleTime']
+        text: root.SampleTime
     StatusField:
         size_hint: (.20,1)
-        text: app.Station.Device['tempestVoltage']
+        text: root.Voltage
     StatusField:
         size_hint: (.31,1)
-        text: app.Station.Device['tempestObCount']
-
-<skyStatus>:
-    size_hint: (1,.1)
-    orientation: 'horizontal'
-    StatusField:
-        size_hint: (.15,1)
-        text: 'SKY'
-    StatusField:
-        size_hint: (.12,1)
-        text: app.Station.Device['skyStatus']
-    StatusField:
-        size_hint: (.22,1)
-        text: app.Station.Device['skySampleTime']
-    StatusField:
-        size_hint: (.20,1)
-        text: app.Station.Device['skyVoltage']
-    StatusField:
-        size_hint: (.31,1)
-        text: app.Station.Device['skyObCount']
-
-<outAirStatus>:
-    size_hint: (1,.1)
-    orientation: 'horizontal'
-    StatusField:
-        size_hint: (.15,1)
-        text: 'Outdoor AIR'
-    StatusField:
-        size_hint: (.12,1)
-        text: app.Station.Device['outAirStatus']
-    StatusField:
-        size_hint: (.22,1)
-        text: app.Station.Device['outAirSampleTime']
-    StatusField:
-        size_hint: (.20,1)
-        text: app.Station.Device['outAirVoltage']
-    StatusField:
-        size_hint: (.31,1)
-        text: app.Station.Device['outAirObCount']
-
-<inAirStatus>:
-    size_hint: (1,.1)
-    orientation: 'horizontal'
-    StatusField:
-        size_hint: (.15,1)
-        text: 'Indoor AIR'
-    StatusField:
-        size_hint: (.12,1)
-        text: app.Station.Device['inAirStatus']
-    StatusField:
-        size_hint: (.22,1)
-        text: app.Station.Device['inAirSampleTime']
-    StatusField:
-        size_hint: (.20,1)
-        text: app.Station.Device['inAirVoltage']
-    StatusField:
-        size_hint: (.31,1)
-        text: app.Station.Device['inAirObCount']
+        text: root.ObCount

@@ -279,11 +279,18 @@ def writeConfigKey(Config,Section,Key,keyDetails):
     elif keyDetails['Type'] in ['dependent']:
 
         # Get dependent Key value
-        if Key in ['BarometerMax']:
+        if Key == 'IndoorTemp':
+            if Config['Station']['InAirID']:
+                print("HERE")
+                Value = '1'
+            else:
+                print("NO HERE")
+                Value = '0'
+        elif Key == 'BarometerMax':
             Units = ['mb','hpa','inhg','mmhg']
             Max = ['1050','1050','31.0','788']
             Value = Max[Units.index(Config['Units']['Pressure'])]
-        elif Key in ['BarometerMin']:
+        elif Key == 'BarometerMin':
             Units = ['mb','hpa','inhg','mmhg']
             Min = ['950','950','28.0','713']
             Value = Min[Units.index(Config['Units']['Pressure'])]
@@ -444,35 +451,36 @@ def validateAPIKeys(Config):
 
     # Validate CheckWX API key
     RETRIES = 0
-    if Config['Keys']['CheckWX'] and CHECKWX is None:
-        while True:
-            header = {'X-API-Key':Config['Keys']['CheckWX']}
-            URL = 'https://api.checkwx.com/station/EGLL'
-            CHECKWX = requests.get(URL,headers=header).json()
-            if 'error' in CHECKWX:
-                if 'Unauthorized' in CHECKWX['error']:
-                    inputStr = '    Access not authorized. Please re-enter your CheckWX API key*: '
-                    while True:
-                        APIKey = input(inputStr)
-                        if not APIKey:
-                            print('    CheckWX API key cannot be empty. Please try again')
-                        else:
-                            break
-                    Config.set('Keys','CheckWX',str(APIKey))
-                    RETRIES += 1
+    if 'Keys' in Config:
+        if 'CheckWX' in Config['Keys'] and CHECKWX is None:
+            while True:
+                header = {'X-API-Key':Config['Keys']['CheckWX']}
+                URL = 'https://api.checkwx.com/station/EGLL'
+                CHECKWX = requests.get(URL,headers=header).json()
+                if 'error' in CHECKWX:
+                    if 'Unauthorized' in CHECKWX['error']:
+                        inputStr = '    Access not authorized. Please re-enter your CheckWX API key*: '
+                        while True:
+                            APIKey = input(inputStr)
+                            if not APIKey:
+                                print('    CheckWX API key cannot be empty. Please try again')
+                            else:
+                                break
+                        Config.set('Keys','CheckWX',str(APIKey))
+                        RETRIES += 1
+                    else:
+                        RETRIES += 1
+                elif 'results' in CHECKWX:
+                    break
                 else:
                     RETRIES += 1
-            elif 'results' in CHECKWX:
-                break
-            else:
-                RETRIES += 1
-            if RETRIES >= MAXRETRIES:
-                sys.exit('\n    Error: unable to complete CheckWX API call')
+                if RETRIES >= MAXRETRIES:
+                    sys.exit('\n    Error: unable to complete CheckWX API call')
 
     # Validate WeatherFlow Personal Access Token
     RETRIES = 0
-    if 'Station' in Config:
-        if Config['Keys']['CheckWX'] and Config['Station']['StationID'] and STATION is None:
+    if 'Keys' in Config and 'Station' in Config:
+        if 'WeatherFlow' in Config['Keys'] and 'StationID' in Config['Station'] and STATION is None:
             while True:
                 Template = 'https://swd.weatherflow.com/swd/rest/stations/{}?api_key={}'
                 URL = Template.format(Config['Station']['StationID'],Config['Keys']['WeatherFlow'])
@@ -561,8 +569,8 @@ def defaultConfig():
     # --------------------------------------------------------------------------
     Default =                    collections.OrderedDict()
     Default['Keys'] =            collections.OrderedDict([('Description',    '  API keys'),
-                                                          ('CheckWX',        {'Type': 'userInput', 'State': 'required', 'Format': str, 'Desc': 'CheckWX API Key',}),
-                                                          ('WeatherFlow',    {'Type': 'userInput', 'State': 'required', 'Format': str, 'Desc': 'WeatherFlow Personal Access Token',})])
+                                                          ('WeatherFlow',    {'Type': 'userInput', 'State': 'required', 'Format': str, 'Desc': 'WeatherFlow Personal Access Token'}),
+                                                          ('CheckWX',        {'Type': 'userInput', 'State': 'required', 'Format': str, 'Desc': 'CheckWX API Key'})])
     Default['Station'] =         collections.OrderedDict([('Description',    '  Station and device IDs'),
                                                           ('StationID',      {'Type': 'userInput', 'State': 'required', 'Format': int, 'Desc': 'Station ID'}),
                                                           ('TempestID',      {'Type': 'userInput', 'State': 'required', 'Format': int, 'Desc': 'TEMPEST device ID'}),
@@ -586,24 +594,24 @@ def defaultConfig():
                                                           ('Distance',       {'Type': 'request', 'Source': 'observation', 'Desc': 'station distance units'}),
                                                           ('Other',          {'Type': 'request', 'Source': 'observation', 'Desc': 'station other units'})])
     Default['Display'] =         collections.OrderedDict([('Description',    '  Display settings'),
-                                                          ('TimeFormat',     {'Type': 'default', 'Value': '24 hr', 'Desc': 'time format'}),
-                                                          ('DateFormat',     {'Type': 'default', 'Value': 'Mon, 01 Jan 0000', 'Desc': 'date format'}),
-                                                          ('LightningPanel', {'Type': 'default', 'Value': '1',    'Desc': 'lightning panel toggle'}),
-                                                          ('IndoorTemp',     {'Type': 'default', 'Value': '1',    'Desc': 'indoor temperature toggle'}),
-                                                          ('Cursor',         {'Type': 'default', 'Value': '1',    'Desc': 'cursor toggle'}),
-                                                          ('Border',         {'Type': 'default', 'Value': '1',    'Desc': 'border toggle'}),
-                                                          ('Fullscreen',     {'Type': 'default', 'Value': '1',    'Desc': 'fullscreen toggle'}),
-                                                          ('Width',          {'Type': 'default', 'Value': '800',  'Desc': 'console width (pixels)'}),
-                                                          ('Height',         {'Type': 'default', 'Value': '480',  'Desc': 'console height (pixels)'})])
+                                                          ('TimeFormat',     {'Type': 'default',   'Value': '24 hr', 'Desc': 'time format'}),
+                                                          ('DateFormat',     {'Type': 'default',   'Value': 'Mon, 01 Jan 0000', 'Desc': 'date format'}),
+                                                          ('LightningPanel', {'Type': 'default',   'Value': '1',    'Desc': 'lightning panel toggle'}),
+                                                          ('IndoorTemp',     {'Type': 'dependent', 'Desc': 'indoor temperature toggle'}),
+                                                          ('Cursor',         {'Type': 'default',   'Value': '1',    'Desc': 'cursor toggle'}),
+                                                          ('Border',         {'Type': 'default',   'Value': '1',    'Desc': 'border toggle'}),
+                                                          ('Fullscreen',     {'Type': 'default',   'Value': '1',    'Desc': 'fullscreen toggle'}),
+                                                          ('Width',          {'Type': 'default',   'Value': '800',  'Desc': 'console width (pixels)'}),
+                                                          ('Height',         {'Type': 'default',   'Value': '480',  'Desc': 'console height (pixels)'})])
     Default['FeelsLike'] =       collections.OrderedDict([('Description',    '  "Feels Like" temperature cut-offs'),
-                                                          ('ExtremelyCold',  {'Type': 'default', 'Value': '-4', 'Desc': '"Feels extremely cold" cut-off temperature'}),
+                                                          ('ExtremelyCold',  {'Type': 'default', 'Value': '-5', 'Desc': '"Feels extremely cold" cut-off temperature'}),
                                                           ('FreezingCold',   {'Type': 'default', 'Value': '0',  'Desc': '"Feels freezing cold" cut-off temperature'}),
-                                                          ('VeryCold',       {'Type': 'default', 'Value': '4',  'Desc': '"Feels very cold" cut-off temperature'}),
-                                                          ('Cold',           {'Type': 'default', 'Value': '9',  'Desc': '"Feels cold" cut-off temperature'}),
-                                                          ('Mild',           {'Type': 'default', 'Value': '14', 'Desc': '"Feels mild" cut-off temperature'}),
-                                                          ('Warm',           {'Type': 'default', 'Value': '18', 'Desc': '"Feels warm" cut-off temperature'}),
-                                                          ('Hot',            {'Type': 'default', 'Value': '23', 'Desc': '"Feels hot" cut-off temperature'}),
-                                                          ('VeryHot',        {'Type': 'default', 'Value': '28', 'Desc': '"Feels very hot" cut-off temperature'})])
+                                                          ('VeryCold',       {'Type': 'default', 'Value': '5',  'Desc': '"Feels very cold" cut-off temperature'}),
+                                                          ('Cold',           {'Type': 'default', 'Value': '10', 'Desc': '"Feels cold" cut-off temperature'}),
+                                                          ('Mild',           {'Type': 'default', 'Value': '15', 'Desc': '"Feels mild" cut-off temperature'}),
+                                                          ('Warm',           {'Type': 'default', 'Value': '20', 'Desc': '"Feels warm" cut-off temperature'}),
+                                                          ('Hot',            {'Type': 'default', 'Value': '25', 'Desc': '"Feels hot" cut-off temperature'}),
+                                                          ('VeryHot',        {'Type': 'default', 'Value': '30', 'Desc': '"Feels very hot" cut-off temperature'})])
     Default['PrimaryPanels'] =   collections.OrderedDict([('Description',    '  Primary panel layout'),
                                                           ('PanelOne',       {'Type': 'default', 'Value': 'Forecast',      'Desc':'Primary display for Panel One'}),
                                                           ('PanelTwo',       {'Type': 'default', 'Value': 'Temperature',   'Desc':'Primary display for Panel Two'}),

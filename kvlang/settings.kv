@@ -1,0 +1,116 @@
+<-MenuSidebar>:
+    size_hint_x: None
+    width: min(dp(200*app.scaleFactor), dp(350))
+    buttons_layout: menu
+    close_button: button
+    GridLayout:
+        pos: root.pos
+        cols: 1
+        id: menu
+        orientation: 'vertical'
+        padding: 5
+
+        canvas.after:
+            Color:
+                rgb: .2, .2, .2
+            Rectangle:
+                pos: self.right - 1, self.y
+                size: 1, self.height
+
+    Button:
+        text: 'Close'
+        id: button
+        size_hint: None, None
+        width: root.width - dp(20*app.scaleFactor)
+        height: max(50, self.texture_size[1] + dp(20))
+        pos: root.x + dp(10*app.scaleFactor), root.y + dp(10)
+        font_size: sp(15*app.scaleFactor)
+
+<-SettingItem>:
+    size_hint: .25, None
+    height: labellayout.texture_size[1] + dp(10)
+    content: content
+    canvas:
+        Color:
+            rgba: 47 / 255., 167 / 255., 212 / 255., self.selected_alpha
+        Rectangle:
+            pos: self.x, self.y + 1
+            size: self.size
+        Color:
+            rgb: .2, .2, .2
+        Rectangle:
+            pos: self.x, self.y - 2
+            size: self.width, 1
+
+    BoxLayout:
+        pos: root.pos
+
+        Label:
+            size_hint_x: .66
+            id: labellayout
+            markup: True
+            text: u'{0}\n[size={1}sp][color=999999]{2}[/color][/size]'.format(root.title or '', str(13*app.scaleFactor), root.desc or '')
+            font_size: sp(15*app.scaleFactor)
+            text_size: self.width - 32, None
+
+        BoxLayout:
+            id: content
+            size_hint_x: .33
+
+<-SettingsPanel>:
+    spacing: 5
+    padding: 5
+    size_hint_y: None
+    height: self.minimum_height
+
+    Label:
+        size_hint_y: None
+        text: root.title
+        text_size: self.width - 32, None
+        height: max(50, self.texture_size[1] + 20)
+        color: (.5, .5, .5, 1)
+        font_size: sp(15*app.scaleFactor)
+
+        canvas.after:
+            Color:
+                rgb: .2, .2, .2
+            Rectangle:
+                pos: self.x, self.y - 2
+                size: self.width, 1
+
+<SettingSidebarLabel>:
+    size_hint: 1, None
+    text_size: self.width - 32, None
+    height: self.texture_size[1] + dp(20)
+    font_size: sp(15*app.scaleFactor)
+    canvas.before:
+        Color:
+            rgba: 47 / 255., 167 / 255., 212 / 255., int(self.selected)
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+<SettingString>:
+    Label:
+        text: root.value or ''
+        pos: root.pos
+        font_size: sp(15*app.scaleFactor)
+
+<SettingBoolean>:
+    Switch:
+        text: 'Boolean'
+        pos: root.pos
+        active: bool(root.values.index(root.value)) if root.value in root.values else False
+        on_active: root.value = root.values[int(args[1])]
+
+<SettingOptions>:
+    Label:
+        text: root.value or ''
+        pos: root.pos
+        font_size: sp(15*app.scaleFactor)
+
+<SettingPath>:
+    Label:
+        text: root.value or ''
+        pos: root.pos
+        font_size: sp(15*app.scaleFactor)

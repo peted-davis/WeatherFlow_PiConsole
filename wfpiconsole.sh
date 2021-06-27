@@ -70,13 +70,11 @@ PYTHON_MODULES=(cython==0.29.10
 
 # Github repositories
 KIVY_REPO="https://github.com/kivy/kivy/archive/"$KIVY_VERSION".zip"
-WFPICONSOLE_REPO="peted-davis/WeatherFlow_PiConsole"
-WFPICONSOLE_MAIN="https://github.com/"$WFPICONSOLE_REPO"/tarball/master"
-WFPICONSOLE_BETA="https://github.com/"$WFPICONSOLE_REPO"/tarball/develop"
-WFPICONSOLE_TAGS="https://api.github.com/repos/"$WFPICONSOLE_REPO"/tags"
-WFPICONSOLE_RELEASES="https://api.github.com/repos/"$WFPICONSOLE_REPO"/releases/latest"
-WFPICONSOLE_MAIN_UPDATE="https://raw.githubusercontent.com/"$WFPICONSOLE_REPO"/master/wfpiconsole.sh"
-WFPICONSOLE_BETA_UPDATE="https://raw.githubusercontent.com/"$WFPICONSOLE_REPO"/develop/wfpiconsole.sh"
+WFPICONSOLE_REPO="https://github.com/peted-davis/WeatherFlow_PiConsole.git"
+WFPICONSOLE_TAGS="https://api.github.com/repos/peted-davis/WeatherFlow_PiConsole/tags"
+WFPICONSOLE_RAW="https://raw.githubusercontent.com/peted-davis/WeatherFlow_PiConsole"
+WFPICONSOLE_MAIN_UPDATE=$WFPICONSOLE_RAW"/master/wfpiconsole.sh"
+WFPICONSOLE_BETA_UPDATE=$WFPICONSOLE_RAW"/develop/wfpiconsole.sh"
 
 # DEFINE INSTALLER PREAMBLE
 # ------------------------------------------------------------------------------
@@ -415,21 +413,21 @@ updateKivyConfig() {
     fi
 }
 
-# GET THE LATEST VERSION OF THE WeatherFlow PiConsole CODE FROM GITHUB
+# GET THE LATEST STABLE VERSION OF THE WeatherFlow PiConsole FROM GITHUB
 # ------------------------------------------------------------------------------
 getLatestVersion() {
 
-    # Get info on latest version from Github API and extract latest version
-    # number using Python JSON tools
-    gitInfo=$(curl -s $WFPICONSOLE_RELEASES -H 'Accept:application/vnd.github.v3+json')
-    latestVer=$(echo $gitInfo | jq -r '.tag_name')
+    # Get info on latest version from Github API
+    local tagInfo=$(curl -s $WFPICONSOLE_TAGS -H 'Accept: application/vnd.github.v3+json')
+    local latestVer=$(echo $tagInfo | jq -r '.[0].name')
+    local status=0
 
     # If the WeatherFlow PiConsole is already installed, get the current
     # installed version from wfpiconsole.ini file.
     if [[ -f $CONSOLEDIR/wfpiconsole.ini ]]; then
         currentVer=$(python3 -c "import configparser; c=configparser.ConfigParser(); c.read('$CONSOLEDIR/wfpiconsole.ini'); print(c['System']['Version'])")
-        printf "\\n  %b Latest version of WeatherFlow PiConsole: %s" "${INFO}" "${latestVer}"
-        printf "\\n  %b Installed version of WeatherFlow PiConsole: %s" "${INFO}" "${currentVer}"
+        printf "\\n  %b Latest version of WeatherFlow PiConsole: %s" ${INFO} ${latestVer}
+        printf "\\n  %b Installed version of WeatherFlow PiConsole: %s" ${INFO} ${currentVer}
 
         # Compare current version with latest version. If verions match, there
         # is no need to get the latest version
@@ -441,8 +439,20 @@ getLatestVersion() {
         else
             local str="Updating WeatherFlow PiConsole to ${COL_LIGHT_GREEN}${latestVer}${COL_NC}"
             printf "\\n\\n  %b %b..." "${INFO}" "${str}"
-            curl -sL $WFPICONSOLE_MAIN --create-dirs -o $DLDIR/wfpiconsole.tar.gz
-            installLatestVersion
+            if (isRepo ${CONSOLEDIR}); then
+                if (updateRepoLatestTag ${CONSOLEDIR} &> errorLog); then status=1; fi
+            else
+                if (createRepo ${CONSOLEDIR} ${WFPICONSOLE_REPO} &> errorLog); then status=1; fi
+            fi
+            if [[ $status -eq 1 ]]; then
+                printf "%b  %b %b\\n" "${OVER}" "${TICK}" "${str}"
+            else
+              printf "%b  %b %b\\n" "${OVER}" "${CROSS}" "${str}"
+              printf "  %bError: Unable to update the WeatherFlow PiConsole\\n\\n %b" "${COL_LIGHT_RED}" "${COL_NC}"
+              printf "%s\\n\\n" "$(<errorLog)"
+              cleanUp
+              exit 1
+          fi
         fi
 
     # Else, the WeatherFlow PiConsole is not installed so get the latest stable
@@ -450,63 +460,20 @@ getLatestVersion() {
     else
         local str="Installing the latest version of WeatherFlow PiConsole: ${COL_LIGHT_GREEN}${latestVer}${COL_NC}"
         printf "\\n  %b %b..." "${INFO}" "${str}"
-        curl -sL $WFPICONSOLE_MAIN --create-dirs -o $DLDIR/wfpiconsole.tar.gz
-        installLatestVersion
-    fi
-}
-
-# GET THE LATEST PATCH FOR THE WeatherFlow PiConsole FROM GITHUB
-# ------------------------------------------------------------------------------
-getLatestPatch() {
-
-    # Get info on latest patch from Github API and extract latest version
-    # number using jq JSON tools
-    patchInfo=$(curl -s $WFPICONSOLE_TAGS -H 'Accept: application/vnd.github.v3+json')
-    patchVer=$(echo $patchInfo | jq -r '.[0].name')
-
-    # Download latest stable patch for the WeatherFlow PiConsole and install
-    local str="Patching ${COL_LIGHT_GREEN}${patchVer}${COL_NC} of the WeatherFlow PiConsole"
-    printf "  %b %b..." "${INFO}" "${str}"
-    curl -sL $WFPICONSOLE_MAIN --create-dirs -o $DLDIR/wfpiconsole.tar.gz
-    installLatestVersion
-}
-
-# GET THE LATEST BETA VERSION FOR THE WeatherFlow PiConsole FROM GITHUB
-# ------------------------------------------------------------------------------
-getLatestBeta() {
-
-    # Get info on latest patch from Github API and extract latest version
-    # number using jq JSON tools
-    patchInfo=$(curl -s $WFPICONSOLE_TAGS -H 'Accept: application/vnd.github.v3+json')
-    patchVer=$(echo $patchInfo | jq -r '.[0].name')
-
-    # Download latest stable beta version for the WeatherFlow PiConsole and
-    # install
-    local str="Installing the latest beta version of WeatherFlow PiConsole"
-    printf "\\n  %b %b..." "${INFO}" "${str}"
-    curl -sL $WFPICONSOLE_BETA --create-dirs -o $DLDIR/wfpiconsole.tar.gz
-    installLatestVersion
-}
-
-# INSTALL THE LATEST VERSION OF THE WeatherFlow PiConsole
-# ------------------------------------------------------------------------------
-installLatestVersion() {
-
-    # Extract the latest version of the WeatherFlow PiConsole from the Github
-    # tarball to the temporary download folder
-    tar -zxf $DLDIR/wfpiconsole.tar.gz -C $DLDIR --strip 1
-    rm $DLDIR/wfpiconsole.tar.gz
-
-    # Rsync the files in the download folder to the console directory. Delete
-    # any files that have been removed in the latest version
-    if (rsync -a --exclude '*.ini' --delete-after $DLDIR $CONSOLEDIR &> errorLog); then
-        printf "%b  %b %b\\n" "${OVER}" "${TICK}" "${str}"
-    else
-        printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-        printf "  %bError: Unable to install the WeatherFlow PiConsole\\n\\n %b" "${COL_LIGHT_RED}" "${COL_NC}"
-        printf "%s\\n\\n" "$(<errorLog)"
-        cleanUp
-        exit 1
+        if (isRepo ${CONSOLEDIR} &> errorLog); then
+            if (updateRepoLatestTag ${CONSOLEDIR} &> errorLog); then status=1; fi
+        else
+            if (createRepo ${CONSOLEDIR} ${WFPICONSOLE_REPO} &> errorLog); then status=1; fi
+        fi
+        if [[ $status -eq 1 ]]; then
+            printf "%b  %b %b\\n" "${OVER}" "${TICK}" "${str}"
+        else
+          printf "%b  %b %b\\n" "${OVER}" "${CROSS}" "${str}"
+          printf "  %bError: Unable to install the WeatherFlow PiConsole\\n\\n %b" "${COL_LIGHT_RED}" "${COL_NC}"
+          printf "%s\\n\\n" "$(<errorLog)"
+          cleanUp
+          exit 1
+      fi
     fi
 
     # Ensure console directory is owned by the correct user
@@ -520,6 +487,69 @@ installLatestVersion() {
     # usr/bin/local so function can be called directly from the command line
     chmod 744 $CONSOLEDIR/wfpiconsole.sh
     sudo ln -sf $CONSOLEDIR/wfpiconsole.sh /usr/local/bin/wfpiconsole
+}
+
+# GET THE LATEST STABLE PATCH FOR THE WeatherFlow PiConsole FROM GITHUB
+# ------------------------------------------------------------------------------
+getLatestPatch() {
+
+    # Get info on latest patch from Github API and extract latest version
+    # number using jq JSON tools
+    patchInfo=$(curl -s $WFPICONSOLE_TAGS -H 'Accept: application/vnd.github.v3+json')
+    patchVer=$(echo $patchInfo | jq -r '.[0].name')
+
+    # Fetch the latest stable patch for the WeatherFlow PiConsole from Github
+    local status=0
+    local str="Patching the WeatherFlow PiConsole"
+    printf "  %b %b..." "${INFO}" "${str}"
+    if (isRepo ${CONSOLEDIR}); then
+        if (updateRepoLatestCommit ${CONSOLEDIR}); then status=1; fi
+    fi
+    if [[ $status -eq 1 ]]; then
+        printf "%b  %b %b\\n" "${OVER}" "${TICK}" "${str}"
+    else
+        printf "%b  %b %b\\n" "${OVER}" "${CROSS}" "${str}"
+        printf "  %bError: Unable to patch the WeatherFlow PiConsole\\n\\n %b" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "%s\\n\\n" "$(<errorLog)"
+        cleanUp
+        exit 1
+    fi
+
+    # Ensure console directory is owned by the correct user
+    consoleOwner=$(stat -c "%U" $CONSOLEDIR)
+    if [[ "$consoleOwner" != "$USER" ]]; then
+        sudo chown -fR $USER $CONSOLEDIR
+        sudo chgrp -fR $USER $CONSOLEDIR
+    fi
+}
+
+# GET THE LATEST BETA VERSION FOR THE WeatherFlow PiConsole FROM GITHUB
+# ------------------------------------------------------------------------------
+getLatestBeta() {
+
+    # Fetch the latest beta version of the WeatherFlow PiConsole from Github
+    local status=0
+    local str="Installing the latest beta version of WeatherFlow PiConsole"
+    printf "  %b %b..." "${INFO}" "${str}"
+    if (isRepo ${CONSOLEDIR}); then
+        if (updateRepoLatestBeta ${CONSOLEDIR}); then status=1; fi
+    fi
+    if [[ $status -eq 1 ]]; then
+        printf "%b  %b %b\\n" "${OVER}" "${TICK}" "${str}"
+    else
+        printf "%b  %b %b\\n" "${OVER}" "${CROSS}" "${str}"
+        printf "  %bError: Unable to install the latest beta version of WeatherFlow PiConsole\\n\\n %b" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "%s\\n\\n" "$(<errorLog)"
+        cleanUp
+        exit 1
+    fi
+
+    # Ensure console directory is owned by the correct user
+    consoleOwner=$(stat -c "%U" $CONSOLEDIR)
+    if [[ "$consoleOwner" != "$USER" ]]; then
+        sudo chown -fR $USER $CONSOLEDIR
+        sudo chgrp -fR $USER $CONSOLEDIR
+    fi
 }
 
 # INSTALL THE wfpiconsole.service FILE TO /etc/systemd/system/
@@ -589,6 +619,96 @@ disableService () {
         printf "%s\\n\\n" "$(<errorLog)"
         cleanUp
         exit 1
+    fi
+}
+
+# CHECK IF DIRECTORY IS A GIT REPOSITORY
+# ------------------------------------------------------------------------------
+isRepo() {
+
+    local directory=${1}
+    if [[ -d ${directory} ]]; then
+        git -C ${directory} status --short &> errorLog || local rc=$?
+    else
+        local rc=1
+    fi
+    return "${rc:-0}"
+}
+
+# CREATE NEW GIT REPOSITORY (MASTER BRANCH) AT LATEST TAG
+# ------------------------------------------------------------------------------
+createRepo() {
+
+    # If the directory already exists, turn it into a git directory, otherwise
+    # clone the git repository directly
+    local directory=${1}
+    local repository=${2}
+    if [[ -d ${directory} ]]; then
+        git clone --no-checkout ${repository} ${directory}/temp &> errorLog || return $?
+        mv ${directory}/temp/.git ${directory}/.git
+        rmdir ${directory}/temp
+        git -C ${directory} reset --hard HEAD &> errorLog || return $?
+    else
+        git clone ${repository} ${directory} &> errorLog || return $?
+    fi
+
+    # Checkout the master branch if required and reset code to latest tag
+    local curBranch=$(git rev-parse --abbrev-ref HEAD)
+    if [[ "${curBranch}" != "master" ]]; then
+        git -C ${directory} checkout master &> errorLog || return $?
+    fi
+    git -C ${directory} reset --hard "$(git -C ${directory} describe --abbrev=0 --tags)" &> errorLog || return $?
+}
+
+# UPDATE GIT REPOSITORY TO LATEST TAG (MAIN BRANCH)
+# ------------------------------------------------------------------------------
+updateRepoLatestTag() {
+
+    # Clear all local changes and fetch latest commits from git repository
+    local directory=${1}
+    git -C ${directory} checkout . &> errorLog || return $?
+    git -C ${directory} clean --force -d &> errorLog || true
+    git -C ${directory} pull &> errorLog || return $?
+
+    # Checkout the master branch if required and reset code to latest tag
+    local curBranch=$(git -C ${directory} rev-parse --abbrev-ref HEAD)
+    if [[ "${curBranch}" != "master" ]]; then
+      git -C ${directory} checkout master &> errorLog || return $?
+    fi
+    git -C ${directory} reset --hard "$(git -C ${directory} describe --abbrev=0 --tags)" &> errorLog || return $?
+}
+
+# PATCH GIT REPOSITORY TO LATEST COMMIT (MAIN BRANCH)
+# ------------------------------------------------------------------------------
+updateRepoLatestCommit() {
+
+    # Clear all local changes and fetch latest commits from git repository
+    local directory=${1}
+    git -C ${directory} checkout . &> errorLog || return $?
+    git -C ${directory} clean --force -d &> errorLog || true
+    git -C ${directory} pull &> errorLog || return $?
+
+    # Checkout the master branch if required
+    local curBranch=$(git -C ${directory} rev-parse --abbrev-ref HEAD)
+    if [[ "${curBranch}" != "master" ]]; then
+        git -C ${directory} checkout master &> errorLog || return $?
+    fi
+}
+
+# UPDATE GIT REPOSITORY TO LATEST COMMIT (DEVELOP BRANCH)
+# ------------------------------------------------------------------------------
+updateRepoLatestBeta() {
+
+    # Clear all local changes and fetch latest commits from git repository
+    local directory=${1}
+    git -C ${directory} checkout . &> errorLog || return $?
+    git -C ${directory} clean --force -d &> errorLog || true
+    git -C ${directory} pull &> errorLog || return $?
+
+    # Checkout the master branch if required
+    local curBranch=$(git -C ${directory} rev-parse --abbrev-ref HEAD)
+    if [[ "${curBranch}" != "develop" ]]; then
+        git -C ${directory} checkout develop &> errorLog || return $?
     fi
 }
 
