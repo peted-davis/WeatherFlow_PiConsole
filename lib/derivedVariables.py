@@ -29,10 +29,6 @@ import math
 import pytz
 import time
 
-# Define device type strings for accessing config file
-#TEMPEST = 'Tempest'
-#AIR = 'OutAir'
-#SKY = 'Sky'
 
 def dewPoint(outTemp, humidity):
 
@@ -819,7 +815,7 @@ def strikeFrequency(obTime, device, apiData, config):
         count10m = None
 
     # Calculate average strike frequency over the last 10 minutes
-    if count3h is not None:
+    if count10m is not None:
         activeStrikes = [count for count in count10m if count > 0]
         if len(activeStrikes) > 0:
             strikeFrequency10m = [sum(activeStrikes) / len(activeStrikes), '/min']
