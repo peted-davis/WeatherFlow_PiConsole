@@ -30,6 +30,7 @@ import asyncio
 import socket
 import json
 import ssl
+import sys
 import os
 
 # ==============================================================================
@@ -50,7 +51,7 @@ configFile = 'wfpiconsole.ini'
 # ==============================================================================
 class websocketClient():
 
-    def __init__(self):
+    def __init__(self, _is_running):
 
         # Load configuration file
         self.config = configparser.ConfigParser(allow_no_value=True)
@@ -59,7 +60,9 @@ class websocketClient():
 
         # Initial websocketClient class variables
         self.thread_list   = {}
-        self.reply_timeout = 60
+        self._is_running   = _is_running
+        self.reply_timeout = 1
+        self.timeout_count = 0
         self.ping_timeout  = 120
         self.sleep_time    = 10
         self.websocket     = None
@@ -75,6 +78,14 @@ class websocketClient():
         self.async_loop = asyncio.new_event_loop()
         asyncio.set_event_loop(self.async_loop)
         self.async_loop.run_until_complete(self.__async__connect())
+
+        # Listen continuously for new Websocket messages until signal is
+        # received to stop Websocket service
+        while self._is_running():
+            message = self.async_loop.run_until_complete(self.__async__getMessage())
+            self.decodeMessage(message)
+        self.async_loop.run_until_complete(self.__async__disconnect())
+        sys.exit()
 
     async def __async__connect(self):
         Connected = False
@@ -104,6 +115,14 @@ class websocketClient():
                 Logger.error(f'Websocket: {system.logTime()} - General error: {error}')
                 await asyncio.sleep(self.sleep_time)
 
+    async def __async__disconnect(self):
+        Logger.info(f'Websocket: {system.logTime()} - Closing connection')
+        try:
+            await asyncio.wait_for(self.websocket.close(), timeout=5)
+            Logger.info(f'Websocket: {system.logTime()} - Connection closed')
+        except Exception:
+            Logger.info(f'Websocket: {system.logTime()} - Unable to close connection cleanly')
+
     async def __async__requestDevices(self):
         deviceList = list()
         if self.config['Station']['TempestID']:
@@ -132,61 +151,66 @@ class websocketClient():
             await self.websocket.send(device)
 
     async def __async__getMessage(self):
-        while True:
+        while self._is_running():
             try:
                 message = await asyncio.wait_for(self.websocket.recv(), timeout=self.reply_timeout)
+                self.timeout_count = 0
                 try:
                     return json.loads(message)
                 except Exception:
-                    Logger.error('Websocket: {system.logTime()} - Parsing error: {message}')
+                    Logger.error(f'Websocket: {system.logTime()} - Parsing error: {message}')
                     return {}
             except Exception:
-                try:
-                    pong = await self.websocket.ping()
-                    await asyncio.wait_for(pong, timeout=self.ping_timeout)
-                    Logger.info(f'Websocket: {system.logTime()} - Ping OK, keeping connection alive')
-                except Exception:
-                    Logger.error(f'Websocket: {system.logTime()} - Ping error, closing connection')
-                    await self.websocket.close()
-                    await asyncio.sleep(self.sleep_time)
-                    await self.__async__connect()
+                self.timeout_count += 1
+                if self.timeout_count >= 60:
+                    self.timeout_count = 0
+                    try:
+                        pong = await self.websocket.ping()
+                        await asyncio.wait_for(pong, timeout=self.ping_timeout)
+                        Logger.info(f'Websocket: {system.logTime()} - Ping OK, keeping connection alive')
+                    except Exception:
+                        Logger.error(f'Websocket: {system.logTime()} - Ping error, closing connection')
+                        await self.websocket.close()
+                        await asyncio.sleep(self.sleep_time)
+                        await self.__async__connect()
 
     def getMessage(self):
         return self.async_loop.run_until_complete(self.__async__getMessage())
 
     def decodeMessage(self, message):
-        if 'type' in message:
-            if message['type'] in ['ack', 'evt_precip']:
-                pass
-            else:
-                if 'device_id' in message:
-                    if message['type'] == 'obs_st':
-                        if not hasattr(self.thread_list, 'obs_st'):
-                            self.thread_list['obs_st'] = threading.Thread(target=self.obsParser.parse_obs_st, args=(message, self.config, ), name="obs_st")
-                        self.thread_list['obs_st'].start()
-                    elif message['type'] == 'obs_sky':
-                        if not hasattr(self.thread_list, 'obs_sky'):
-                            self.thread_list['obs_sky'] = threading.Thread(target=self.obsParser.parse_obs_sky, args=(message, self.config, ), name='obs_sky')
-                        self.thread_list['obs_sky'].start()
-                    elif message['type'] == 'obs_air':
-                        if str(message['device_id']) == self.config['Station']['OutAirID']:
-                            if not hasattr(self.thread_list, 'obs_out_air'):
-                                self.thread_list['obs_out_air'] = threading.Thread(target=self.obsParser.parse_obs_out_air, args=(message, self.config, ), name='obs_out_air')
-                            self.thread_list['obs_out_air'].start()
-                        elif str(message['device_id']) == self.config['Station']['InAirID']:
-                            if not hasattr(self.thread_list, 'obs_in_air'):
-                                self.thread_list['obs_in_air'] = threading.Thread(target=self.obsParser.parse_obs_in_air, args=(message, self.config, ), name='obs_in_air')
-                            self.thread_list['obs_in_air'].start()
-                    elif message['type'] == 'rapid_wind':
-                        self.obsParser.parse_rapid_wind(message, self.config)
-                    elif message['type'] == 'evt_strike':
-                        self.obsParser.parse_evt_strike(message, self.config)
-                    else:
-                        Logger.error(f'Websocket: {system.logTime()} - Unknown message type: {json.dumps(message)}')
+        if message is not None:
+            if 'type' in message:
+                if message['type'] in ['ack', 'evt_precip']:
+                    pass
                 else:
-                    Logger.info(f'Websocket: {system.logTime()} - Missing device ID: {json.dumps(message)}')
-        else:
-            Logger.info(f'Websocket: {system.logTime()} - Missing message type: {json.dumps(message)}')
+                    if 'device_id' in message:
+                        if message['type'] == 'obs_st':
+                            if not hasattr(self.thread_list, 'obs_st'):
+                                self.thread_list['obs_st'] = threading.Thread(target=self.obsParser.parse_obs_st, args=(message, self.config, ), name="obs_st")
+                            self.thread_list['obs_st'].start()
+                        elif message['type'] == 'obs_sky':
+                            if not hasattr(self.thread_list, 'obs_sky'):
+                                self.thread_list['obs_sky'] = threading.Thread(target=self.obsParser.parse_obs_sky, args=(message, self.config, ), name='obs_sky')
+                            self.thread_list['obs_sky'].start()
+                        elif message['type'] == 'obs_air':
+                            if str(message['device_id']) == self.config['Station']['OutAirID']:
+                                if not hasattr(self.thread_list, 'obs_out_air'):
+                                    self.thread_list['obs_out_air'] = threading.Thread(target=self.obsParser.parse_obs_out_air, args=(message, self.config, ), name='obs_out_air')
+                                self.thread_list['obs_out_air'].start()
+                            elif str(message['device_id']) == self.config['Station']['InAirID']:
+                                if not hasattr(self.thread_list, 'obs_in_air'):
+                                    self.thread_list['obs_in_air'] = threading.Thread(target=self.obsParser.parse_obs_in_air, args=(message, self.config, ), name='obs_in_air')
+                                self.thread_list['obs_in_air'].start()
+                        elif message['type'] == 'rapid_wind':
+                            self.obsParser.parse_rapid_wind(message, self.config)
+                        elif message['type'] == 'evt_strike':
+                            self.obsParser.parse_evt_strike(message, self.config)
+                        else:
+                            Logger.error(f'Websocket: {system.logTime()} - Unknown message type: {json.dumps(message)}')
+                    else:
+                        Logger.info(f'Websocket: {system.logTime()} - Missing device ID: {json.dumps(message)}')
+            else:
+                Logger.info(f'Websocket: {system.logTime()} - Missing message type: {json.dumps(message)}')
 
     def reloadConfig(self, payload):
         if json.loads(payload.decode('utf8')) == 1:
@@ -208,6 +232,3 @@ class websocketClient():
 
 if __name__ == '__main__':
     websocket = websocketClient()
-    while True:
-        message = websocket.getMessage()
-        websocket.decodeMessage(message)

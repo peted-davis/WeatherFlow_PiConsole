@@ -129,6 +129,11 @@ from lib import system
 from lib import config
 
 # ==============================================================================
+# IMPORT REQUIRED SERVICE MODULES
+# ==============================================================================
+from service.websocket import websocketClient
+
+# ==============================================================================
 # IMPORT REQUIRED USER MODULES
 # ==============================================================================
 if Path('user/customPanels.py').is_file():
@@ -362,8 +367,20 @@ class wfpiconsole(App):
     # START WEBSOCKET SERVICE
     # --------------------------------------------------------------------------
     def startWebsocketService(self, *largs):
-        self.service = threading.Thread(target=run_path, args=['service/websocket.py'], kwargs={'run_name': '__main__'}, daemon=True, name='Websocket')
-        self.service.start()
+        self._websocket_is_running = True
+        self.websocket = threading.Thread(target=websocketClient,
+                                          args=(lambda: self._websocket_is_running, ),
+                                          daemon=True,
+                                          name='Websocket')
+        self.websocket.start()
+
+    # STOP WEBSOCKET SERVICE
+    # --------------------------------------------------------------------------
+    def stopWebsocketService(self):
+        self._websocket_is_running = False
+        self.websocket.join()
+        del self.websocket
+        del self._websocket_is_running
 
     # UPDATE DISPLAY WITH NEW OBSERVATIONS SENT FROM WEBSOCKET SERVICE
     # --------------------------------------------------------------------------
