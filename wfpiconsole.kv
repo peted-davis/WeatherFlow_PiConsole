@@ -802,6 +802,14 @@
         pos_hint: {'x': 0/262, 'y': 3/202}
         size_hint_x: (262/262)
 
+    Image:
+        source: 'icons/misc/offline' + app.scaleSuffix
+        keep_ratio: 0
+        allow_stretch: 1
+        opacity: 1 if app.Station.Status['stationStatus'] == 'Offline' or app.Station.Status['stationStatus'] == 'Error'  else 0
+        pos_hint: {'x': 230/262, 'y': 9/202}
+        size_hint: (30/262, 30/202)
+
 <RainfallButton>:
     PanelButton:
         text: 'Rainfall'
