@@ -172,6 +172,35 @@ def update():
         with open('wfpiconsole.ini','w') as configfile:
             newConfig.write(configfile)
 
+
+def switch(stationMetaData, deviceList, config):
+
+    # Update Station section in configuration file to match new station details
+    for key in config['Station']:
+        Value = ''
+        if key == 'StationID':
+            Value = stationMetaData['station_id']
+        elif key in ['Latitude', 'Longitude', 'Timezone', 'Elevation']:
+            Value = stationMetaData[key.lower()]
+        elif key == 'Name':
+            Value = stationMetaData['station_name']
+        elif key == 'TempestID' and 'ST' in deviceList:
+            Value = deviceList['ST']['device_id']
+        elif key == 'SkyID' and 'SK' in deviceList:
+            Value = deviceList['SK']['device_id']
+        elif key == 'OutAirID' and 'AR' in deviceList:
+            Value = deviceList['AR']['device_id']
+        elif key == 'TempestHeight' and 'ST' in deviceList:
+            Value = deviceList['ST']['device_meta']['agl']
+        elif key == 'SkyHeight' and 'SK' in deviceList:
+            Value = deviceList['SK']['device_meta']['agl']
+        elif key == 'OutAirHeight' and 'AR' in deviceList:
+            Value = deviceList['AR']['device_meta']['agl']
+        config.set('Station', key, str(Value))
+
+    # Write updated configuration file to disk
+    config.write()
+
 def copyConfigKey(newConfig,currentConfig,Section,Key,keyDetails):
 
     # Define global variables

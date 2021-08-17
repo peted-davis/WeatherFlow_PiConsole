@@ -25,47 +25,47 @@ from lib import properties
 from kivy.logger  import Logger
 import json
 
-# Define device observations dictionary
-device_obs = {
-    'obTime':       [None, 's'],       'pressure':     [None, 'mb'],      'outTemp':      [None, 'c'],
-    'inTemp':       [None, 'c'],       'humidity':     [None, '%'],       'windSpd':      [None, 'mps'],
-    'windGust':     [None, 'mps'],     'windDir':      [None, 'degrees'], 'rapidWindSpd': [None, 'mps'],
-    'rapidWindDir': [None, 'degrees'], 'uvIndex':      [None, 'index'],   'radiation':    [None, 'Wm2'],
-    'minuteRain':   [None, 'mm'],      'dailyRain':    [None, 'mm'],      'strikeMinute': [None, 'count'],
-    'strikeTime':   [None, 's'],       'strikeDist':   [None, 'km'],      'strike3hr':    [None, 'count'],
-    'SLPMin':       [None, 'mb'],      'SLPMax':       [None, 'mb'],      'outTempMin':   [None, 'c'],
-    'outTempMax':   [None, 'c'],       'inTempMin':    [None, 'c'],       'inTempMax':   [None, 'c'],
-    'windAvg':      [None, 'mps'],     'gustMax':      [None, 'mps'],     'peakSun':      [None, 'hrs'],
-    'strikeCount':
-        {
-        'today': [None, 'count'],
-        'month': [None, 'count'],
-        'year':  [None, 'count']
-    },
-    'rainAccum':
-        {
-        'today':     [None, 'mm'],
-        'yesterday': [None, 'mm'],
-        'month':     [None, 'mm'],
-        'year':      [None, 'mm']
-    }
-}
-
-
 # =============================================================================
 # DEFINE 'obsParser' CLASS
 # =============================================================================
 class obsParser():
 
     def __init__(self, oscCLIENT, oscSERVER, flagAPI):
+
+        # Define instance variables
         self.displayObs = dict(properties.Obs())
-        self.deviceObs  = device_obs
         self.apiData    = {}
         self.transmit   = 1
         self.flagAPI    = flagAPI
         self.oscCLIENT  = oscCLIENT
         self.oscSERVER  = oscSERVER
         self.oscSERVER.bind(b'/transmit', self.transmitStatus)
+
+        # Define device observations dictionary
+        self.deviceObs = {
+            'obTime':       [None, 's'],       'pressure':     [None, 'mb'],      'outTemp':      [None, 'c'],
+            'inTemp':       [None, 'c'],       'humidity':     [None, '%'],       'windSpd':      [None, 'mps'],
+            'windGust':     [None, 'mps'],     'windDir':      [None, 'degrees'], 'rapidWindSpd': [None, 'mps'],
+            'rapidWindDir': [None, 'degrees'], 'uvIndex':      [None, 'index'],   'radiation':    [None, 'Wm2'],
+            'minuteRain':   [None, 'mm'],      'dailyRain':    [None, 'mm'],      'strikeMinute': [None, 'count'],
+            'strikeTime':   [None, 's'],       'strikeDist':   [None, 'km'],      'strike3hr':    [None, 'count'],
+            'SLPMin':       [None, 'mb'],      'SLPMax':       [None, 'mb'],      'outTempMin':   [None, 'c'],
+            'outTempMax':   [None, 'c'],       'inTempMin':    [None, 'c'],       'inTempMax':    [None, 'c'],
+            'windAvg':      [None, 'mps'],     'gustMax':      [None, 'mps'],     'peakSun':      [None, 'hrs'],
+            'strikeCount':
+                {
+                'today': [None, 'count'],
+                'month': [None, 'count'],
+                'year':  [None, 'count']
+            },
+            'rainAccum':
+                {
+                'today':     [None, 'mm'],
+                'yesterday': [None, 'mm'],
+                'month':     [None, 'mm'],
+                'year':      [None, 'mm']
+            }
+        }
 
     def transmitStatus(self, payload):
 
@@ -480,6 +480,7 @@ class obsParser():
         if device_type == 'evt_strike':
             self.deviceObs['strikeDeltaT'] = derive.strikeDeltaT(self.deviceObs['strikeTime'])
 
+        # Format derived observations
         self.formatDerivedVariables(config, device_type)
 
     def formatDerivedVariables(self, config, device_type):
@@ -546,7 +547,7 @@ class obsParser():
             strikeDeltaT   = observation.Units(self.deviceObs['strikeDeltaT'], config['Units']['Other'])
 
         # Format derived variables from obs_air and obs_st observations
-        if device_type in ('obs_air', 'obs_st', 'obs_all'):
+        if device_type in ('obs_out_air', 'obs_st', 'obs_all'):
             self.displayObs['outTemp']       = observation.Format(outTemp,      'Temp')
             self.displayObs['FeelsLike']     = observation.Format(feelsLike,    'Temp')
             self.displayObs['DewPoint']      = observation.Format(dewPoint,     'Temp')

@@ -1195,8 +1195,94 @@
                             text: 'Shutdown'
                             on_release: root.shutdownSystem()
             MainMenuTab:
+                text: 'Stations'
+                MainMenuLayout:
+                    BoxLayout:
+                        orientation: 'vertical'
+                        padding: [dp(0),dp(0),dp(0),dp(10)]
+                        size_hint: (1,.22)
+                        MenuField:
+                            font_size: dp(16*app.scaleFactor)
+                            text: app.config['Station']['Name']
+                    BoxLayout:
+                        size_hint: (1, .2)
+                        orientation: 'horizontal'
+                        spacing: dp(20)
+                        BoxLayout:
+                            orientation: 'vertical'
+                            Label:
+                                text: 'Station'
+                            FloatLayout:
+                                Spinner:
+                                    id: stationList
+                                    pos_hint: {'center': (.5, .5)}
+                                    text: 'Fetching current station'
+                                    values: root.stationList
+                                    on_text: root.get_stationDevices()
+                        BoxLayout:
+                            orientation: 'vertical'
+                            Label:
+                                text: 'Tempest'
+                            FloatLayout:
+                                Spinner:
+                                    background_color: (0,0,0,0)
+                                    canvas.before:
+                                        Color:
+                                            rgba: utils.rgba('#ffffffff')
+                                        Line:
+                                            width: dp(1.5)
+                                            rectangle: self.x, self.y, self.width, self.height
+                                        Color:
+                                            rgba: utils.rgba('#000000ff') if self.state=='normal' else utils.rgba('#00525aff')
+                                        Rectangle:
+                                            pos: self.pos
+                                            size: self.size
+                                    id: tempestDropdown
+                                    disabled: 1
+                                    selected: 1 if self.text != 'Please select' and not self.disabled else 0
+                                    pos_hint: {'center': (.5, .5)}
+                                    values: root.tempestList
+                                    on_text: if self.text not in ['Please select', 'Air or Sky selected', 'No device available']: root.on_deviceSelection(self)
+                                    option_cls: Factory.selectOption
+                    BoxLayout:
+                        size_hint: (1, .2)
+                        orientation: 'horizontal'
+                        spacing: dp(20)
+                        BoxLayout:
+                            orientation: 'vertical'
+                            Label:
+                                text: 'Air'
+                            FloatLayout:
+                                Spinner:
+                                    id: airDropdown
+                                    disabled: 1
+                                    selected: 1 if self.text != 'Please select' and not self.disabled else 0
+                                    pos_hint: {'center': (.5, .5)}
+                                    values: root.airList
+                                    on_text: if self.text not in ['Please select', 'Tempest selected', 'No device available']: root.on_deviceSelection(self)
+                        BoxLayout:
+                            orientation: 'vertical'
+                            Label:
+                                text: 'Sky'
+                            FloatLayout:
+                                Spinner:
+                                    id: skyDropdown
+                                    disabled: 1
+                                    selected: 1 if self.text != 'Please select' and not self.disabled else 0
+                                    pos_hint: {'center': (.5, .5)}
+                                    values: root.skyList
+                                    on_text: if self.text not in ['Please select', 'Tempest selected', 'No device available']: root.on_deviceSelection(self)
+                    BoxLayout:
+                        size_hint: (1, .1)
+                        Button:
+                            id: switchButton
+                            disabled: 1
+                            text: 'Switch stations'
+                            on_release: root.switchStations()
+            MainMenuTab:
                 text: 'Credits'
                 MainMenuLayout:
+                    id: credits
                     CreditsMultilineField:
                         text:
                             'Python Console for Weather Flow Tempest and Smart Home Weather Station \n' \
@@ -1208,3 +1294,21 @@
                             'www.weather34.com/homeweatherstation/ \n\n' \
                             'Weather forecast data provided by \n' \
                             'WeatherFlow BetterForecast API \n'
+
+<selectOption@SpinnerOption>
+    #background_normal: 'atlas://atlas/wfpiconsole/tab_btn'
+    #background_down: 'atlas://atlas/wfpiconsole/tab_btn_pressed'
+    _width: 1.5
+    background_color: (0,0,0,1)
+    canvas.after:
+        Color:
+            rgba: 1, 1, 1, 1
+        Line:
+
+            width: dp(self._width)
+            rectangle: self.x+10, self.y+10, self.width-20, self.height-20
+        #Color:
+        #    rgba: utils.rgba('#000000ff') if self.state=='normal' else utils.rgba('#00525aff')
+        #Rectangle:
+        #    pos: self.pos
+        #    size: self.size

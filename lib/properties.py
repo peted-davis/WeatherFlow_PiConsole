@@ -39,7 +39,6 @@ def Obs():
             ('StrikesMonth', '-'),    ('StrikesYear', '-')
             ]
 
-
 def Astro():
 
     """ Define the Astro Kivy properties values

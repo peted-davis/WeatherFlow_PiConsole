@@ -74,7 +74,7 @@ class websocketClient():
         # Initialise Observation Parser
         self.obsParser = obsParser(oscCLIENT, oscSERVER, [1, 1, 1, 1])
 
-        # Initialise asyn loop and connect to specified Websocket URL
+        # Initialise async loop and connect to specified Websocket URL
         self.async_loop = asyncio.new_event_loop()
         asyncio.set_event_loop(self.async_loop)
         self.async_loop.run_until_complete(self.__async__connect())
