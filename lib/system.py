@@ -76,8 +76,8 @@ def updateDisplay(type, derivedObs, Console):
 
     # Update display values with new derived observations
     for Key, Value in derivedObs.items():
-        if not (type == 'all' and 'rapid' in Key):                  # Don't update rapidWind display when type is 'all'
-            Console.CurrentConditions.Obs[Key] = Value              # as the RapidWind rose is not animated in this case
+        if not (type == 'obs_all' and 'rapid' in Key):                  # Don't update rapidWind display when type is 'all'
+            Console.CurrentConditions.Obs[Key] = Value                  # as the RapidWind rose is not animated in this case
 
     # Update display graphics with new derived observations
     if type == 'rapid_wind':

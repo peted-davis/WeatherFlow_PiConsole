@@ -43,15 +43,16 @@ class obsParser():
 
         # Define device observations dictionary
         self.deviceObs = {
-            'obTime':       [None, 's'],       'pressure':     [None, 'mb'],      'outTemp':      [None, 'c'],
-            'inTemp':       [None, 'c'],       'humidity':     [None, '%'],       'windSpd':      [None, 'mps'],
-            'windGust':     [None, 'mps'],     'windDir':      [None, 'degrees'], 'rapidWindSpd': [None, 'mps'],
-            'rapidWindDir': [None, 'degrees'], 'uvIndex':      [None, 'index'],   'radiation':    [None, 'Wm2'],
-            'minuteRain':   [None, 'mm'],      'dailyRain':    [None, 'mm'],      'strikeMinute': [None, 'count'],
-            'strikeTime':   [None, 's'],       'strikeDist':   [None, 'km'],      'strike3hr':    [None, 'count'],
-            'SLPMin':       [None, 'mb'],      'SLPMax':       [None, 'mb'],      'outTempMin':   [None, 'c'],
-            'outTempMax':   [None, 'c'],       'inTempMin':    [None, 'c'],       'inTempMax':    [None, 'c'],
-            'windAvg':      [None, 'mps'],     'gustMax':      [None, 'mps'],     'peakSun':      [None, 'hrs'],
+            'obTime':       [None, 's'],             'pressure':     [None, 'mb'],              'outTemp':      [None, 'c'],
+            'inTemp':       [None, 'c'],             'humidity':     [None, '%'],               'windSpd':      [None, 'mps'],
+            'windGust':     [None, 'mps'],           'windDir':      [None, 'degrees'],         'rapidWindSpd': [None, 'mps'],
+            'rapidWindDir': [None, 'degrees'],       'uvIndex':      [None, 'index'],           'radiation':    [None, 'Wm2'],
+            'minuteRain':   [None, 'mm'],            'dailyRain':    [None, 'mm'],              'strikeMinute': [None, 'count'],
+            'strikeTime':   [None, 's'],             'strikeDist':   [None, 'km'],              'strike3hr':    [None, 'count'],
+            'peakSun':      [None, 'hrs'],           'windAvg':      [None, 'mps'],             'gustMax':      [None, 'mps'],
+            'SLPMin':       [None, 'mb', None, 's'], 'SLPMax':       [None, 'mb', None, 's'],
+            'outTempMax':   [None, 'c', None,  's'], 'outTempMin':   [None, 'c', None,  's'],
+            'inTempMax':    [None, 'c', None,  's'], 'inTempMin':    [None, 'c', None,  's'],
             'strikeCount':
                 {
                 'today': [None, 'count'],

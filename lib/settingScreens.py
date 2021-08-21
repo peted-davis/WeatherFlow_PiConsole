@@ -30,7 +30,7 @@ if Path('user/customPanels.py').is_file():
     for cls in inspect.getmembers(user.customPanels, inspect.isclass):
         if cls[1].__module__ == 'user.customPanels' and 'Panel' in cls[0]:
             customPanels.append(cls[0].split('Panel')[0])
-PanelList = ['Forecast','Sager','Temperature','WindSpeed','SunriseSunset','MoonPhase','Rainfall','Lightning','Barometer']
+PanelList = ['Forecast', 'Sager', 'Temperature', 'WindSpeed', 'SunriseSunset', 'MoonPhase', 'Rainfall', 'Lightning', 'Barometer']
 primaryPanelList = PanelList + customPanels
 secondaryPanelList = ['None'] + PanelList + customPanels
 

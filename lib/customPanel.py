@@ -17,13 +17,18 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 
 # Load required modules
 from kivy.uix.relativelayout import RelativeLayout
-from lib.customPanel         import panelTemplate
+from kivy.app                import App
 
 # ==============================================================================
-# BigTemperature CUSTOM PANEL
+# CUSTOM panelTemplate RELATIVE LAYOUT CLASS
 # ==============================================================================
-class BigTemperaturePanel(panelTemplate):
-    pass
+class panelTemplate(RelativeLayout):
 
-class BigTemperatureButton(RelativeLayout):
-    pass
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        if not hasattr(App.get_running_app(), self.__class__.__name__):
+            panelList = []
+        else:
+            panelList = getattr(App.get_running_app(), self.__class__.__name__, 'panelList')
+        panelList.append(self)
+        setattr(App.get_running_app(), self.__class__.__name__, panelList)

@@ -464,15 +464,18 @@ def Format(Obs, obType, config=[]):
         elif Type == 'Time':
             for ii, Time in enumerate(Obs):
                 if isinstance(Time, str) and Time.strip() in ['s']:
-                    Tz = pytz.timezone(config['Station']['Timezone'])
-                    if config['Display']['TimeFormat'] == '12 hr':
-                        if config['System']['Hardware'] == 'Other':
-                            Format = '%#I:%M %p'
-                        else:
-                            Format = '%-I:%M %p'
+                    if cObs[ii - 1] is None:
+                        cObs[ii - 1] = '-'
                     else:
-                        Format = '%H:%M'
-                    cObs[ii - 1] = datetime.fromtimestamp(cObs[ii - 1], Tz).strftime(Format)
+                        Tz = pytz.timezone(config['Station']['Timezone'])
+                        if config['Display']['TimeFormat'] == '12 hr':
+                            if config['System']['Hardware'] == 'Other':
+                                Format = '%#I:%M %p'
+                            else:
+                                Format = '%-I:%M %p'
+                        else:
+                            Format = '%H:%M'
+                        cObs[ii - 1] = datetime.fromtimestamp(cObs[ii - 1], Tz).strftime(Format)
 
         # Format time difference observations
         elif Type == 'TimeDelta':
