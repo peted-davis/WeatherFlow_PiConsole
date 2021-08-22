@@ -16,7 +16,8 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 """
 
 # Import required modules
-from datetime   import datetime, date, time, timedelta
+from datetime    import datetime, timedelta
+from lib         import system
 import requests
 import pytz
 
@@ -68,7 +69,7 @@ def Last3h(Device,endTime,Config):
     startTime = endTime - int(3600*3)
 
     # Download WeatherFlow data for last three hours
-    Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&token={}'
+    Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?bucket=a&time_start={}&time_end={}&token={}'
     URL = Template.format(Device,startTime,endTime,Config['Keys']['WeatherFlow'])
     try:
         Data = requests.get(URL,timeout=int(Config['System']['Timeout']))
@@ -96,7 +97,7 @@ def Last6h(Device,endTime,Config):
     startTime = endTime - int(3600*6)
 
     # Download WeatherFlow data for last three hours
-    Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&token={}'
+    Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?bucket=a&time_start={}&time_end={}&token={}'
     URL = Template.format(Device,startTime,endTime,Config['Keys']['WeatherFlow'])
     try:
         Data = requests.get(URL,timeout=int(Config['System']['Timeout']))
@@ -124,15 +125,19 @@ def Last24h(Device,endTime,Config):
     startTime = endTime - int(3600*24)
 
     # Download WeatherFlow data for last three hours
-    Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&token={}'
+    Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?bucket=a&time_start={}&time_end={}&token={}'
     URL = Template.format(Device,startTime,endTime,Config['Keys']['WeatherFlow'])
     try:
-        Data = requests.get(URL,timeout=int(Config['System']['Timeout']))
+        apiData = requests.get(URL,timeout=int(Config['System']['Timeout']))
     except:
-        Data = None
+        apiData = None
+
+    # Verify response
+    if apiData is None or not verifyResponse(apiData, 'obs'):
+        Logger.warning(f'requestAPI: {system.logTime()} - Last24h call failed')
 
     # Return observations from the last three hours
-    return Data
+    return apiData
 
 def Today(Device,Config):
 
@@ -153,14 +158,14 @@ def Today(Device,Config):
 
     # Convert midnight today in Station timezone to midnight today in UTC.
     # Convert UTC time into UNIX timestamp.
-    startTime = int(Tz.localize(datetime(Now.year,Now.month,Now.day)).timestamp())
+    startTime = int(Tz.localize(datetime(Now.year, Now.month, Now.day)).timestamp())
 
     # Convert current time in Station timezone to current time in UTC.
     # Convert UTC time into UNIX timestamp
     endTime = int(Now.timestamp())
 
     # Download WeatherFlow data
-    Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&token={}'
+    Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?bucket=a&time_start={}&time_end={}&token={}'
     URL = Template.format(Device,startTime,endTime,Config['Keys']['WeatherFlow'])
     try:
         Data = requests.get(URL,timeout=int(Config['System']['Timeout']))
@@ -198,7 +203,7 @@ def Yesterday(Device,Config):
     endTime = int(Today.timestamp())-1
 
     # Download WeatherFlow data
-    Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&token={}'
+    Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?bucket=a&time_start={}&time_end={}&token={}'
     URL = Template.format(Device,startTime,endTime,Config['Keys']['WeatherFlow'])
     try:
         Data = requests.get(URL,timeout=int(Config['System']['Timeout']))
