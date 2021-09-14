@@ -199,7 +199,12 @@ def switch(stationMetaData, deviceList, config):
         config.set('Station', key, str(Value))
 
     # Write updated configuration file to disk
-    config.write()
+    try:
+        config.write()
+    except TypeError:
+        with open('wfpiconsole.ini','w') as configfile:
+            config.write(configfile)
+
 
 def copyConfigKey(newConfig,currentConfig,Section,Key,keyDetails):
 
@@ -658,6 +663,7 @@ def defaultConfig():
     Default['System'] =          collections.OrderedDict([('Description',    '  System settings'),
                                                           ('BarometerMax',   {'Type': 'dependent', 'Desc': 'maximum barometer pressure'}),
                                                           ('BarometerMin',   {'Type': 'dependent', 'Desc': 'minimum barometer pressure'}),
+                                                          ('SagerInterval',  {'Type': 'default',   'Value': '6',     'Desc': 'Interval in hours between Sager Forecasts'}),
                                                           ('Timeout',        {'Type': 'default',   'Value': '20',    'Desc': 'Timeout in seconds for API requests'}),
                                                           ('Hardware',       {'Type': 'default',   'Value': Hardware,'Desc': 'Hardware type'}),
                                                           ('Version',        {'Type': 'default',   'Value': Version, 'Desc': 'Version number'})])

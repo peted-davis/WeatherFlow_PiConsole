@@ -81,7 +81,6 @@ def JSON(Section):
                   'desc':'Set console other units', 'section':'Units', 'key':'Other'}
                 ]
     elif 'Primary' in Section:
-
         Data =  [
                  {'type':'ScrollOptions', 'options':primaryPanelList,'title':'Panel One',
                   'desc':'Set primary display for Panel One', 'section':'PrimaryPanels', 'key':'PanelOne'},
@@ -130,18 +129,10 @@ def JSON(Section):
                  {'type':'ToggleTemperature', 'title':'Very Hot',
                   'desc':'Set the maximum temperature for "Feeling very hot"', 'section':'FeelsLike', 'key':'VeryHot'}
                 ]
-    elif 'Station' in Section:
+    elif 'System' in Section:
         Data =  [
-                 {'type':'string', 'title':'Station ID',
-                  'desc':'Set the Station ID', 'section':'Station', 'key':'StationID'},
-                 {'type':'string', 'title':'Tempest ID',
-                  'desc':'Set the Tempest ID', 'section':'Station', 'key':'TempestID'},
-                 {'type':'string', 'title':'Sky ID',
-                  'desc':'Set the Sky ID', 'section':'Station', 'key':'SkyID'},
-                 {'type':'string', 'title':'Outdoor Air ID',
-                  'desc':'Set the Outdoor Air ID', 'section':'Station', 'key':'OutAirID'},
-                 {'type':'string', 'title':'Indoor Air ID',
-                  'desc':'Set the Indoor Air ID', 'section':'Station', 'key':'InAirID'}
+                 {'type':'ToggleHours', 'title':'Sager Forecast interval',
+                  'desc':'Set the interval in hours between Sager Forecasts', 'section':'System', 'key':'SagerInterval'},
                 ]
 
     # Returns JSON object for settings section

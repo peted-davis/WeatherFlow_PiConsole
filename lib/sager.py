@@ -229,34 +229,14 @@ def Generate(sagerDict, Config):
     # SCHEDULE GENERATION OF NEXT SAGER WEATHERCASTER FORECAST
     # --------------------------------------------------------------------------
     interval = 3
+    # Calculate next forecast time based on specified interval
     Now      = datetime.now(pytz.utc).astimezone(Tz).replace(minute=0, second=0, microsecond=0)
     timeList = [Now + timedelta(hours = hour) for hour in range(1, 25)]
     hourList = [time.hour for time in timeList]
     genrList = [hour % interval for hour in hourList]
     foreTime = timeList[genrList.index(0)]
 
-    #print(Now)
-    #print(timeList)
-    #print(hourList)
-    #print(genrList)
-    #print(genrList.index(0))
-    #print(timeList[genrList.index(0)])
-
-
-    #Now = datetime.now(pytz.utc).astimezone(Tz)
-    #if Now.hour < 6:
-    #    Date = Now.date()
-    #    Time = time(6,0,0)
-    #    forecastTime = Tz.localize(datetime.combine(Date,Time))
-    #elif Now.hour < 18:
-    #    Date = Now.date()
-    #    Time = time(18,0,0)
-    #    forecastTime = Tz.localize(datetime.combine(Date,Time))
-    #else:
-    #    Date = Now.date() + timedelta(days=1)
-    #    Time = time(6,0,0)
-    #    forecastTime = Tz.localize(datetime.combine(Date,Time))
-
+    # Schedule next forecast time
     secondsSched = math.ceil((foreTime - funcCalled).total_seconds())
     Clock.schedule_once(lambda dt: Generate(sagerDict, Config), secondsSched)
 

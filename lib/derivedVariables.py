@@ -325,8 +325,8 @@ def SLPMax(pressure, obTime, maxPres, device, apiData, config):
 
     # If console is initialising, download all data for current day using
     # Weatherflow API and calculate daily maximum and minimum pressure
-    if maxPres[0] is None:
-        if apiData[device]['today'] is not None and verifyResponse(apiData[device]['today'], 'obs'):
+    if apiData[device]['today'] is not None:
+        if verifyResponse(apiData[device]['today'], 'obs'):
             dataToday = apiData[device]['today'].json()['obs']
             obTime    = [item[0]                       for item in dataToday if item[index_bucket_a] is not None]
             pressure  = [[item[index_bucket_a], 'mb']  for item in dataToday if item[index_bucket_a] is not None]
@@ -397,8 +397,8 @@ def SLPMin(pressure, obTime, minPres, device, apiData, config):
 
     # If console is initialising, download all data for current day using
     # Weatherflow API and calculate daily maximum and minimum pressure
-    if minPres[0] is None:
-        if apiData[device]['today'] is not None and verifyResponse(apiData[device]['today'], 'obs'):
+    if apiData[device]['today'] is not None:
+        if verifyResponse(apiData[device]['today'], 'obs'):
             dataToday = apiData[device]['today'].json()['obs']
             obTime    = [item[0]                       for item in dataToday if item[index_bucket_a] is not None]
             pressure  = [[item[index_bucket_a], 'mb']  for item in dataToday if item[index_bucket_a] is not None]
@@ -610,8 +610,8 @@ def tempMax(Temp, obTime, maxTemp, device, apiData, config):
 
     # If console is initialising, download all data for current day using
     # Weatherflow API and calculate daily maximum temperature
-    if maxTemp[0] is None:
-        if apiData[device]['today'] is not None and verifyResponse(apiData[device]['today'], 'obs'):
+    if apiData[device]['today'] is not None:
+        if verifyResponse(apiData[device]['today'], 'obs'):
             dataToday = apiData[device]['today'].json()['obs']
             apiTime   = [item[0]              for item in dataToday if item[index_bucket_a] is not None]
             apiTemp   = [item[index_bucket_a] for item in dataToday if item[index_bucket_a] is not None]
@@ -680,8 +680,8 @@ def tempMin(Temp, obTime, minTemp, device, apiData, config):
 
     # If console is initialising, download all data for current day using
     # Weatherflow API and calculate daily minimum temperature
-    if minTemp[0] is None:
-        if apiData[device]['today'] is not None and verifyResponse(apiData[device]['today'], 'obs'):
+    if apiData[device]['today'] is not None:
+        if verifyResponse(apiData[device]['today'], 'obs'):
             dataToday = apiData[device]['today'].json()['obs']
             apiTime   = [item[0]              for item in dataToday if item[index_bucket_a] is not None]
             apiTemp   = [item[index_bucket_a] for item in dataToday if item[index_bucket_a] is not None]
@@ -868,8 +868,8 @@ def strikeCount(count, strikeCount, device, apiData, config):
 
     # If console is initialising, download all data for current day using
     # Weatherflow API and calculate total daily lightning strikes
-    if strikeCount['today'][0] is None:
-        if apiData[device]['today'] is not None and verifyResponse(apiData[device]['today'], 'obs'):
+    if apiData[device]['today'] is not None:
+        if verifyResponse(apiData[device]['today'], 'obs'):
             dataToday  = apiData[device]['today'].json()['obs']
             apiStrikes = [item[index_bucket_a] for item in dataToday if item[index_bucket_a] is not None]
             try:
@@ -893,8 +893,8 @@ def strikeCount(count, strikeCount, device, apiData, config):
 
     # If console is initialising, download all data for current month using
     # Weatherflow API and calculate total monthly lightning strikes
-    if strikeCount['month'][0] is None:
-        if apiData[device]['month'] is not None and verifyResponse(apiData[device]['month'], 'obs'):
+    if apiData[device]['month'] is not None:
+        if verifyResponse(apiData[device]['month'], 'obs'):
             dataMonth  = apiData[device]['month'].json()['obs']
             apiStrikes = [item[index_bucket_e] for item in dataMonth if item[index_bucket_e] is not None]
             try:
@@ -922,8 +922,8 @@ def strikeCount(count, strikeCount, device, apiData, config):
 
     # If console is initialising, download all data for current year using
     # Weatherflow API and calculate total yearly lightning strikes
-    if strikeCount['year'][0] is None:
-        if apiData[device]['year'] is not None and verifyResponse(apiData[device]['year'], 'obs'):
+    if apiData[device]['year'] is not None:
+        if verifyResponse(apiData[device]['year'], 'obs'):
             dataYear   = apiData[device]['year'].json()['obs']
             apiStrikes = [item[index_bucket_e] for item in dataYear if item[index_bucket_e] is not None]
             try:
@@ -1041,8 +1041,8 @@ def rainAccumulation(dailyRain, rainAccum, device, apiData, config):
 
     # If console is initialising, calculate yesterday's rainfall from the
     # WeatherFlow API data
-    if rainAccum['yesterday'][0] is None:
-        if apiData[device]['yesterday'] is not None and verifyResponse(apiData[device]['yesterday'], 'obs'):
+    if apiData[device]['yesterday'] is not None:
+        if verifyResponse(apiData[device]['yesterday'], 'obs'):
             yesterdayData = apiData[device]['yesterday'].json()['obs']
             rainData = [item[index_bucket_a] for item in yesterdayData if item[index_bucket_a] is not None]
             try:
@@ -1070,8 +1070,8 @@ def rainAccumulation(dailyRain, rainAccum, device, apiData, config):
 
     # Else if console is initialising, calculate total monthly rainfall from
     # the WeatherFlow API data
-    elif rainAccum['month'][0] is None:
-        if apiData[device]['month'] is not None and verifyResponse(apiData[device]['month'], 'obs'):
+    if apiData[device]['month'] is not None:
+        if verifyResponse(apiData[device]['month'], 'obs'):
             monthData = apiData[device]['month'].json()['obs']
             rainData = [item[index_bucket_e] for item in monthData if item[index_bucket_e] is not None]
             try:
@@ -1110,8 +1110,9 @@ def rainAccumulation(dailyRain, rainAccum, device, apiData, config):
 
     # Else if console is initialising, calculate total yearly rainfall from the
     # WeatherFlow API data
-    elif rainAccum['year'][0] is None:
-        if apiData[device]['year'] is not None and verifyResponse(apiData[device]['year'], 'obs'):
+    #elif rainAccum['year'][0] is None:
+    if apiData[device]['year'] is not None:
+        if verifyResponse(apiData[device]['year'], 'obs'):
             yearData = apiData[device]['year'].json()['obs']
             rainData = [item[index_bucket_e] for item in yearData if item[index_bucket_e] is not None]
             try:
@@ -1181,8 +1182,8 @@ def avgWindSpeed(windSpd, avgWind, device, apiData, config):
 
     # If console is initialising, download all data for current day using
     # Weatherflow API and calculate daily averaged windspeed
-    if avgWind[0] is None:
-        if apiData[device]['today'] is not None and verifyResponse(apiData[device]['today'], 'obs'):
+    if apiData[device]['today'] is not None:
+        if verifyResponse(apiData[device]['today'], 'obs'):
             todayData = apiData[device]['today'].json()['obs']
             windSpd = [item[index_bucket_a] for item in todayData if item[index_bucket_a] is not None]
             try:
@@ -1243,8 +1244,8 @@ def maxWindGust(windGust, maxGust, device, apiData, config):
 
     # If console is initialising, download all data for current day using
     # Weatherflow API and calculate daily maximum wind gust
-    if maxGust[0] is None:
-        if apiData[device]['today'] is not None and verifyResponse(apiData[device]['today'], 'obs'):
+    if apiData[device]['today'] is not None:
+        if verifyResponse(apiData[device]['today'], 'obs'):
             todayData = apiData[device]['today'].json()['obs']
             windGust = [item[index_bucket_a] for item in todayData if item[index_bucket_a] is not None]
             try:
@@ -1289,8 +1290,6 @@ def cardinalWindDir(windDir, windSpd=[1, 'mps']):
     # Return None if required variables are missing
     errorOutput = [windDir[0], windDir[1], '-', '-']
     if windDir[0] is None and windSpd[0] != 0.0:
-        print('windDir is: ', windDir[0])
-        print('windSpd is: ', windSpd[0])
         Logger.warning(f'cardWindDir: {system.logTime()} - windDir is None')
         return errorOutput
     elif windSpd[0] is None:
@@ -1439,8 +1438,8 @@ def peakSunHours(radiation, peakSun, device, apiData, config):
 
     # If console is initialising, download all data for current day using
     # Weatherflow API and calculate Peak Sun Hours
-    if peakSun[0] is None:
-        if apiData[device]['today'] is not None and verifyResponse(apiData[device]['today'], 'obs'):
+    if apiData[device]['today'] is not None:
+        if verifyResponse(apiData[device]['today'], 'obs'):
             dataToday = apiData[device]['today'].json()['obs']
             radiation = [item[index_bucket_a] for item in dataToday if item[index_bucket_a] is not None]
             try:
