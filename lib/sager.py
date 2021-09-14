@@ -41,7 +41,7 @@ def CircularMean(angles):
     r = np.nanmean(np.exp(1j*angles))
     return np.angle(r, deg=True) % 360
 
-def Generate(sagerDict,Config):
+def Generate(sagerDict, Config):
 
     ''' Generates the Sager Weathercaster forecast based on the current weather
     conditions and the trend in conditions over the previous 6 hours
@@ -64,7 +64,7 @@ def Generate(sagerDict,Config):
     # Define required station variables for the Sager Weathercaster Forecast
     sagerDict['Lat'] = float(Config['Station']['Latitude'])
     sagerDict['Units'] = Config['Units']['Wind']
-    
+
     # Get device ID
     if Config['Station']['TempestID']:
         device = Config['Station']['TempestID']
@@ -228,21 +228,40 @@ def Generate(sagerDict,Config):
 
     # SCHEDULE GENERATION OF NEXT SAGER WEATHERCASTER FORECAST
     # --------------------------------------------------------------------------
-    Now = datetime.now(pytz.utc).astimezone(Tz)
-    if Now.hour < 6:
-        Date = Now.date()
-        Time = time(6,0,0)
-        forecastTime = Tz.localize(datetime.combine(Date,Time))
-    elif Now.hour < 18:
-        Date = Now.date()
-        Time = time(18,0,0)
-        forecastTime = Tz.localize(datetime.combine(Date,Time))
-    else:
-        Date = Now.date() + timedelta(days=1)
-        Time = time(6,0,0)
-        forecastTime = Tz.localize(datetime.combine(Date,Time))
-    secondsSched = math.ceil((forecastTime - funcCalled).total_seconds())
-    Clock.schedule_once(lambda dt: Generate(sagerDict,Config), secondsSched)
+    interval = 3
+    Now      = datetime.now(pytz.utc).astimezone(Tz).replace(minute=0, second=0, microsecond=0)
+    timeList = [Now + timedelta(hours = hour) for hour in range(1, 25)]
+    hourList = [time.hour for time in timeList]
+    genrList = [hour % interval for hour in hourList]
+    foreTime = timeList[genrList.index(0)]
+
+    #print(Now)
+    #print(timeList)
+    #print(hourList)
+    #print(genrList)
+    #print(genrList.index(0))
+    #print(timeList[genrList.index(0)])
+
+
+    #Now = datetime.now(pytz.utc).astimezone(Tz)
+    #if Now.hour < 6:
+    #    Date = Now.date()
+    #    Time = time(6,0,0)
+    #    forecastTime = Tz.localize(datetime.combine(Date,Time))
+    #elif Now.hour < 18:
+    #    Date = Now.date()
+    #    Time = time(18,0,0)
+    #    forecastTime = Tz.localize(datetime.combine(Date,Time))
+    #else:
+    #    Date = Now.date() + timedelta(days=1)
+    #    Time = time(6,0,0)
+    #    forecastTime = Tz.localize(datetime.combine(Date,Time))
+
+    secondsSched = math.ceil((foreTime - funcCalled).total_seconds())
+    Clock.schedule_once(lambda dt: Generate(sagerDict, Config), secondsSched)
+
+    print('Next sager time:', foreTime)
+    print('That is', secondsSched, 'seconds away')
 
     # Return Sager Weathercaster forecast
     return sagerDict
