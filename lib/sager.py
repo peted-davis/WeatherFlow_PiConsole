@@ -71,7 +71,7 @@ def Schedule(sagerDict, overide, app):
     else:
         secondsSched    = math.ceil((foreTime - app.Sched.sagerFuncCalled).total_seconds())
         print('Sager scheduled:', foreTime)
-    app.Sched.sager = Clock.schedule_once(lambda dt: Generate(sagerDict, app.config), secondsSched)
+    app.Sched.sager = Clock.schedule_once(lambda dt: Generate(sagerDict, app), secondsSched)
 
 
 def Generate(sagerDict, app):
