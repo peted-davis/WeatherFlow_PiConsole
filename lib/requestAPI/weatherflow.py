@@ -16,6 +16,7 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 """
 
 # Import required modules
+from kivy.logger import Logger
 from datetime    import datetime, timedelta
 from lib         import system
 import requests
