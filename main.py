@@ -79,10 +79,10 @@ if config['System']['Hardware'] in ['Pi4', 'Linux', 'Other']:
         kivyconfig.set('graphics', 'fullscreen', '0')
         kivyconfig.set('graphics', 'width',  config['Display']['Width'])
         kivyconfig.set('graphics', 'height', config['Display']['Height'])
-    if not int(config['Display']['Border']):
-        kivyconfig.set('graphics', 'borderless', '1')
-    else:
+    if int(config['Display']['Border']):
         kivyconfig.set('graphics', 'borderless', '0')
+    else:
+        kivyconfig.set('graphics', 'borderless', '1')
 
 # ==============================================================================
 # INITIALISE MOUSE SUPPORT IF OPTION SET in wfpiconsole.ini
@@ -93,10 +93,10 @@ if config['System']['Hardware'] in ['PiB','Pi3']:
         kivyconfig.set('modules','cursor','1')
 
 # Initialise mouse support if required
-if not int(config['Display']['Cursor']):
-    kivyconfig.set('graphics', 'show_cursor', '0')
-else:
+if int(config['Display']['Cursor']):
     kivyconfig.set('graphics', 'show_cursor', '1')
+else:
+    kivyconfig.set('graphics', 'show_cursor', '0')
 
 # Save wfpiconsole Kivy configuration file
 kivyconfig.write()
@@ -244,6 +244,7 @@ class wfpiconsole(App):
         settings.register_type('ScrollOptions',     SettingScrollOptions)
         settings.register_type('FixedOptions',      SettingFixedOptions)
         settings.register_type('ToggleTemperature', SettingToggleTemperature)
+        settings.register_type('ToggleHours',       SettingToggleHours)
         settings.register_type('TextScale',         SettingTextScale)
 
         # Add required panels to setting screen. Remove Kivy settings panel
@@ -252,6 +253,7 @@ class wfpiconsole(App):
         settings.add_json_panel('Secondary Panels', self.config, data=settingScreens.JSON('Secondary'))
         settings.add_json_panel('Units',            self.config, data=settingScreens.JSON('Units'))
         settings.add_json_panel('Feels Like',       self.config, data=settingScreens.JSON('FeelsLike'))
+        settings.add_json_panel('System',           self.config, data=settingScreens.JSON('System'))
         self.use_kivy_settings = False
         self.settings = settings
 
@@ -356,11 +358,15 @@ class wfpiconsole(App):
                                     item.value = ''
                                     break
 
+        # Update Sager Forecast schedule
+        if section == 'System' and key == 'SagerInterval':
+            sagerForecast.Schedule(self.CurrentConditions.Sager, True, self)
+
         # Send configuration changed notification to Websocket service
         Retries = 0
         while Retries < 3:
             try:
-                self.oscCLIENT.send_message(b'/config', [('1').encode('utf8')])
+                self.oscCLIENT.send_message(b'/websocket', [('reload_config').encode('utf8')])
                 break
             except Exception:
                 Retries += 1
@@ -368,9 +374,7 @@ class wfpiconsole(App):
     # START WEBSOCKET SERVICE
     # --------------------------------------------------------------------------
     def startWebsocketService(self, *largs):
-        self._websocket_is_running = True
         self.websocket = threading.Thread(target=websocketClient,
-                                          args=(lambda: self._websocket_is_running, ),
                                           daemon=True,
                                           name='Websocket')
         self.websocket.start()
@@ -392,6 +396,7 @@ class wfpiconsole(App):
         except Exception:
             pass
         system.updateDisplay(type, message, self)
+
 
 # ==============================================================================
 # CurrentConditions SCREEN CLASS
@@ -434,7 +439,7 @@ class CurrentConditions(Screen):
         app.Sched.metDownload = Clock.schedule_once(partial(forecast.startDownload, app, False))
 
         # Generate Sager Weathercaster forecast
-        threading.Thread(target=sagerForecast.Generate, args=(self.Sager,app.config), name="Sager", daemon=True).start()
+        threading.Thread(target=sagerForecast.Generate, args=(self.Sager, app), name="Sager", daemon=True).start()
 
     # ADD USER SELECTED PANELS TO CURRENT CONDITIONS SCREEN
     # --------------------------------------------------------------------------
@@ -1159,17 +1164,57 @@ class mainMenu(ModalView):
 
 
     def switchStations(self):
-
         self.dismiss(animation=False)
-        self.app.stopWebsocketService()
-        self.app.Sched.deviceStatus.cancel()
-        del(self.app.Station)
+        # Retries = 0
+        # while Retries < 3:
+        #     try:
+        #         self.app.oscCLIENT.send_message(b'/websocket', [('listen_stop').encode('utf8')])
+        #         break
+        #     except Exception:
+        #         Retries += 1
+        #
+        #
+        #
+        # config.switch(self.stationMetaData, self.deviceList, self.app.config)
+        #
+        # Retries = 0
+        # while Retries < 3:
+        #     try:
+        #         self.app.oscCLIENT.send_message(b'/websocket', [('reload_config').encode('utf8')])
+        #         break
+        #     except Exception:
+        #         Retries += 1
+
+
+
+        Retries = 0
+        while Retries < 3:
+            try:
+                self.app.oscCLIENT.send_message(b'/websocket', [('switch_device').encode('utf8'),
+                                                                json.dumps(self.stationMetaData).encode('utf8'),
+                                                                json.dumps(self.deviceList).encode('utf8')])
+                break
+            except Exception:
+                Retries += 1
+
+
+
+        #self.app.stopWebsocketService()
+        #self.app.Sched.deviceStatus.cancel()
+        #del(self.app.Station)
 
 
         config.switch(self.stationMetaData, self.deviceList, self.app.config)
-        self.app.startWebsocketService()
-        self.app.Station = station.Station(self.app)
-        self.app.Sched.deviceStatus = Clock.schedule_interval(self.app.Station.get_deviceStatus, 1.0)
+        #self.app.CurrentConditions.Obs = properties.Obs()
+
+        #print(dict(properties.Obs()))
+        #print()
+        #print(self.app.CurrentConditions.Obs)
+        system.updateDisplay('obs_all', dict(properties.Obs()), self.app)
+
+        #self.app.startWebsocketService()
+        #self.app.Station = station.Station(self.app)
+        #self.app.Sched.deviceStatus = Clock.schedule_interval(self.app.Station.get_deviceStatus, 1.0)
 
 
 
@@ -1328,7 +1373,7 @@ class SettingToggleTemperature(SettingString):
 
         # Get temperature units from config file
         config = App.get_running_app().config
-        Units = '[sup]o[/sup]' + config['Units']['Temp'].upper()
+        self.units = '[sup]o[/sup]' + config['Units']['Temp'].upper()
 
         # Create Popup layout
         content     = BoxLayout(orientation='vertical', spacing=dp(5))
@@ -1341,7 +1386,7 @@ class SettingToggleTemperature(SettingString):
         content.add_widget(SettingSpacer())
 
         # Create the label to show the numeric value
-        self.Label = Label(text=self.value + Units,
+        self.Label = Label(text=self.value + self.units,
                            markup=True,
                            font_size=sp(24),
                            size_hint_y=None,
@@ -1375,28 +1420,83 @@ class SettingToggleTemperature(SettingString):
         self.popup.open()
 
     def _set_value(self, instance):
-        if '[sup]o[/sup]C' in self.Label.text:
-            Units = '[sup]o[/sup]C'
-        else:
-            Units = '[sup]o[/sup]F'
-        self.value = self.Label.text.replace(Units, '')
+        self.value = self.Label.text.replace(self.units, '')
         self.popup.dismiss()
 
     def _minus_value(self, instance):
-        if '[sup]o[/sup]C' in self.Label.text:
-            Units = '[sup]o[/sup]C'
-        else:
-            Units = '[sup]o[/sup]F'
-        Value = int(self.Label.text.replace(Units, '')) - 1
-        self.Label.text = str(Value) + Units
+        Value = int(self.Label.text.replace(self.units, '')) - 1
+        self.Label.text = str(Value) + self.units
 
     def _plus_value(self, instance):
-        if '[sup]o[/sup]C' in self.Label.text:
-            Units = '[sup]o[/sup]C'
-        else:
-            Units = '[sup]o[/sup]F'
-        Value = int(self.Label.text.replace(Units, '')) + 1
-        self.Label.text = str(Value) + Units
+        Value = int(self.Label.text.replace(self.units, '')) + 1
+        self.Label.text = str(Value) + self.units
+
+# =============================================================================
+# SettingToggleHours SETTINGS CLASS
+# =============================================================================
+class SettingToggleHours(SettingString):
+
+    def _create_popup(self, instance):
+
+        # Get temperature units from config file
+        config = App.get_running_app().config
+        self.units = ' hours'
+
+        # Create Popup layout
+        content     = BoxLayout(orientation='vertical', spacing=dp(5))
+        self.popup  = Popup(content=content,
+                            title=self.title,
+                            size_hint=(0.25, None),
+                            auto_dismiss=False,
+                            separator_color=[1, 1, 1, 0],
+                            height=dp(234))
+        content.add_widget(SettingSpacer())
+
+        # Create the label to show the numeric value
+        self.Label = Label(text=self.value + self.units,
+                           markup=True,
+                           font_size=sp(24),
+                           size_hint_y=None,
+                           height=dp(50),
+                           halign='left')
+        content.add_widget(self.Label)
+
+        # Add a plus and minus increment button to change the value by +/- one
+        btnlayout = BoxLayout(size_hint_y=None, height=dp(50), spacing=dp(50))
+        btn = Button(text='-')
+        btn.bind(on_press=self._minus_value)
+        btnlayout.add_widget(btn)
+        btn = Button(text='+')
+        btn.bind(on_press=self._plus_value)
+        btnlayout.add_widget(btn)
+        content.add_widget(btnlayout)
+        content.add_widget(SettingSpacer())
+
+        # Add an OK button to set the value, and a cancel button to return to
+        # the previous panel
+        btnlayout = BoxLayout(size_hint_y=None, height=dp(50), spacing=dp(5))
+        btn = Button(text='Ok')
+        btn.bind(on_release=self._set_value)
+        btnlayout.add_widget(btn)
+        btn = Button(text='Cancel')
+        btn.bind(on_release=self.popup.dismiss)
+        btnlayout.add_widget(btn)
+        content.add_widget(btnlayout)
+
+        # Open the popup
+        self.popup.open()
+
+    def _set_value(self, instance):
+        self.value = self.Label.text.replace(self.units, '')
+        self.popup.dismiss()
+
+    def _minus_value(self, instance):
+        Value = int(self.Label.text.replace(self.units, '')) - 1
+        self.Label.text = str(Value) + self.units
+
+    def _plus_value(self, instance):
+        Value = int(self.Label.text.replace(self.units, '')) + 1
+        self.Label.text = str(Value) + self.units
 
 
 # ==============================================================================
