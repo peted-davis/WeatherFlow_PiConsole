@@ -1,5 +1,5 @@
-""" Define custom user panels for the Raspberry Pi Python console for
-WeatherFlow Tempest and Smart Home Weather stations.
+""" Define the custom user panel template for the Raspberry Pi Python console
+for WeatherFlow Tempest and Smart Home Weather stations.
 Copyright (C) 2018-2020 Peter Davis
 
 This program is free software: you can redistribute it and/or modify it under
