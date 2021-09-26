@@ -121,8 +121,8 @@ from kivy.app                import App
 # IMPORT REQUIRED LIBRARY MODULES
 # ==============================================================================
 from lib import astronomical      as astro
+from lib import settings          as userSettings
 from lib import sager             as sagerForecast
-from lib import settingScreens
 from lib import properties
 from lib import forecast
 from lib import station
@@ -241,19 +241,19 @@ class wfpiconsole(App):
     def build_settings(self, settings):
 
         # Register setting types
-        settings.register_type('ScrollOptions',     SettingScrollOptions)
-        settings.register_type('FixedOptions',      SettingFixedOptions)
-        settings.register_type('ToggleTemperature', SettingToggleTemperature)
-        settings.register_type('ToggleHours',       SettingToggleHours)
-        settings.register_type('TextScale',         SettingTextScale)
+        settings.register_type('ScrollOptions',     userSettings.ScrollOptions)
+        settings.register_type('FixedOptions',      userSettings.FixedOptions)
+        settings.register_type('ToggleTemperature', userSettings.ToggleTemperature)
+        settings.register_type('ToggleHours',       userSettings.ToggleHours)
+        settings.register_type('TextScale',         userSettings.TextScale)
 
         # Add required panels to setting screen. Remove Kivy settings panel
-        settings.add_json_panel('Display',          self.config, data=settingScreens.JSON('Display'))
-        settings.add_json_panel('Primary Panels',   self.config, data=settingScreens.JSON('Primary'))
-        settings.add_json_panel('Secondary Panels', self.config, data=settingScreens.JSON('Secondary'))
-        settings.add_json_panel('Units',            self.config, data=settingScreens.JSON('Units'))
-        settings.add_json_panel('Feels Like',       self.config, data=settingScreens.JSON('FeelsLike'))
-        settings.add_json_panel('System',           self.config, data=settingScreens.JSON('System'))
+        settings.add_json_panel('Display',          self.config, data=userSettings.JSON('Display'))
+        settings.add_json_panel('Primary Panels',   self.config, data=userSettings.JSON('Primary'))
+        settings.add_json_panel('Secondary Panels', self.config, data=userSettings.JSON('Secondary'))
+        settings.add_json_panel('Units',            self.config, data=userSettings.JSON('Units'))
+        settings.add_json_panel('Feels Like',       self.config, data=userSettings.JSON('FeelsLike'))
+        settings.add_json_panel('System',           self.config, data=userSettings.JSON('System'))
         self.use_kivy_settings = False
         self.settings = settings
 
@@ -310,7 +310,7 @@ class wfpiconsole(App):
                 for panel in panels.values():
                     if panel.title == 'Feels Like':
                         for item in panel.children:
-                            if isinstance(item, Factory.SettingToggleTemperature):
+                            if isinstance(item, Factory.ToggleTemperature):
                                 if item.title.replace(' ', '') == Field:
                                     item.value = self.config['FeelsLike'][Field]
 
@@ -1216,10 +1216,6 @@ class mainMenu(ModalView):
         #self.app.Station = station.Station(self.app)
         #self.app.Sched.deviceStatus = Clock.schedule_interval(self.app.Station.get_deviceStatus, 1.0)
 
-
-
-
-
     # Exit console and shutdown system
     def shutdownSystem(self):
         global SHUTDOWN
@@ -1236,267 +1232,6 @@ class mainMenu(ModalView):
     def on_dismiss(self):
         self.ids.devicePanel.clear_widgets()
 
-
-# =============================================================================
-# SettingScrollOptions SETTINGS CLASS
-# =============================================================================
-class SettingScrollOptions(SettingOptions):
-
-    def _create_popup(self, instance):
-
-        # Create the popup and scrollview
-        content         = BoxLayout(orientation='vertical', spacing='5dp')
-        scrollview      = ScrollView(do_scroll_x=False, bar_inactive_color=[.7, .7, .7, 0.9], bar_width=4)
-        scrollcontent   = GridLayout(cols=1, spacing='5dp', size_hint=(0.95, None))
-        self.popup      = Popup(content=content,
-                                title=self.title,
-                                size_hint=(0.25, 0.8),
-                                auto_dismiss=False,
-                                separator_color=[1, 1, 1, 1])
-
-        # Add all the options to the ScrollView
-        scrollcontent.bind(minimum_height=scrollcontent.setter('height'))
-        content.add_widget(Widget(size_hint_y=None, height=dp(1)))
-        uid = str(self.uid)
-        for option in self.options:
-            state = 'down' if option == self.value else 'normal'
-            btn = ToggleButton(text=option,
-                               state=state,
-                               group=uid,
-                               height=dp(58),
-                               size_hint=(0.9, None))
-            btn.bind(on_release=self._set_option)
-            scrollcontent.add_widget(btn)
-
-        # Finally, add a cancel button to return on the previous panel
-        scrollview.add_widget(scrollcontent)
-        content.add_widget(scrollview)
-        content.add_widget(SettingSpacer())
-        btn = Button(text='Cancel',
-                     height=dp(58),
-                     size_hint=(1, None))
-        btn.bind(on_release=self.popup.dismiss)
-        content.add_widget(btn)
-        self.popup.open()
-
-
-# =============================================================================
-# SettingFixedOptions SETTINGS CLASS
-# =============================================================================
-class SettingFixedOptions(SettingOptions):
-
-    def _create_popup(self, instance):
-
-        # Create the popup
-        content     = BoxLayout(orientation='vertical', spacing='5dp')
-        self.popup  = Popup(content=content,
-                            title=self.title,
-                            size_hint=(0.25, None),
-                            auto_dismiss=False,
-                            separator_color=[1, 1, 1, 1],
-                            height=dp(134) + dp(min(len(self.options), 4) * 63))
-
-        # Add all the options to the Popup
-        content.add_widget(Widget(size_hint_y=None, height=dp(1)))
-        uid = str(self.uid)
-        for option in self.options:
-            state = 'down' if option == self.value else 'normal'
-            btn = ToggleButton(text=option,
-                               state=state,
-                               group=uid,
-                               height=dp(58),
-                               size_hint=(1, None))
-            btn.bind(on_release=self._set_option)
-            content.add_widget(btn)
-
-        # Add a cancel button to return on the previous panel
-        content.add_widget(SettingSpacer())
-        btn = Button(text='Cancel',
-                     height=dp(58),
-                     size_hint=(1, None))
-        btn.bind(on_release=self.popup.dismiss)
-        content.add_widget(btn)
-        self.popup.open()
-
-
-# =============================================================================
-# SettingFixedOptions SETTINGS CLASS
-# =============================================================================
-class SettingTextScale(SettingString):
-
-    def _create_popup(self, instance):
-
-        # Create Popup layout
-        content     = BoxLayout(orientation='vertical', spacing=dp(5))
-        self.popup  = Popup(content=content,
-                            title=self.title,
-                            size_hint=(0.6, None),
-                            auto_dismiss=False,
-                            separator_color=[1, 1, 1, 0.3],
-                            height=dp(150))
-
-        # Add toggle buttons to change the text scale
-        self.toggles = BoxLayout()
-        text  = ['Smallest', 'Smaller', 'Normal', 'Larger', 'Largest']
-        scale = [0.50, 0.75, 1.00, 1.25, 1.50]
-        display = [0.70, 0.85, 1.00, 1.15, 1.30]
-        for index, value in enumerate(text):
-            self.toggles.add_widget(TextScaleLabel(text=value,
-                                                   font_size=sp(18 * display[index]),
-                                                   on_press=self._set_value,
-                                                   _scale=scale[index],
-                                                   on_release=self.popup.dismiss))
-        content.add_widget(BoxLayout(size_hint_y=0.05))
-        content.add_widget(self.toggles)
-
-        # Add cancel button
-        self.closeButton = BoxLayout(padding=[dp(150), dp(0)])
-        btn = Button(text='Cancel', font_size=sp(18))
-        btn.bind(on_release=self.popup.dismiss)
-        self.closeButton.add_widget(btn)
-        content.add_widget(SettingSpacer())
-        content.add_widget(self.closeButton)
-
-        # Open the popup
-        self.popup.open()
-
-    def _set_value(self, instance):
-        self.value = str(instance._scale)
-
-
-# =============================================================================
-# SettingToggleTemperature SETTINGS CLASS
-# =============================================================================
-class SettingToggleTemperature(SettingString):
-
-    def _create_popup(self, instance):
-
-        # Get temperature units from config file
-        config = App.get_running_app().config
-        self.units = '[sup]o[/sup]' + config['Units']['Temp'].upper()
-
-        # Create Popup layout
-        content     = BoxLayout(orientation='vertical', spacing=dp(5))
-        self.popup  = Popup(content=content,
-                            title=self.title,
-                            size_hint=(0.25, None),
-                            auto_dismiss=False,
-                            separator_color=[1, 1, 1, 0],
-                            height=dp(234))
-        content.add_widget(SettingSpacer())
-
-        # Create the label to show the numeric value
-        self.Label = Label(text=self.value + self.units,
-                           markup=True,
-                           font_size=sp(24),
-                           size_hint_y=None,
-                           height=dp(50),
-                           halign='left')
-        content.add_widget(self.Label)
-
-        # Add a plus and minus increment button to change the value by +/- one
-        btnlayout = BoxLayout(size_hint_y=None, height=dp(50), spacing=dp(50))
-        btn = Button(text='-')
-        btn.bind(on_press=self._minus_value)
-        btnlayout.add_widget(btn)
-        btn = Button(text='+')
-        btn.bind(on_press=self._plus_value)
-        btnlayout.add_widget(btn)
-        content.add_widget(btnlayout)
-        content.add_widget(SettingSpacer())
-
-        # Add an OK button to set the value, and a cancel button to return to
-        # the previous panel
-        btnlayout = BoxLayout(size_hint_y=None, height=dp(50), spacing=dp(5))
-        btn = Button(text='Ok')
-        btn.bind(on_release=self._set_value)
-        btnlayout.add_widget(btn)
-        btn = Button(text='Cancel')
-        btn.bind(on_release=self.popup.dismiss)
-        btnlayout.add_widget(btn)
-        content.add_widget(btnlayout)
-
-        # Open the popup
-        self.popup.open()
-
-    def _set_value(self, instance):
-        self.value = self.Label.text.replace(self.units, '')
-        self.popup.dismiss()
-
-    def _minus_value(self, instance):
-        Value = int(self.Label.text.replace(self.units, '')) - 1
-        self.Label.text = str(Value) + self.units
-
-    def _plus_value(self, instance):
-        Value = int(self.Label.text.replace(self.units, '')) + 1
-        self.Label.text = str(Value) + self.units
-
-# =============================================================================
-# SettingToggleHours SETTINGS CLASS
-# =============================================================================
-class SettingToggleHours(SettingString):
-
-    def _create_popup(self, instance):
-
-        # Get temperature units from config file
-        config = App.get_running_app().config
-        self.units = ' hours'
-
-        # Create Popup layout
-        content     = BoxLayout(orientation='vertical', spacing=dp(5))
-        self.popup  = Popup(content=content,
-                            title=self.title,
-                            size_hint=(0.25, None),
-                            auto_dismiss=False,
-                            separator_color=[1, 1, 1, 0],
-                            height=dp(234))
-        content.add_widget(SettingSpacer())
-
-        # Create the label to show the numeric value
-        self.Label = Label(text=self.value + self.units,
-                           markup=True,
-                           font_size=sp(24),
-                           size_hint_y=None,
-                           height=dp(50),
-                           halign='left')
-        content.add_widget(self.Label)
-
-        # Add a plus and minus increment button to change the value by +/- one
-        btnlayout = BoxLayout(size_hint_y=None, height=dp(50), spacing=dp(50))
-        btn = Button(text='-')
-        btn.bind(on_press=self._minus_value)
-        btnlayout.add_widget(btn)
-        btn = Button(text='+')
-        btn.bind(on_press=self._plus_value)
-        btnlayout.add_widget(btn)
-        content.add_widget(btnlayout)
-        content.add_widget(SettingSpacer())
-
-        # Add an OK button to set the value, and a cancel button to return to
-        # the previous panel
-        btnlayout = BoxLayout(size_hint_y=None, height=dp(50), spacing=dp(5))
-        btn = Button(text='Ok')
-        btn.bind(on_release=self._set_value)
-        btnlayout.add_widget(btn)
-        btn = Button(text='Cancel')
-        btn.bind(on_release=self.popup.dismiss)
-        btnlayout.add_widget(btn)
-        content.add_widget(btnlayout)
-
-        # Open the popup
-        self.popup.open()
-
-    def _set_value(self, instance):
-        self.value = self.Label.text.replace(self.units, '')
-        self.popup.dismiss()
-
-    def _minus_value(self, instance):
-        Value = int(self.Label.text.replace(self.units, '')) - 1
-        self.Label.text = str(Value) + self.units
-
-    def _plus_value(self, instance):
-        Value = int(self.Label.text.replace(self.units, '')) + 1
-        self.Label.text = str(Value) + self.units
 
 
 # ==============================================================================

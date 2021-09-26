@@ -234,7 +234,6 @@ def SLPTrend(pressure, obTime, device, apiData, config):
             Logger.warning(f'SLPTrend: {system.logTime()} - {Error}')
             return errorOutput
     else:
-        Logger.warning(f'SLPTrend: {system.logTime()} - API call failed')
         return errorOutput
 
     # Convert station pressure into sea level pressure
@@ -335,10 +334,9 @@ def SLPMax(pressure, obTime, maxPres, device, apiData, config):
                 maxPres   = [max(SLP)[0], 'mb', obTime[SLP.index(max(SLP))], 's', max(SLP)[0], obTime[SLP.index(max(SLP))]]
             except Exception as Error:
                 Logger.warning(f'SLPMax: {system.logTime()} - {Error}')
-                return errorOutput
+                maxPres = errorOutput
         else:
-            Logger.warning(f'SLPMax: {system.logTime()} - API call failed')
-            return errorOutput
+            maxPres = errorOutput
 
     # Else if midnight has passed, reset maximum pressure
     elif Now.date() > datetime.fromtimestamp(maxPres[5], Tz).date():
@@ -407,10 +405,9 @@ def SLPMin(pressure, obTime, minPres, device, apiData, config):
                 minPres   = [min(SLP)[0], 'mb', obTime[SLP.index(min(SLP))], 's', min(SLP)[0], obTime[SLP.index(min(SLP))]]
             except Exception as Error:
                 Logger.warning(f'SLPMin: {system.logTime()} - {Error}')
-                return errorOutput
+                minPres = errorOutput
         else:
-            Logger.warning(f'SLPMin: {system.logTime()} - API call failed')
-            return errorOutput
+            minPres = errorOutput
 
     # Else if midnight has passed, reset maximum and minimum pressure
     elif Now.date() > datetime.fromtimestamp(minPres[5], Tz).date():
@@ -477,7 +474,6 @@ def tempDiff(outTemp, obTime, device, apiData, config):
             Logger.warning(f'tempDiff: {system.logTime()} - {Error}')
             return errorOutput
     else:
-        Logger.warning(f'tempDiff: {system.logTime()} - API call failed')
         return errorOutput
 
     # Calculate 24 hour temperature Difference
@@ -549,7 +545,6 @@ def tempTrend(outTemp, obTime, device, apiData, config):
             Logger.warning(f'tempTrend: {system.logTime()} - {Error}')
             return errorOutput
     else:
-        Logger.warning(f'tempTrend: {system.logTime()} - API call failed')
         return errorOutput
 
     # Calculate three hour temperature trend
@@ -619,10 +614,9 @@ def tempMax(Temp, obTime, maxTemp, device, apiData, config):
                 maxTemp = [max(apiTemp), 'c', apiTime[apiTemp.index(max(apiTemp))], 's', max(apiTemp), apiTime[apiTemp.index(max(apiTemp))]]
             except Exception as Error:
                 Logger.warning(f'tempMax: {system.logTime()} - {Error}')
-                return errorOutput
+                maxTemp = errorOutput
         else:
-            Logger.warning(f'tempMax: {system.logTime()} - API call failed')
-            return errorOutput
+            maxTemp = errorOutput
 
     # Else if midnight has passed, reset maximum temperature
     elif Now.date() > datetime.fromtimestamp(maxTemp[5], Tz).date():
@@ -689,10 +683,9 @@ def tempMin(Temp, obTime, minTemp, device, apiData, config):
                 minTemp = [min(apiTemp), 'c', apiTime[apiTemp.index(min(apiTemp))], 's', min(apiTemp), apiTime[apiTemp.index(min(apiTemp))]]
             except Exception as Error:
                 Logger.warning(f'tempMin: {system.logTime()} - {Error}')
-                return errorOutput
+                minTemp = errorOutput
         else:
-            Logger.warning(f'tempMin: {system.logTime()} - API call failed')
-            return errorOutput
+            minTemp = errorOutput
 
     # Else if midnight has passed, reset minimum temperature
     elif Now.date() > datetime.fromtimestamp(minTemp[5], Tz).date():
@@ -780,7 +773,6 @@ def strikeFrequency(obTime, device, apiData, config):
             Logger.warning(f'strikeFreq: {system.logTime()} - {Error}')
             count3h = None
     else:
-        Logger.warning(f'strikeFreq: {system.logTime()} - API call failed')
         count3h = None
 
     # Calculate average strike frequency over the last three hours
@@ -808,7 +800,6 @@ def strikeFrequency(obTime, device, apiData, config):
             Logger.warning(f'strikeFreq: {system.logTime()} - {Error}')
             count10m = None
     else:
-        Logger.warning(f'strikeFreq: {system.logTime()} - API call failed')
         count10m = None
 
     # Calculate average strike frequency over the last 10 minutes
@@ -878,7 +869,6 @@ def strikeCount(count, strikeCount, device, apiData, config):
                 Logger.warning(f'strikeCount: {system.logTime()} - {Error}')
                 todayStrikes = errorOutput
         else:
-            Logger.warning(f'strikeCount: {system.logTime()} - API call failed')
             todayStrikes = errorOutput
 
     # Else if midnight has passed, reset daily lightning strike count to zero
@@ -906,7 +896,6 @@ def strikeCount(count, strikeCount, device, apiData, config):
                 Logger.warning(f'strikeCount: {system.logTime()} - {Error}')
                 monthStrikes = errorOutput
         else:
-            Logger.warning(f'strikeCount: {system.logTime()} - API call failed')
             monthStrikes = errorOutput
 
     # Else if the end of the month has passed, reset monthly lightning strike
@@ -935,7 +924,6 @@ def strikeCount(count, strikeCount, device, apiData, config):
                 Logger.warning(f'strikeCount: {system.logTime()} - {Error}')
                 yearStrikes = errorOutput
         else:
-            Logger.warning(f'strikeCount: {system.logTime()} - API call failed')
             yearStrikes = errorOutput
 
     # Else if the end of the year has passed, reset monthly and yearly lightning
@@ -1051,7 +1039,6 @@ def rainAccumulation(dailyRain, rainAccum, device, apiData, config):
                 Logger.warning(f'rainAccum: {system.logTime()} - {Error}')
                 yesterdayRain = errorOutput
         else:
-            Logger.warning(f'rainAccum: {system.logTime()} - API call failed')
             yesterdayRain = errorOutput
 
     # Else if midnight has passed, set yesterday rainfall accumulation equal to
@@ -1082,7 +1069,6 @@ def rainAccumulation(dailyRain, rainAccum, device, apiData, config):
                 Logger.warning(f'rainAccum: {system.logTime()} - {Error}')
                 monthRain = errorOutput
         else:
-            Logger.warning(f'rainAccum: {system.logTime()} - API call failed')
             monthRain = errorOutput
 
     # Else if the end of the month has passed, reset monthly rain accumulation
@@ -1123,7 +1109,6 @@ def rainAccumulation(dailyRain, rainAccum, device, apiData, config):
                 Logger.warning(f'rainAccum: {system.logTime()} - {Error}')
                 yearRain = errorOutput
         else:
-            Logger.warning(f'rainAccum: {system.logTime()} - API call failed')
             yearRain = errorOutput
 
     # Else if the end of the year has passed, reset monthly and yearly rain
@@ -1191,10 +1176,9 @@ def avgWindSpeed(windSpd, avgWind, device, apiData, config):
                 windAvg = [average, 'mps', average, len(windSpd), time.time()]
             except Exception as Error:
                 Logger.warning(f'avgSpeed: {system.logTime()} - {Error}')
-                return errorOutput
+                windAvg = errorOutput
         else:
-            Logger.warning(f'avgSpeed: {system.logTime()} - API call failed')
-            return errorOutput
+            windAvg = errorOutput
 
     # Else if midnight has passed, reset daily averaged wind speed
     elif Now.date() > datetime.fromtimestamp(avgWind[4], Tz).date():
@@ -1252,10 +1236,9 @@ def maxWindGust(windGust, maxGust, device, apiData, config):
                 maxGust  = [max(x for x in windGust), 'mps', max(x for x in windGust), time.time()]
             except Exception as Error:
                 Logger.warning(f'maxGust: {system.logTime()} - {Error}')
-                return errorOutput
+                maxGust = errorOutput
         else:
-            Logger.warning(f'maxGust: {system.logTime()} - API call failed')
-            return errorOutput
+            maxGust = errorOutput
 
     # Else if midnight has passed, reset maximum recorded wind gust
     elif Now.date() > datetime.fromtimestamp(maxGust[3], Tz).date():
@@ -1449,7 +1432,6 @@ def peakSunHours(radiation, peakSun, device, apiData, config):
                 Logger.warning(f'peakSun: {system.logTime()} - {Error}')
                 return errorOutput
         else:
-            Logger.warning(f'peakSun: {system.logTime()} - API call failed')
             return errorOutput
 
     # Else if midnight has passed, reset Peak Sun Hours

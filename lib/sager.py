@@ -65,12 +65,9 @@ def Schedule(sagerDict, overide, app):
     # Schedule next forecast time
     if overide:
         app.Sched.sager.cancel()
-        secondsSched    = math.ceil((foreTime - Now).total_seconds())
-        print('')
-        print('Sager rescheduled:', foreTime)
+        secondsSched = (foreTime - datetime.now(pytz.utc).astimezone(Tz)).total_seconds()
     else:
-        secondsSched    = math.ceil((foreTime - app.Sched.sagerFuncCalled).total_seconds())
-        print('Sager scheduled:', foreTime)
+        secondsSched = (foreTime - app.Sched.sagerFuncCalled).total_seconds()
     app.Sched.sager = Clock.schedule_once(lambda dt: Generate(sagerDict, app), secondsSched)
 
 
