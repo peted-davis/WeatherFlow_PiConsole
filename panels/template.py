@@ -1,6 +1,6 @@
-""" Define the custom user panel template for the Raspberry Pi Python console
-for WeatherFlow Tempest and Smart Home Weather stations.
-Copyright (C) 2018-2020 Peter Davis
+""" Define the panel template for the Raspberry Pi Python console for
+WeatherFlow Tempest and Smart Home Weather stations.
+Copyright (C) 2018-2021 Peter Davis
 
 This program is free software: you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
@@ -19,8 +19,9 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 from kivy.uix.relativelayout import RelativeLayout
 from kivy.app                import App
 
+
 # ==============================================================================
-# CUSTOM panelTemplate RELATIVE LAYOUT CLASS
+# panelTemplate CLASS
 # ==============================================================================
 class panelTemplate(RelativeLayout):
 

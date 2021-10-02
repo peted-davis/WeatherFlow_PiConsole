@@ -91,9 +91,6 @@ def Generate(sagerDict, app):
     Tz  = pytz.timezone(app.config['Station']['Timezone'])
     app.Sched.sagerFuncCalled = datetime.now(pytz.utc).astimezone(Tz)
 
-    print('')
-    print('Sager called:', app.Sched.sagerFuncCalled)
-
     # Define required station variables for the Sager Weathercaster Forecast
     sagerDict['Lat'] = float(app.config['Station']['Latitude'])
     sagerDict['Units'] = app.config['Units']['Wind']

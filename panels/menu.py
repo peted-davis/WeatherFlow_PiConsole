@@ -1,6 +1,6 @@
 """ Defines the mainMenu Panel required by the Raspberry Pi Python console for
 WeatherFlow Tempest and Smart Home Weather stations.
-Copyright (C) 2018-2020 Peter Davis
+Copyright (C) 2018-2021 Peter Davis
 
 This program is free software: you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
@@ -15,11 +15,13 @@ You should have received a copy of the GNU General Public License along with
 this program. If not, see <http://www.gnu.org/licenses/>.
 """
 
-# Load required modules
+# Load required Kivy modules
 from kivy.network.urlrequest import UrlRequest
 from kivy.uix.modalview      import ModalView
 from kivy.properties         import ListProperty, DictProperty
 from kivy.app                import App
+
+# Load required system modules
 import certifi
 
 # ==============================================================================
