@@ -796,6 +796,7 @@ def strikeFrequency(obTime, device, apiData, config):
                 count10m = [ob[index_bucket_a] for ob in data24hrs[dTime.index(min(dTime)):] if ob[index_bucket_a] is not None]
             else:
                 Logger.warning(f'strikeFreq: {system.logTime()} - no data in 10 minute window')
+                count10m = None
         except Exception as Error:
             Logger.warning(f'strikeFreq: {system.logTime()} - {Error}')
             count10m = None
