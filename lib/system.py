@@ -121,4 +121,8 @@ def updateDisplay(type, derivedObs, Console):
 
 def logTime():
 
+    """ Return current time in station timezone in correct format for console
+        log file
+    """
+
     return datetime.now().strftime('%Y-%m-%d %H:%M:%S')

@@ -18,7 +18,9 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 # Load required Kivy modules
 from kivy.network.urlrequest import UrlRequest
 from kivy.uix.modalview      import ModalView
-from kivy.properties         import ListProperty, DictProperty
+from kivy.uix.boxlayout      import BoxLayout
+from kivy.properties         import ListProperty, DictProperty, StringProperty
+from kivy.properties         import ObjectProperty
 from kivy.app                import App
 
 # Load required system modules
@@ -389,3 +391,38 @@ class mainMenu(ModalView):
    # Delete device status panel widgets when closing main menu
    def on_dismiss(self):
        self.ids.devicePanel.clear_widgets()
+
+
+
+# =============================================================================
+# DEFINE 'deviceStatusPanel' CLASS
+# =============================================================================
+class deviceStatusPanel(BoxLayout):
+
+    stationStatus = DictProperty([])
+    SampleTime    = StringProperty('-')
+    Station       = ObjectProperty()
+    Voltage       = StringProperty('-')
+    ObCount       = StringProperty('-')
+    Device        = StringProperty('-')
+    Status        = StringProperty('-')
+
+    def __init__(self, station, device_type, **kwargs):
+        super().__init__(**kwargs)
+        self.device_type = device_type
+        self.station = station
+        self.station.bind(Status=self.setter('stationStatus'))
+        self.bind(stationStatus=self.statusChange)
+
+        # Define device display name for status panel
+        if 'out' in self.device_type:
+            self.Device = 'AIR (outdoor)'
+        elif 'in' in self.device_type:
+            self.Device = 'AIR (indoor)'
+        else:
+            self.Device = self.device_type.upper()
+
+    def statusChange(self, _instance, newStatus):
+        for field, value in newStatus.items():
+            if self.device_type in field:
+                setattr(self, field.replace(self.device_type,''), value)

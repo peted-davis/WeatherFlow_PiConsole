@@ -1,5 +1,6 @@
-""" Defines the settings screen JSON object required by the Raspberry Pi Python
-console for WeatherFlow Tempest and Smart Home Weather stations.
+""" Defines the settings screen JSON object and custom settings types required
+by the Raspberry Pi Python console for WeatherFlow Tempest and Smart Home
+Weather stations.
 Copyright (C) 2018-2021 Peter Davis
 
 This program is free software: you can redistribute it and/or modify it under
@@ -250,6 +251,7 @@ class ToggleTemperature(SettingToggle):
 
     def _set_unit(self):
         self.units = '[sup]o[/sup]' + self.config['Units']['Temp'].upper()
+
 
 class ToggleHours(SettingToggle):
 

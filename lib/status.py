@@ -1,5 +1,5 @@
-""" Contains station functions required by the Raspberry Pi Python console for
-WeatherFlow Tempest and Smart Home Weather stations.
+""" Contains station status functions required by the Raspberry Pi Python
+console for WeatherFlow Tempest and Smart Home Weather stations.
 Copyright (C) 2018-2021 Peter Davis
 
 This program is free software: you can redistribute it and/or modify it under
@@ -18,10 +18,12 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 # Import required library modules
 from lib import properties
 
+# Import deviceStatus panel
+from panels.menu import deviceStatusPanel
+
 # Import required Python modules
 from kivy.network.urlrequest import UrlRequest
-from kivy.uix.boxlayout      import BoxLayout
-from kivy.properties         import DictProperty, StringProperty, ObjectProperty
+from kivy.properties         import DictProperty
 from kivy.uix.widget         import Widget
 from datetime                import datetime
 from kivy.app                import App
@@ -36,7 +38,7 @@ NaN = float('NaN')
 
 
 # =============================================================================
-# Station CLASS
+# Station STATUS CLASS
 # =============================================================================
 class Station(Widget):
 
@@ -280,37 +282,3 @@ class Station(Widget):
             self.Status['stationStatus'] = 'Online'
         else:
             self.Status['stationStatus'] = 'Error'
-
-
-# =============================================================================
-# DEFINE 'deviceStatusPanel' CLASS
-# =============================================================================
-class deviceStatusPanel(BoxLayout):
-
-    stationStatus = DictProperty([])
-    SampleTime = StringProperty('-')
-    Station = ObjectProperty()
-    Voltage =  StringProperty('-')
-    ObCount =  StringProperty('-')
-    Device = StringProperty('-')
-    Status = StringProperty('-')
-
-    def __init__(self, station, device_type, **kwargs):
-        super().__init__(**kwargs)
-        self.device_type = device_type
-        self.station = station
-        self.station.bind(Status=self.setter('stationStatus'))
-        self.bind(stationStatus=self.statusChange)
-
-        # Define device display name for status panel
-        if 'out' in self.device_type:
-            self.Device = 'AIR (outdoor)'
-        elif 'in' in self.device_type:
-            self.Device = 'AIR (indoor)'
-        else:
-            self.Device = self.device_type.upper()
-
-    def statusChange(self, _instance, newStatus):
-        for field, value in newStatus.items():
-            if self.device_type in field:
-                setattr(self, field.replace(self.device_type,''), value)

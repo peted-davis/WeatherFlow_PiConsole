@@ -120,7 +120,7 @@ from lib import settings          as userSettings
 from lib import sager             as sagerForecast
 from lib import properties
 from lib import forecast
-from lib import station
+from lib import status
 from lib import system
 from lib import config
 
@@ -411,7 +411,7 @@ class CurrentConditions(Screen):
         super(CurrentConditions, self).__init__(**kwargs)
         app = App.get_running_app()
         app.CurrentConditions = self
-        app.Station  = station.Station(app)
+        app.Station  = status.Station(app)
         self.Sager   = properties.Sager()
         self.Astro   = properties.Astro()
         self.Met     = properties.Met()
