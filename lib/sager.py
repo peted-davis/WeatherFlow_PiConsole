@@ -111,7 +111,7 @@ def Generate(sagerDict, app):
         if not Obs:
             sagerDict['Forecast'] = '[color=f05e40ff]ERROR:[/color] Missing TEMPEST data. Forecast will be regenerated in 60 minutes'
             sagerDict['Issued']   = datetime.now(pytz.utc).astimezone(Tz).strftime('%H:%M')
-            secondsSched = 3600 + math.ceil((funcCalled-datetime.now(pytz.utc).astimezone(Tz)).total_seconds())
+            secondsSched = 3600 + math.ceil((app.Sched.sagerFuncCalled-datetime.now(pytz.utc).astimezone(Tz)).total_seconds())
             Clock.schedule_once(lambda dt: Generate(sagerDict,app.config),secondsSched)
             return sagerDict
 
@@ -123,7 +123,7 @@ def Generate(sagerDict, app):
         if not Obs:
             sagerDict['Forecast'] = '[color=f05e40ff]ERROR:[/color] Missing SKY data. Forecast will be regenerated in 60 minutes'
             sagerDict['Issued']   = datetime.now(pytz.utc).astimezone(Tz).strftime('%H:%M')
-            secondsSched = 3600 + math.ceil((funcCalled-datetime.now(pytz.utc).astimezone(Tz)).total_seconds())
+            secondsSched = 3600 + math.ceil((app.Sched.sagerFuncCalled-datetime.now(pytz.utc).astimezone(Tz)).total_seconds())
             Clock.schedule_once(lambda dt: Generate(sagerDict,app.config),secondsSched)
             return sagerDict
 
@@ -143,7 +143,7 @@ def Generate(sagerDict, app):
     if np.all(np.isnan(WindDir6)) or np.all(np.isnan(WindDir)):
         sagerDict['Forecast'] = '[color=f05e40ff]ERROR:[/color] Missing wind direction data. Forecast will be regenerated in 60 minutes'
         sagerDict['Issued']   = datetime.now(pytz.utc).astimezone(Tz).strftime('%H:%M')
-        secondsSched = 3600 + math.ceil((funcCalled-datetime.now(pytz.utc).astimezone(Tz)).total_seconds())
+        secondsSched = 3600 + math.ceil((app.Sched.sagerFuncCalled-datetime.now(pytz.utc).astimezone(Tz)).total_seconds())
         Clock.schedule_once(lambda dt: Generate(sagerDict,app.config),secondsSched)
         return sagerDict
     else:
@@ -157,7 +157,7 @@ def Generate(sagerDict, app):
     if np.all(np.isnan(WindSpd6)) or np.all(np.isnan(WindSpd)):
         sagerDict['Forecast'] = '[color=f05e40ff]ERROR:[/color] Missing wind speed data. Forecast will be regenerated in 60 minutes'
         sagerDict['Issued']   = datetime.now(pytz.utc).astimezone(Tz).strftime('%H:%M')
-        secondsSched = 3600 + math.ceil((funcCalled-datetime.now(pytz.utc).astimezone(Tz)).total_seconds())
+        secondsSched = 3600 + math.ceil((app.Sched.sagerFuncCalled-datetime.now(pytz.utc).astimezone(Tz)).total_seconds())
         Clock.schedule_once(lambda dt: Generate(sagerDict,app.config),secondsSched)
         return sagerDict
     else:
@@ -184,7 +184,7 @@ def Generate(sagerDict, app):
         if not Obs:
             sagerDict['Forecast'] = '[color=f05e40ff]ERROR:[/color] Missing AIR data. Forecast will be regenerated in 60 minutes'
             sagerDict['Issued']   = datetime.now(pytz.utc).astimezone(Tz).strftime('%H:%M')
-            secondsSched = 3600 + math.ceil((funcCalled-datetime.now(pytz.utc).astimezone(Tz)).total_seconds())
+            secondsSched = 3600 + math.ceil((app.Sched.sagerFuncCalled-datetime.now(pytz.utc).astimezone(Tz)).total_seconds())
             Clock.schedule_once(lambda dt: Generate(sagerDict,app.config),secondsSched)
             return sagerDict
 
@@ -202,7 +202,7 @@ def Generate(sagerDict, app):
     if np.all(np.isnan(Pres6)) or np.all(np.isnan(Pres)):
         sagerDict['Forecast'] = '[color=f05e40ff]ERROR:[/color] Missing pressure data. Forecast will be regenerated in 60 minutes'
         sagerDict['Issued']   = datetime.now(pytz.utc).astimezone(Tz).strftime('%H:%M')
-        secondsSched = 3600 + math.ceil((funcCalled-datetime.now(pytz.utc).astimezone(Tz)).total_seconds())
+        secondsSched = 3600 + math.ceil((app.Sched.sagerFuncCalled-datetime.now(pytz.utc).astimezone(Tz)).total_seconds())
         Clock.schedule_once(lambda dt: Generate(sagerDict,app.config),secondsSched)
         return sagerDict
     else:
@@ -215,7 +215,7 @@ def Generate(sagerDict, app):
     if np.all(np.isnan(Temp)):
         sagerDict['Forecast'] = '[color=f05e40ff]ERROR:[/color] Missing temperature data. Forecast will be regenerated in 60 minutes'
         sagerDict['Issued']   = datetime.now(pytz.utc).astimezone(Tz).strftime('%H:%M')
-        secondsSched = 3600 + math.ceil((funcCalled-datetime.now(pytz.utc).astimezone(Tz)).total_seconds())
+        secondsSched = 3600 + math.ceil((app.Sched.sagerFuncCalled-datetime.now(pytz.utc).astimezone(Tz)).total_seconds())
         Clock.schedule_once(lambda dt: Generate(sagerDict,app.config),secondsSched)
         return sagerDict
     else:
@@ -229,7 +229,7 @@ def Generate(sagerDict, app):
     else:
         sagerDict['Forecast'] = '[color=f05e40ff]ERROR:[/color] Missing METAR information. Forecast will be regenerated in 60 minutes'
         sagerDict['Issued']   = datetime.now(pytz.utc).astimezone(Tz).strftime('%H:%M')
-        secondsSched = 3600 + math.ceil((funcCalled-datetime.now(pytz.utc).astimezone(Tz)).total_seconds())
+        secondsSched = 3600 + math.ceil((app.Sched.sagerFuncCalled-datetime.now(pytz.utc).astimezone(Tz)).total_seconds())
         Clock.schedule_once(lambda dt: Generate(sagerDict,app.config),secondsSched)
         return sagerDict
 
@@ -252,7 +252,7 @@ def Generate(sagerDict, app):
     else:
         sagerDict['Forecast'] = '[color=f05e40ff]ERROR:[/color] Forecast will be regenerated in 60 minutes'
         sagerDict['Issued']   = datetime.now(pytz.utc).astimezone(Tz).strftime(TimeFormat)
-        secondsSched = 3600 + math.ceil((funcCalled-datetime.now(pytz.utc).astimezone(Tz)).total_seconds())
+        secondsSched = 3600 + math.ceil((app.Sched.sagerFuncCalled-datetime.now(pytz.utc).astimezone(Tz)).total_seconds())
         Clock.schedule_once(lambda dt: Generate(sagerDict, app.config), secondsSched)
         return sagerDict
 
