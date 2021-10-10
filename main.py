@@ -125,11 +125,6 @@ from lib import system
 from lib import config
 
 # ==============================================================================
-# IMPORT REQUIRED SERVICEs
-# ==============================================================================
-from service.websocket import websocketClient
-
-# ==============================================================================
 # IMPORT REQUIRED PANELS
 # ==============================================================================
 from panels.temperature import TemperaturePanel,   TemperatureButton
@@ -155,6 +150,7 @@ if Path('user/customPanels.py').is_file():
 from oscpy.server  import OSCThreadServer
 from oscpy.client  import OSCClient
 from functools     import partial
+from runpy         import run_path
 import subprocess
 import threading
 import json
@@ -367,7 +363,9 @@ class wfpiconsole(App):
     # START WEBSOCKET SERVICE
     # --------------------------------------------------------------------------
     def startWebsocketService(self, *largs):
-        self.websocket = threading.Thread(target=websocketClient,
+        self.websocket = threading.Thread(target=run_path,
+                                          args=['service/websocket.py'],
+                                          kwargs={'run_name': '__main__'},
                                           daemon=True,
                                           name='Websocket')
         self.websocket.start()
