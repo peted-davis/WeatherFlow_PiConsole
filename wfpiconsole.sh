@@ -54,27 +54,28 @@ KIVY_DEPENDENCIES=(ffmpeg libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl
                    libgstreamer1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good)
 
 # Python modules and versions
-KIVY_VERSION="1.11.1"
-PYTHON_MODULES=(cython==0.29.10
-                cryptography==3.4.5
-                autobahn[twisted]==21.2.1
+KIVY_VERSION="2.0.0"
+PYTHON_MODULES=(cython==0.29.24
+                cryptography==35.0.0
+                autobahn[twisted]==21.3.1
                 pyasn1-modules==0.2.8
-                service-identity==18.1.0
-                numpy==1.19.5
-                pytz==2021.1
-                ephem==3.7.7.1
-                pillow==8.1.0
-                packaging==20.9
-                pyOpenSSL==20.0.1
-                distro==1.5.0)
+                service-identity==21.1.0
+                numpy==1.21.4
+                pytz==2021.3
+                ephem==4.1
+                pillow==8.4.0
+                packaging==21.2
+                pyOpenSSL==21.0.0
+                distro==1.6.0)
 
 # Github repositories
 KIVY_REPO="https://github.com/kivy/kivy/archive/"$KIVY_VERSION".zip"
 WFPICONSOLE_REPO="https://github.com/peted-davis/WeatherFlow_PiConsole.git"
 WFPICONSOLE_TAGS="https://api.github.com/repos/peted-davis/WeatherFlow_PiConsole/tags"
 WFPICONSOLE_RAW="https://raw.githubusercontent.com/peted-davis/WeatherFlow_PiConsole"
-WFPICONSOLE_MAIN_UPDATE=$WFPICONSOLE_RAW"/master/wfpiconsole.sh"
+WFPICONSOLE_MAIN_UPDATE=$WFPICONSOLE_RAW"/main/wfpiconsole.sh"
 WFPICONSOLE_BETA_UPDATE=$WFPICONSOLE_RAW"/develop/wfpiconsole.sh"
+
 
 # DEFINE INSTALLER PREAMBLE
 # ------------------------------------------------------------------------------
