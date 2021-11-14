@@ -147,6 +147,8 @@ class websocketClient():
             except Exception:
                 Logger.error(f'Websocket: {system.logTime()} - Parsing error: {message}')
                 return {}
+        except asyncio.CancelledError:
+            raise
         except Exception:
             self.task_list['verify'] = asyncio.create_task(self.__async__verify())
             await self.task_list['verify']
@@ -154,48 +156,54 @@ class websocketClient():
 
 
     async def __async__decodeMessage(self):
-        if 'type' in self.message:
-            if self.message['type'] in ['ack', 'evt_precip']:
-                pass
-            else:
-                if 'device_id' in self.message:
-                    if self.message['type'] == 'obs_st':
-                        self.thread_list['obs_st'] = threading.Thread(target=self.app.obsParser.parse_obs_st,
-                                                                      args=(self.message, self.config, ),
-                                                                      name="obs_st")
-                        self.thread_list['obs_st'].start()
-                    elif self.message['type'] == 'obs_sky':
-                        self.thread_list['obs_sky'] = threading.Thread(target=self.app.obsParser.parse_obs_sky,
-                                                                       args=(self.message, self.config, ),
-                                                                       name='obs_sky')
-                        self.thread_list['obs_sky'].start()
-                    elif self.message['type'] == 'obs_air':
-                        if str(self.message['device_id']) == self.config['Station']['OutAirID']:
-                            self.thread_list['obs_out_air'] = threading.Thread(target=self.app.obsParser.parse_obs_out_air,
-                                                                               args=(self.message, self.config, ),
-                                                                               name='obs_out_air')
-                            self.thread_list['obs_out_air'].start()
-                        elif str(self.message['device_id']) == self.config['Station']['InAirID']:
-                            self.thread_list['obs_in_air'] = threading.Thread(target=self.app.obsParser.parse_obs_in_air,
-                                                                              args=(self.message, self.config, ),
-                                                                              name='obs_in_air')
-                            self.thread_list['obs_in_air'].start()
-                    elif self.message['type'] == 'rapid_wind':
-                        self.app.obsParser.parse_rapid_wind(self.message, self.config)
-                    elif self.message['type'] == 'evt_strike':
-                        self.app.obsParser.parse_evt_strike(self.message, self.config)
+        try:
+            if self.message:
+                if 'type' in self.message:
+                    if self.message['type'] in ['ack', 'evt_precip']:
+                        pass
                     else:
-                        Logger.error(f'Websocket: {system.logTime()} - Unknown message type: {json.dumps(self.message)}')
+                        if 'device_id' in self.message:
+                            if self.message['type'] == 'obs_st':
+                                self.thread_list['obs_st'] = threading.Thread(target=self.app.obsParser.parse_obs_st,
+                                                                              args=(self.message, self.config, ),
+                                                                              name="obs_st")
+                                self.thread_list['obs_st'].start()
+                            elif self.message['type'] == 'obs_sky':
+                                self.thread_list['obs_sky'] = threading.Thread(target=self.app.obsParser.parse_obs_sky,
+                                                                               args=(self.message, self.config, ),
+                                                                               name='obs_sky')
+                                self.thread_list['obs_sky'].start()
+                            elif self.message['type'] == 'obs_air':
+                                if str(self.message['device_id']) == self.config['Station']['OutAirID']:
+                                    self.thread_list['obs_out_air'] = threading.Thread(target=self.app.obsParser.parse_obs_out_air,
+                                                                                       args=(self.message, self.config, ),
+                                                                                       name='obs_out_air')
+                                    self.thread_list['obs_out_air'].start()
+                                elif str(self.message['device_id']) == self.config['Station']['InAirID']:
+                                    self.thread_list['obs_in_air'] = threading.Thread(target=self.app.obsParser.parse_obs_in_air,
+                                                                                      args=(self.message, self.config, ),
+                                                                                      name='obs_in_air')
+                                    self.thread_list['obs_in_air'].start()
+                            elif self.message['type'] == 'rapid_wind':
+                                self.app.obsParser.parse_rapid_wind(self.message, self.config)
+                            elif self.message['type'] == 'evt_strike':
+                                self.app.obsParser.parse_evt_strike(self.message, self.config)
+                            else:
+                                Logger.error(f'Websocket: {system.logTime()} - Unknown message type: {json.dumps(self.message)}')
+                        else:
+                            Logger.info(f'Websocket: {system.logTime()} - Missing device ID: {json.dumps(self.message)}')
                 else:
-                    Logger.info(f'Websocket: {system.logTime()} - Missing device ID: {json.dumps(self.message)}')
-        else:
-            Logger.info(f'Websocket: {system.logTime()} - Missing message type: {json.dumps(self.message)}')
-
+                    Logger.info(f'Websocket: {system.logTime()} - Missing message type: {json.dumps(self.message)}')
+        except asyncio.CancelledError:
+            raise
 
     async def __async__listen(self):
-        while self._keep_running:
-            self.message = await self.__async__getMessage()
-            await self.__async__decodeMessage()
+        try:
+            while self._keep_running:
+                self.message = await self.__async__getMessage()
+                await self.__async__decodeMessage()
+        except asyncio.CancelledError:
+            raise
 
 
     async def __async__switch(self):
@@ -225,7 +233,7 @@ async def main():
             websocket.task_list['listen'] = asyncio.create_task(websocket._websocketClient__async__listen())
             websocket.task_list['switch'] = asyncio.create_task(websocket._websocketClient__async__switch())
             await asyncio.gather(*list(websocket.task_list.values()))
-        except asyncio.exceptions.CancelledError:
+        except asyncio.CancelledError:
             if websocket._switch_device:
                 await websocket._websocketClient__async__manageDevices('listen_stop')
                 config.switch(websocket.app.mainMenu.stationMetaData,
@@ -233,6 +241,7 @@ async def main():
                               websocket.app.config)
                 await websocket._websocketClient__async__manageDevices('listen_start')
                 websocket._switch_device = False
+                Logger.info(f'Websocket: {system.logTime()} - Switching devices and/or station')
 
 
 if __name__ == '__main__':
