@@ -1136,7 +1136,6 @@
                             text: 'Station status: [color=' + self._color + ']' + app.Station.Status['stationStatus'] + '[/color]'
                     GridLayout:
                         cols: 2
-                        orientation: 'vertical'
                         padding: [dp(0),dp(0),dp(0),dp(10)]
                         size_hint: (1,.28)
                         MenuField:
@@ -1298,14 +1297,13 @@
 <selectOption@SpinnerOption>
     #background_normal: 'atlas://atlas/wfpiconsole/tab_btn'
     #background_down: 'atlas://atlas/wfpiconsole/tab_btn_pressed'
-    _width: 1.5
     background_color: (0,0,0,1)
     canvas.after:
         Color:
             rgba: 1, 1, 1, 1
         Line:
 
-            width: dp(self._width)
+            width: dp(1.5)
             rectangle: self.x+10, self.y+10, self.width-20, self.height-20
         #Color:
         #    rgba: utils.rgba('#000000ff') if self.state=='normal' else utils.rgba('#00525aff')

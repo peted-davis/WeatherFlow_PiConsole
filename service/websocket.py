@@ -15,96 +15,77 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
-# =============================================================================
+# ==============================================================================
 # IMPORT REQUIRED MODULES
-# =============================================================================
-from lib.observationParser      import obsParser
-from oscpy.server               import OSCThreadServer
-from oscpy.client               import OSCClient
-from kivy.logger                import Logger
-from lib                        import system
-from lib                        import config
-import configparser
+# ==============================================================================
+from kivy.logger            import Logger
+from kivy.app               import App
+from lib                    import system
+from lib                    import config
+from lib.observationParser  import obsParser
 import websockets
 import threading
 import asyncio
 import socket
 import json
-import time
 import ssl
-import sys
 import os
 
-# =============================================================================
-# INITIALISE REQUIRED VARIABLES
-# =============================================================================
-# Initialise OSC client (send messages)
-oscCLIENT = OSCClient('localhost', 3002)
-
-# Initialise OSC server (recieve messages)
-oscSERVER = OSCThreadServer()
-oscSERVER.listen(address=b'localhost', port=3001, default=True)
-
-# Set config file path
-configFile = 'wfpiconsole.ini'
-
-# =============================================================================
+# ==============================================================================
 # DEFINE 'websocketClient' CLASS
-# =============================================================================
+# ==============================================================================
 class websocketClient():
 
-    def __init__(self):
+    @classmethod
+    async def create(cls):
+
+        # Initialise websocketClient
+        self = App.get_running_app().websocket_client = websocketClient()
+        self.app = App.get_running_app()
 
         # Load configuration file
-        self.config = configparser.ConfigParser(allow_no_value=True)
-        self.config.optionxform = str
-        self.config.read(configFile)
+        self.config = self.app.config
 
         # Initial websocketClient class variables
-        self.reply_timeout  = 0.1
-        self.reply_watchdog = time.time() + 60
-        self.ping_timeout   = 120
-        self.sleep_time     = 5
         self._keep_running  = True
         self._switch_device = False
+        self.reply_timeout  = 60
+        self.ping_timeout   = 60
+        self.sleep_time     = 10
         self.thread_list    = {}
+        self.task_list      = {}
+        self.connected      = False
         self.connection     = None
         self.url            = 'wss://ws.weatherflow.com/swd/data?token=' + self.config['Keys']['WeatherFlow']
 
-        # Listen for configuration file changes or commands to modify websocket
-        # connection
-        oscSERVER.bind(b'/websocket', self.modifyConnection)
-
         # Initialise Observation Parser
-        self.obsParser = obsParser(oscCLIENT, oscSERVER, [1, 1, 1, 1])
+        self.app.obsParser = obsParser()
 
-        # Initialise asyn loop and connect to specified Websocket URL
-        self.async_loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(self.async_loop)
-        self.async_loop.run_until_complete(self.__async__connect())
+        # Connect to specified Websocket URL and return websocketClient
+        await self.__async__connect()
+        return self
 
 
     async def __async__connect(self):
-        Connected = False
-        while not Connected:
+        while not self.connected:
             try:
                 Logger.info(f'Websocket: {system.logTime()} - Opening connection')
-                self.websocket = await websockets.connect(self.url, ssl=ssl.SSLContext())
-                message        = await self.__async__getMessage()
+                self.connection = await websockets.connect(self.url, ssl=ssl.SSLContext())
+                self.message    = await asyncio.wait_for(self.connection.recv(), timeout=self.reply_timeout)
+                self.message    = json.loads(self.message)
                 try:
-                    if 'type' in message and message['type'] == 'connection_opened':
-                        Logger.info(f'Websocket: {system.logTime()} - Connection open')
-                        self.obsParser.flagAPI = [1, 1, 1, 1]
-                        self.reply_watchdog = time.time() + 60
+                    if 'type' in self.message and self.message['type'] == 'connection_opened':
                         await self.__async__manageDevices('listen_start')
-                        Connected = True
+                        self.app.obsParser.flagAPI = [1, 1, 1, 1]
+                        self.connected = True
+                        Logger.info(f'Websocket: {system.logTime()} - Connection open')
                     else:
                         Logger.error(f'Websocket: {system.logTime()} - Connection message error')
-                        await self.websocket.close()
+                        await self.connection.close()
                         await asyncio.sleep(self.sleep_time)
                 except Exception as error:
                     Logger.error(f'Websocket: {system.logTime()} - Connection error: {error}')
-                    await self.websocket.close()
+                    await self.connection.close()
                     await asyncio.sleep(self.sleep_time)
             except (socket.gaierror, ConnectionRefusedError, websockets.exceptions.InvalidStatusCode) as error:
                 Logger.error(f'Websocket: {system.logTime()} - Connection error: {error}')
@@ -117,10 +98,23 @@ class websocketClient():
     async def __async__disconnect(self):
         Logger.info(f'Websocket: {system.logTime()} - Closing connection')
         try:
-            await asyncio.wait_for(self.websocket.close(), timeout=5)
+            await asyncio.wait_for(self.connection.close(), timeout=5)
+            self.connected = False
             Logger.info(f'Websocket: {system.logTime()} - Connection closed')
         except Exception:
             Logger.info(f'Websocket: {system.logTime()} - Unable to close connection cleanly')
+
+
+    async def __async__verify(self):
+        try:
+            pong = await self.connection.ping()
+            await asyncio.wait_for(pong, timeout=self.ping_timeout)
+            Logger.info(f'Websocket: {system.logTime()} - Ping OK, keeping connection alive')
+        except Exception:
+            Logger.error(f'Websocket: {system.logTime()} - Ping error, closing connection')
+            await self.__async__disconnect()
+            await asyncio.sleep(self.sleep_time)
+            await self.__async__connect()
 
 
     async def __async__manageDevices(self, action):
@@ -134,85 +128,83 @@ class websocketClient():
                               + ' "device_id":' + device + ','
                               + ' "id":"rapidWind"}')
         if self.config['Station']['OutAirID']:
-            deviceList.append('{"type":"' + action + '",'
-                              + ' "device_id":' + self.config['Station']['OutAirID'] + ','
-                              + ' "id":"OutdoorAir"}')
+           deviceList.append('{"type":"' + action + '",'
+                             + ' "device_id":' + self.config['Station']['OutAirID'] + ','
+                             + ' "id":"OutdoorAir"}')
         if self.config['Station']['InAirID']:
-            deviceList.append('{"type":"' + action + '",'
-                              + ' "device_id":' + self.config['Station']['InAirID'] + ','
-                              + ' "id":"IndoorAir"}')
+           deviceList.append('{"type":"' + action + '",'
+                             + ' "device_id":' + self.config['Station']['InAirID'] + ','
+                             + ' "id":"IndoorAir"}')
         for device in deviceList:
-            print(device)
-            await self.websocket.send(device)
+            await self.connection.send(device)
 
 
     async def __async__getMessage(self):
         try:
-            message = await asyncio.wait_for(self.websocket.recv(), timeout=self.reply_timeout)
-            self.reply_watchdog = time.time() + 60
+            message = await asyncio.wait_for(self.connection.recv(), timeout=self.reply_timeout)
             try:
                 return json.loads(message)
             except Exception:
                 Logger.error(f'Websocket: {system.logTime()} - Parsing error: {message}')
-                return None
+                return {}
         except Exception:
-            if time.time() >= self.reply_watchdog:
-                try:
-                    pong = await self.websocket.ping()
-                    await asyncio.wait_for(pong, timeout=self.ping_timeout)
-                    Logger.info(f'Websocket: {system.logTime()} - Ping OK, keeping connection alive')
-                    self.reply_watchdog = time.time() + 60
-                except Exception:
-                    Logger.error(f'Websocket: {system.logTime()} - Ping error, closing connection')
-                    await self.websocket.close()
-                    await asyncio.sleep(self.sleep_time)
-                    await self.__async__connect()
+            self.task_list['verify'] = asyncio.create_task(self.__async__verify())
+            await self.task_list['verify']
+            return {}
+
+
+    async def __async__decodeMessage(self):
+        if 'type' in self.message:
+            if self.message['type'] in ['ack', 'evt_precip']:
+                pass
             else:
-                return None
-
-
-    async def __async__decodeMessage(self, message):
-        if message is not None:
-            if 'type' in message:
-                if message['type'] in ['ack', 'evt_precip']:
-                    pass
-                else:
-                    if 'device_id' in message:
-                        if message['type'] == 'obs_st':
-                            self.thread_list['obs_st'] = threading.Thread(target=self.obsParser.parse_obs_st, args=(message, self.config, ), name="obs_st")
-                            self.thread_list['obs_st'].start()
-                        elif message['type'] == 'obs_sky':
-                            self.thread_list['obs_sky'] = threading.Thread(target=self.obsParser.parse_obs_sky,     args=(message, self.config, ), name='obs_sky')
-                            self.thread_list['obs_sky'].start()
-                        elif message['type'] == 'obs_air':
-                            if str(message['device_id']) == self.config['Station']['OutAirID']:
-                                self.thread_list['obs_out_air'] = threading.Thread(target=self.obsParser.parse_obs_out_air, args=(message, self.config, ), name='obs_out_air')
-                                self.thread_list['obs_out_air'].start()
-                            elif str(message['device_id']) == self.config['Station']['InAirID']:
-                                self.thread_list['obs_in_air'] = threading.Thread(target=self.obsParser.parse_obs_in_air,  args=(message, self.config, ), name='obs_in_air')
-                                self.thread_list['obs_in_air'].start()
-                        elif message['type'] == 'rapid_wind':
-                            self.obsParser.parse_rapid_wind(message, self.config)
-                        elif message['type'] == 'evt_strike':
-                            self.obsParser.parse_evt_strike(message, self.config)
-                        else:
-                            Logger.error(f'Websocket: {system.logTime()} - Unknown message type: {json.dumps(message)}')
+                if 'device_id' in self.message:
+                    if self.message['type'] == 'obs_st':
+                        self.thread_list['obs_st'] = threading.Thread(target=self.app.obsParser.parse_obs_st,
+                                                                      args=(self.message, self.config, ),
+                                                                      name="obs_st")
+                        self.thread_list['obs_st'].start()
+                    elif self.message['type'] == 'obs_sky':
+                        self.thread_list['obs_sky'] = threading.Thread(target=self.app.obsParser.parse_obs_sky,
+                                                                       args=(self.message, self.config, ),
+                                                                       name='obs_sky')
+                        self.thread_list['obs_sky'].start()
+                    elif self.message['type'] == 'obs_air':
+                        if str(self.message['device_id']) == self.config['Station']['OutAirID']:
+                            self.thread_list['obs_out_air'] = threading.Thread(target=self.app.obsParser.parse_obs_out_air,
+                                                                               args=(self.message, self.config, ),
+                                                                               name='obs_out_air')
+                            self.thread_list['obs_out_air'].start()
+                        elif str(self.message['device_id']) == self.config['Station']['InAirID']:
+                            self.thread_list['obs_in_air'] = threading.Thread(target=self.app.obsParser.parse_obs_in_air,
+                                                                              args=(self.message, self.config, ),
+                                                                              name='obs_in_air')
+                            self.thread_list['obs_in_air'].start()
+                    elif self.message['type'] == 'rapid_wind':
+                        self.app.obsParser.parse_rapid_wind(self.message, self.config)
+                    elif self.message['type'] == 'evt_strike':
+                        self.app.obsParser.parse_evt_strike(self.message, self.config)
                     else:
-                        Logger.info(f'Websocket: {system.logTime()} - Missing device ID: {json.dumps(message)}')
-            else:
-                Logger.info(f'Websocket: {system.logTime()} - Missing message type: {json.dumps(message)}')
+                        Logger.error(f'Websocket: {system.logTime()} - Unknown message type: {json.dumps(self.message)}')
+                else:
+                    Logger.info(f'Websocket: {system.logTime()} - Missing device ID: {json.dumps(self.message)}')
+        else:
+            Logger.info(f'Websocket: {system.logTime()} - Missing message type: {json.dumps(self.message)}')
 
 
-    def modifyConnection(self, *payload):
-        if payload[0].decode('utf8') == 'reload_config':
-            self.config = configparser.ConfigParser(allow_no_value=True)
-            self.config.optionxform = str
-            self.config.read(configFile)
-            self.updateDerivedVariables()
-        elif payload[0].decode('utf8') == 'switch_device':
-            self.stationMetaData = json.loads(payload[1].decode('utf8'))
-            self.deviceList      = json.loads(payload[2].decode('utf8'))
-            self._switch_device  = True
+    async def __async__listen(self):
+        while self._keep_running:
+            self.message = await self.__async__getMessage()
+            await self.__async__decodeMessage()
+
+
+    async def __async__switch(self):
+        while not self._switch_device:
+            await asyncio.sleep(0.1)
+        if 'verify' in self.task_list:
+            while not self.task_list['verify'].done():
+                await asyncio.sleep(0.1)
+        self.task_list['listen'].cancel()
 
 
     def updateDerivedVariables(self):
@@ -223,13 +215,27 @@ class websocketClient():
                     active_threads.append(True)
             if not active_threads:
                 break
-        self.obsParser.formatDerivedVariables(self.config, 'obs_all')
+        self.app.obsParser.formatDerivedVariables(self.config, 'obs_all')
+
+
+async def main():
+    websocket = await websocketClient.create()
+    while websocket._keep_running:
+        try:
+            websocket.task_list['listen'] = asyncio.create_task(websocket._websocketClient__async__listen())
+            websocket.task_list['switch'] = asyncio.create_task(websocket._websocketClient__async__switch())
+            await asyncio.gather(*list(websocket.task_list.values()))
+        except asyncio.exceptions.CancelledError:
+            if websocket._switch_device:
+                await websocket._websocketClient__async__manageDevices('listen_stop')
+                config.switch(websocket.app.mainMenu.stationMetaData,
+                              websocket.app.mainMenu.deviceList,
+                              websocket.app.config)
+                await websocket._websocketClient__async__manageDevices('listen_start')
+                websocket._switch_device = False
 
 
 if __name__ == '__main__':
-    websocket = websocketClient()
-    while websocket._keep_running:
-        message = websocket.async_loop.run_until_complete(websocket._websocketClient__async__getMessage())
-        websocket.async_loop.run_until_complete(websocket._websocketClient__async__decodeMessage(message))
-        #message = websocket.getMessage()
-        #websocket.decodeMessage(message)
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    loop.run_until_complete(main())

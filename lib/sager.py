@@ -112,7 +112,7 @@ def Generate(sagerDict, app):
             sagerDict['Forecast'] = '[color=f05e40ff]ERROR:[/color] Missing TEMPEST data. Forecast will be regenerated in 60 minutes'
             sagerDict['Issued']   = datetime.now(pytz.utc).astimezone(Tz).strftime('%H:%M')
             secondsSched = 3600 + math.ceil((app.Sched.sagerFuncCalled-datetime.now(pytz.utc).astimezone(Tz)).total_seconds())
-            Clock.schedule_once(lambda dt: Generate(sagerDict,app.config),secondsSched)
+            Clock.schedule_once(lambda dt: Generate(sagerDict, app), secondsSched)
             return sagerDict
 
     # If applicable, download wind and rain data from last 6 hours from SKY
@@ -124,7 +124,7 @@ def Generate(sagerDict, app):
             sagerDict['Forecast'] = '[color=f05e40ff]ERROR:[/color] Missing SKY data. Forecast will be regenerated in 60 minutes'
             sagerDict['Issued']   = datetime.now(pytz.utc).astimezone(Tz).strftime('%H:%M')
             secondsSched = 3600 + math.ceil((app.Sched.sagerFuncCalled-datetime.now(pytz.utc).astimezone(Tz)).total_seconds())
-            Clock.schedule_once(lambda dt: Generate(sagerDict,app.config),secondsSched)
+            Clock.schedule_once(lambda dt: Generate(sagerDict, app), secondsSched)
             return sagerDict
 
     # DERIVE REQUIRED WIND AND RAINFALL VARIABLES FROM TEMPEST OR SKY DATA
@@ -144,7 +144,7 @@ def Generate(sagerDict, app):
         sagerDict['Forecast'] = '[color=f05e40ff]ERROR:[/color] Missing wind direction data. Forecast will be regenerated in 60 minutes'
         sagerDict['Issued']   = datetime.now(pytz.utc).astimezone(Tz).strftime('%H:%M')
         secondsSched = 3600 + math.ceil((app.Sched.sagerFuncCalled-datetime.now(pytz.utc).astimezone(Tz)).total_seconds())
-        Clock.schedule_once(lambda dt: Generate(sagerDict,app.config),secondsSched)
+        Clock.schedule_once(lambda dt: Generate(sagerDict, app), secondsSched)
         return sagerDict
     else:
         sagerDict['WindDir6'] = CircularMean(WindDir6)
@@ -158,7 +158,7 @@ def Generate(sagerDict, app):
         sagerDict['Forecast'] = '[color=f05e40ff]ERROR:[/color] Missing wind speed data. Forecast will be regenerated in 60 minutes'
         sagerDict['Issued']   = datetime.now(pytz.utc).astimezone(Tz).strftime('%H:%M')
         secondsSched = 3600 + math.ceil((app.Sched.sagerFuncCalled-datetime.now(pytz.utc).astimezone(Tz)).total_seconds())
-        Clock.schedule_once(lambda dt: Generate(sagerDict,app.config),secondsSched)
+        Clock.schedule_once(lambda dt: Generate(sagerDict, app), secondsSched)
         return sagerDict
     else:
         sagerDict['WindSpd6'] = np.nanmean(WindSpd6)
@@ -185,7 +185,7 @@ def Generate(sagerDict, app):
             sagerDict['Forecast'] = '[color=f05e40ff]ERROR:[/color] Missing AIR data. Forecast will be regenerated in 60 minutes'
             sagerDict['Issued']   = datetime.now(pytz.utc).astimezone(Tz).strftime('%H:%M')
             secondsSched = 3600 + math.ceil((app.Sched.sagerFuncCalled-datetime.now(pytz.utc).astimezone(Tz)).total_seconds())
-            Clock.schedule_once(lambda dt: Generate(sagerDict,app.config),secondsSched)
+            Clock.schedule_once(lambda dt: Generate(sagerDict, app), secondsSched)
             return sagerDict
 
     # DERIVE REQUIRED TEMPERATURE AND PRESSURE VARIABLES FROM TEMPEST OR AIR
@@ -203,7 +203,7 @@ def Generate(sagerDict, app):
         sagerDict['Forecast'] = '[color=f05e40ff]ERROR:[/color] Missing pressure data. Forecast will be regenerated in 60 minutes'
         sagerDict['Issued']   = datetime.now(pytz.utc).astimezone(Tz).strftime('%H:%M')
         secondsSched = 3600 + math.ceil((app.Sched.sagerFuncCalled-datetime.now(pytz.utc).astimezone(Tz)).total_seconds())
-        Clock.schedule_once(lambda dt: Generate(sagerDict,app.config),secondsSched)
+        Clock.schedule_once(lambda dt: Generate(sagerDict, app), secondsSched)
         return sagerDict
     else:
         sagerDict['Pres6'] = derive.SLP([np.nanmean(Pres6).tolist(),'mb'], device, app.config)[0]
@@ -216,7 +216,7 @@ def Generate(sagerDict, app):
         sagerDict['Forecast'] = '[color=f05e40ff]ERROR:[/color] Missing temperature data. Forecast will be regenerated in 60 minutes'
         sagerDict['Issued']   = datetime.now(pytz.utc).astimezone(Tz).strftime('%H:%M')
         secondsSched = 3600 + math.ceil((app.Sched.sagerFuncCalled-datetime.now(pytz.utc).astimezone(Tz)).total_seconds())
-        Clock.schedule_once(lambda dt: Generate(sagerDict,app.config),secondsSched)
+        Clock.schedule_once(lambda dt: Generate(sagerDict, app), secondsSched)
         return sagerDict
     else:
         sagerDict['Temp'] = np.nanmean(Temp)
@@ -230,7 +230,7 @@ def Generate(sagerDict, app):
         sagerDict['Forecast'] = '[color=f05e40ff]ERROR:[/color] Missing METAR information. Forecast will be regenerated in 60 minutes'
         sagerDict['Issued']   = datetime.now(pytz.utc).astimezone(Tz).strftime('%H:%M')
         secondsSched = 3600 + math.ceil((app.Sched.sagerFuncCalled-datetime.now(pytz.utc).astimezone(Tz)).total_seconds())
-        Clock.schedule_once(lambda dt: Generate(sagerDict,app.config),secondsSched)
+        Clock.schedule_once(lambda dt: Generate(sagerDict, app), secondsSched)
         return sagerDict
 
     # DERIVE SAGER WEATHERCASTER FORECAST

@@ -23,6 +23,7 @@ from kivy.properties         import ListProperty, DictProperty, StringProperty
 from kivy.properties         import ObjectProperty
 from kivy.app                import App
 
+
 # Load required system modules
 import certifi
 
@@ -323,58 +324,10 @@ class mainMenu(ModalView):
                    self.ids.switchButton.text = 'Please select devices'
 
 
+# Switch stations/devices for Websocket connection
    def switchStations(self):
        self.dismiss(animation=False)
-       # Retries = 0
-       # while Retries < 3:
-       #     try:
-       #         self.app.oscCLIENT.send_message(b'/websocket', [('listen_stop').encode('utf8')])
-       #         break
-       #     except Exception:
-       #         Retries += 1
-       #
-       #
-       #
-       # config.switch(self.stationMetaData, self.deviceList, self.app.config)
-       #
-       # Retries = 0
-       # while Retries < 3:
-       #     try:
-       #         self.app.oscCLIENT.send_message(b'/websocket', [('reload_config').encode('utf8')])
-       #         break
-       #     except Exception:
-       #         Retries += 1
-
-
-
-       Retries = 0
-       while Retries < 3:
-           try:
-               self.app.oscCLIENT.send_message(b'/websocket', [('switch_device').encode('utf8'),
-                                                               json.dumps(self.stationMetaData).encode('utf8'),
-                                                               json.dumps(self.deviceList).encode('utf8')])
-               break
-           except Exception:
-               Retries += 1
-
-
-
-       #self.app.stopWebsocketService()
-       #self.app.Sched.deviceStatus.cancel()
-       #del(self.app.Station)
-
-
-       config.switch(self.stationMetaData, self.deviceList, self.app.config)
-       #self.app.CurrentConditions.Obs = properties.Obs()
-
-       #print(dict(properties.Obs()))
-       #print()
-       #print(self.app.CurrentConditions.Obs)
-       system.updateDisplay('obs_all', dict(properties.Obs()), self.app)
-
-       #self.app.startWebsocketService()
-       #self.app.Station = station.Station(self.app)
-       #self.app.Sched.deviceStatus = Clock.schedule_interval(self.app.Station.get_deviceStatus, 1.0)
+       self.app.websocket_client._switch_device = True
 
    # Exit console and shutdown system
    def shutdownSystem(self):
@@ -391,7 +344,6 @@ class mainMenu(ModalView):
    # Delete device status panel widgets when closing main menu
    def on_dismiss(self):
        self.ids.devicePanel.clear_widgets()
-
 
 
 # =============================================================================

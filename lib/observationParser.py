@@ -23,6 +23,8 @@ from lib import properties
 
 # Import required Python modules
 from kivy.logger  import Logger
+from kivy.clock   import mainthread
+from kivy.app     import App
 import json
 
 # =============================================================================
@@ -30,16 +32,17 @@ import json
 # =============================================================================
 class obsParser():
 
-    def __init__(self, oscCLIENT, oscSERVER, flagAPI):
+    def __init__(self):
 
         # Define instance variables
         self.displayObs = dict(properties.Obs())
         self.apiData    = {}
         self.transmit   = 1
-        self.flagAPI    = flagAPI
-        self.oscCLIENT  = oscCLIENT
-        self.oscSERVER  = oscSERVER
-        self.oscSERVER.bind(b'/transmit', self.transmitStatus)
+        self.flagAPI    = [1, 1, 1, 1]
+
+        # Create reference to app object
+        App.get_running_app().obsParser = self
+        self.app = App.get_running_app()
 
         # Define device observations dictionary
         self.deviceObs = {
@@ -68,32 +71,6 @@ class obsParser():
             }
         }
 
-    def transmitStatus(self, payload):
-
-        """ Listen to main application for changes in transmission status
-
-        INPUTS:
-            payload             OSC payload on /transmit channel from main
-                                application
-        """
-
-        # If transmission status is set to change to transmit, immediately send
-        # most recent observation before changing status
-        try:
-            message = json.loads(payload.decode('utf8'))
-            if int(message) and not self.transmit:
-                Logger.info("Sending immediate observation")
-                Retries = 0
-                while Retries < 3:
-                    try:
-                        self.oscCLIENT.send_message(b'/updateDisplay', [json.dumps(self.displayObs).encode('utf8'), ('obs_all').encode('utf8')])
-                        break
-                    except Exception:
-                        Retries += 1
-            self.transmit = int(message)
-        except Exception:
-            pass
-        Logger.info("Transmit state: ", self.transmit)
 
     def parse_obs_st(self, message, config):
 
@@ -601,13 +578,61 @@ class obsParser():
             self.displayObs['StrikeDist']    = observation.Format(strikeDist,   'StrikeDistance')
             self.displayObs['StrikeDeltaT']  = observation.Format(strikeDeltaT, 'TimeDelta')
 
-        # Transmit available device and derived variables to main application
-        if self.transmit:
-            Retries = 0
-            while Retries < 3:
-                try:
-                    self.oscCLIENT.send_message(b'/updateDisplay', [json.dumps(self.displayObs).encode('utf8'), (device_type).encode('utf8')])
-                    break
-                except Exception:
-                    Logger.info('Retrying updateDisplay send_message')
-                    Retries += 1
+        # Update display with new variables
+        self.updateDisplay(device_type)
+
+
+    @mainthread
+    def updateDisplay(self, type):
+
+        """ Update display with new variables derived from latest websocket message
+
+        INPUTS:
+            type                Latest Websocket message type
+            derivedObs          Derived variables from latest Websocket message
+            Console             Console object
+        """
+
+        # Update display values with new derived observations
+        for Key, Value in self.displayObs.items():
+            if not (type == 'obs_all' and 'rapid' in Key):                  # Don't update rapidWind display when type is 'all'
+                self.app.CurrentConditions.Obs[Key] = Value                 # as the RapidWind rose is not animated in this case
+
+        # Update display graphics with new derived observations
+        if type == 'rapid_wind':
+            if hasattr(self.app, 'WindSpeedPanel'):
+                for panel in getattr(self.app, 'WindSpeedPanel'):
+                    panel.animateWindRose()
+        elif type == 'evt_strike':
+            if self.app.config['Display']['LightningPanel'] == '1':
+                for ii, Button in enumerate(self.app.CurrentConditions.buttonList):
+                    if "Lightning" in Button[2]:
+                        self.app.CurrentConditions.switchPanel([], Button)
+            if hasattr(self.app, 'LightningPanel'):
+                for panel in getattr(self.app, 'LightningPanel'):
+                    panel.setLightningBoltIcon()
+                    panel.animateLightningBoltIcon()
+        else:
+            if type in ['obs_st', 'obs_air', 'obs_all']:
+                if hasattr(self.app, 'TemperaturePanel'):
+                    for panel in getattr(self.app, 'TemperaturePanel'):
+                        panel.setFeelsLikeIcon()
+                if hasattr(self.app, 'LightningPanel'):
+                    for panel in getattr(self.app, 'LightningPanel'):
+                        panel.setLightningBoltIcon()
+                if hasattr(self.app, 'BarometerPanel'):
+                    for panel in getattr(self.app, 'BarometerPanel'):
+                        panel.setBarometerArrow()
+            if type in ['obs_st', 'obs_sky', 'obs_all']:
+                if hasattr(self.app, 'WindSpeedPanel'):
+                    for panel in getattr(self.app, 'WindSpeedPanel'):
+                        panel.setWindIcons()
+                if hasattr(self.app, 'SunriseSunsetPanel'):
+                    for panel in getattr(self.app, 'SunriseSunsetPanel'):
+                        panel.setUVBackground()
+                if hasattr(self.app, 'RainfallPanel'):
+                    for panel in getattr(self.app, 'RainfallPanel'):
+                        panel.animateRainRate()
+                if hasattr(self.app, 'TemperaturePanel'):
+                    for panel in getattr(self.app, 'TemperaturePanel'):
+                        panel.setFeelsLikeIcon()

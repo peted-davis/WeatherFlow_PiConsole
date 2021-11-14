@@ -115,9 +115,9 @@ from kivy.app                import App
 # ==============================================================================
 # IMPORT REQUIRED LIBRARY MODULES
 # ==============================================================================
-from lib import astronomical      as astro
-from lib import settings          as userSettings
-from lib import sager             as sagerForecast
+from lib import astronomical as astro
+from lib import settings     as userSettings
+from lib import sager        as sagerForecast
 from lib import properties
 from lib import forecast
 from lib import status
@@ -147,8 +147,6 @@ if Path('user/customPanels.py').is_file():
 # ==============================================================================
 # IMPORT REQUIRED SYSTEM MODULES
 # ==============================================================================
-from oscpy.server  import OSCThreadServer
-from oscpy.client  import OSCClient
 from functools     import partial
 from runpy         import run_path
 import subprocess
@@ -194,12 +192,6 @@ class wfpiconsole(App):
 
         # Set Settings syle class
         self.settings_cls = SettingsWithSidebar
-
-        # Initialise oscSERVER and oscCLIENT
-        self.oscSERVER = OSCThreadServer()
-        self.oscCLIENT = OSCClient('localhost', 3001)
-        self.oscSERVER.listen(address=b'localhost', port=3002, default=True)
-        self.oscSERVER.bind(b'/updateDisplay', self.updateDisplay)
 
         # Load Custom Panel KV file if present
         if Path('user/customPanels.py').is_file():
@@ -351,42 +343,26 @@ class wfpiconsole(App):
         if section == 'System' and key == 'SagerInterval':
             sagerForecast.Schedule(self.CurrentConditions.Sager, True, self)
 
-        # Send configuration changed notification to Websocket service
-        Retries = 0
-        while Retries < 3:
-            try:
-                self.oscCLIENT.send_message(b'/websocket', [('reload_config').encode('utf8')])
-                break
-            except Exception:
-                Retries += 1
+        # Update derived variables to reflect configuration changes
+        self.websocket_client.updateDerivedVariables()
+
 
     # START WEBSOCKET SERVICE
     # --------------------------------------------------------------------------
     def startWebsocketService(self, *largs):
-        self.websocket = threading.Thread(target=run_path,
-                                          args=['service/websocket.py'],
-                                          kwargs={'run_name': '__main__'},
-                                          daemon=True,
-                                          name='Websocket')
-        self.websocket.start()
+        self.websocket_thread = threading.Thread(target=run_path,
+                                                 args=['service/websocket.py'],
+                                                 kwargs={'run_name': '__main__'},
+                                                 daemon=True,
+                                                 name='Websocket')
+        self.websocket_thread.start()
 
     # STOP WEBSOCKET SERVICE
     # --------------------------------------------------------------------------
     def stopWebsocketService(self):
-        self._websocket_is_running = False
-        self.websocket.join()
-        del self.websocket
-        del self._websocket_is_running
-
-    # UPDATE DISPLAY WITH NEW OBSERVATIONS SENT FROM WEBSOCKET SERVICE
-    # --------------------------------------------------------------------------
-    def updateDisplay(self, *payload):
-        try:
-            message = json.loads(payload[0].decode('utf8'))
-            type    = payload[1].decode('utf8')
-        except Exception:
-            pass
-        system.updateDisplay(type, message, self)
+        self.websocket_client._keep_running = False
+        self.websocket_thread.join()
+        del self.websocket_client
 
 
 # ==============================================================================
