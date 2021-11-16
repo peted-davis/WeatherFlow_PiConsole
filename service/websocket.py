@@ -215,15 +215,11 @@ class websocketClient():
         self.task_list['listen'].cancel()
 
 
-    def updateDerivedVariables(self):
-        while True:
-            active_threads = []
-            for thread in self.thread_list:
-                if self.thread_list[thread].is_alive():
-                    active_threads.append(True)
-            if not active_threads:
-                break
-        self.app.obsParser.formatDerivedVariables(self.config, 'obs_all')
+    def activeThreads(self):
+        for thread in self.thread_list:
+            if self.thread_list[thread].is_alive():
+                return True
+        return False
 
 
 async def main():

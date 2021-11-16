@@ -25,12 +25,14 @@ from lib import properties
 from kivy.logger  import Logger
 from kivy.clock   import mainthread
 from kivy.app     import App
+import time
 import json
 
 # =============================================================================
 # DEFINE 'obsParser' CLASS
 # =============================================================================
 class obsParser():
+
 
     def __init__(self):
 
@@ -46,30 +48,30 @@ class obsParser():
 
         # Define device observations dictionary
         self.deviceObs = {
-            'obTime':       [None, 's'],             'pressure':     [None, 'mb'],              'outTemp':      [None, 'c'],
-            'inTemp':       [None, 'c'],             'humidity':     [None, '%'],               'windSpd':      [None, 'mps'],
-            'windGust':     [None, 'mps'],           'windDir':      [None, 'degrees'],         'rapidWindSpd': [None, 'mps'],
-            'rapidWindDir': [None, 'degrees'],       'uvIndex':      [None, 'index'],           'radiation':    [None, 'Wm2'],
-            'minuteRain':   [None, 'mm'],            'dailyRain':    [None, 'mm'],              'strikeMinute': [None, 'count'],
-            'strikeTime':   [None, 's'],             'strikeDist':   [None, 'km'],              'strike3hr':    [None, 'count'],
-            'peakSun':      [None, 'hrs'],           'windAvg':      [None, 'mps'],             'gustMax':      [None, 'mps'],
-            'SLPMin':       [None, 'mb', None, 's'], 'SLPMax':       [None, 'mb', None, 's'],
-            'outTempMax':   [None, 'c', None,  's'], 'outTempMin':   [None, 'c', None,  's'],
-            'inTempMax':    [None, 'c', None,  's'], 'inTempMin':    [None, 'c', None,  's'],
-            'strikeCount':
-                {
-                'today': [None, 'count'],
-                'month': [None, 'count'],
-                'year':  [None, 'count']
-            },
-            'rainAccum':
-                {
-                'today':     [None, 'mm'],
-                'yesterday': [None, 'mm'],
-                'month':     [None, 'mm'],
-                'year':      [None, 'mm']
+                'obTime':       [None, 's'],             'pressure':     [None, 'mb'],              'outTemp':      [None, 'c'],
+                'inTemp':       [None, 'c'],             'humidity':     [None, '%'],               'windSpd':      [None, 'mps'],
+                'windGust':     [None, 'mps'],           'windDir':      [None, 'degrees'],         'rapidWindSpd': [None, 'mps'],
+                'rapidWindDir': [None, 'degrees'],       'uvIndex':      [None, 'index'],           'radiation':    [None, 'Wm2'],
+                'minuteRain':   [None, 'mm'],            'dailyRain':    [None, 'mm'],              'strikeMinute': [None, 'count'],
+                'strikeTime':   [None, 's'],             'strikeDist':   [None, 'km'],              'strike3hr':    [None, 'count'],
+                'peakSun':      [None, 'hrs'],           'windAvg':      [None, 'mps'],             'gustMax':      [None, 'mps'],
+                'SLPMin':       [None, 'mb', None, 's'], 'SLPMax':       [None, 'mb', None, 's'],
+                'outTempMax':   [None, 'c', None,  's'], 'outTempMin':   [None, 'c', None,  's'],
+                'inTempMax':    [None, 'c', None,  's'], 'inTempMin':    [None, 'c', None,  's'],
+                'strikeCount':
+                    {
+                    'today': [None, 'count'],
+                    'month': [None, 'count'],
+                    'year':  [None, 'count']
+                },
+                'rainAccum':
+                    {
+                    'today':     [None, 'mm'],
+                    'yesterday': [None, 'mm'],
+                    'month':     [None, 'mm'],
+                    'year':      [None, 'mm']
+                }
             }
-        }
 
 
     def parse_obs_st(self, message, config):
@@ -461,6 +463,7 @@ class obsParser():
         # Format derived observations
         self.formatDerivedVariables(config, device_type)
 
+
     def formatDerivedVariables(self, config, device_type):
 
         """ Format derived variables from available device observations
@@ -582,6 +585,19 @@ class obsParser():
         self.updateDisplay(device_type)
 
 
+    def reformatDisplay(self):
+        while self.app.websocket_client.activeThreads():
+            pass
+        self.formatDerivedVariables(self.app.config, 'obs_all')
+
+
+    def resetDisplay(self):
+        while self.app.websocket_client.activeThreads():
+            pass
+        self.displayObs = dict(properties.Obs())
+        self.updateDisplay('obs_reset')
+
+
     @mainthread
     def updateDisplay(self, type):
 
@@ -613,7 +629,7 @@ class obsParser():
                     panel.setLightningBoltIcon()
                     panel.animateLightningBoltIcon()
         else:
-            if type in ['obs_st', 'obs_air', 'obs_all']:
+            if type in ['obs_st', 'obs_air', 'obs_all', 'obs_reset']:
                 if hasattr(self.app, 'TemperaturePanel'):
                     for panel in getattr(self.app, 'TemperaturePanel'):
                         panel.setFeelsLikeIcon()
@@ -623,7 +639,7 @@ class obsParser():
                 if hasattr(self.app, 'BarometerPanel'):
                     for panel in getattr(self.app, 'BarometerPanel'):
                         panel.setBarometerArrow()
-            if type in ['obs_st', 'obs_sky', 'obs_all']:
+            if type in ['obs_st', 'obs_sky', 'obs_all', 'obs_reset']:
                 if hasattr(self.app, 'WindSpeedPanel'):
                     for panel in getattr(self.app, 'WindSpeedPanel'):
                         panel.setWindIcons()

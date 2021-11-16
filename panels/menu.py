@@ -23,7 +23,6 @@ from kivy.properties         import ListProperty, DictProperty, StringProperty
 from kivy.properties         import ObjectProperty
 from kivy.app                import App
 
-
 # Load required system modules
 import certifi
 
@@ -323,11 +322,11 @@ class mainMenu(ModalView):
                    self.ids.switchButton.disabled = 1
                    self.ids.switchButton.text = 'Please select devices'
 
-
-# Switch stations/devices for Websocket connection
+   # Switch stations/devices for Websocket connection
    def switchStations(self):
-       self.dismiss(animation=False)
+       self.app.obsParser.resetDisplay()
        self.app.websocket_client._switch_device = True
+       self.dismiss(animation=False)
 
    # Exit console and shutdown system
    def shutdownSystem(self):

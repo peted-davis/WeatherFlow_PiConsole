@@ -344,7 +344,7 @@ class wfpiconsole(App):
             sagerForecast.Schedule(self.CurrentConditions.Sager, True, self)
 
         # Update derived variables to reflect configuration changes
-        self.websocket_client.updateDerivedVariables()
+        self.obsParser.reformatDisplay()
 
 
     # START WEBSOCKET SERVICE
