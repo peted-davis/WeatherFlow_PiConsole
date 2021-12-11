@@ -28,6 +28,42 @@ from kivy.app     import App
 import time
 import json
 
+# Define empty deviceObs dictionary
+deviceObs = {
+        'obTime':       [None, 's'],                'pressure':     [None, 'mb'],              'outTemp':      [None, 'c'],
+        'inTemp':       [None, 'c'],                'humidity':     [None, '%'],               'windSpd':      [None, 'mps'],
+        'windGust':     [None, 'mps'],              'windDir':      [None, 'degrees'],         'rapidWindSpd': [None, 'mps'],
+        'rapidWindDir': [None, 'degrees'],          'uvIndex':      [None, 'index'],           'radiation':    [None, 'Wm2'],
+        'minuteRain':   [None, 'mm'],               'dailyRain':    [None, 'mm'],              'strikeMinute': [None, 'count'],
+        'strikeTime':   [None, 's'],                'strikeDist':   [None, 'km'],              'strike3hr':    [None, 'count'],
+        }
+
+# Define empty deriveObs dictionary
+deriveObs = {
+        'dewPoint':     [None, 'c'],                'feelsLike':    [None, 'c', '-', '-'],        'outTempMax':   [None, 'c', '-'],
+        'outTempMin':   [None, 'c', '-'],           'outTempDiff':  [None, 'dc', '-'],            'outTempTrend': [None, 'c/hr', 'c8c8c8ff'],
+        'inTempMax':    [None, 'c', '-'],           'inTempMin':    [None, 'c', '-'],             'SLP':          [None, 'mb', None],
+        'SLPTrend':     [None, 'mb/hr', '-', '-'],  'SLPMin':       [None, 'mb', '-'],            'SLPMax':       [None, 'mb', '-'],
+        'rainRate':     [None, 'mm/hr', '-'],       'windSpd':      [None, 'mps', '-', '-', '-'], 'windAvg':      [None, 'mps'],
+        'gustMax':      [None, 'mps'],              'windDir':      [None, 'degrees', '-', '-'],  'rapidWindDir': [None, 'degrees', '-', '-'],
+        'rainRate':     [None, 'mm/hr', '-'],       'uvIndex':      [None, 'index'],              'peakSun':      [None, 'hrs', '-'],
+        'strikeDeltaT': [None, 's', None],          'strikeFreq':   [None, '/min', None, '/min'],
+        'strikeCount':
+            {
+            'today': [None, 'count'],
+            'month': [None, 'count'],
+            'year':  [None, 'count']
+        },
+        'rainAccum':
+            {
+            'today':     [None, 'mm'],
+            'yesterday': [None, 'mm'],
+            'month':     [None, 'mm'],
+            'year':      [None, 'mm']
+        }
+    }
+
+
 # =============================================================================
 # DEFINE 'obsParser' CLASS
 # =============================================================================
@@ -46,32 +82,9 @@ class obsParser():
         App.get_running_app().obsParser = self
         self.app = App.get_running_app()
 
-        # Define device observations dictionary
-        self.deviceObs = {
-                'obTime':       [None, 's'],             'pressure':     [None, 'mb'],              'outTemp':      [None, 'c'],
-                'inTemp':       [None, 'c'],             'humidity':     [None, '%'],               'windSpd':      [None, 'mps'],
-                'windGust':     [None, 'mps'],           'windDir':      [None, 'degrees'],         'rapidWindSpd': [None, 'mps'],
-                'rapidWindDir': [None, 'degrees'],       'uvIndex':      [None, 'index'],           'radiation':    [None, 'Wm2'],
-                'minuteRain':   [None, 'mm'],            'dailyRain':    [None, 'mm'],              'strikeMinute': [None, 'count'],
-                'strikeTime':   [None, 's'],             'strikeDist':   [None, 'km'],              'strike3hr':    [None, 'count'],
-                'peakSun':      [None, 'hrs'],           'windAvg':      [None, 'mps'],             'gustMax':      [None, 'mps'],
-                'SLPMin':       [None, 'mb', None, 's'], 'SLPMax':       [None, 'mb', None, 's'],
-                'outTempMax':   [None, 'c', None,  's'], 'outTempMin':   [None, 'c', None,  's'],
-                'inTempMax':    [None, 'c', None,  's'], 'inTempMin':    [None, 'c', None,  's'],
-                'strikeCount':
-                    {
-                    'today': [None, 'count'],
-                    'month': [None, 'count'],
-                    'year':  [None, 'count']
-                },
-                'rainAccum':
-                    {
-                    'today':     [None, 'mm'],
-                    'yesterday': [None, 'mm'],
-                    'month':     [None, 'mm'],
-                    'year':      [None, 'mm']
-                }
-            }
+        # Define device and derived observations dictionary
+        self.deviceObs = deviceObs.copy()
+        self.deriveObs = deriveObs.copy()
 
 
     def parse_obs_st(self, message, config):
@@ -130,25 +143,25 @@ class obsParser():
         # Request required TEMPEST data from the WeatherFlow API
         self.apiData[device_id]['24Hrs'] = requestAPI.weatherflow.Last24h(device_id, latestOb[0], config)
         if (self.apiData[device_id]['flagAPI']
-                or self.deviceObs['SLPMin'][0] is None
-                or self.deviceObs['SLPMax'][0] is None
-                or self.deviceObs['outTempMin'][0] is None
-                or self.deviceObs['outTempMax'][0] is None
-                or self.deviceObs['windAvg'][0] is None
-                or self.deviceObs['gustMax'][0] is None
-                or self.deviceObs['peakSun'][0] is None
-                or self.deviceObs['strikeCount']['today'][0] is None):
+                or self.deriveObs['SLPMin'][0] is None
+                or self.deriveObs['SLPMax'][0] is None
+                or self.deriveObs['outTempMin'][0] is None
+                or self.deriveObs['outTempMax'][0] is None
+                or self.deriveObs['windAvg'][0] is None
+                or self.deriveObs['gustMax'][0] is None
+                or self.deriveObs['peakSun'][0] is None
+                or self.deriveObs['strikeCount']['today'][0] is None):
             self.apiData[device_id]['today'] = requestAPI.weatherflow.Today(device_id, config)
         if (self.apiData[device_id]['flagAPI']
-                or self.deviceObs['rainAccum']['yesterday'][0] is None):
+                or self.deriveObs['rainAccum']['yesterday'][0] is None):
             self.apiData[device_id]['yesterday'] = requestAPI.weatherflow.Yesterday(device_id, config)
         if (self.apiData[device_id]['flagAPI']
-                or self.deviceObs['rainAccum']['month'][0] is None
-                or self.deviceObs['strikeCount']['month'][0] is None):
+                or self.deriveObs['rainAccum']['month'][0] is None
+                or self.deriveObs['strikeCount']['month'][0] is None):
             self.apiData[device_id]['month'] = requestAPI.weatherflow.Month(device_id, config)
         if (self.apiData[device_id]['flagAPI']
-                or self.deviceObs['rainAccum']['year'][0] is None
-                or self.deviceObs['strikeCount']['year'][0] is None):
+                or self.deriveObs['rainAccum']['year'][0] is None
+                or self.deriveObs['strikeCount']['year'][0] is None):
             self.apiData[device_id]['year']  = requestAPI.weatherflow.Year(device_id, config)
         self.flagAPI[0] = 0
 
@@ -201,18 +214,18 @@ class obsParser():
 
         # Request required SKY data from the WeatherFlow API
         if (self.apiData[device_id]['flagAPI']
-                or self.deviceObs['windAvg'][0] is None
-                or self.deviceObs['gustMax'][0] is None
-                or self.deviceObs['peakSun'][0] is None):
+                or self.deriveObs['windAvg'][0] is None
+                or self.deriveObs['gustMax'][0] is None
+                or self.deriveObs['peakSun'][0] is None):
             self.apiData[device_id]['today'] = requestAPI.weatherflow.Today(device_id, config)
         if (self.apiData[device_id]['flagAPI']
-                or self.deviceObs['rainAccum']['yesterday'][0] is None):
+                or self.deriveObs['rainAccum']['yesterday'][0] is None):
             self.apiData[device_id]['yesterday'] = requestAPI.weatherflow.Yesterday(device_id, config)
         if (self.apiData[device_id]['flagAPI']
-                or self.deviceObs['rainAccum']['month'][0] is None):
+                or self.deriveObs['rainAccum']['month'][0] is None):
             self.apiData[device_id]['month'] = requestAPI.weatherflow.Month(device_id, config)
         if (self.apiData[device_id]['flagAPI']
-                or self.deviceObs['rainAccum']['year'][0] is None):
+                or self.deriveObs['rainAccum']['year'][0] is None):
             self.apiData[device_id]['year'] = requestAPI.weatherflow.Year(device_id, config)
         self.flagAPI[1] = 0
 
@@ -266,17 +279,17 @@ class obsParser():
         # Request required outdoor AIR data from the WeatherFlow API
         self.apiData[device_id]['24Hrs'] = requestAPI.weatherflow.Last24h(device_id, latestOb[0], config)
         if (self.apiData[device_id]['flagAPI']
-                or self.deviceObs['SLPMin'][0] is None
-                or self.deviceObs['SLPMax'][0] is None
-                or self.deviceObs['outTempMin'][0] is None
-                or self.deviceObs['outTempMax'][0] is None
-                or self.deviceObs['strikeCount']['today'][0] is None):
+                or self.deriveObs['SLPMin'][0] is None
+                or self.deriveObs['SLPMax'][0] is None
+                or self.deriveObs['outTempMin'][0] is None
+                or self.deriveObs['outTempMax'][0] is None
+                or self.deriveObs['strikeCount']['today'][0] is None):
             self.apiData[device_id]['today'] = requestAPI.weatherflow.Today(device_id, config)
         if (self.apiData[device_id]['flagAPI']
-                or self.deviceObs['strikeCount']['month'][0] is None):
+                or self.deriveObs['strikeCount']['month'][0] is None):
             self.apiData[device_id]['month'] = requestAPI.weatherflow.Month(device_id, config)
         if (self.apiData[device_id]['flagAPI']
-                or self.deviceObs['strikeCount']['year'][0] is None):
+                or self.deriveObs['strikeCount']['year'][0] is None):
             self.apiData[device_id]['year']  = requestAPI.weatherflow.Year(device_id, config)
         self.flagAPI[2] = 0
 
@@ -317,8 +330,8 @@ class obsParser():
 
         # Request required indoor AIR data from the WeatherFlow API
         if (self.apiData[device_id]['flagAPI']
-                or self.deviceObs['inTempMin'][0] is None
-                or self.deviceObs['inTempMax'][0] is None):
+                or self.deriveObs['inTempMin'][0] is None
+                or self.deriveObs['inTempMax'][0] is None):
             self.apiData[device_id]['today'] = requestAPI.weatherflow.Today(device_id, config)
         self.flagAPI[3] = 0
 
@@ -421,44 +434,45 @@ class obsParser():
         """
 
         # Derive variables from available obs_out_air and obs_st observations
+        # Derive variables from available obs_out_air and obs_st observations
         if device_type in ('obs_out_air', 'obs_st'):
-            self.deviceObs['feelsLike']    = derive.feelsLike(self.deviceObs['outTemp'], self.deviceObs['humidity'], self.deviceObs['windSpd'], config)
-            self.deviceObs['dewPoint']     = derive.dewPoint(self.deviceObs['outTemp'], self.deviceObs['humidity'])
-            self.deviceObs['outTempDiff']  = derive.tempDiff(self.deviceObs['outTemp'], self.deviceObs['obTime'], device, self.apiData, config)
-            self.deviceObs['outTempTrend'] = derive.tempTrend(self.deviceObs['outTemp'], self.deviceObs['obTime'], device, self.apiData, config)
-            self.deviceObs['outTempMax']   = derive.tempMax(self.deviceObs['outTemp'], self.deviceObs['obTime'], self.deviceObs['outTempMax'], device, self.apiData, config)
-            self.deviceObs['outTempMin']   = derive.tempMin(self.deviceObs['outTemp'], self.deviceObs['obTime'], self.deviceObs['outTempMin'], device, self.apiData, config)
-            self.deviceObs['SLP']          = derive.SLP(self.deviceObs['pressure'], device, config)
-            self.deviceObs['SLPTrend']     = derive.SLPTrend(self.deviceObs['pressure'], self.deviceObs['obTime'], device, self.apiData, config)
-            self.deviceObs['SLPMax']       = derive.SLPMax(self.deviceObs['pressure'], self.deviceObs['obTime'], self.deviceObs['SLPMax'], device, self.apiData, config)
-            self.deviceObs['SLPMin']       = derive.SLPMin(self.deviceObs['pressure'], self.deviceObs['obTime'], self.deviceObs['SLPMin'], device, self.apiData, config)
-            self.deviceObs['strikeCount']  = derive.strikeCount(self.deviceObs['strikeMinute'], self.deviceObs['strikeCount'], device, self.apiData, config)
-            self.deviceObs['strikeFreq']   = derive.strikeFrequency(self.deviceObs['obTime'], device, self.apiData, config)
-            self.deviceObs['strikeDeltaT'] = derive.strikeDeltaT(self.deviceObs['strikeTime'])
+            self.deriveObs['feelsLike']    = derive.feelsLike(self.deviceObs['outTemp'], self.deviceObs['humidity'], self.deviceObs['windSpd'], config)
+            self.deriveObs['dewPoint']     = derive.dewPoint(self.deviceObs['outTemp'], self.deviceObs['humidity'])
+            self.deriveObs['outTempDiff']  = derive.tempDiff(self.deviceObs['outTemp'], self.deviceObs['obTime'], device, self.apiData, config)
+            self.deriveObs['outTempTrend'] = derive.tempTrend(self.deviceObs['outTemp'], self.deviceObs['obTime'], device, self.apiData, config)
+            self.deriveObs['outTempMax']   = derive.tempMax(self.deviceObs['outTemp'], self.deviceObs['obTime'], self.deriveObs['outTempMax'], device, self.apiData, config)
+            self.deriveObs['outTempMin']   = derive.tempMin(self.deviceObs['outTemp'], self.deviceObs['obTime'], self.deriveObs['outTempMin'], device, self.apiData, config)
+            self.deriveObs['SLP']          = derive.SLP(self.deviceObs['pressure'], device, config)
+            self.deriveObs['SLPTrend']     = derive.SLPTrend(self.deviceObs['pressure'], self.deviceObs['obTime'], device, self.apiData, config)
+            self.deriveObs['SLPMax']       = derive.SLPMax(self.deviceObs['pressure'], self.deviceObs['obTime'], self.deriveObs['SLPMax'], device, self.apiData, config)
+            self.deriveObs['SLPMin']       = derive.SLPMin(self.deviceObs['pressure'], self.deviceObs['obTime'], self.deriveObs['SLPMin'], device, self.apiData, config)
+            self.deriveObs['strikeCount']  = derive.strikeCount(self.deviceObs['strikeMinute'], self.deriveObs['strikeCount'], device, self.apiData, config)
+            self.deriveObs['strikeFreq']   = derive.strikeFrequency(self.deviceObs['obTime'], device, self.apiData, config)
+            self.deriveObs['strikeDeltaT'] = derive.strikeDeltaT(self.deviceObs['strikeTime'])
 
         # Derive variables from available obs_sky and obs_st observations
         if device_type in ('obs_sky', 'obs_st'):
-            self.deviceObs['uvIndex']   = derive.UVIndex(self.deviceObs['uvIndex'])
-            self.deviceObs['peakSun']   = derive.peakSunHours(self.deviceObs['radiation'], self.deviceObs['peakSun'], device, self.apiData, config)
-            self.deviceObs['windSpd']   = derive.beaufortScale(self.deviceObs['windSpd'])
-            self.deviceObs['windDir']   = derive.cardinalWindDir(self.deviceObs['windDir'], self.deviceObs['windSpd'])
-            self.deviceObs['windAvg']   = derive.avgWindSpeed(self.deviceObs['windSpd'], self.deviceObs['windAvg'], device, self.apiData, config)
-            self.deviceObs['gustMax']   = derive.maxWindGust(self.deviceObs['windGust'], self.deviceObs['gustMax'], device, self.apiData, config)
-            self.deviceObs['rainRate']  = derive.rainRate(self.deviceObs['minuteRain'])
-            self.deviceObs['rainAccum'] = derive.rainAccumulation(self.deviceObs['dailyRain'], self.deviceObs['rainAccum'], device, self.apiData, config)
+            self.deriveObs['uvIndex']   = derive.UVIndex(self.deviceObs['uvIndex'])
+            self.deriveObs['peakSun']   = derive.peakSunHours(self.deviceObs['radiation'], self.deriveObs['peakSun'], device, self.apiData, config)
+            self.deriveObs['windSpd']   = derive.beaufortScale(self.deviceObs['windSpd'])
+            self.deriveObs['windDir']   = derive.cardinalWindDir(self.deviceObs['windDir'], self.deviceObs['windSpd'])
+            self.deriveObs['windAvg']   = derive.avgWindSpeed(self.deviceObs['windSpd'], self.deriveObs['windAvg'], device, self.apiData, config)
+            self.deriveObs['gustMax']   = derive.maxWindGust(self.deviceObs['windGust'], self.deriveObs['gustMax'], device, self.apiData, config)
+            self.deriveObs['rainRate']  = derive.rainRate(self.deviceObs['minuteRain'])
+            self.deriveObs['rainAccum'] = derive.rainAccumulation(self.deviceObs['dailyRain'], self.deriveObs['rainAccum'], device, self.apiData, config)
 
         # Derive variables from available obs_out_air and obs_st observations
         if device_type == 'obs_in_air':
-            self.deviceObs['inTempMax']   = derive.tempMax(self.deviceObs['inTemp'], self.deviceObs['obTime'], self.deviceObs['inTempMax'], device, self.apiData, config)
-            self.deviceObs['inTempMin']   = derive.tempMin(self.deviceObs['inTemp'], self.deviceObs['obTime'], self.deviceObs['inTempMin'], device, self.apiData, config)
+            self.deriveObs['inTempMax']   = derive.tempMax(self.deviceObs['inTemp'], self.deviceObs['obTime'], self.deriveObs['inTempMax'], device, self.apiData, config)
+            self.deriveObs['inTempMin']   = derive.tempMin(self.deviceObs['inTemp'], self.deviceObs['obTime'], self.deriveObs['inTempMin'], device, self.apiData, config)
 
         # Derive variables from available rapid_wind observations
         if device_type == 'rapid_wind':
-            self.deviceObs['rapidWindDir'] = derive.cardinalWindDir(self.deviceObs['rapidWindDir'], self.deviceObs['rapidWindSpd'])
+            self.deriveObs['rapidWindDir'] = derive.cardinalWindDir(self.deviceObs['rapidWindDir'], self.deviceObs['rapidWindSpd'])
 
         # Derive variables from available evt_strike observations
         if device_type == 'evt_strike':
-            self.deviceObs['strikeDeltaT'] = derive.strikeDeltaT(self.deviceObs['strikeTime'])
+            self.deriveObs['strikeDeltaT'] = derive.strikeDeltaT(self.deviceObs['strikeTime'])
 
         # Format derived observations
         self.formatDerivedVariables(config, device_type)
@@ -476,56 +490,56 @@ class obsParser():
         # Convert derived variable units from obs_out_air and obs_st observations
         if device_type in ('obs_out_air', 'obs_st', 'obs_all'):
             outTemp        = observation.Units(self.deviceObs['outTemp'],              config['Units']['Temp'])
-            feelsLike      = observation.Units(self.deviceObs['feelsLike'],            config['Units']['Temp'])
-            dewPoint       = observation.Units(self.deviceObs['dewPoint'],             config['Units']['Temp'])
-            outTempDiff    = observation.Units(self.deviceObs['outTempDiff'],          config['Units']['Temp'])
-            outTempTrend   = observation.Units(self.deviceObs['outTempTrend'],         config['Units']['Temp'])
-            outTempMax     = observation.Units(self.deviceObs['outTempMax'],           config['Units']['Temp'])
-            outTempMin     = observation.Units(self.deviceObs['outTempMin'],           config['Units']['Temp'])
+            feelsLike      = observation.Units(self.deriveObs['feelsLike'],            config['Units']['Temp'])
+            dewPoint       = observation.Units(self.deriveObs['dewPoint'],             config['Units']['Temp'])
+            outTempDiff    = observation.Units(self.deriveObs['outTempDiff'],          config['Units']['Temp'])
+            outTempTrend   = observation.Units(self.deriveObs['outTempTrend'],         config['Units']['Temp'])
+            outTempMax     = observation.Units(self.deriveObs['outTempMax'],           config['Units']['Temp'])
+            outTempMin     = observation.Units(self.deriveObs['outTempMin'],           config['Units']['Temp'])
             humidity       = observation.Units(self.deviceObs['humidity'],             config['Units']['Other'])
-            SLP            = observation.Units(self.deviceObs['SLP'],                  config['Units']['Pressure'])
-            SLPTrend       = observation.Units(self.deviceObs['SLPTrend'],             config['Units']['Pressure'])
-            SLPMax         = observation.Units(self.deviceObs['SLPMax'],               config['Units']['Pressure'])
-            SLPMin         = observation.Units(self.deviceObs['SLPMin'],               config['Units']['Pressure'])
+            SLP            = observation.Units(self.deriveObs['SLP'],                  config['Units']['Pressure'])
+            SLPTrend       = observation.Units(self.deriveObs['SLPTrend'],             config['Units']['Pressure'])
+            SLPMax         = observation.Units(self.deriveObs['SLPMax'],               config['Units']['Pressure'])
+            SLPMin         = observation.Units(self.deriveObs['SLPMin'],               config['Units']['Pressure'])
             strikeDist     = observation.Units(self.deviceObs['strikeDist'],           config['Units']['Distance'])
-            strikeDeltaT   = observation.Units(self.deviceObs['strikeDeltaT'],         config['Units']['Other'])
-            strikeFreq     = observation.Units(self.deviceObs['strikeFreq'],           config['Units']['Other'])
+            strikeDeltaT   = observation.Units(self.deriveObs['strikeDeltaT'],         config['Units']['Other'])
+            strikeFreq     = observation.Units(self.deriveObs['strikeFreq'],           config['Units']['Other'])
             strike3hr      = observation.Units(self.deviceObs['strike3hr'],            config['Units']['Other'])
-            strikeToday    = observation.Units(self.deviceObs['strikeCount']['today'], config['Units']['Other'])
-            strikeMonth    = observation.Units(self.deviceObs['strikeCount']['month'], config['Units']['Other'])
-            strikeYear     = observation.Units(self.deviceObs['strikeCount']['year'],  config['Units']['Other'])
+            strikeToday    = observation.Units(self.deriveObs['strikeCount']['today'], config['Units']['Other'])
+            strikeMonth    = observation.Units(self.deriveObs['strikeCount']['month'], config['Units']['Other'])
+            strikeYear     = observation.Units(self.deriveObs['strikeCount']['year'],  config['Units']['Other'])
 
         # Convert derived variable units from obs_sky and obs_st observations
         if device_type in ('obs_sky', 'obs_st', 'obs_all'):
-            rainRate       = observation.Units(self.deviceObs['rainRate'],               config['Units']['Precip'])
-            todayRain      = observation.Units(self.deviceObs['rainAccum']['today'],     config['Units']['Precip'])
-            yesterdayRain  = observation.Units(self.deviceObs['rainAccum']['yesterday'], config['Units']['Precip'])
-            monthRain      = observation.Units(self.deviceObs['rainAccum']['month'],     config['Units']['Precip'])
-            yearRain       = observation.Units(self.deviceObs['rainAccum']['year'],      config['Units']['Precip'])
+            rainRate       = observation.Units(self.deriveObs['rainRate'],               config['Units']['Precip'])
+            todayRain      = observation.Units(self.deriveObs['rainAccum']['today'],     config['Units']['Precip'])
+            yesterdayRain  = observation.Units(self.deriveObs['rainAccum']['yesterday'], config['Units']['Precip'])
+            monthRain      = observation.Units(self.deriveObs['rainAccum']['month'],     config['Units']['Precip'])
+            yearRain       = observation.Units(self.deriveObs['rainAccum']['year'],      config['Units']['Precip'])
             radiation      = observation.Units(self.deviceObs['radiation'],              config['Units']['Other'])
-            uvIndex        = observation.Units(self.deviceObs['uvIndex'],                config['Units']['Other'])
-            peakSun        = observation.Units(self.deviceObs['peakSun'],                config['Units']['Other'])
-            windSpd        = observation.Units(self.deviceObs['windSpd'],                config['Units']['Wind'])
-            windDir        = observation.Units(self.deviceObs['windDir'],                config['Units']['Direction'])
+            uvIndex        = observation.Units(self.deriveObs['uvIndex'],                config['Units']['Other'])
+            peakSun        = observation.Units(self.deriveObs['peakSun'],                config['Units']['Other'])
+            windSpd        = observation.Units(self.deriveObs['windSpd'],                config['Units']['Wind'])
+            windDir        = observation.Units(self.deriveObs['windDir'],                config['Units']['Direction'])
             windGust       = observation.Units(self.deviceObs['windGust'],               config['Units']['Wind'])
-            windAvg        = observation.Units(self.deviceObs['windAvg'],                config['Units']['Wind'])
-            windMax        = observation.Units(self.deviceObs['gustMax'],                config['Units']['Wind'])
+            windAvg        = observation.Units(self.deriveObs['windAvg'],                config['Units']['Wind'])
+            windMax        = observation.Units(self.deriveObs['gustMax'],                config['Units']['Wind'])
 
         # Convert derived variable units from obs_in_air observations
         if device_type in ('obs_in_air',  'obs_all'):
             inTemp         = observation.Units(self.deviceObs['inTemp'],    config['Units']['Temp'])
-            inTempMax      = observation.Units(self.deviceObs['inTempMax'], config['Units']['Temp'])
-            inTempMin      = observation.Units(self.deviceObs['inTempMin'], config['Units']['Temp'])
+            inTempMax      = observation.Units(self.deriveObs['inTempMax'], config['Units']['Temp'])
+            inTempMin      = observation.Units(self.deriveObs['inTempMin'], config['Units']['Temp'])
 
         # Convert derived variable units from rapid_wind observations
         if device_type in ('rapid_wind', 'obs_all'):
             rapidWindSpd   = observation.Units(self.deviceObs['rapidWindSpd'], config['Units']['Wind'])
-            rapidWindDir   = observation.Units(self.deviceObs['rapidWindDir'], 'degrees')
+            rapidWindDir   = observation.Units(self.deriveObs['rapidWindDir'], 'degrees')
 
         # Convert derived variable units from available evt_strike observations
         if device_type in ('evt_strike', 'obs_all'):
             strikeDist     = observation.Units(self.deviceObs['strikeDist'],   config['Units']['Distance'])
-            strikeDeltaT   = observation.Units(self.deviceObs['strikeDeltaT'], config['Units']['Other'])
+            strikeDeltaT   = observation.Units(self.deriveObs['strikeDeltaT'], config['Units']['Other'])
 
         # Format derived variables from obs_air and obs_st observations
         if device_type in ('obs_out_air', 'obs_st', 'obs_all'):
@@ -595,6 +609,8 @@ class obsParser():
         while self.app.websocket_client.activeThreads():
             pass
         self.displayObs = dict(properties.Obs())
+        self.deviceObs = deviceObs.copy()
+        self.deriveObs = deriveObs.copy()
         self.updateDisplay('obs_reset')
 
 

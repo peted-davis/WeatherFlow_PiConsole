@@ -102,16 +102,15 @@ class websocketClient():
             self.connected = False
             Logger.info(f'Websocket: {system.logTime()} - Connection closed')
         except Exception:
-            Logger.info(f'Websocket: {system.logTime()} - Unable to close connection cleanly')
+            Logger.info(f'Websocket: {system.logTime()} - Unable to close connection')
 
 
     async def __async__verify(self):
         try:
             pong = await self.connection.ping()
             await asyncio.wait_for(pong, timeout=self.ping_timeout)
-            Logger.info(f'Websocket: {system.logTime()} - Ping OK, keeping connection alive')
         except Exception:
-            Logger.error(f'Websocket: {system.logTime()} - Ping error, closing connection')
+            Logger.error(f'Websocket: {system.logTime()} - Ping error')
             await self.__async__disconnect()
             await asyncio.sleep(self.sleep_time)
             await self.__async__connect()
@@ -196,6 +195,7 @@ class websocketClient():
                     Logger.info(f'Websocket: {system.logTime()} - Missing message type: {json.dumps(self.message)}')
         except asyncio.CancelledError:
             raise
+
 
     async def __async__listen(self):
         try:

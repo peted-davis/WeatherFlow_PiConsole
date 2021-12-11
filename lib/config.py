@@ -188,7 +188,9 @@ def switch(stationMetaData, deviceList, config):
             Value = deviceList['ST']['device_id']
         elif key == 'SkyID' and 'SK' in deviceList:
             Value = deviceList['SK']['device_id']
-        elif key == 'OutAirID' and 'AR' in deviceList:
+        elif key == 'OutAirID' and 'AR' in deviceList and deviceList['AR']['device_meta']['environment'] == 'outdoor':
+            Value = deviceList['AR']['device_id']
+        elif key == 'InAirID' and 'AR' in deviceList and deviceList['AR']['device_meta']['environment'] == 'indoor':
             Value = deviceList['AR']['device_id']
         elif key == 'TempestHeight' and 'ST' in deviceList:
             Value = deviceList['ST']['device_meta']['agl']

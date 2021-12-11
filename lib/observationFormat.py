@@ -398,6 +398,7 @@ def Format(Obs, obType, config=[]):
                 if isinstance(UV, str) and UV.strip() == 'index':
                     if cObs[ii - 1] is None:
                         cObs[ii - 1] = '-'
+                        cObs.extend(['-', '#646464'])
                     else:
                         cObs[ii - 1] = '{:.1f}'.format(cObs[ii - 1])
 

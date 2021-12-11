@@ -49,15 +49,6 @@ class Station(Widget):
         self.Status = properties.Status()
         self.app = App
 
-        # Initialise required device status panels
-        if self.app.config['Station']['TempestID']:
-            self.tempestStatusPanel = deviceStatusPanel(self, 'tempest')
-        if self.app.config['Station']['SkyID']:
-            self.skyStatusPanel = deviceStatusPanel(self, 'sky')
-        if self.app.config['Station']['OutAirID']:
-            self.outAirStatusPanel = deviceStatusPanel(self, 'outAir')
-        if self.app.config['Station']['InAirID']:
-            self.inAirStatusPanel = deviceStatusPanel(self, 'inAir')
 
     def get_hubFirmware(self):
 
@@ -73,6 +64,7 @@ class Station(Widget):
                    timeout=int(self.app.config['System']['Timeout']),
                    ca_file=certifi.where())
 
+
     def parse_hubFirmware(self, request, response):
 
         """ Parse hub firmware_revision from response returned by request.url
@@ -87,6 +79,7 @@ class Station(Widget):
         except Exception:
             pass
 
+
     def fail_hubFirmware(self, request, response):
 
         """ Failed to get hub firmware_revision from response returned by
@@ -94,6 +87,7 @@ class Station(Widget):
         """
 
         self.Status['hubFirmware'] = '[color=d73027ff]Error[/color]'
+
 
     def get_observationCount(self):
 
@@ -124,6 +118,7 @@ class Station(Widget):
                        timeout=int(self.app.config['System']['Timeout']),
                        ca_file=certifi.where())
 
+
     def parse_observationCount(self, request, response):
 
         """ Parse observation count from response returned by request.url """
@@ -131,13 +126,14 @@ class Station(Widget):
         if 'Station' in self.app.config:
             if 'obs' in response and response['obs'] is not None:
                 if str(response['device_id']) == self.app.config['Station']['TempestID']:
-                    self.Status['tempestObCount'] = str(len(response['obs']))
+                    self.Status['TempestObCount'] = str(len(response['obs']))
                 elif str(response['device_id']) == self.app.config['Station']['SkyID']:
-                    self.Status['skyObCount'] = str(len(response['obs']))
+                    self.Status['SkyObCount'] = str(len(response['obs']))
                 elif str(response['device_id']) == self.app.config['Station']['OutAirID']:
-                    self.Status['outAirObCount'] = str(len(response['obs']))
+                    self.Status['OutAirObCount'] = str(len(response['obs']))
                 elif str(response['device_id']) == self.app.config['Station']['InAirID']:
-                    self.Status['inAirObCount'] = str(len(response['obs']))
+                    self.Status['InAirObCount'] = str(len(response['obs']))
+
 
     def fail_observationCount(self, request, response):
 
@@ -147,13 +143,14 @@ class Station(Widget):
 
         deviceID = re.search(r'device\/(.*)\?', request.url).group(1)
         if deviceID == self.app.config['Station']['TempestID']:
-            self.Status['tempestObCount'] = '[color=d73027ff]Error[/color]'
+            self.Status['TempestObCount'] = '[color=d73027ff]Error[/color]'
         elif deviceID == self.app.config['Station']['SkyID']:
-            self.Status['skyObCount'] = '[color=d73027ff]Error[/color]'
+            self.Status['SkyObCount'] = '[color=d73027ff]Error[/color]'
         elif deviceID == self.app.config['Station']['OutAirID']:
-            self.Status['outAirObCount'] = '[color=d73027ff]Error[/color]'
+            self.Status['OutAirObCount'] = '[color=d73027ff]Error[/color]'
         elif deviceID == self.app.config['Station']['InAirID']:
-            self.Status['inAirObCount'] = '[color=d73027ff]Error[/color]'
+            self.Status['InAirObCount'] = '[color=d73027ff]Error[/color]'
+
 
     def get_deviceStatus(self, dt):
 
@@ -184,10 +181,10 @@ class Station(Widget):
                 deviceStatus = '[color=d73027ff]Error[/color]'
 
             # Store TEMPEST device status variables
-            self.Status['tempestSampleTime'] = datetime.fromtimestamp(latestOb[0], Tz).strftime('%H:%M:%S')
-            self.Status['tempestLastSample'] = sampleDelay
-            self.Status['tempestVoltage']    = '{:.2f}'.format(deviceVoltage)
-            self.Status['tempestStatus']     = deviceStatus
+            self.Status['TempestSampleTime'] = datetime.fromtimestamp(latestOb[0], Tz).strftime('%H:%M:%S')
+            self.Status['TempestLastSample'] = sampleDelay
+            self.Status['TempestVoltage']    = '{:.2f}'.format(deviceVoltage)
+            self.Status['TempestStatus']     = deviceStatus
 
         # Get SKY device status
         if 'obs_sky' in self.app.CurrentConditions.Obs:
@@ -209,10 +206,10 @@ class Station(Widget):
                 deviceStatus = '[color=d73027ff]Error[/color]'
 
             # Store SKY device status variables
-            self.Status['skySampleTime'] = datetime.fromtimestamp(latestOb[0], Tz).strftime('%H:%M:%S')
-            self.Status['skyLastSample'] = sampleDelay
-            self.Status['skyVoltage']    = '{:.2f}'.format(deviceVoltage)
-            self.Status['skyStatus']     = deviceStatus
+            self.Status['SkySampleTime'] = datetime.fromtimestamp(latestOb[0], Tz).strftime('%H:%M:%S')
+            self.Status['SkyLastSample'] = sampleDelay
+            self.Status['SkyVoltage']    = '{:.2f}'.format(deviceVoltage)
+            self.Status['SkyStatus']     = deviceStatus
 
         # Get outdoor AIR device status
         if 'obs_out_air' in self.app.CurrentConditions.Obs:
@@ -234,10 +231,10 @@ class Station(Widget):
                 deviceStatus = '[color=d73027ff]Error[/color]'
 
             # Store outdoor AIR device status variables
-            self.Status['outAirSampleTime'] = datetime.fromtimestamp(latestOb[0], Tz).strftime('%H:%M:%S')
-            self.Status['outAirLastSample'] = sampleDelay
-            self.Status['outAirVoltage']    = '{:.2f}'.format(deviceVoltage)
-            self.Status['outAirStatus']     = deviceStatus
+            self.Status['OutAirSampleTime'] = datetime.fromtimestamp(latestOb[0], Tz).strftime('%H:%M:%S')
+            self.Status['OutAirLastSample'] = sampleDelay
+            self.Status['OutAirVoltage']    = '{:.2f}'.format(deviceVoltage)
+            self.Status['OutAirStatus']     = deviceStatus
 
         # Get indoor AIR device status
         if 'obs_in_air' in self.app.CurrentConditions.Obs:
@@ -259,21 +256,21 @@ class Station(Widget):
                 deviceStatus = '[color=d73027ff]Error[/color]'
 
             # Store AIR device status variables
-            self.Status['inAirSampleTime'] = datetime.fromtimestamp(latestOb[0], Tz).strftime('%H:%M:%S')
-            self.Status['inAirLastSample'] = sampleDelay
-            self.Status['inAirVoltage']    = '{:.2f}'.format(deviceVoltage)
-            self.Status['inAirStatus']     = deviceStatus
+            self.Status['InAirSampleTime'] = datetime.fromtimestamp(latestOb[0], Tz).strftime('%H:%M:%S')
+            self.Status['InAirLastSample'] = sampleDelay
+            self.Status['InAirVoltage']    = '{:.2f}'.format(deviceVoltage)
+            self.Status['InAirStatus']     = deviceStatus
 
         # Set hub status (i.e. stationStatus) based on device status
         deviceStatus = []
         if 'obs_st' in self.app.CurrentConditions.Obs:
-            deviceStatus.append(self.Status['tempestStatus'])
+            deviceStatus.append(self.Status['TempestStatus'])
         if 'obs_sky' in self.app.CurrentConditions.Obs:
-            deviceStatus.append(self.Status['skyStatus'])
+            deviceStatus.append(self.Status['SkyStatus'])
         if 'obs_out_air' in self.app.CurrentConditions.Obs:
             deviceStatus.append(self.Status['outAirStatus'])
         if 'obs_in_air' in self.app.CurrentConditions.Obs:
-            deviceStatus.append(self.Status['inAirStatus'])
+            deviceStatus.append(self.Status['InAirStatus'])
         if not deviceStatus or all('-' in Status for Status in deviceStatus):
             self.Status['stationStatus'] = '-'
         elif all('Error' in Status for Status in deviceStatus):

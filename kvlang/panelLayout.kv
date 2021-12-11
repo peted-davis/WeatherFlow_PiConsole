@@ -70,6 +70,60 @@
             size: self.width, 1
 
 ## =============================================================================
+## CUSTOM DeviceSpinner
+## =============================================================================
+<DeviceSpinner@Spinner>:
+    canvas.before:
+        Color:
+            rgba: utils.rgba('#1e1e1eff') if self.state=='normal' else utils.rgba('#00525aff')
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [14*app.scaleFactor]
+    background_normal: ''
+    background_color: 0, 0, 0, 0
+    sync_height: True
+    disabled: 1
+    selected: 1 if self.text != 'Please select' and not self.disabled else 0
+    pos_hint: {'center': (.5, .5)}
+    option_cls: Factory.selectOption
+
+<StationSpinner@Spinner>:
+    canvas.before:
+        Color:
+            rgba: utils.rgba('#1e1e1eff') if self.state=='normal' else utils.rgba('#00525aff')
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [14*app.scaleFactor]
+    background_normal: ''
+    background_color: 0, 0, 0, 0
+    sync_height: True
+    pos_hint: {'center': (.5, .5)}
+    option_cls: Factory.selectOption
+    dropdown_cls: Factory.CustomDropdown
+
+
+<selectOption@SpinnerOption>
+    background_color: (0,0,1,0)
+    canvas.before:
+        Color:
+            rgba: utils.rgba('#404040ff') if self.state=='normal' else utils.rgba('#00525aff')
+        RoundedRectangle:
+            pos: [self.x, self.y+1]
+            size: [self.width, self.height-2]
+            radius: [14*app.scaleFactor]
+
+<CustomDropdown@DropDown>:
+    canvas.before:
+        Color:
+            rgba: utils.rgba('#00525aff')
+        RoundedRectangle:
+            pos: [self.x, self.y+1]
+            size: [self.width, self.height-2]
+            radius: [14*app.scaleFactor]
+
+## =============================================================================
 ## PANEL BACKGROUNDS
 ## =============================================================================
 <PanelBackground@FloatLayout>:
