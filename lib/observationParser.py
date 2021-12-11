@@ -171,6 +171,7 @@ class obsParser():
         # Calculate derived observations
         self.calcDerivedVariables(device_id, config, 'obs_st')
 
+
     def parse_obs_sky(self, message, config):
 
         """ Parse obs_sky Websocket messages from SKY module
@@ -234,6 +235,7 @@ class obsParser():
 
         # Calculate derived observations
         self.calcDerivedVariables(device_id, config, 'obs_sky')
+
 
     def parse_obs_out_air(self, message, config):
 
@@ -299,6 +301,7 @@ class obsParser():
         # Calculate derived observations
         self.calcDerivedVariables(device_id, config, 'obs_out_air')
 
+
     def parse_obs_in_air(self, message, config):
 
         """ Parse obs_air Websocket messages from indoor AIR module
@@ -340,6 +343,7 @@ class obsParser():
 
         # Calculate derived observations
         self.calcDerivedVariables(device_id, config, 'obs_in_air')
+
 
     def parse_rapid_wind(self, message, config):
 
@@ -388,6 +392,7 @@ class obsParser():
         # Calculate derived observations
         self.calcDerivedVariables(device_id, config, 'rapid_wind')
 
+
     def parse_evt_strike(self, message, config):
 
         """ Parse lightning strike event Websocket messages received from AIR
@@ -422,6 +427,7 @@ class obsParser():
 
         # Calculate derived observations
         self.calcDerivedVariables(device_id, config, 'evt_strike')
+
 
     def calcDerivedVariables(self, device, config, device_type):
 
@@ -608,6 +614,7 @@ class obsParser():
     def resetDisplay(self):
         while self.app.websocket_client.activeThreads():
             pass
+        self.app.CurrentConditions.Obs = properties.Obs()
         self.displayObs = dict(properties.Obs())
         self.deviceObs = deviceObs.copy()
         self.deriveObs = deriveObs.copy()

@@ -258,8 +258,6 @@ class mainMenu(ModalView):
             elif 'air' in instance_id.lower():
                 for device in self.deviceList:
                     if 'AR' in device:
-                        print('AIR device')
-                        print('instance_id', instance_id)
                         if 'outAir' in instance_id and self.deviceList[device]['device_meta']['environment'] == 'outdoor':
                             break
                         elif 'inAir' in instance_id and self.deviceList[device]['device_meta']['environment'] == 'indoor':

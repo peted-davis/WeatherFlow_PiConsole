@@ -24,20 +24,20 @@ def Obs():
         Obs                Values for Obs Kivy property
     """
 
-    return [('rapidSpd', '--'),       ('rapidDir', '----'),      ('rapidShift', '-'),
-            ('WindSpd', '-----'),     ('WindGust', '--'),        ('WindDir', '---'),
-            ('AvgWind', '--'),        ('MaxGust', '--'),         ('RainRate', '---'),
-            ('TodayRain', '--'),      ('YesterdayRain', '--'),   ('MonthRain', '--'),
-            ('YearRain', '--'),       ('Radiation', '----'),     ('UVIndex', '----'),
-            ('peakSun', '------'),    ('outTemp', '--'),         ('outTempMin', '---'),
-            ('outTempMax', '---'),    ('outTempTrend', '---'),   ('outTempDiff', '---'),
-            ('inTemp', '--'),         ('inTempMin', '---'),      ('inTempMax', '---'),
-            ('Humidity', '--'),       ('DewPoint', '--'),        ('SLP', '---'),
-            ('SLPMax', '---'),        ('SLPMin', '---'),         ('SLPTrend', '----'),
-            ('FeelsLike', '----'),    ('StrikeDeltaT', '-----'), ('StrikeDist', '--'),
-            ('StrikeFreq', '----'),   ('Strikes3hr', '-'),       ('StrikesToday', '-'),
-            ('StrikesMonth', '-'),    ('StrikesYear', '-')
-            ]
+    return [('outTemp', '--'),       ('FeelsLike', '----'),     ('DewPoint', '--'),
+            ('outTempDiff', '---'),  ('outTempTrend', '---'),   ('outTempMax', '---'),
+            ('outTempMin', '---'),   ('Humidity', '--'),        ('SLP', '---'),
+            ('SLPTrend', '----'),    ('SLPMax', '---'),         ('SLPMin', '---'),
+            ('StrikeDist', '--'),    ('StrikeDeltaT', '-----'), ('StrikeFreq', '----'),
+            ('Strikes3hr', '-'),     ('StrikesToday', '-'),     ('StrikesMonth', '-'),
+            ('StrikesYear', '-'),    ('Radiation', '----'),     ('UVIndex', '----'),
+            ('peakSun', '------'),   ('RainRate', '---'),       ('TodayRain', '--'),
+            ('YesterdayRain', '--'), ('MonthRain', '--'),       ('YearRain', '--'),
+            ('WindSpd', '-----'),    ('WindGust', '--'),        ('AvgWind', '--'),
+            ('MaxGust', '--'),       ('WindDir', '---'),        ('inTemp', '--'),
+            ('inTempMax', '---'),    ('inTempMin', '---'),      ('rapidSpd', '--'),
+            ('rapidDir', '----'),
+           ]
 
 def Astro():
 
