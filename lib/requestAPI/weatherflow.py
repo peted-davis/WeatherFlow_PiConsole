@@ -34,7 +34,7 @@ def verifyResponse(Response,Field):
         Flag            True or False flag confirming validity of response
 
     """
-    if Response is None:
+    if Response == 'Error':
         return False
     if not Response.ok:
         return False
@@ -76,10 +76,14 @@ def Last6h(Device,endTime,Config):
     try:
         apiData = requests.get(URL,timeout=int(Config['System']['Timeout']))
     except:
-        apiData = None
+        apiData = 'Error'
 
     # Verify response
-    if apiData is None or not verifyResponse(apiData, 'obs'):
+    if apiData is None:
+        apiData = 'Error'
+    if apiData == 'Error' or not verifyResponse(apiData, 'obs') or apiData is None:
+        if apiData is None:
+            apiData = 'Error'
         Logger.warning(f'requestAPI: {system.logTime()} - Last6h call failed')
 
     # Return observations from the last six hours
@@ -109,10 +113,12 @@ def Last24h(Device,endTime,Config):
     try:
         apiData = requests.get(URL,timeout=int(Config['System']['Timeout']))
     except:
-        apiData = None
+        apiData = 'Error'
 
     # Verify response
-    if apiData is None or not verifyResponse(apiData, 'obs'):
+    if apiData == 'Error' or not verifyResponse(apiData, 'obs') or apiData is None:
+        if apiData is None:
+            apiData = 'Error'
         Logger.warning(f'requestAPI: {system.logTime()} - Last24h call failed')
 
     # Return observations from the last twenty-four hours
@@ -150,10 +156,12 @@ def Today(Device,Config):
     try:
         apiData = requests.get(URL,timeout=int(Config['System']['Timeout']))
     except:
-        apiData = None
+        apiData = 'Error'
 
     # Verify response
-    if apiData is None or not verifyResponse(apiData, 'obs'):
+    if apiData == 'Error' or not verifyResponse(apiData, 'obs') or apiData is None:
+        if apiData is None:
+            apiData = 'Error'
         Logger.warning(f'requestAPI: {system.logTime()} - Today call failed')
 
     # Return observations from today
@@ -193,10 +201,12 @@ def Yesterday(Device,Config):
     try:
         apiData = requests.get(URL,timeout=int(Config['System']['Timeout']))
     except:
-        apiData = None
+        apiData = 'Error'
 
     # Verify response
-    if apiData is None or not verifyResponse(apiData, 'obs'):
+    if apiData == 'Error' or not verifyResponse(apiData, 'obs') or apiData is None:
+        if apiData is None:
+            apiData = 'Error'
         Logger.warning(f'requestAPI: {system.logTime()} - Yesterday call failed')
 
     # Return observations from yesterday
@@ -243,10 +253,12 @@ def Month(Device,Config):
     try:
         apiData = requests.get(URL,timeout=int(Config['System']['Timeout']))
     except:
-        apiData = None
+        apiData = 'Error'
 
     # Verify response
-    if apiData is None or not verifyResponse(apiData, 'obs'):
+    if apiData == 'Error' or not verifyResponse(apiData, 'obs') or apiData is None:
+        if apiData is None:
+            apiData = 'Error'
         Logger.warning(f'requestAPI: {system.logTime()} - Month call failed')
 
     # Return observations from the last month
@@ -286,10 +298,12 @@ def Year(Device,Config):
     try:
         apiData = requests.get(URL,timeout=int(Config['System']['Timeout']))
     except:
-        apiData = None
+        apiData = 'Error'
 
     # Verify response
-    if apiData is None or not verifyResponse(apiData, 'obs'):
+    if apiData == 'Error' or not verifyResponse(apiData, 'obs') or apiData is None:
+        if apiData is None:
+            apiData = 'Error'
         Logger.warning(f'requestAPI: {system.logTime()} - Year call failed')
 
     # Return observations from the last year

@@ -1100,6 +1100,7 @@
 ## MAIN MENU
 ## =============================================================================
 <mainMenu>:
+    id: id.__self__
     statusPanel: statusPanel.__self__
     size_hint: (.8, .8)
     canvas:
@@ -1277,7 +1278,7 @@
                                         on_text: if self.text not in ['Please select', 'Tempest selected', 'No device available']: root.on_deviceSelection(self)
                             BoxLayout:
                                 orientation: 'horizontal'
-                                Button:
+                                SwitchButton:
                                     id: switchButton
                                     disabled: 1
                                     text: 'Switch stations'

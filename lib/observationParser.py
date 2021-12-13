@@ -616,8 +616,9 @@ class obsParser():
             pass
         self.app.CurrentConditions.Obs = properties.Obs()
         self.displayObs = dict(properties.Obs())
-        self.deviceObs = deviceObs.copy()
-        self.deriveObs = deriveObs.copy()
+        self.deviceObs  = deviceObs.copy()
+        self.deriveObs  = deriveObs.copy()
+        self.apiData    = {}
         self.updateDisplay('obs_reset')
 
 
