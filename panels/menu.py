@@ -44,11 +44,14 @@ class mainMenu(ModalView):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.app = App.get_running_app()
+        self.app.mainMenu = self
         self.initialiseStatusPanels()
         self.get_stationList()
 
-    def on_open(self):
-        self.app.mainMenu = self
+    # Remove device status panels when mainMenu is closed
+    def on_pre_dismiss(self):
+        for panel in self.ids.devicePanel.children:
+            self.ids.devicePanel.remove_widget(panel)
 
     # Display device status panels based on devices connected to station
     def initialiseStatusPanels(self):
@@ -57,18 +60,11 @@ class mainMenu(ModalView):
         self.app.Station.get_observationCount()
         self.app.Station.get_hubFirmware()
 
-        # Add device status panels to main menu
+        # Add device status panels to main menu as required
         device_list = ['Tempest', 'Sky', 'OutAir', 'InAir']
         for device in device_list:
             if self.app.config['Station'][device + 'ID']:
-                if hasattr(self.app.Station, device + 'StatusPanel'):
-                    self.ids.devicePanel.add_widget(getattr(self.app.Station, device + 'StatusPanel'))
-                else:
-                    setattr(self.app.Station, device + 'StatusPanel', deviceStatusPanel(self.app.Station, device))
-                    self.ids.devicePanel.add_widget(getattr(self.app.Station, device + 'StatusPanel'))
-            else:
-                if hasattr(self.app.Station, device + 'StatusPanel'):
-                    delattr(self.app.Station, device + 'StatusPanel')
+                self.ids.devicePanel.add_widget(deviceStatusPanel(self.app.Station, device))
 
     # Fetch list of stations associated with WeatherFlow key
     def get_stationList(self):
@@ -410,6 +406,11 @@ class deviceStatusPanel(BoxLayout):
             self.Device = 'AIR (indoor)'
         else:
             self.Device = self.device_type.upper()
+
+        # Populate status fields
+        for field, value in self.station.Status.items():
+            if self.device_type in field:
+                setattr(self, field.replace(self.device_type,''), value)
 
     def statusChange(self, _instance, newStatus):
         for field, value in newStatus.items():
