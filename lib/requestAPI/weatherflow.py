@@ -34,7 +34,7 @@ def verifyResponse(Response,Field):
         Flag            True or False flag confirming validity of response
 
     """
-    if Response == 'Error':
+    if Response is None:
         return False
     if not Response.ok:
         return False
@@ -76,14 +76,10 @@ def Last6h(Device,endTime,Config):
     try:
         apiData = requests.get(URL,timeout=int(Config['System']['Timeout']))
     except:
-        apiData = 'Error'
+        apiData = None
 
     # Verify response
-    if apiData is None:
-        apiData = 'Error'
-    if apiData == 'Error' or not verifyResponse(apiData, 'obs') or apiData is None:
-        if apiData is None:
-            apiData = 'Error'
+    if apiData is None or not verifyResponse(apiData, 'obs'):
         Logger.warning(f'requestAPI: {system.logTime()} - Last6h call failed')
 
     # Return observations from the last six hours
@@ -113,12 +109,10 @@ def Last24h(Device,endTime,Config):
     try:
         apiData = requests.get(URL,timeout=int(Config['System']['Timeout']))
     except:
-        apiData = 'Error'
+        apiData = None
 
     # Verify response
-    if apiData == 'Error' or not verifyResponse(apiData, 'obs') or apiData is None:
-        if apiData is None:
-            apiData = 'Error'
+    if apiData is None or not verifyResponse(apiData, 'obs'):
         Logger.warning(f'requestAPI: {system.logTime()} - Last24h call failed')
 
     # Return observations from the last twenty-four hours
@@ -156,12 +150,10 @@ def Today(Device,Config):
     try:
         apiData = requests.get(URL,timeout=int(Config['System']['Timeout']))
     except:
-        apiData = 'Error'
+        apiData = None
 
     # Verify response
-    if apiData == 'Error' or not verifyResponse(apiData, 'obs') or apiData is None:
-        if apiData is None:
-            apiData = 'Error'
+    if apiData is None or not verifyResponse(apiData, 'obs'):
         Logger.warning(f'requestAPI: {system.logTime()} - Today call failed')
 
     # Return observations from today
@@ -201,12 +193,10 @@ def Yesterday(Device,Config):
     try:
         apiData = requests.get(URL,timeout=int(Config['System']['Timeout']))
     except:
-        apiData = 'Error'
+        apiData = None
 
     # Verify response
-    if apiData == 'Error' or not verifyResponse(apiData, 'obs') or apiData is None:
-        if apiData is None:
-            apiData = 'Error'
+    if apiData is None or not verifyResponse(apiData, 'obs'):
         Logger.warning(f'requestAPI: {system.logTime()} - Yesterday call failed')
 
     # Return observations from yesterday
@@ -253,12 +243,10 @@ def Month(Device,Config):
     try:
         apiData = requests.get(URL,timeout=int(Config['System']['Timeout']))
     except:
-        apiData = 'Error'
+        apiData = None
 
     # Verify response
-    if apiData == 'Error' or not verifyResponse(apiData, 'obs') or apiData is None:
-        if apiData is None:
-            apiData = 'Error'
+    if apiData is None or not verifyResponse(apiData, 'obs'):
         Logger.warning(f'requestAPI: {system.logTime()} - Month call failed')
 
     # Return observations from the last month
@@ -298,12 +286,10 @@ def Year(Device,Config):
     try:
         apiData = requests.get(URL,timeout=int(Config['System']['Timeout']))
     except:
-        apiData = 'Error'
+        apiData = None
 
     # Verify response
-    if apiData == 'Error' or not verifyResponse(apiData, 'obs') or apiData is None:
-        if apiData is None:
-            apiData = 'Error'
+    if apiData is None or not verifyResponse(apiData, 'obs'):
         Logger.warning(f'requestAPI: {system.logTime()} - Year call failed')
 
     # Return observations from the last year
@@ -327,12 +313,16 @@ def stationMetaData(Station,Config):
     Template = 'https://swd.weatherflow.com/swd/rest/stations/{}?token={}'
     URL = Template.format(Station,Config['Keys']['WeatherFlow'])
     try:
-        Data = requests.get(URL,timeout=int(Config['System']['Timeout']))
+        apiData = requests.get(URL,timeout=int(Config['System']['Timeout']))
     except:
-        Data = None
+        apiData = None
+
+    # Verify response
+    if apiData is None or not verifyResponse(apiData, 'obs'):
+        Logger.warning(f'requestAPI: {system.logTime()} - stationMetaData call failed')
 
     # Return station meta data
-    return Data
+    return apiData
 
 def Forecast(Config):
 
@@ -349,9 +339,13 @@ def Forecast(Config):
     Template = 'https://swd.weatherflow.com/swd/rest/better_forecast?token={}&station_id={}&lat={}&lon={}'
     URL = Template.format(Config['Keys']['WeatherFlow'],Config['Station']['StationID'],Config['Station']['Latitude'],Config['Station']['Longitude'])
     try:
-        Data = requests.get(URL,timeout=int(Config['System']['Timeout']))
+        apiData = requests.get(URL,timeout=int(Config['System']['Timeout']))
     except:
-        Data = None
+        apiData = None
+
+    # Verify response
+    if apiData is None or not verifyResponse(apiData, 'forecast'):
+        Logger.warning(f'requestAPI: {system.logTime()} - Forecast call failed')
 
     # Return WeatherFlow forecast data
-    return Data
+    return apiData

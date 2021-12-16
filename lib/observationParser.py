@@ -104,12 +104,7 @@ class obsParser():
 
         # Extract TEMPEST device_id. Initialise API data dictionary
         device_id = message['device_id']
-        self.apiData[device_id] = {'flagAPI': self.flagAPI[0],
-                                   '24Hrs': None,
-                                   'today': None,
-                                   'yesterday': None,
-                                   'month': None,
-                                   'year': None}
+        self.apiData[device_id] = {'flagAPI': self.flagAPI[0]}
 
         # Discard duplicate TEMPEST Websocket messages
         if 'obs_st' in self.displayObs:
@@ -189,11 +184,7 @@ class obsParser():
 
         # Extract SKY device_id. Initialise API data dictionary
         device_id = message['device_id']
-        self.apiData[device_id] = {'flagAPI': self.flagAPI[1],
-                                   'today': None,
-                                   'yesterday': None,
-                                   'month': None,
-                                   'year': None}
+        self.apiData[device_id] = {'flagAPI': self.flagAPI[1]}
 
         # Discard duplicate SKY Websocket messages
         if 'obs_sky' in self.displayObs:
@@ -254,11 +245,7 @@ class obsParser():
 
         # Extract outdoor AIR device_id. Initialise API data dictionary
         device_id = message['device_id']
-        self.apiData[device_id] = {'flagAPI': self.flagAPI[2],
-                                   '24Hrs': None,
-                                   'today': None,
-                                   'month': None,
-                                   'year': None}
+        self.apiData[device_id] = {'flagAPI': self.flagAPI[2]}
 
         # Discard duplicate outdoor AIR Websocket messages
         if 'obs_out_air' in self.displayObs:
@@ -319,8 +306,7 @@ class obsParser():
 
         # Extract indoor AIR device_id. Initialise API data dictionary
         device_id = message['device_id']
-        self.apiData[device_id] = {'flagAPI': self.flagAPI[3],
-                                   'today': None}
+        self.apiData[device_id] = {'flagAPI': self.flagAPI[3]}
 
         # Discard duplicate indoor AIR Websocket messages
         if 'obs_in_air' in self.displayObs:
