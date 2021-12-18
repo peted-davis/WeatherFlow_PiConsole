@@ -437,7 +437,7 @@ class CurrentConditions(Screen):
     def switchPanel(self, Instance, overideButton=None):
 
         # Determine ID of button that has been pressed
-        for id, Object in App.get_running_app().CurrentConditions.ids.items():
+        for id, Object in self.ids.items():
             if Instance:
                 if Object == Instance.parent.parent:
                     break
@@ -447,13 +447,13 @@ class CurrentConditions(Screen):
 
         # Extract entry in buttonList that correponds to the button that has
         # been pressed
-        for ii, button in enumerate(App.get_running_app().CurrentConditions.buttonList):
+        for ii, button in enumerate(self.buttonList):
             if button[0] == id:
                 break
 
-        # Extract panel object the corresponds to the button that has been
+        # Extract panel object that corresponds to the button that has been
         # pressed and determine new button type required
-        Panel = App.get_running_app().CurrentConditions.ids[button[1]].children
+        Panel =self.ids[button[1]].children
         newButton = App.get_running_app().config[button[3] + 'Panels'][button[1]]
 
         # Destroy reference to old panel class attribute
@@ -467,16 +467,16 @@ class CurrentConditions(Screen):
                 delattr(App.get_running_app(), newButton + 'Panel')
 
         # Switch panel
-        App.get_running_app().CurrentConditions.ids[button[1]].clear_widgets()
-        App.get_running_app().CurrentConditions.ids[button[1]].add_widget(eval(button[2] + 'Panel')())
-        App.get_running_app().CurrentConditions.ids[button[0]].clear_widgets()
-        App.get_running_app().CurrentConditions.ids[button[0]].add_widget(eval(newButton + 'Button')())
+        self.ids[button[1]].clear_widgets()
+        self.ids[button[1]].add_widget(eval(button[2] + 'Panel')())
+        self.ids[button[0]].clear_widgets()
+        self.ids[button[0]].add_widget(eval(newButton + 'Button')())
 
         # Update button list
         if button[3] == 'Primary':
-            App.get_running_app().CurrentConditions.buttonList[ii] = [button[0], button[1], newButton, 'Secondary']
+            self.buttonList[ii] = [button[0], button[1], newButton, 'Secondary']
         elif button[3] == 'Secondary':
-            App.get_running_app().CurrentConditions.buttonList[ii] = [button[0], button[1], newButton, 'Primary']
+            self.buttonList[ii] = [button[0], button[1], newButton, 'Primary']
 
 
 # ==============================================================================

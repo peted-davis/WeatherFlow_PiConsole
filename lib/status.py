@@ -18,9 +18,6 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 # Import required library modules
 from lib import properties
 
-# Import deviceStatus panel
-from panels.menu import deviceStatusPanel
-
 # Import required Python modules
 from kivy.network.urlrequest import UrlRequest
 from kivy.properties         import DictProperty

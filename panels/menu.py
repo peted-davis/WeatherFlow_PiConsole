@@ -45,7 +45,7 @@ class mainMenu(ModalView):
         super().__init__(**kwargs)
         self.app = App.get_running_app()
         self.app.mainMenu = self
-        self.initialiseStatusPanels()
+        self.add_StatusPanels()
         self.get_stationList()
 
     # Remove device status panels when mainMenu is closed
@@ -54,7 +54,7 @@ class mainMenu(ModalView):
             self.ids.devicePanel.remove_widget(panel)
 
     # Display device status panels based on devices connected to station
-    def initialiseStatusPanels(self):
+    def add_StatusPanels(self):
 
         # Populate status fields
         self.app.Station.get_observationCount()
@@ -64,7 +64,10 @@ class mainMenu(ModalView):
         device_list = ['Tempest', 'Sky', 'OutAir', 'InAir']
         for device in device_list:
             if self.app.config['Station'][device + 'ID']:
-                self.ids.devicePanel.add_widget(deviceStatusPanel(self.app.Station, device))
+                try:
+                    self.ids.devicePanel.add_widget(self.app.statusPanels[device])
+                except (AttributeError, KeyError):
+                    self.ids.devicePanel.add_widget(statusPanel(self.app.Station, device))
 
     # Fetch list of stations associated with WeatherFlow key
     def get_stationList(self):
@@ -358,9 +361,12 @@ class mainMenu(ModalView):
 
     # Switch stations/devices for Websocket connection
     def switchStations(self):
-        self.app.obsParser.resetDisplay()
-        self.app.websocket_client._switch_device = True
         self.dismiss(animation=False)
+        self.app.obsParser.resetDisplay()
+        for device in list(self.app.statusPanels.keys()):
+            self.app.statusPanels[device].unbindStatus()
+            del self.app.statusPanels[device]
+        self.app.websocket_client._switch_device = True
 
     # Exit console and shutdown system
     def shutdownSystem(self):
@@ -382,7 +388,7 @@ class mainMenu(ModalView):
 # =============================================================================
 # DEFINE 'deviceStatusPanel' CLASS
 # =============================================================================
-class deviceStatusPanel(BoxLayout):
+class statusPanel(BoxLayout):
 
     stationStatus = DictProperty([])
     SampleTime    = StringProperty('-')
@@ -396,23 +402,39 @@ class deviceStatusPanel(BoxLayout):
         super().__init__(**kwargs)
         self.device_type = device_type
         self.station = station
-        self.station.bind(Status=self.setter('stationStatus'))
-        self.bind(stationStatus=self.statusChange)
 
-        # Define device display name for status panel
+        # Store reference to statusPanel
+        try:
+            panelList = getattr(App.get_running_app(), 'statusPanels')
+        except AttributeError:
+            panelList = {}
+        panelList[self.device_type] = self
+        setattr(App.get_running_app(), 'statusPanels', panelList)
+
+        # Populate status fields and set status bindings
+        self.populateStatus()
+        self.bindStatus()
+
+    def populateStatus(self):
         if 'out' in self.device_type.lower():
             self.Device = 'AIR (outdoor)'
         elif 'in' in self.device_type.lower():
             self.Device = 'AIR (indoor)'
         else:
             self.Device = self.device_type.upper()
-
-        # Populate status fields
         for field, value in self.station.Status.items():
             if self.device_type in field:
                 setattr(self, field.replace(self.device_type,''), value)
 
-    def statusChange(self, _instance, newStatus):
+    def bindStatus(self):
+        self.station.bind(Status=self.setter('stationStatus'))
+        self.bind(stationStatus=self.changeStatus)
+
+    def unbindStatus(self):
+        self.station.unbind(Status=self.setter('stationStatus'))
+        self.unbind(stationStatus=self.changeStatus)
+
+    def changeStatus(self, _instance, newStatus):
         for field, value in newStatus.items():
             if self.device_type in field:
                 setattr(self, field.replace(self.device_type,''), value)

@@ -229,8 +229,7 @@
 ## =============================================================================
 ## DEVICE STATUS PANELS
 ## =============================================================================
-<deviceStatusPanel>:
-    id: id.__self__
+<statusPanel>:
     size_hint: (1,.1)
     orientation: 'horizontal'
     StatusField:
@@ -240,7 +239,6 @@
         size_hint: (.12,1)
         text: root.Status
     StatusField:
-        id: test
         size_hint: (.22,1)
         text: root.SampleTime
     StatusField:
