@@ -338,6 +338,7 @@ def Forecast(Config):
     # Download WeatherFlow forecast
     Template = 'https://swd.weatherflow.com/swd/rest/better_forecast?token={}&station_id={}&lat={}&lon={}'
     URL = Template.format(Config['Keys']['WeatherFlow'],Config['Station']['StationID'],Config['Station']['Latitude'],Config['Station']['Longitude'])
+    print(URL)
     try:
         apiData = requests.get(URL,timeout=int(Config['System']['Timeout']))
     except:

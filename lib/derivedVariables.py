@@ -788,7 +788,7 @@ def strikeFrequency(obTime, device, apiData, config):
 
     # Extract lightning strike count over the last 10 minutes. Return None for
     # strikeFrequency if API call has failed
-    if apiData[device]['24Hrs'] is not None and verifyResponse(apiData[device]['24Hrs'], 'obs'):
+    if '24Hrs' in apiData[device] and verifyResponse(apiData[device]['24Hrs'], 'obs'):
         data24hrs = apiData[device]['24Hrs'].json()['obs']
         apiTime   = [ob[0] for ob in data24hrs if ob[index_bucket_a] is not None]
         try:

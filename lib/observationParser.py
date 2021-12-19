@@ -21,10 +21,12 @@ from lib import observationFormat  as observation
 from lib import requestAPI
 from lib import properties
 
-# Import required Python modules
+# Import required Kivy modules
 from kivy.logger  import Logger
 from kivy.clock   import mainthread
 from kivy.app     import App
+
+# Import required Python modules
 import time
 import json
 

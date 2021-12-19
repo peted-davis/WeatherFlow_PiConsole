@@ -115,11 +115,12 @@ from kivy.app                import App
 # ==============================================================================
 # IMPORT REQUIRED LIBRARY MODULES
 # ==============================================================================
+from lib.forecast import forecast
 from lib import astronomical as astro
 from lib import settings     as userSettings
 from lib import sager        as sagerForecast
 from lib import properties
-from lib import forecast
+#from lib import forecast
 from lib import status
 from lib import system
 from lib import config
@@ -266,12 +267,12 @@ class wfpiconsole(App):
         # Update current weather forecast when temperature or wind speed units
         # are changed
         if section == 'Units' and key in ['Temp', 'Wind']:
-            self.Sched.metDownload = Clock.schedule_once(partial(forecast.startDownload, self, True))
+            self.forecast.parse_forecast()
 
         # Update current weather forecast, sunrise/sunset and moonrise/moonset
         # times when time format changed
         if section == 'Display' and key in 'TimeFormat':
-            self.Sched.metDownload = Clock.schedule_once(partial(forecast.startDownload, self, True))
+            self.forecast.parse_forecast()
             astro.Format(self.CurrentConditions.Astro,   self.config, 'Sun')
             astro.Format(self.CurrentConditions.Astro,   self.config, 'Moon')
 
@@ -409,7 +410,8 @@ class CurrentConditions(Screen):
         app.Sched.moonPhase  = Clock.schedule_interval(partial(astro.moonPhase,  self.Astro, app.config), 1)
 
         # Schedule WeatherFlow weather forecast download
-        app.Sched.metDownload = Clock.schedule_once(partial(forecast.startDownload, app, False))
+        app.forecat = forecast()
+        app.Sched.metDownload = Clock.schedule_once(app.forecast.fetch_forecast)
 
         # Generate Sager Weathercaster forecast
         threading.Thread(target=sagerForecast.Generate, args=(self.Sager, app), name="Sager", daemon=True).start()

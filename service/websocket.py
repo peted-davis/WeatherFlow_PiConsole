@@ -163,6 +163,10 @@ class websocketClient():
                     else:
                         if 'device_id' in self.message:
                             if self.message['type'] == 'obs_st':
+                                if 'obs_st' in self.thread_list:
+                                    while self.thread_list['obs_st'].is_alive():
+                                        print("waiting")
+                                        await asyncio.sleep(0.1)
                                 self.thread_list['obs_st'] = threading.Thread(target=self.app.obsParser.parse_obs_st,
                                                                               args=(self.message, self.config, ),
                                                                               name="obs_st")
@@ -236,6 +240,8 @@ async def main():
                               websocket.app.mainMenu.deviceList,
                               websocket.app.config)
                 await websocket._websocketClient__async__manageDevices('listen_start')
+                websocket.app.Sched.metDownload.cancel()
+                websocket.app.forecast.fetch_forecast()
                 websocket._switch_device = False
                 Logger.info(f'Websocket: {system.logTime()} - Switching devices and/or station')
 
