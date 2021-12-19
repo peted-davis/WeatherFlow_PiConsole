@@ -56,6 +56,7 @@ class websocketClient():
         self.task_list      = {}
         self.connected      = False
         self.connection     = None
+        self.station        = int(self.config['Station']['StationID'])
         self.url            = 'wss://ws.weatherflow.com/swd/data?token=' + self.config['Keys']['WeatherFlow']
 
         # Initialise Observation Parser
@@ -165,24 +166,32 @@ class websocketClient():
                             if self.message['type'] == 'obs_st':
                                 if 'obs_st' in self.thread_list:
                                     while self.thread_list['obs_st'].is_alive():
-                                        print("waiting")
                                         await asyncio.sleep(0.1)
                                 self.thread_list['obs_st'] = threading.Thread(target=self.app.obsParser.parse_obs_st,
                                                                               args=(self.message, self.config, ),
                                                                               name="obs_st")
                                 self.thread_list['obs_st'].start()
                             elif self.message['type'] == 'obs_sky':
+                                if 'obs_sky' in self.thread_list:
+                                    while self.thread_list['obs_sky'].is_alive():
+                                        await asyncio.sleep(0.1)
                                 self.thread_list['obs_sky'] = threading.Thread(target=self.app.obsParser.parse_obs_sky,
                                                                                args=(self.message, self.config, ),
                                                                                name='obs_sky')
                                 self.thread_list['obs_sky'].start()
                             elif self.message['type'] == 'obs_air':
                                 if str(self.message['device_id']) == self.config['Station']['OutAirID']:
+                                    if 'obs_out_air' in self.thread_list:
+                                        while self.thread_list['obs_out_air'].is_alive():
+                                            await asyncio.sleep(0.1)
                                     self.thread_list['obs_out_air'] = threading.Thread(target=self.app.obsParser.parse_obs_out_air,
                                                                                        args=(self.message, self.config, ),
                                                                                        name='obs_out_air')
                                     self.thread_list['obs_out_air'].start()
                                 elif str(self.message['device_id']) == self.config['Station']['InAirID']:
+                                    if 'obs_in_air' in self.thread_list:
+                                        while self.thread_list['obs_in_air'].is_alive():
+                                            await asyncio.sleep(0.1)
                                     self.thread_list['obs_in_air'] = threading.Thread(target=self.app.obsParser.parse_obs_in_air,
                                                                                       args=(self.message, self.config, ),
                                                                                       name='obs_in_air')
@@ -235,15 +244,18 @@ async def main():
             await asyncio.gather(*list(websocket.task_list.values()))
         except asyncio.CancelledError:
             if websocket._switch_device:
+                current_station = int(websocket.app.config['Station']['StationID'])
+                switch_station  = websocket.app.mainMenu.stationMetaData['station_id']
+                if current_station != switch_station:
+                    websocket.app.forecast.resetDisplay()
+                websocket.app.obsParser.resetDisplay()
                 await websocket._websocketClient__async__manageDevices('listen_stop')
                 config.switch(websocket.app.mainMenu.stationMetaData,
                               websocket.app.mainMenu.deviceList,
                               websocket.app.config)
                 await websocket._websocketClient__async__manageDevices('listen_start')
-                websocket.app.Sched.metDownload.cancel()
-                websocket.app.forecast.fetch_forecast()
-                websocket._switch_device = False
                 Logger.info(f'Websocket: {system.logTime()} - Switching devices and/or station')
+                websocket._switch_device = False
 
 
 if __name__ == '__main__':

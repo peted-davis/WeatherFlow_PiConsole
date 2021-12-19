@@ -57,7 +57,7 @@ class forecast():
         # Get current time in station time zone
         Tz  = pytz.timezone(self.app.config['Station']['Timezone'])
         self.funcCalled = datetime.now(pytz.utc).astimezone(Tz)
-        print(self.funcCalled)
+        print('actualTime', self.funcCalled)
 
         # Fetch latest hourly and daily forecast
         URL = 'https://swd.weatherflow.com/swd/rest/better_forecast?token={}&station_id={}'
@@ -128,7 +128,8 @@ class forecast():
         Tz  = pytz.timezone(self.app.config['Station']['Timezone'])
         Now = datetime.now(pytz.utc).astimezone(Tz)
         downloadTime = Tz.localize(datetime.combine(Now.date(), time(Now.hour, 0, 0)) + timedelta(hours=1))
-        secondsSched = (downloadTime - self.funcCalled).total_seconds()
+        secondsSched = (downloadTime - Now).total_seconds()
+        print(' schedTime', downloadTime)
         self.app.Sched.metDownload.cancel()
         self.app.Sched.metDownload = Clock.schedule_once(self.fetch_forecast, secondsSched)
 
@@ -297,10 +298,12 @@ class forecast():
 
     def resetDisplay(self):
 
-        """ Reset the weather forecast displayed on screen to default values
+        """ Reset the weather forecast displayed on screen to default values and
+        fetch new forecast from WeatherFlow BetterForecast API
         """
 
         self.app.CurrentConditions.Met = properties.Met()
         if hasattr(self.app, 'ForecastPanel'):
             for panel in getattr(self.app, 'ForecastPanel'):
                 panel.setForecastIcon()
+        self.fetch_forecast()

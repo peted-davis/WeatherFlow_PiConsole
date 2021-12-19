@@ -362,8 +362,6 @@ class mainMenu(ModalView):
     # Switch stations/devices for Websocket connection
     def switchStations(self):
         self.dismiss(animation=False)
-        self.app.obsParser.resetDisplay()
-        self.app.forecast.resetDisplay()
         for device in list(self.app.statusPanels.keys()):
             self.app.statusPanels[device].unbindStatus()
             del self.app.statusPanels[device]
