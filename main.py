@@ -116,14 +116,13 @@ from kivy.app                import App
 # IMPORT REQUIRED LIBRARY MODULES
 # ==============================================================================
 from lib.forecast import forecast
-from lib import astronomical as astro
-from lib import settings     as userSettings
-from lib import sager        as sagerForecast
-from lib import properties
-#from lib import forecast
-from lib import status
-from lib import system
-from lib import config
+from lib          import astronomical as astro
+from lib          import settings     as userSettings
+from lib          import sager        as sagerForecast
+from lib          import properties
+from lib          import status
+from lib          import system
+from lib          import config
 
 # ==============================================================================
 # IMPORT REQUIRED PANELS
@@ -143,7 +142,7 @@ from panels.menu        import mainMenu
 # IMPORT CUSTOM USER PANELS
 # ==============================================================================
 if Path('user/customPanels.py').is_file():
-    from user.customPanels import *
+    from user.customPanels import *                               # type: ignore
 
 # ==============================================================================
 # IMPORT REQUIRED SYSTEM MODULES

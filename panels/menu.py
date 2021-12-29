@@ -45,7 +45,7 @@ class mainMenu(ModalView):
         super().__init__(**kwargs)
         self.app = App.get_running_app()
         self.app.mainMenu = self
-        self.add_StatusPanels()
+        self.add_status_panels()
         self.get_stationList()
 
     # Remove device status panels when mainMenu is closed
@@ -54,7 +54,7 @@ class mainMenu(ModalView):
             self.ids.devicePanel.remove_widget(panel)
 
     # Display device status panels based on devices connected to station
-    def add_StatusPanels(self):
+    def add_status_panels(self):
 
         # Populate status fields
         self.app.Station.get_observationCount()
@@ -65,7 +65,7 @@ class mainMenu(ModalView):
         for device in device_list:
             if self.app.config['Station'][device + 'ID']:
                 try:
-                    self.ids.devicePanel.add_widget(self.app.statusPanels[device])
+                    self.ids.devicePanel.add_widget(self.app.status_panels[device])
                 except (AttributeError, KeyError):
                     self.ids.devicePanel.add_widget(statusPanel(self.app.Station, device))
 
@@ -362,9 +362,14 @@ class mainMenu(ModalView):
     # Switch stations/devices for Websocket connection
     def switchStations(self):
         self.dismiss(animation=False)
-        for device in list(self.app.statusPanels.keys()):
-            self.app.statusPanels[device].unbindStatus()
-            del self.app.statusPanels[device]
+        current_station = int(self.app.config['Station']['StationID'])
+        switch_station  = self.stationMetaData['station_id']
+        if current_station != switch_station:
+            self.app.forecast.resetDisplay()
+        self.app.obsParser.resetDisplay()
+        for device in list(self.app.status_panels.keys()):
+            self.app.status_panels[device].unbindStatus()
+            del self.app.status_panels[device]
         self.app.websocket_client._switch_device = True
 
     # Exit console and shutdown system
@@ -404,11 +409,11 @@ class statusPanel(BoxLayout):
 
         # Store reference to statusPanel
         try:
-            panelList = getattr(App.get_running_app(), 'statusPanels')
+            panelList = getattr(App.get_running_app(), 'status_panels')
         except AttributeError:
             panelList = {}
         panelList[self.device_type] = self
-        setattr(App.get_running_app(), 'statusPanels', panelList)
+        setattr(App.get_running_app(), 'status_panels', panelList)
 
         # Populate status fields and set status bindings
         self.populateStatus()

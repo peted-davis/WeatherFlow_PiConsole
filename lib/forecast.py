@@ -57,7 +57,6 @@ class forecast():
         # Get current time in station time zone
         Tz  = pytz.timezone(self.app.config['Station']['Timezone'])
         self.funcCalled = datetime.now(pytz.utc).astimezone(Tz)
-        print('actualTime', self.funcCalled)
 
         # Fetch latest hourly and daily forecast
         URL = 'https://swd.weatherflow.com/swd/rest/better_forecast?token={}&station_id={}'
@@ -106,7 +105,8 @@ class forecast():
         # refers to number of seconds since the function was last called.
         Tz  = pytz.timezone(self.app.config['Station']['Timezone'])
         Now = datetime.now(pytz.utc).astimezone(Tz)
-        secondsSched = 300 + (self.funcCalled - Now).total_seconds()
+        downloadTime = Now + timedelta(minutes=5)
+        secondsSched = (downloadTime - Now).total_seconds()
         self.app.Sched.metDownload.cancel()
         self.app.Sched.metDownload = Clock.schedule_once(self.fetch_forecast, secondsSched)
 
@@ -129,7 +129,6 @@ class forecast():
         Now = datetime.now(pytz.utc).astimezone(Tz)
         downloadTime = Tz.localize(datetime.combine(Now.date(), time(Now.hour, 0, 0)) + timedelta(hours=1))
         secondsSched = (downloadTime - Now).total_seconds()
-        print(' schedTime', downloadTime)
         self.app.Sched.metDownload.cancel()
         self.app.Sched.metDownload = Clock.schedule_once(self.fetch_forecast, secondsSched)
 
@@ -294,7 +293,7 @@ class forecast():
 
         # If error is detected, download forecast again in 5 minutes
         if funcError:
-            self.fail_forecast()
+            self.fail_forecast(None, None)
 
     def resetDisplay(self):
 
