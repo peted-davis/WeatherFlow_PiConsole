@@ -16,7 +16,9 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 """
 
 # Import required modules
-from datetime   import datetime, date, time, timedelta
+from kivy.logger import Logger
+from datetime    import datetime, timedelta
+from lib         import system
 import requests
 import pytz
 
@@ -50,33 +52,6 @@ def verifyResponse(Response,Field):
         else:
             return False
 
-def Last3h(Device,endTime,Config):
-
-    """ API Request for last three hours of data from a WeatherFlow Smart Home
-    Weather Station device
-
-    INPUTS:
-        Device              Device ID
-        endTime             End time of three hour window as a UNIX timestamp
-        Config              Station configuration
-
-    OUTPUT:
-        Response            API response containing latest three-hourly forecast
-    """
-
-    # Calculate timestamp three hours past
-    startTime = endTime - int(3600*3)
-
-    # Download WeatherFlow data for last three hours
-    Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&token={}'
-    URL = Template.format(Device,startTime,endTime,Config['Keys']['WeatherFlow'])
-    try:
-        Data = requests.get(URL,timeout=int(Config['System']['Timeout']))
-    except:
-        Data = None
-
-    # Return observations from the last three hours
-    return Data
 
 def Last6h(Device,endTime,Config):
 
@@ -96,15 +71,20 @@ def Last6h(Device,endTime,Config):
     startTime = endTime - int(3600*6)
 
     # Download WeatherFlow data for last three hours
-    Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&token={}'
+    Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?bucket=a&time_start={}&time_end={}&token={}'
     URL = Template.format(Device,startTime,endTime,Config['Keys']['WeatherFlow'])
     try:
-        Data = requests.get(URL,timeout=int(Config['System']['Timeout']))
+        apiData = requests.get(URL,timeout=int(Config['System']['Timeout']))
     except:
-        Data = None
+        apiData = None
 
-    # Return observations from the last three hours
-    return Data
+    # Verify response
+    if apiData is None or not verifyResponse(apiData, 'obs'):
+        Logger.warning(f'requestAPI: {system.logTime()} - Last6h call failed')
+
+    # Return observations from the last six hours
+    return apiData
+
 
 def Last24h(Device,endTime,Config):
 
@@ -124,15 +104,20 @@ def Last24h(Device,endTime,Config):
     startTime = endTime - int(3600*24)
 
     # Download WeatherFlow data for last three hours
-    Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&token={}'
+    Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?bucket=a&time_start={}&time_end={}&token={}'
     URL = Template.format(Device,startTime,endTime,Config['Keys']['WeatherFlow'])
     try:
-        Data = requests.get(URL,timeout=int(Config['System']['Timeout']))
+        apiData = requests.get(URL,timeout=int(Config['System']['Timeout']))
     except:
-        Data = None
+        apiData = None
 
-    # Return observations from the last three hours
-    return Data
+    # Verify response
+    if apiData is None or not verifyResponse(apiData, 'obs'):
+        Logger.warning(f'requestAPI: {system.logTime()} - Last24h call failed')
+
+    # Return observations from the last twenty-four hours
+    return apiData
+
 
 def Today(Device,Config):
 
@@ -153,22 +138,27 @@ def Today(Device,Config):
 
     # Convert midnight today in Station timezone to midnight today in UTC.
     # Convert UTC time into UNIX timestamp.
-    startTime = int(Tz.localize(datetime(Now.year,Now.month,Now.day)).timestamp())
+    startTime = int(Tz.localize(datetime(Now.year, Now.month, Now.day)).timestamp())
 
     # Convert current time in Station timezone to current time in UTC.
     # Convert UTC time into UNIX timestamp
     endTime = int(Now.timestamp())
 
     # Download WeatherFlow data
-    Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&token={}'
+    Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?bucket=a&time_start={}&time_end={}&token={}'
     URL = Template.format(Device,startTime,endTime,Config['Keys']['WeatherFlow'])
     try:
-        Data = requests.get(URL,timeout=int(Config['System']['Timeout']))
+        apiData = requests.get(URL,timeout=int(Config['System']['Timeout']))
     except:
-        Data = None
+        apiData = None
+
+    # Verify response
+    if apiData is None or not verifyResponse(apiData, 'obs'):
+        Logger.warning(f'requestAPI: {system.logTime()} - Today call failed')
 
     # Return observations from today
-    return Data
+    return apiData
+
 
 def Yesterday(Device,Config):
 
@@ -198,15 +188,20 @@ def Yesterday(Device,Config):
     endTime = int(Today.timestamp())-1
 
     # Download WeatherFlow data
-    Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&token={}'
+    Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?bucket=a&time_start={}&time_end={}&token={}'
     URL = Template.format(Device,startTime,endTime,Config['Keys']['WeatherFlow'])
     try:
-        Data = requests.get(URL,timeout=int(Config['System']['Timeout']))
+        apiData = requests.get(URL,timeout=int(Config['System']['Timeout']))
     except:
-        Data = None
+        apiData = None
+
+    # Verify response
+    if apiData is None or not verifyResponse(apiData, 'obs'):
+        Logger.warning(f'requestAPI: {system.logTime()} - Yesterday call failed')
 
     # Return observations from yesterday
-    return Data
+    return apiData
+
 
 def Month(Device,Config):
 
@@ -246,12 +241,17 @@ def Month(Device,Config):
     Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?bucket=e&time_start={}&time_end={}&token={}'
     URL = Template.format(Device,startTime,endTime,Config['Keys']['WeatherFlow'])
     try:
-        Data = requests.get(URL,timeout=int(Config['System']['Timeout']))
+        apiData = requests.get(URL,timeout=int(Config['System']['Timeout']))
     except:
-        Data = None
+        apiData = None
+
+    # Verify response
+    if apiData is None or not verifyResponse(apiData, 'obs'):
+        Logger.warning(f'requestAPI: {system.logTime()} - Month call failed')
 
     # Return observations from the last month
-    return Data
+    return apiData
+
 
 def Year(Device,Config):
 
@@ -284,12 +284,17 @@ def Year(Device,Config):
     Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?bucket=e&time_start={}&time_end={}&token={}'
     URL = Template.format(Device,startTime,endTime,Config['Keys']['WeatherFlow'])
     try:
-        Data = requests.get(URL,timeout=int(Config['System']['Timeout']))
+        apiData = requests.get(URL,timeout=int(Config['System']['Timeout']))
     except:
-        Data = None
+        apiData = None
+
+    # Verify response
+    if apiData is None or not verifyResponse(apiData, 'obs'):
+        Logger.warning(f'requestAPI: {system.logTime()} - Year call failed')
 
     # Return observations from the last year
-    return Data
+    return apiData
+
 
 def stationMetaData(Station,Config):
 
@@ -308,12 +313,16 @@ def stationMetaData(Station,Config):
     Template = 'https://swd.weatherflow.com/swd/rest/stations/{}?token={}'
     URL = Template.format(Station,Config['Keys']['WeatherFlow'])
     try:
-        Data = requests.get(URL,timeout=int(Config['System']['Timeout']))
+        apiData = requests.get(URL,timeout=int(Config['System']['Timeout']))
     except:
-        Data = None
+        apiData = None
+
+    # Verify response
+    if apiData is None or not verifyResponse(apiData, 'obs'):
+        Logger.warning(f'requestAPI: {system.logTime()} - stationMetaData call failed')
 
     # Return station meta data
-    return Data
+    return apiData
 
 def Forecast(Config):
 
@@ -329,10 +338,15 @@ def Forecast(Config):
     # Download WeatherFlow forecast
     Template = 'https://swd.weatherflow.com/swd/rest/better_forecast?token={}&station_id={}&lat={}&lon={}'
     URL = Template.format(Config['Keys']['WeatherFlow'],Config['Station']['StationID'],Config['Station']['Latitude'],Config['Station']['Longitude'])
+    print(URL)
     try:
-        Data = requests.get(URL,timeout=int(Config['System']['Timeout']))
+        apiData = requests.get(URL,timeout=int(Config['System']['Timeout']))
     except:
-        Data = None
+        apiData = None
+
+    # Verify response
+    if apiData is None or not verifyResponse(apiData, 'forecast'):
+        Logger.warning(f'requestAPI: {system.logTime()} - Forecast call failed')
 
     # Return WeatherFlow forecast data
-    return Data
+    return apiData

@@ -52,6 +52,7 @@
     background_down: 'atlas://atlas/wfpiconsole/tab_btn_pressed'
     font_name: 'fonts/Inter-SemiBold.ttf'
     font_size: dp(14.2*app.scaleFactor)
+    color: utils.rgba('#d6d6d6ff')
     canvas.after:
         Color:
             rgb: [.3,.3,.3,1]
@@ -68,6 +69,83 @@
         Rectangle:
             pos: self.x + 1, self.y + 3
             size: self.width, 1
+
+## =============================================================================
+## CUSTOM DeviceSpinner, StationSpinner and SwitchButton
+## =============================================================================
+<SwitchButton@Button>
+    canvas.before:
+        Color:
+            rgba: utils.rgba('#1e1e1eff') if self.state=='normal' else utils.rgba('#00525aff')
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [14*app.scaleFactor]
+    background_normal: ''
+    background_color: 0, 0, 0, 0
+    font_size: dp(14*app.scaleFactor)
+    font_name: 'fonts/Inter-SemiBold.ttf'
+    color: utils.rgba('#d6d6d6ff')
+
+<DeviceSpinner@Spinner>:
+    canvas.before:
+        Color:
+            rgba: utils.rgba('#1e1e1eff') if self.state=='normal' else utils.rgba('#00525aff')
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [14*app.scaleFactor]
+    font_size: dp(14*app.scaleFactor)
+    font_name: 'fonts/Inter-SemiBold.ttf'
+    color: utils.rgba('#d6d6d6ff')
+    background_normal: ''
+    background_color: 0, 0, 0, 0
+    sync_height: True
+    disabled: 1
+    selected: 1 if self.text != 'Please select' and not self.disabled else 0
+    pos_hint: {'center': (.5, .5)}
+    option_cls: Factory.selectOption
+    dropdown_cls: Factory.CustomDropdown
+
+<StationSpinner@Spinner>:
+    canvas.before:
+        Color:
+            rgba: utils.rgba('#1e1e1eff') if self.state=='normal' else utils.rgba('#00525aff')
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [14*app.scaleFactor]
+    font_size: dp(14*app.scaleFactor)
+    font_name: 'fonts/Inter-SemiBold.ttf'
+    color: utils.rgba('#d6d6d6ff')
+    background_normal: ''
+    background_color: 0, 0, 0, 0
+    sync_height: True
+    pos_hint: {'center': (.5, .5)}
+    option_cls: Factory.selectOption
+    dropdown_cls: Factory.CustomDropdown
+
+<selectOption@SpinnerOption>
+    canvas.before:
+        Color:
+            rgba: utils.rgba('#404040ff') if self.state=='normal' else utils.rgba('#00525aff')
+        RoundedRectangle:
+            pos: [self.x+2, self.y+2]
+            size: [self.width-4, self.height-4]
+            radius: [14*app.scaleFactor]
+    background_color: (0,0,1,0)
+    font_size: dp(14*app.scaleFactor)
+    font_name: 'fonts/Inter-SemiBold.ttf'
+    color: utils.rgba('#c8c8c8ff')
+
+<CustomDropdown@DropDown>:
+    canvas.before:
+        Color:
+            rgba: utils.rgba('#101010ff')
+        RoundedRectangle:
+            pos: [self.x, self.y+1]
+            size: [self.width, self.height-2]
+            radius: [14*app.scaleFactor]
 
 ## =============================================================================
 ## PANEL BACKGROUNDS
@@ -151,7 +229,7 @@
 ## =============================================================================
 ## DEVICE STATUS PANELS
 ## =============================================================================
-<deviceStatusPanel>:
+<statusPanel>:
     size_hint: (1,.1)
     orientation: 'horizontal'
     StatusField:
@@ -161,7 +239,6 @@
         size_hint: (.12,1)
         text: root.Status
     StatusField:
-        id: test
         size_hint: (.22,1)
         text: root.SampleTime
     StatusField:

@@ -1,6 +1,6 @@
 """ Returns the derived weather variables required by the Raspberry Pi Python
 console for WeatherFlow Tempest and Smart Home Weather stations.
-Copyright (C) 2018-2020 Peter Davis
+Copyright (C) 2018-2021 Peter Davis
 
 This program is free software: you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
@@ -210,32 +210,32 @@ def SLPTrend(pressure, obTime, device, apiData, config):
 
     # Define index of pressure in websocket packets
     if str(device) == config['Station']['OutAirID']:
-        index  = 1
+        index_bucket_a  = 1
     elif str(device) == config['Station']['TempestID']:
-        index  = 6
+        index_bucket_a  = 6
 
     # Extract required observations from WeatherFlow API data based on device
     # type indicated in API call
-    if apiData[device]['24Hrs'] is not None and verifyResponse(apiData[device]['24Hrs'], 'obs'):
-        data24hrs = apiData[device]['24Hrs'].json()['obs']
-        apiTime   = [ob[0]     for ob in data24hrs if ob[index] is not None]
-        apiPres   = [ob[index] for ob in data24hrs if ob[index] is not None]
-        try:
-            dTime = [abs(T - (obTime[0] - 3 * 3600)) for T in apiTime]
-            if min(dTime) < 5 * 60:
-                pres3h  = [apiPres[dTime.index(min(dTime))], 'mb']
-                time3h  = [apiTime[dTime.index(min(dTime))], 's']
-                pres0h  = pressure
-                time0h  = obTime
-            else:
-                Logger.warning(f'SLPTrend: {system.logTime()} - no data in 3 hour window')
+    if '24Hrs' in apiData[device]:
+        if verifyResponse(apiData[device]['24Hrs'], 'obs'):
+            data24hrs = apiData[device]['24Hrs'].json()['obs']
+            apiTime   = [ob[0]              for ob in data24hrs if ob[index_bucket_a] is not None]
+            apiPres   = [ob[index_bucket_a] for ob in data24hrs if ob[index_bucket_a] is not None]
+            try:
+                dTime = [abs(T - (obTime[0] - 3 * 3600)) for T in apiTime]
+                if min(dTime) < 5 * 60:
+                    pres3h  = [apiPres[dTime.index(min(dTime))], 'mb']
+                    time3h  = [apiTime[dTime.index(min(dTime))], 's']
+                    pres0h  = pressure
+                    time0h  = obTime
+                else:
+                    Logger.warning(f'SLPTrend: {system.logTime()} - no data in 3 hour window')
+                    return errorOutput
+            except Exception as Error:
+                Logger.warning(f'SLPTrend: {system.logTime()} - {Error}')
                 return errorOutput
-        except Exception as Error:
-            Logger.warning(f'SLPTrend: {system.logTime()} - {Error}')
+        else:
             return errorOutput
-    else:
-        Logger.warning(f'SLPTrend: {system.logTime()} - API call failed')
-        return errorOutput
 
     # Convert station pressure into sea level pressure
     pres3h = SLP(pres3h, device, config)
@@ -319,26 +319,25 @@ def SLPMax(pressure, obTime, maxPres, device, apiData, config):
 
     # Define index of temperature in websocket packets
     if str(device) == config['Station']['OutAirID']:
-        index  = 1
+        index_bucket_a  = 1
     elif str(device) == config['Station']['TempestID']:
-        index  = 6
+        index_bucket_a  = 6
 
     # If console is initialising, download all data for current day using
     # Weatherflow API and calculate daily maximum and minimum pressure
-    if maxPres[0] is None:
-        if apiData[device]['today'] is not None and verifyResponse(apiData[device]['today'], 'obs'):
+    if 'today' in apiData[device]:
+        if verifyResponse(apiData[device]['today'], 'obs'):
             dataToday = apiData[device]['today'].json()['obs']
-            pressure  = [[item[index], 'mb'] for item in dataToday if item[index] is not None]
-            obTime    = [item[0]             for item in dataToday if item[index] is not None]
-            SLP       = [derive.SLP(P, device, config) for P in pressure]
+            obTime    = [item[0]                       for item in dataToday if item[index_bucket_a] is not None]
+            pressure  = [[item[index_bucket_a], 'mb']  for item in dataToday if item[index_bucket_a] is not None]
+            SLP       = [derive.SLP(P, device, config) for P    in pressure]
             try:
                 maxPres   = [max(SLP)[0], 'mb', obTime[SLP.index(max(SLP))], 's', max(SLP)[0], obTime[SLP.index(max(SLP))]]
             except Exception as Error:
                 Logger.warning(f'SLPMax: {system.logTime()} - {Error}')
-                return errorOutput
+                maxPres = errorOutput
         else:
-            Logger.warning(f'SLPMax: {system.logTime()} - API call failed')
-            return errorOutput
+            maxPres = errorOutput
 
     # Else if midnight has passed, reset maximum pressure
     elif Now.date() > datetime.fromtimestamp(maxPres[5], Tz).date():
@@ -391,26 +390,25 @@ def SLPMin(pressure, obTime, minPres, device, apiData, config):
 
     # Define index of temperature in websocket packets
     if str(device) == config['Station']['OutAirID']:
-        index  = 1
+        index_bucket_a  = 1
     elif str(device) == config['Station']['TempestID']:
-        index  = 6
+        index_bucket_a  = 6
 
     # If console is initialising, download all data for current day using
     # Weatherflow API and calculate daily maximum and minimum pressure
-    if minPres[0] is None:
-        if apiData[device]['today'] is not None and verifyResponse(apiData[device]['today'], 'obs'):
+    if 'today' in apiData[device]:
+        if verifyResponse(apiData[device]['today'], 'obs'):
             dataToday = apiData[device]['today'].json()['obs']
-            pressure  = [[item[index], 'mb'] for item in dataToday if item[index] is not None]
-            obTime    = [item[0]             for item in dataToday if item[index] is not None]
-            SLP       = [derive.SLP(P, device, config) for P in pressure]
+            obTime    = [item[0]                       for item in dataToday if item[index_bucket_a] is not None]
+            pressure  = [[item[index_bucket_a], 'mb']  for item in dataToday if item[index_bucket_a] is not None]
+            SLP       = [derive.SLP(P, device, config) for P    in pressure]
             try:
                 minPres   = [min(SLP)[0], 'mb', obTime[SLP.index(min(SLP))], 's', min(SLP)[0], obTime[SLP.index(min(SLP))]]
             except Exception as Error:
                 Logger.warning(f'SLPMin: {system.logTime()} - {Error}')
-                return errorOutput
+                minPres = errorOutput
         else:
-            Logger.warning(f'SLPMin: {system.logTime()} - API call failed')
-            return errorOutput
+            minPres = errorOutput
 
     # Else if midnight has passed, reset maximum and minimum pressure
     elif Now.date() > datetime.fromtimestamp(minPres[5], Tz).date():
@@ -455,16 +453,16 @@ def tempDiff(outTemp, obTime, device, apiData, config):
 
     # Define index of temperature in websocket packets
     if str(device) == config['Station']['OutAirID']:
-        index  = 2
+        index_bucket_a  = 2
     elif str(device) == config['Station']['TempestID']:
-        index  = 7
+        index_bucket_a  = 7
 
     # Extract required observations from WeatherFlow API data based on device
     # type indicated in API call
-    if apiData[device]['24Hrs'] is not None and verifyResponse(apiData[device]['24Hrs'], 'obs'):
+    if '24Hrs' in apiData[device] and verifyResponse(apiData[device]['24Hrs'], 'obs'):
         data24hrs = apiData[device]['24Hrs'].json()['obs']
-        apiTime   = [ob[0]     for ob in data24hrs if ob[index] is not None]
-        apiTemp   = [ob[index] for ob in data24hrs if ob[index] is not None]
+        apiTime   = [ob[0]              for ob in data24hrs if ob[index_bucket_a] is not None]
+        apiTemp   = [ob[index_bucket_a] for ob in data24hrs if ob[index_bucket_a] is not None]
         try:
             dTime   = obTime[0] - apiTime[0]
             if dTime > 86400 - (5 * 60) and dTime < 86400 + (5 * 60):
@@ -477,7 +475,6 @@ def tempDiff(outTemp, obTime, device, apiData, config):
             Logger.warning(f'tempDiff: {system.logTime()} - {Error}')
             return errorOutput
     else:
-        Logger.warning(f'tempDiff: {system.logTime()} - API call failed')
         return errorOutput
 
     # Calculate 24 hour temperature Difference
@@ -525,16 +522,16 @@ def tempTrend(outTemp, obTime, device, apiData, config):
 
     # Define index of temperature in websocket packets
     if str(device) == config['Station']['OutAirID']:
-        index  = 2
+        index_bucket_a  = 2
     elif str(device) == config['Station']['TempestID']:
-        index  = 7
+        index_bucket_a  = 7
 
     # Extract required observations from WeatherFlow API data based on device
     # type indicated in API call
-    if apiData[device]['24Hrs'] is not None and verifyResponse(apiData[device]['24Hrs'], 'obs'):
+    if '24Hrs' in apiData[device] and verifyResponse(apiData[device]['24Hrs'], 'obs'):
         data24hrs = apiData[device]['24Hrs'].json()['obs']
-        apiTime   = [ob[0]     for ob in data24hrs if ob[index] is not None]
-        apiTemp   = [ob[index] for ob in data24hrs if ob[index] is not None]
+        apiTime   = [ob[0]              for ob in data24hrs if ob[index_bucket_a] is not None]
+        apiTemp   = [ob[index_bucket_a] for ob in data24hrs if ob[index_bucket_a] is not None]
         try:
             dTime   = [abs(T - (obTime[0] - 3 * 3600)) for T in apiTime]
             if min(dTime) < 5 * 60:
@@ -549,7 +546,6 @@ def tempTrend(outTemp, obTime, device, apiData, config):
             Logger.warning(f'tempTrend: {system.logTime()} - {Error}')
             return errorOutput
     else:
-        Logger.warning(f'tempTrend: {system.logTime()} - API call failed')
         return errorOutput
 
     # Calculate three hour temperature trend
@@ -602,28 +598,26 @@ def tempMax(Temp, obTime, maxTemp, device, apiData, config):
     Now = datetime.now(pytz.utc).astimezone(Tz)
 
     # Define index of temperature in websocket packets
-    if str(device) == config['Station']['OutAirID']:
-        index  = 2
-    elif str(device) == config['Station']['InAirID']:
-        index  = 2
+    if (str(device) == config['Station']['OutAirID'] or
+        str(device) == config['Station']['InAirID']):
+        index_bucket_a  = 2
     elif str(device) == config['Station']['TempestID']:
-        index  = 7
+        index_bucket_a  = 7
 
     # If console is initialising, download all data for current day using
     # Weatherflow API and calculate daily maximum temperature
-    if maxTemp[0] is None:
-        if apiData[device]['today'] is not None and verifyResponse(apiData[device]['today'], 'obs'):
+    if 'today' in apiData[device]:
+        if verifyResponse(apiData[device]['today'], 'obs'):
             dataToday = apiData[device]['today'].json()['obs']
-            obTime    = [item[0]     for item in dataToday if item[index] is not None]
-            Temp      = [item[index] for item in dataToday if item[index] is not None]
+            apiTime   = [item[0]              for item in dataToday if item[index_bucket_a] is not None]
+            apiTemp   = [item[index_bucket_a] for item in dataToday if item[index_bucket_a] is not None]
             try:
-                maxTemp = [max(Temp), 'c', obTime[Temp.index(max(Temp))], 's', max(Temp), obTime[Temp.index(max(Temp))]]
+                maxTemp = [max(apiTemp), 'c', apiTime[apiTemp.index(max(apiTemp))], 's', max(apiTemp), apiTime[apiTemp.index(max(apiTemp))]]
             except Exception as Error:
                 Logger.warning(f'tempMax: {system.logTime()} - {Error}')
-                return errorOutput
+                maxTemp = errorOutput
         else:
-            Logger.warning(f'tempMax: {system.logTime()} - API call failed')
-            return errorOutput
+            maxTemp = errorOutput
 
     # Else if midnight has passed, reset maximum temperature
     elif Now.date() > datetime.fromtimestamp(maxTemp[5], Tz).date():
@@ -673,28 +667,26 @@ def tempMin(Temp, obTime, minTemp, device, apiData, config):
     Now = datetime.now(pytz.utc).astimezone(Tz)
 
     # Define index of temperature in websocket packets
-    if str(device) == config['Station']['OutAirID']:
-        index  = 2
-    elif str(device) == config['Station']['InAirID']:
-        index  = 2
+    if (str(device) == config['Station']['OutAirID'] or
+        str(device) == config['Station']['InAirID']):
+        index_bucket_a  = 2
     elif str(device) == config['Station']['TempestID']:
-        index  = 7
+        index_bucket_a  = 7
 
     # If console is initialising, download all data for current day using
     # Weatherflow API and calculate daily minimum temperature
-    if minTemp[0] is None:
-        if apiData[device]['today'] is not None and verifyResponse(apiData[device]['today'], 'obs'):
+    if 'today' in apiData[device]:
+        if verifyResponse(apiData[device]['today'], 'obs'):
             dataToday = apiData[device]['today'].json()['obs']
-            obTime    = [item[0]     for item in dataToday if item[index] is not None]
-            Temp      = [item[index] for item in dataToday if item[index] is not None]
+            apiTime   = [item[0]              for item in dataToday if item[index_bucket_a] is not None]
+            apiTemp   = [item[index_bucket_a] for item in dataToday if item[index_bucket_a] is not None]
             try:
-                minTemp = [min(Temp), 'c', obTime[Temp.index(min(Temp))], 's', min(Temp), obTime[Temp.index(min(Temp))]]
+                minTemp = [min(apiTemp), 'c', apiTime[apiTemp.index(min(apiTemp))], 's', min(apiTemp), apiTime[apiTemp.index(min(apiTemp))]]
             except Exception as Error:
                 Logger.warning(f'tempMin: {system.logTime()} - {Error}')
-                return errorOutput
+                minTemp = errorOutput
         else:
-            Logger.warning(f'tempMin: {system.logTime()} - API call failed')
-            return errorOutput
+            minTemp = errorOutput
 
     # Else if midnight has passed, reset minimum temperature
     elif Now.date() > datetime.fromtimestamp(minTemp[5], Tz).date():
@@ -762,19 +754,19 @@ def strikeFrequency(obTime, device, apiData, config):
 
     # Define index of total lightning strike counts in websocket packets
     if str(device) == config['Station']['OutAirID']:
-        index  = 4
+        index_bucket_a  = 4
     elif str(device) == config['Station']['TempestID']:
-        index  = 15
+        index_bucket_a  = 15
 
     # Extract lightning strike count over the last three hours. Return None for
     # strikeFrequency if API call has failed
-    if apiData[device]['24Hrs'] is not None and verifyResponse(apiData[device]['24Hrs'], 'obs'):
+    if '24Hrs' in apiData[device] and verifyResponse(apiData[device]['24Hrs'], 'obs'):
         data24hrs = apiData[device]['24Hrs'].json()['obs']
-        apiTime   = [ob[0] for ob in data24hrs if ob[index] is not None]
+        apiTime   = [ob[0] for ob in data24hrs if ob[index_bucket_a] is not None]
         try:
             dTime   = [abs(T - (obTime[0] - 3 * 3600)) for T in apiTime]
             if min(dTime) < 5 * 60:
-                count3h = [ob[index] for ob in data24hrs[dTime.index(min(dTime)):] if ob[index] is not None]
+                count3h = [ob[index_bucket_a] for ob in data24hrs[dTime.index(min(dTime)):] if ob[index_bucket_a] is not None]
             else:
                 Logger.warning(f'strikeFreq: {system.logTime()} - no data in 3 hour window')
                 count3h = None
@@ -782,7 +774,6 @@ def strikeFrequency(obTime, device, apiData, config):
             Logger.warning(f'strikeFreq: {system.logTime()} - {Error}')
             count3h = None
     else:
-        Logger.warning(f'strikeFreq: {system.logTime()} - API call failed')
         count3h = None
 
     # Calculate average strike frequency over the last three hours
@@ -797,13 +788,13 @@ def strikeFrequency(obTime, device, apiData, config):
 
     # Extract lightning strike count over the last 10 minutes. Return None for
     # strikeFrequency if API call has failed
-    if apiData[device]['24Hrs'] is not None and verifyResponse(apiData[device]['24Hrs'], 'obs'):
+    if '24Hrs' in apiData[device] and verifyResponse(apiData[device]['24Hrs'], 'obs'):
         data24hrs = apiData[device]['24Hrs'].json()['obs']
-        apiTime   = [ob[0] for ob in data24hrs if ob[index] is not None]
+        apiTime   = [ob[0] for ob in data24hrs if ob[index_bucket_a] is not None]
         try:
             dTime   = [abs(T - (obTime[0] - 600)) for T in apiTime]
             if min(dTime) < 2 * 60:
-                count10m = [ob[index] for ob in data24hrs[dTime.index(min(dTime)):] if ob[index] is not None]
+                count10m = [ob[index_bucket_a] for ob in data24hrs[dTime.index(min(dTime)):] if ob[index_bucket_a] is not None]
             else:
                 Logger.warning(f'strikeFreq: {system.logTime()} - no data in 10 minute window')
                 count10m = None
@@ -811,7 +802,6 @@ def strikeFrequency(obTime, device, apiData, config):
             Logger.warning(f'strikeFreq: {system.logTime()} - {Error}')
             count10m = None
     else:
-        Logger.warning(f'strikeFreq: {system.logTime()} - API call failed')
         count10m = None
 
     # Calculate average strike frequency over the last 10 minutes
@@ -863,25 +853,24 @@ def strikeCount(count, strikeCount, device, apiData, config):
 
     # Define index of total lightning strike counts in websocket packets
     if str(device) == config['Station']['OutAirID']:
-        index1 = 4
-        index2 = 4
+        index_bucket_a = 4
+        index_bucket_e = 4
     elif str(device) == config['Station']['TempestID']:
-        index1 = 15
-        index2 = 24
+        index_bucket_a = 15
+        index_bucket_e = 24
 
     # If console is initialising, download all data for current day using
     # Weatherflow API and calculate total daily lightning strikes
-    if strikeCount['today'][0] is None:
-        if apiData[device]['today'] is not None and verifyResponse(apiData[device]['today'], 'obs'):
-            dataToday    = apiData[device]['today'].json()['obs']
-            apiStrikes   = [item[index1] for item in dataToday if item[index1] is not None]
+    if 'today' in apiData[device]:
+        if verifyResponse(apiData[device]['today'], 'obs'):
+            dataToday  = apiData[device]['today'].json()['obs']
+            apiStrikes = [item[index_bucket_a] for item in dataToday if item[index_bucket_a] is not None]
             try:
                 todayStrikes = [sum(x for x in apiStrikes), 'count', sum(x for x in apiStrikes), time.time()]
             except Exception as Error:
                 Logger.warning(f'strikeCount: {system.logTime()} - {Error}')
                 todayStrikes = errorOutput
         else:
-            Logger.warning(f'strikeCount: {system.logTime()} - API call failed')
             todayStrikes = errorOutput
 
     # Else if midnight has passed, reset daily lightning strike count to zero
@@ -896,10 +885,10 @@ def strikeCount(count, strikeCount, device, apiData, config):
 
     # If console is initialising, download all data for current month using
     # Weatherflow API and calculate total monthly lightning strikes
-    if strikeCount['month'][0] is None:
-        if apiData[device]['month'] is not None and verifyResponse(apiData[device]['month'], 'obs'):
-            dataMonth    = apiData[device]['month'].json()['obs']
-            apiStrikes   = [item[index2] for item in dataMonth if item[index2] is not None]
+    if 'month' in apiData[device]:
+        if verifyResponse(apiData[device]['month'], 'obs'):
+            dataMonth  = apiData[device]['month'].json()['obs']
+            apiStrikes = [item[index_bucket_e] for item in dataMonth if item[index_bucket_e] is not None]
             try:
                 monthStrikes = [sum(x for x in apiStrikes), 'count', sum(x for x in apiStrikes), time.time()]
                 if todayStrikes[0] is not None:
@@ -909,7 +898,6 @@ def strikeCount(count, strikeCount, device, apiData, config):
                 Logger.warning(f'strikeCount: {system.logTime()} - {Error}')
                 monthStrikes = errorOutput
         else:
-            Logger.warning(f'strikeCount: {system.logTime()} - API call failed')
             monthStrikes = errorOutput
 
     # Else if the end of the month has passed, reset monthly lightning strike
@@ -925,10 +913,10 @@ def strikeCount(count, strikeCount, device, apiData, config):
 
     # If console is initialising, download all data for current year using
     # Weatherflow API and calculate total yearly lightning strikes
-    if strikeCount['year'][0] is None:
-        if apiData[device]['year'] is not None and verifyResponse(apiData[device]['year'], 'obs'):
-            dataYear    = apiData[device]['year'].json()['obs']
-            apiStrikes  = [item[index2] for item in dataYear if item[index2] is not None]
+    if 'year' in apiData[device]:
+        if verifyResponse(apiData[device]['year'], 'obs'):
+            dataYear   = apiData[device]['year'].json()['obs']
+            apiStrikes = [item[index_bucket_e] for item in dataYear if item[index_bucket_e] is not None]
             try:
                 yearStrikes = [sum(x for x in apiStrikes), 'count', sum(x for x in apiStrikes), time.time()]
                 if todayStrikes[0] is not None:
@@ -938,7 +926,6 @@ def strikeCount(count, strikeCount, device, apiData, config):
                 Logger.warning(f'strikeCount: {system.logTime()} - {Error}')
                 yearStrikes = errorOutput
         else:
-            Logger.warning(f'strikeCount: {system.logTime()} - API call failed')
             yearStrikes = errorOutput
 
     # Else if the end of the year has passed, reset monthly and yearly lightning
@@ -1033,28 +1020,27 @@ def rainAccumulation(dailyRain, rainAccum, device, apiData, config):
 
     # Define index of total daily rain accumulation in websocket packets
     if str(device) == config['Station']['SkyID']:
-        index1 = 3
-        index2 = 3
+        index_bucket_a = 3
+        index_bucket_e = 3
     elif str(device) == config['Station']['TempestID']:
-        index1 = 12
-        index2 = 28
+        index_bucket_a = 12
+        index_bucket_e = 28
 
     # Set current daily rainfall accumulation
     todayRain = [dailyRain[0], 'mm', dailyRain[0], time.time()]
 
     # If console is initialising, calculate yesterday's rainfall from the
     # WeatherFlow API data
-    if rainAccum['yesterday'][0] is None:
-        if apiData[device]['yesterday'] is not None and verifyResponse(apiData[device]['yesterday'], 'obs'):
+    if 'yesterday' in apiData[device]:
+        if verifyResponse(apiData[device]['yesterday'], 'obs'):
             yesterdayData = apiData[device]['yesterday'].json()['obs']
-            rainData = [item[index1] for item in yesterdayData if item[index1] is not None]
+            rainData = [item[index_bucket_a] for item in yesterdayData if item[index_bucket_a] is not None]
             try:
                 yesterdayRain = [sum(x for x in rainData), 'mm', sum(x for x in rainData), time.time()]
             except Exception as Error:
                 Logger.warning(f'rainAccum: {system.logTime()} - {Error}')
                 yesterdayRain = errorOutput
         else:
-            Logger.warning(f'rainAccum: {system.logTime()} - API call failed')
             yesterdayRain = errorOutput
 
     # Else if midnight has passed, set yesterday rainfall accumulation equal to
@@ -1073,10 +1059,10 @@ def rainAccumulation(dailyRain, rainAccum, device, apiData, config):
 
     # Else if console is initialising, calculate total monthly rainfall from
     # the WeatherFlow API data
-    elif rainAccum['month'][0] is None:
-        if apiData[device]['month'] is not None and verifyResponse(apiData[device]['month'], 'obs'):
+    if 'month' in apiData[device]:
+        if verifyResponse(apiData[device]['month'], 'obs'):
             monthData = apiData[device]['month'].json()['obs']
-            rainData = [item[index2] for item in monthData if item[index2] is not None]
+            rainData = [item[index_bucket_e] for item in monthData if item[index_bucket_e] is not None]
             try:
                 monthRain = [sum(x for x in rainData), 'mm', sum(x for x in rainData), time.time()]
                 if not math.isnan(dailyRain[0]):
@@ -1085,7 +1071,6 @@ def rainAccumulation(dailyRain, rainAccum, device, apiData, config):
                 Logger.warning(f'rainAccum: {system.logTime()} - {Error}')
                 monthRain = errorOutput
         else:
-            Logger.warning(f'rainAccum: {system.logTime()} - API call failed')
             monthRain = errorOutput
 
     # Else if the end of the month has passed, reset monthly rain accumulation
@@ -1113,10 +1098,11 @@ def rainAccumulation(dailyRain, rainAccum, device, apiData, config):
 
     # Else if console is initialising, calculate total yearly rainfall from the
     # WeatherFlow API data
-    elif rainAccum['year'][0] is None:
-        if apiData[device]['year'] is not None and verifyResponse(apiData[device]['year'], 'obs'):
+    #elif rainAccum['year'][0] is None:
+    if 'year' in apiData[device]:
+        if verifyResponse(apiData[device]['year'], 'obs'):
             yearData = apiData[device]['year'].json()['obs']
-            rainData = [item[index2] for item in yearData if item[index2] is not None]
+            rainData = [item[index_bucket_e] for item in yearData if item[index_bucket_e] is not None]
             try:
                 yearRain = [sum(x for x in rainData), 'mm', sum(x for x in rainData), time.time()]
                 if not math.isnan(dailyRain[0]):
@@ -1125,7 +1111,6 @@ def rainAccumulation(dailyRain, rainAccum, device, apiData, config):
                 Logger.warning(f'rainAccum: {system.logTime()} - {Error}')
                 yearRain = errorOutput
         else:
-            Logger.warning(f'rainAccum: {system.logTime()} - API call failed')
             yearRain = errorOutput
 
     # Else if the end of the year has passed, reset monthly and yearly rain
@@ -1178,25 +1163,24 @@ def avgWindSpeed(windSpd, avgWind, device, apiData, config):
 
     # Define index of wind speed in websocket packets
     if str(device) == config['Station']['SkyID']:
-        index = 5
+        index_bucket_a = 5
     elif str(device) == config['Station']['TempestID']:
-        index = 2
+        index_bucket_a = 2
 
     # If console is initialising, download all data for current day using
     # Weatherflow API and calculate daily averaged windspeed
-    if avgWind[0] is None:
-        if apiData[device]['today'] is not None and verifyResponse(apiData[device]['today'], 'obs'):
+    if 'today' in apiData[device]:
+        if verifyResponse(apiData[device]['today'], 'obs'):
             todayData = apiData[device]['today'].json()['obs']
-            windSpd = [item[index] for item in todayData if item[index] is not None]
+            windSpd = [item[index_bucket_a] for item in todayData if item[index_bucket_a] is not None]
             try:
                 average = sum(x for x in windSpd) / len(windSpd)
                 windAvg = [average, 'mps', average, len(windSpd), time.time()]
             except Exception as Error:
                 Logger.warning(f'avgSpeed: {system.logTime()} - {Error}')
-                return errorOutput
+                windAvg = errorOutput
         else:
-            Logger.warning(f'avgSpeed: {system.logTime()} - API call failed')
-            return errorOutput
+            windAvg = errorOutput
 
     # Else if midnight has passed, reset daily averaged wind speed
     elif Now.date() > datetime.fromtimestamp(avgWind[4], Tz).date():
@@ -1240,24 +1224,23 @@ def maxWindGust(windGust, maxGust, device, apiData, config):
 
     # Define index of wind speed in websocket packets
     if str(device) == config['Station']['SkyID']:
-        index = 6
+        index_bucket_a = 6
     elif str(device) == config['Station']['TempestID']:
-        index = 3
+        index_bucket_a = 3
 
     # If console is initialising, download all data for current day using
     # Weatherflow API and calculate daily maximum wind gust
-    if maxGust[0] is None:
-        if apiData[device]['today'] is not None and verifyResponse(apiData[device]['today'], 'obs'):
+    if 'today' in apiData[device]:
+        if verifyResponse(apiData[device]['today'], 'obs'):
             todayData = apiData[device]['today'].json()['obs']
-            windGust = [item[index] for item in todayData if item[index] is not None]
+            windGust = [item[index_bucket_a] for item in todayData if item[index_bucket_a] is not None]
             try:
                 maxGust  = [max(x for x in windGust), 'mps', max(x for x in windGust), time.time()]
             except Exception as Error:
                 Logger.warning(f'maxGust: {system.logTime()} - {Error}')
-                return errorOutput
+                maxGust = errorOutput
         else:
-            Logger.warning(f'maxGust: {system.logTime()} - API call failed')
-            return errorOutput
+            maxGust = errorOutput
 
     # Else if midnight has passed, reset maximum recorded wind gust
     elif Now.date() > datetime.fromtimestamp(maxGust[3], Tz).date():
@@ -1292,8 +1275,6 @@ def cardinalWindDir(windDir, windSpd=[1, 'mps']):
     # Return None if required variables are missing
     errorOutput = [windDir[0], windDir[1], '-', '-']
     if windDir[0] is None and windSpd[0] != 0.0:
-        print('windDir is: ', windDir[0])
-        print('windSpd is: ', windSpd[0])
         Logger.warning(f'cardWindDir: {system.logTime()} - windDir is None')
         return errorOutput
     elif windSpd[0] is None:
@@ -1436,16 +1417,16 @@ def peakSunHours(radiation, peakSun, device, apiData, config):
 
     # Define index of radiation in websocket packets
     if str(device) == config['Station']['SkyID']:
-        index = 10
+        index_bucket_a = 10
     elif str(device) == config['Station']['TempestID']:
-        index = 11
+        index_bucket_a = 11
 
     # If console is initialising, download all data for current day using
     # Weatherflow API and calculate Peak Sun Hours
-    if peakSun[0] is None:
-        if apiData[device]['today'] is not None and verifyResponse(apiData[device]['today'], 'obs'):
+    if 'today' in apiData[device]:
+        if verifyResponse(apiData[device]['today'], 'obs'):
             dataToday = apiData[device]['today'].json()['obs']
-            radiation = [item[index] for item in dataToday if item[index] is not None]
+            radiation = [item[index_bucket_a] for item in dataToday if item[index_bucket_a] is not None]
             try:
                 watthrs = sum([item * (1 / 60) for item in radiation])
                 peakSun = [watthrs / 1000, 'hrs', watthrs, sunrise, sunset, time.time()]
@@ -1453,7 +1434,6 @@ def peakSunHours(radiation, peakSun, device, apiData, config):
                 Logger.warning(f'peakSun: {system.logTime()} - {Error}')
                 return errorOutput
         else:
-            Logger.warning(f'peakSun: {system.logTime()} - API call failed')
             return errorOutput
 
     # Else if midnight has passed, reset Peak Sun Hours

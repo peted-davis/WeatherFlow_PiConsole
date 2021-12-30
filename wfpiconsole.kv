@@ -1194,8 +1194,100 @@
                             text: 'Shutdown'
                             on_release: root.shutdownSystem()
             MainMenuTab:
+                text: 'Stations'
+                MainMenuLayout:
+                    BoxLayout:
+                        orientation: 'vertical'
+                        padding: [dp(10), dp(10), dp(10), dp(20)]
+                        spacing: dp(10)
+                        Label:
+                            text: 'Station & Device selection'
+                            font_size: dp(16*app.scaleFactor)
+                            font_name: 'fonts/Inter-Bold.ttf'
+                            color: utils.rgba('#c8c8c8ff')
+                            size_hint: (1, .4)
+                        BoxLayout:
+                            orientation: 'horizontal'
+                            spacing: dp(10)
+                            BoxLayout:
+                                orientation: 'vertical'
+                                Label:
+                                    text: 'Station'
+                                    font_size: dp(14*app.scaleFactor)
+                                    font_name: 'fonts/Inter-Bold.ttf'
+                                    color: utils.rgba('#c8c8c8ff')
+                                FloatLayout:
+                                    StationSpinner:
+                                        id: stationList
+                                        values: root.stationList
+                                        on_text: root.get_stationDevices()
+                            BoxLayout:
+                                orientation: 'vertical'
+                                Label:
+                                    text: 'Tempest'
+                                    font_size: dp(14*app.scaleFactor)
+                                    font_name: 'fonts/Inter-Bold.ttf'
+                                    color: utils.rgba('#c8c8c8ff')
+                                FloatLayout:
+                                    DeviceSpinner:
+                                        id: tempestDropdown
+                                        values: root.tempestList
+                                        on_text: if self.text not in ['Please select', 'Air or Sky selected', 'No device available']: root.on_deviceSelection(self)
+                        BoxLayout:
+                            orientation: 'horizontal'
+                            spacing: dp(10)
+                            BoxLayout:
+                                orientation: 'vertical'
+                                Label:
+                                    text: 'Sky'
+                                    font_size: dp(14*app.scaleFactor)
+                                    font_name: 'fonts/Inter-Bold.ttf'
+                                    color: utils.rgba('#c8c8c8ff')
+                                FloatLayout:
+                                    DeviceSpinner:
+                                        id: skyDropdown
+                                        values: root.skyList
+                                        on_text: if self.text not in ['Please select', 'Tempest selected', 'No device available']: root.on_deviceSelection(self)
+                            BoxLayout:
+                                orientation: 'vertical'
+                                Label:
+                                    text: 'Outdoor Air'
+                                    font_size: dp(14*app.scaleFactor)
+                                    font_name: 'fonts/Inter-Bold.ttf'
+                                    color: utils.rgba('#c8c8c8ff')
+                                FloatLayout:
+                                    DeviceSpinner:
+                                        id: outAirDropdown
+                                        values: root.outAirList
+                                        on_text: if self.text not in ['Please select', 'Tempest selected', 'No device available']: root.on_deviceSelection(self)
+                        BoxLayout:
+                            orientation: 'horizontal'
+                            spacing: dp(10)
+                            BoxLayout:
+                                orientation: 'vertical'
+                                Label:
+                                    text: 'Indoor Air'
+                                    font_size: dp(14*app.scaleFactor)
+                                    font_name: 'fonts/Inter-Bold.ttf'
+                                    color: utils.rgba('#c8c8c8ff')
+                                FloatLayout:
+                                    DeviceSpinner:
+                                        id: inAirDropdown
+                                        values: root.inAirList
+                                        on_text: if self.text not in ['Please select', 'Tempest selected', 'No device available']: root.on_deviceSelection(self)
+                            BoxLayout:
+                                orientation: 'horizontal'
+                                SwitchButton:
+                                    id: switchButton
+                                    disabled: 1
+                                    text: 'Switch stations'
+                                    on_release: root.switchStations()
+                                    size_hint: (1, .5)
+                                    pos_hint: {'center_y': 0.5}
+            MainMenuTab:
                 text: 'Credits'
                 MainMenuLayout:
+                    id: credits
                     CreditsMultilineField:
                         text:
                             'Python Console for Weather Flow Tempest and Smart Home Weather Station \n' \

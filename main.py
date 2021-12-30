@@ -1,6 +1,6 @@
 # WeatherFlow PiConsole: Raspberry Pi Python console for WeatherFlow Tempest
 # and Smart Home Weather stations.
-# Copyright (C) 2018-2020 Peter Davis
+# Copyright (C) 2018-2021 Peter Davis
 
 # This program is free software: you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
@@ -57,7 +57,7 @@ elif config['System']['Hardware'] in ['PiB','Pi3']:
 # INITIALISE KIVY WINDOW PROPERTIES BASED ON OPTIONS SET IN wfpiconsole.ini
 # ==============================================================================
 # Import required modules
-from kivy.config import Config as kivyconfig
+from kivy.config import Config as kivyconfig                                    # type: ignore
 
 # Generate default wfpiconsole Kivy config file. Config file is always
 # regenerated to ensure changes to the default file are always copied across
@@ -79,10 +79,10 @@ if config['System']['Hardware'] in ['Pi4', 'Linux', 'Other']:
         kivyconfig.set('graphics', 'fullscreen', '0')
         kivyconfig.set('graphics', 'width',  config['Display']['Width'])
         kivyconfig.set('graphics', 'height', config['Display']['Height'])
-    if not int(config['Display']['Border']):
-        kivyconfig.set('graphics', 'borderless', '1')
-    else:
+    if int(config['Display']['Border']):
         kivyconfig.set('graphics', 'borderless', '0')
+    else:
+        kivyconfig.set('graphics', 'borderless', '1')
 
 # ==============================================================================
 # INITIALISE MOUSE SUPPORT IF OPTION SET in wfpiconsole.ini
@@ -93,10 +93,10 @@ if config['System']['Hardware'] in ['PiB','Pi3']:
         kivyconfig.set('modules','cursor','1')
 
 # Initialise mouse support if required
-if not int(config['Display']['Cursor']):
-    kivyconfig.set('graphics', 'show_cursor', '0')
-else:
+if int(config['Display']['Cursor']):
     kivyconfig.set('graphics', 'show_cursor', '1')
+else:
+    kivyconfig.set('graphics', 'show_cursor', '0')
 
 # Save wfpiconsole Kivy configuration file
 kivyconfig.write()
@@ -104,67 +104,60 @@ kivyconfig.write()
 # ==============================================================================
 # IMPORT REQUIRED CORE KIVY MODULES
 # ==============================================================================
-from kivy.properties         import DictProperty, NumericProperty, BooleanProperty
-from kivy.properties         import ConfigParserProperty, StringProperty
-from kivy.properties         import ListProperty
-from kivy.animation          import Animation
-from kivy.core.window        import Window
-from kivy.factory            import Factory
-from kivy.metrics            import dp, sp
-from kivy.clock              import Clock, mainthread
-from kivy.utils              import platform
-from kivy.lang               import Builder
-from kivy.app                import App
+from kivy.properties         import ConfigParserProperty, StringProperty        # type: ignore
+from kivy.properties         import DictProperty, NumericProperty               # type: ignore
+from kivy.core.window        import Window                                      # type: ignore
+from kivy.factory            import Factory                                     # type: ignore
+from kivy.clock              import Clock                                       # type: ignore
+from kivy.lang               import Builder                                     # type: ignore
+from kivy.app                import App                                         # type: ignore
 
 # ==============================================================================
 # IMPORT REQUIRED LIBRARY MODULES
 # ==============================================================================
-from lib import astronomical      as astro
-from lib import sager             as sagerForecast
-from lib import settingScreens
-from lib import properties
-from lib import forecast
-from lib import station
-from lib import system
-from lib import config
+from lib.forecast import forecast
+from lib          import astronomical as astro
+from lib          import settings     as userSettings
+from lib          import sager        as sagerForecast
+from lib          import properties
+from lib          import status
+from lib          import system
+from lib          import config
 
 # ==============================================================================
-# IMPORT REQUIRED USER MODULES
+# IMPORT REQUIRED PANELS
+# ==============================================================================
+from panels.temperature import TemperaturePanel,   TemperatureButton
+from panels.barometer   import BarometerPanel,     BarometerButton
+from panels.lightning   import LightningPanel,     LightningButton
+from panels.wind        import WindSpeedPanel,     WindSpeedButton
+from panels.forecast    import ForecastPanel,      ForecastButton
+from panels.forecast    import SagerPanel,         SagerButton
+from panels.rainfall    import RainfallPanel,      RainfallButton
+from panels.astro       import SunriseSunsetPanel, SunriseSunsetButton
+from panels.astro       import MoonPhasePanel,     MoonPhaseButton
+from panels.menu        import mainMenu
+
+# ==============================================================================
+# IMPORT CUSTOM USER PANELS
 # ==============================================================================
 if Path('user/customPanels.py').is_file():
-    from user.customPanels import *
+    from user.customPanels import *                                             # type: ignore
 
 # ==============================================================================
 # IMPORT REQUIRED SYSTEM MODULES
 # ==============================================================================
-from oscpy.server  import OSCThreadServer
-from oscpy.client  import OSCClient
 from functools     import partial
 from runpy         import run_path
 import subprocess
 import threading
-import certifi
-import socket
-import math
 import json
 
 # ==============================================================================
 # IMPORT REQUIRED KIVY GRAPHICAL AND SETTINGS MODULES
 # ==============================================================================
-from kivy.uix.relativelayout import RelativeLayout
-from kivy.uix.screenmanager  import ScreenManager, Screen, NoTransition
-from kivy.uix.togglebutton   import ToggleButton
-from kivy.uix.scrollview     import ScrollView
-from kivy.uix.gridlayout     import GridLayout
-from kivy.uix.modalview      import ModalView
-from kivy.uix.boxlayout      import BoxLayout
-from kivy.uix.behaviors      import ToggleButtonBehavior
-from kivy.uix.settings       import SettingsWithSidebar, SettingOptions
-from kivy.uix.settings       import SettingString, SettingSpacer
-from kivy.uix.button         import Button
-from kivy.uix.widget         import Widget
-from kivy.uix.popup          import Popup
-from kivy.uix.label          import Label
+from kivy.uix.screenmanager  import ScreenManager, Screen, NoTransition         # type: ignore
+from kivy.uix.settings       import SettingsWithSidebar, SettingOptions         # type: ignore
 
 # ==============================================================================
 # DEFINE 'WeatherFlowPiConsole' APP CLASS
@@ -200,12 +193,6 @@ class wfpiconsole(App):
         # Set Settings syle class
         self.settings_cls = SettingsWithSidebar
 
-        # Initialise oscSERVER and oscCLIENT
-        self.oscSERVER = OSCThreadServer()
-        self.oscCLIENT = OSCClient('localhost', 3001)
-        self.oscSERVER.listen(address=b'localhost', port=3002, default=True)
-        self.oscSERVER.bind(b'/updateDisplay', self.updateDisplay)
-
         # Load Custom Panel KV file if present
         if Path('user/customPanels.py').is_file():
             Builder.load_file('user/customPanels.kv')
@@ -235,17 +222,19 @@ class wfpiconsole(App):
     def build_settings(self, settings):
 
         # Register setting types
-        settings.register_type('ScrollOptions',     SettingScrollOptions)
-        settings.register_type('FixedOptions',      SettingFixedOptions)
-        settings.register_type('ToggleTemperature', SettingToggleTemperature)
-        settings.register_type('TextScale',         SettingTextScale)
+        settings.register_type('ScrollOptions',     userSettings.ScrollOptions)
+        settings.register_type('FixedOptions',      userSettings.FixedOptions)
+        settings.register_type('ToggleTemperature', userSettings.ToggleTemperature)
+        settings.register_type('ToggleHours',       userSettings.ToggleHours)
+        settings.register_type('TextScale',         userSettings.TextScale)
 
         # Add required panels to setting screen. Remove Kivy settings panel
-        settings.add_json_panel('Display',          self.config, data=settingScreens.JSON('Display'))
-        settings.add_json_panel('Primary Panels',   self.config, data=settingScreens.JSON('Primary'))
-        settings.add_json_panel('Secondary Panels', self.config, data=settingScreens.JSON('Secondary'))
-        settings.add_json_panel('Units',            self.config, data=settingScreens.JSON('Units'))
-        settings.add_json_panel('Feels Like',       self.config, data=settingScreens.JSON('FeelsLike'))
+        settings.add_json_panel('Display',          self.config, data=userSettings.JSON('Display'))
+        settings.add_json_panel('Primary Panels',   self.config, data=userSettings.JSON('Primary'))
+        settings.add_json_panel('Secondary Panels', self.config, data=userSettings.JSON('Secondary'))
+        settings.add_json_panel('Units',            self.config, data=userSettings.JSON('Units'))
+        settings.add_json_panel('Feels Like',       self.config, data=userSettings.JSON('FeelsLike'))
+        settings.add_json_panel('System',           self.config, data=userSettings.JSON('System'))
         self.use_kivy_settings = False
         self.settings = settings
 
@@ -277,12 +266,12 @@ class wfpiconsole(App):
         # Update current weather forecast when temperature or wind speed units
         # are changed
         if section == 'Units' and key in ['Temp', 'Wind']:
-            self.Sched.metDownload = Clock.schedule_once(partial(forecast.startDownload, self, True))
+            self.forecast.parse_forecast()
 
         # Update current weather forecast, sunrise/sunset and moonrise/moonset
         # times when time format changed
         if section == 'Display' and key in 'TimeFormat':
-            self.Sched.metDownload = Clock.schedule_once(partial(forecast.startDownload, self, True))
+            self.forecast.parse_forecast()
             astro.Format(self.CurrentConditions.Astro,   self.config, 'Sun')
             astro.Format(self.CurrentConditions.Astro,   self.config, 'Moon')
 
@@ -302,7 +291,7 @@ class wfpiconsole(App):
                 for panel in panels.values():
                     if panel.title == 'Feels Like':
                         for item in panel.children:
-                            if isinstance(item, Factory.SettingToggleTemperature):
+                            if isinstance(item, Factory.ToggleTemperature):
                                 if item.title.replace(' ', '') == Field:
                                     item.value = self.config['FeelsLike'][Field]
 
@@ -350,33 +339,40 @@ class wfpiconsole(App):
                                     item.value = ''
                                     break
 
-        # Send configuration changed notification to Websocket service
-        Retries = 0
-        while Retries < 3:
-            try:
-                self.oscCLIENT.send_message(b'/config', [('1').encode('utf8')])
-                break
-            except Exception:
-                Retries += 1
+        # Update Sager Forecast schedule
+        if section == 'System' and key == 'SagerInterval':
+            sagerForecast.Schedule(self.CurrentConditions.Sager, True, self)
+
+        # Update derived variables to reflect configuration changes
+        self.obsParser.reformatDisplay()
+
 
     # START WEBSOCKET SERVICE
     # --------------------------------------------------------------------------
     def startWebsocketService(self, *largs):
-        self.service = threading.Thread(target=run_path, args=['service/websocket.py'], kwargs={'run_name': '__main__'}, daemon=True, name='Websocket')
-        self.service.start()
+        self.websocket_thread = threading.Thread(target=run_path,
+                                                 args=['service/websocket.py'],
+                                                 kwargs={'run_name': '__main__'},
+                                                 daemon=True,
+                                                 name='Websocket')
+        self.websocket_thread.start()
 
-    # UPDATE DISPLAY WITH NEW OBSERVATIONS SENT FROM WEBSOCKET SERVICE
+    # STOP WEBSOCKET SERVICE
     # --------------------------------------------------------------------------
-    def updateDisplay(self, *payload):
-        try:
-            message = json.loads(payload[0].decode('utf8'))
-            type    = payload[1].decode('utf8')
-        except Exception:
-            pass
-        system.updateDisplay(type, message, self)
+    def stopWebsocketService(self):
+        self.websocket_client._keep_running = False
+        self.websocket_thread.join()
+        del self.websocket_client
+
 
 # ==============================================================================
-# CurrentConditions SCREEN CLASS
+# screenManager CLASS
+# ==============================================================================
+class screenManager(ScreenManager):
+    pass
+
+# ==============================================================================
+# CurrentConditions CLASS
 # ==============================================================================
 class CurrentConditions(Screen):
 
@@ -389,7 +385,7 @@ class CurrentConditions(Screen):
         super(CurrentConditions, self).__init__(**kwargs)
         app = App.get_running_app()
         app.CurrentConditions = self
-        app.Station  = station.Station(app)
+        app.Station  = status.Station(app)
         self.Sager   = properties.Sager()
         self.Astro   = properties.Astro()
         self.Met     = properties.Met()
@@ -413,10 +409,11 @@ class CurrentConditions(Screen):
         app.Sched.moonPhase  = Clock.schedule_interval(partial(astro.moonPhase,  self.Astro, app.config), 1)
 
         # Schedule WeatherFlow weather forecast download
-        app.Sched.metDownload = Clock.schedule_once(partial(forecast.startDownload, app, False))
+        app.forecat = forecast()
+        app.Sched.metDownload = Clock.schedule_once(app.forecast.fetch_forecast)
 
         # Generate Sager Weathercaster forecast
-        threading.Thread(target=sagerForecast.Generate, args=(self.Sager,app.config), name="Sager", daemon=True).start()
+        threading.Thread(target=sagerForecast.Generate, args=(self.Sager, app), name="Sager", daemon=True).start()
 
     # ADD USER SELECTED PANELS TO CURRENT CONDITIONS SCREEN
     # --------------------------------------------------------------------------
@@ -441,7 +438,7 @@ class CurrentConditions(Screen):
     def switchPanel(self, Instance, overideButton=None):
 
         # Determine ID of button that has been pressed
-        for id, Object in App.get_running_app().CurrentConditions.ids.items():
+        for id, Object in self.ids.items():
             if Instance:
                 if Object == Instance.parent.parent:
                     break
@@ -451,13 +448,13 @@ class CurrentConditions(Screen):
 
         # Extract entry in buttonList that correponds to the button that has
         # been pressed
-        for ii, button in enumerate(App.get_running_app().CurrentConditions.buttonList):
+        for ii, button in enumerate(self.buttonList):
             if button[0] == id:
                 break
 
-        # Extract panel object the corresponds to the button that has been
+        # Extract panel object that corresponds to the button that has been
         # pressed and determine new button type required
-        Panel = App.get_running_app().CurrentConditions.ids[button[1]].children
+        Panel =self.ids[button[1]].children
         newButton = App.get_running_app().config[button[3] + 'Panels'][button[1]]
 
         # Destroy reference to old panel class attribute
@@ -471,631 +468,16 @@ class CurrentConditions(Screen):
                 delattr(App.get_running_app(), newButton + 'Panel')
 
         # Switch panel
-        App.get_running_app().CurrentConditions.ids[button[1]].clear_widgets()
-        App.get_running_app().CurrentConditions.ids[button[1]].add_widget(eval(button[2] + 'Panel')())
-        App.get_running_app().CurrentConditions.ids[button[0]].clear_widgets()
-        App.get_running_app().CurrentConditions.ids[button[0]].add_widget(eval(newButton + 'Button')())
+        self.ids[button[1]].clear_widgets()
+        self.ids[button[1]].add_widget(eval(button[2] + 'Panel')())
+        self.ids[button[0]].clear_widgets()
+        self.ids[button[0]].add_widget(eval(newButton + 'Button')())
 
         # Update button list
         if button[3] == 'Primary':
-            App.get_running_app().CurrentConditions.buttonList[ii] = [button[0], button[1], newButton, 'Secondary']
+            self.buttonList[ii] = [button[0], button[1], newButton, 'Secondary']
         elif button[3] == 'Secondary':
-            App.get_running_app().CurrentConditions.buttonList[ii] = [button[0], button[1], newButton, 'Primary']
-
-
-# ==============================================================================
-# screenManager SCREEN MANAGER CLASS
-# ==============================================================================
-class screenManager(ScreenManager):
-    pass
-
-
-# ==============================================================================
-# ForecastPanel RELATIVE LAYOUT CLASS
-# ==============================================================================
-class ForecastPanel(RelativeLayout):
-
-    # Define TemperaturePanel class properties
-    forecastIcon = StringProperty('-')
-
-    # Initialise 'ForecastPanel' relative layout class
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        if not hasattr(App.get_running_app(), self.__class__.__name__):
-            panelList = []
-            panelList.append(self)
-            setattr(App.get_running_app(), self.__class__.__name__, panelList)
-        else:
-            panelList = getattr(App.get_running_app(), self.__class__.__name__, 'panelList')
-            panelList.append(self)
-            setattr(App.get_running_app(), self.__class__.__name__, panelList)
-
-        # Run required class functions
-        self.setForecastIcon()
-
-    # Set Forecast icon
-    @mainthread
-    def setForecastIcon(self):
-        self.forecastIcon = App.get_running_app().CurrentConditions.Met['Icon']
-
-
-class ForecastButton(RelativeLayout):
-    pass
-
-
-# ==============================================================================
-# SagerPanel RELATIVE LAYOUT CLASS
-# ==============================================================================
-class SagerPanel(RelativeLayout):
-
-    # Initialise 'SagerPanel' relative layout class
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        if not hasattr(App.get_running_app(), self.__class__.__name__):
-            panelList = []
-            panelList.append(self)
-            setattr(App.get_running_app(), self.__class__.__name__, panelList)
-        else:
-            panelList = getattr(App.get_running_app(), self.__class__.__name__, 'panelList')
-            panelList.append(self)
-            setattr(App.get_running_app(), self.__class__.__name__, panelList)
-
-class SagerButton(RelativeLayout):
-    pass
-
-
-# ==============================================================================
-# TemperaturePanel RELATIVE LAYOUT CLASS
-# ==============================================================================
-class TemperaturePanel(RelativeLayout):
-
-    # Define TemperaturePanel class properties
-    feelsLikeIcon = StringProperty('-')
-
-    # Initialise 'TemperaturePanel' relative layout class
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        if not hasattr(App.get_running_app(), self.__class__.__name__):
-            panelList = []
-            panelList.append(self)
-            setattr(App.get_running_app(), self.__class__.__name__, panelList)
-        else:
-            panelList = getattr(App.get_running_app(), self.__class__.__name__, 'panelList')
-            panelList.append(self)
-            setattr(App.get_running_app(), self.__class__.__name__, panelList)
-
-        # Run required class functions
-        self.setFeelsLikeIcon()
-
-    # Set "Feels Like" icon
-    def setFeelsLikeIcon(self):
-        self.feelsLikeIcon = App.get_running_app().CurrentConditions.Obs['FeelsLike'][3]
-
-
-class TemperatureButton(RelativeLayout):
-    pass
-
-
-# ==============================================================================
-# WindSpeedPanel RELATIVE LAYOUT CLASS
-# ==============================================================================
-class WindSpeedPanel(RelativeLayout):
-
-    # Define WindSpeedPanel class properties
-    rapidWindDir = NumericProperty(0)
-    windDirIcon  = StringProperty('-')
-    windSpdIcon  = StringProperty('-')
-
-    # Initialise 'WindSpeedPanel' relative layout class
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        if not hasattr(App.get_running_app(), self.__class__.__name__):
-            panelList = []
-            panelList.append(self)
-            setattr(App.get_running_app(), self.__class__.__name__, panelList)
-        else:
-            panelList = getattr(App.get_running_app(), self.__class__.__name__, 'panelList')
-            panelList.append(self)
-            setattr(App.get_running_app(), self.__class__.__name__, panelList)
-
-        # Run required class functions
-        if App.get_running_app().CurrentConditions.Obs['rapidDir'][0] != '-':
-            self.rapidWindDir = App.get_running_app().CurrentConditions.Obs['rapidDir'][0]
-        self.setWindIcons()
-
-    # Animate rapid wind rose
-    def animateWindRose(self):
-
-        # Get current wind direction, old wind direction and change in wind
-        # direction over last Rapid-Wind period
-        if App.get_running_app().CurrentConditions.Obs['rapidDir'][0] != '-':
-            rapidWindDir_New = int(App.get_running_app().CurrentConditions.Obs['rapidDir'][0])
-            rapidWindDir_Old = self.rapidWindDir
-            rapidWindShift   = rapidWindDir_New - self.rapidWindDir
-
-            # Animate Wind Rose at constant speed between old and new Rapid-Wind
-            # wind direction
-            if rapidWindShift >= -180 and rapidWindShift <= 180:
-                Anim = Animation(rapidWindDir=rapidWindDir_New, duration=2 * abs(rapidWindShift) / 360)
-                Anim.start(self)
-            elif rapidWindShift > 180:
-                Anim = Animation(rapidWindDir=0.1, duration=2 * rapidWindDir_Old / 360) + Animation(rapidWindDir=rapidWindDir_New, duration=2 * (360 - rapidWindDir_New) / 360)
-                Anim.start(self)
-            elif rapidWindShift < -180:
-                Anim = Animation(rapidWindDir=359.9, duration=2 * (360 - rapidWindDir_Old) / 360) + Animation(rapidWindDir=rapidWindDir_New, duration=2 * rapidWindDir_New / 360)
-                Anim.start(self)
-
-    # Fix Wind Rose angle at 0/360 degree discontinuity
-    def on_rapidWindDir(self, item, rapidWindDir):
-        if rapidWindDir == 0.1:
-            item.rapidWindDir = 360
-        if rapidWindDir == 359.9:
-            item.rapidWindDir = 0
-
-    # Set mean windspeed and direction icons
-    def setWindIcons(self):
-        self.windDirIcon = App.get_running_app().CurrentConditions.Obs['WindDir'][2]
-        self.windSpdIcon = App.get_running_app().CurrentConditions.Obs['WindSpd'][3]
-
-
-class WindSpeedButton(RelativeLayout):
-    pass
-
-
-# ==============================================================================
-# SunriseSunsetPanel RELATIVE LAYOUT CLASS
-# ==============================================================================
-class SunriseSunsetPanel(RelativeLayout):
-
-    # Define SunriseSunsetPanel class properties
-    uvBackground = StringProperty('-')
-
-    # Initialise 'SunriseSunsetPanel' relative layout class
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        if not hasattr(App.get_running_app(), self.__class__.__name__):
-            panelList = []
-            panelList.append(self)
-            setattr(App.get_running_app(), self.__class__.__name__, panelList)
-        else:
-            panelList = getattr(App.get_running_app(), self.__class__.__name__, 'panelList')
-            panelList.append(self)
-            setattr(App.get_running_app(), self.__class__.__name__, panelList)
-
-        # Run required class functions
-        self.setUVBackground()
-
-    # Set current UV index backgroud
-    def setUVBackground(self):
-        self.uvBackground = App.get_running_app().CurrentConditions.Obs['UVIndex'][3]
-
-
-class SunriseSunsetButton(RelativeLayout):
-    pass
-
-
-# ==============================================================================
-# MoonPhasePanel RELATIVE LAYOUT CLASS
-# ==============================================================================
-class MoonPhasePanel(RelativeLayout):
-
-    # Initialise 'MoonPhasePanel' relative layout class
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        if not hasattr(App.get_running_app(), self.__class__.__name__):
-            panelList = []
-            panelList.append(self)
-            setattr(App.get_running_app(), self.__class__.__name__, panelList)
-        else:
-            panelList = getattr(App.get_running_app(), self.__class__.__name__, 'panelList')
-            panelList.append(self)
-            setattr(App.get_running_app(), self.__class__.__name__, panelList)
-
-
-class MoonPhaseButton(RelativeLayout):
-    pass
-
-
-# ==============================================================================
-# RainfallPanel RELATIVE LAYOUT CLASS
-# ==============================================================================
-class RainfallPanel(RelativeLayout):
-
-    # Define RainfallPanel class properties
-    rainRatePosX  = NumericProperty(+0)
-    rainRatePosY  = NumericProperty(-1)
-
-    # Initialise 'RainfallPanel' relative layout class
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        if not hasattr(App.get_running_app(), self.__class__.__name__):
-            panelList = []
-            panelList.append(self)
-            setattr(App.get_running_app(), self.__class__.__name__, panelList)
-        else:
-            panelList = getattr(App.get_running_app(), self.__class__.__name__, 'panelList')
-            panelList.append(self)
-            setattr(App.get_running_app(), self.__class__.__name__, panelList)
-
-        # Run required class functions
-        self.animateRainRate()
-
-    # Animate RainRate level
-    def animateRainRate(self):
-
-        # Get current rain rate and convert to float
-        if App.get_running_app().CurrentConditions.Obs['RainRate'][0] != '-':
-            RainRate = float(App.get_running_app().CurrentConditions.Obs['RainRate'][3])
-
-            # Set RainRate level y position
-            y0 = -1.00
-            yt = 0
-            t = 50
-            if RainRate == 0:
-                self.rainRatePosY = y0
-            elif RainRate < 50.0:
-                A = (yt - y0) / t**0.5 * RainRate**0.5 + y0
-                B = (yt - y0) / t**0.3 * RainRate**0.3 + y0
-                C = (1 + math.tanh(RainRate - 3)) / 2
-                self.rainRatePosY = (A + C * (B - A))
-            else:
-                self.rainRatePosY = yt
-
-            # Animate RainRate level x position
-            if RainRate == 0:
-                if hasattr(self, 'Anim'):
-                    self.Anim.stop(self)
-                    delattr(self, 'Anim')
-            else:
-                if not hasattr(self, 'Anim'):
-                    self.Anim  = Animation(rainRatePosX=-0.875, duration=12)
-                    self.Anim += Animation(rainRatePosX=-0.875, duration=12)
-                    self.Anim.repeat = True
-                    self.Anim.start(self)
-
-    # Loop RainRate animation in the x direction
-    def on_rainRatePosX(self, item, rainRatePosX):
-        if round(rainRatePosX, 3) == -0.875:
-            item.rainRatePosX = 0
-
-
-class RainfallButton(RelativeLayout):
-    pass
-
-
-# ==============================================================================
-# LightningPanel RELATIVE LAYOUT CLASS
-# ==============================================================================
-class LightningPanel(RelativeLayout):
-
-    # Define LightningPanel class properties
-    lightningBoltPosX = NumericProperty(0)
-    lightningBoltIcon = StringProperty('lightningBolt')
-
-    # Initialise 'LightningPanel' relative layout class
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        if not hasattr(App.get_running_app(), self.__class__.__name__):
-            panelList = []
-            panelList.append(self)
-            setattr(App.get_running_app(), self.__class__.__name__, panelList)
-        else:
-            panelList = getattr(App.get_running_app(), self.__class__.__name__, 'panelList')
-            panelList.append(self)
-            setattr(App.get_running_app(), self.__class__.__name__, panelList)
-
-        # Run required class functions
-        self.setLightningBoltIcon()
-
-    # Set lightning bolt icon
-    def setLightningBoltIcon(self):
-        if App.get_running_app().CurrentConditions.Obs['StrikeDeltaT'][0] != '-':
-            if App.get_running_app().CurrentConditions.Obs['StrikeDeltaT'][4] < 360:
-                self.lightningBoltIcon = 'lightningBoltStrike'
-            else:
-                self.lightningBoltIcon = 'lightningBolt'
-
-    # Animate lightning bolt icon
-    def animateLightningBoltIcon(self):
-        Anim = Animation(lightningBoltPosX=dp(10), t='out_quad', d=0.02) + Animation(lightningBoltPosX=dp(0), t='out_elastic', d=0.5)
-        Anim.start(self)
-
-
-class LightningButton(RelativeLayout):
-    pass
-
-
-# ==============================================================================
-# BarometerPanel RELATIVE LAYOUT CLASS
-# ==============================================================================
-class BarometerPanel(RelativeLayout):
-
-    # Define BarometerPanel class properties
-    barometerArrow = StringProperty('-')
-
-    # Initialise 'BarometerPanel' relative layout class
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        if not hasattr(App.get_running_app(), self.__class__.__name__):
-            panelList = []
-            panelList.append(self)
-            setattr(App.get_running_app(), self.__class__.__name__, panelList)
-        else:
-            panelList = getattr(App.get_running_app(), self.__class__.__name__, 'panelList')
-            panelList.append(self)
-            setattr(App.get_running_app(), self.__class__.__name__, panelList)
-
-        # Run required class functions
-        self.setBarometerArrow()
-
-    # Set Barometer arrow rotation angle to match current sea level pressure
-    def setBarometerArrow(self):
-        SLP = App.get_running_app().CurrentConditions.Obs['SLP'][2]
-        if SLP == '-':
-            pass
-        elif SLP is None:
-            self.barometerArrow = '-'
-        else:
-            self.barometerArrow = '{:.1f}'.format(SLP)
-
-
-class BarometerButton(RelativeLayout):
-    pass
-
-
-# =============================================================================
-# mainMenu AND [module]Status CLASSES
-# =============================================================================
-class mainMenu(ModalView):
-
-    # Initialise 'mainMenu' ModalView class
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.app = App.get_running_app()
-        self.initialiseStatusPanels()
-
-    def on_open(self):
-        App.get_running_app().mainMenu = self
-
-    # Initialise device status panels based on devices connected to station
-    def initialiseStatusPanels(self):
-
-        # Add device status panels based on devices connected to station
-        if self.app.config['Station']['TempestID']:
-            self.ids.devicePanel.add_widget(self.app.Station.tempestStatusPanel)
-        if self.app.config['Station']['SkyID']:
-            self.ids.devicePanel.add_widget(self.app.Station.skyStatusPanel)
-        if self.app.config['Station']['OutAirID']:
-            self.ids.devicePanel.add_widget(self.app.Station.outAirStatusPanel)
-        if self.app.config['Station']['InAirID']:
-            self.ids.devicePanel.add_widget(self.app.Station.inAirStatusPanel)
-
-        # Populate status fields
-        self.app.Station.get_observationCount()
-        self.app.Station.get_hubFirmware()
-
-    # Exit console and shutdown system
-    def shutdownSystem(self):
-        global SHUTDOWN
-        SHUTDOWN = 1
-        App.get_running_app().stop()
-
-    # Exit console and reboot system
-    def rebootSystem(self):
-        global REBOOT
-        REBOOT = 1
-        App.get_running_app().stop()
-
-    # Delete device status panel widgets when closing main menu
-    def on_dismiss(self):
-        self.ids.devicePanel.clear_widgets()
-
-
-# =============================================================================
-# SettingScrollOptions SETTINGS CLASS
-# =============================================================================
-class SettingScrollOptions(SettingOptions):
-
-    def _create_popup(self, instance):
-
-        # Create the popup and scrollview
-        content         = BoxLayout(orientation='vertical', spacing='5dp')
-        scrollview      = ScrollView(do_scroll_x=False, bar_inactive_color=[.7, .7, .7, 0.9], bar_width=4)
-        scrollcontent   = GridLayout(cols=1, spacing='5dp', size_hint=(0.95, None))
-        self.popup      = Popup(content=content,
-                                title=self.title,
-                                size_hint=(0.25, 0.8),
-                                auto_dismiss=False,
-                                separator_color=[1, 1, 1, 1])
-
-        # Add all the options to the ScrollView
-        scrollcontent.bind(minimum_height=scrollcontent.setter('height'))
-        content.add_widget(Widget(size_hint_y=None, height=dp(1)))
-        uid = str(self.uid)
-        for option in self.options:
-            state = 'down' if option == self.value else 'normal'
-            btn = ToggleButton(text=option,
-                               state=state,
-                               group=uid,
-                               height=dp(58),
-                               size_hint=(0.9, None))
-            btn.bind(on_release=self._set_option)
-            scrollcontent.add_widget(btn)
-
-        # Finally, add a cancel button to return on the previous panel
-        scrollview.add_widget(scrollcontent)
-        content.add_widget(scrollview)
-        content.add_widget(SettingSpacer())
-        btn = Button(text='Cancel',
-                     height=dp(58),
-                     size_hint=(1, None))
-        btn.bind(on_release=self.popup.dismiss)
-        content.add_widget(btn)
-        self.popup.open()
-
-
-# =============================================================================
-# SettingFixedOptions SETTINGS CLASS
-# =============================================================================
-class SettingFixedOptions(SettingOptions):
-
-    def _create_popup(self, instance):
-
-        # Create the popup
-        content     = BoxLayout(orientation='vertical', spacing='5dp')
-        self.popup  = Popup(content=content,
-                            title=self.title,
-                            size_hint=(0.25, None),
-                            auto_dismiss=False,
-                            separator_color=[1, 1, 1, 1],
-                            height=dp(134) + dp(min(len(self.options), 4) * 63))
-
-        # Add all the options to the Popup
-        content.add_widget(Widget(size_hint_y=None, height=dp(1)))
-        uid = str(self.uid)
-        for option in self.options:
-            state = 'down' if option == self.value else 'normal'
-            btn = ToggleButton(text=option,
-                               state=state,
-                               group=uid,
-                               height=dp(58),
-                               size_hint=(1, None))
-            btn.bind(on_release=self._set_option)
-            content.add_widget(btn)
-
-        # Add a cancel button to return on the previous panel
-        content.add_widget(SettingSpacer())
-        btn = Button(text='Cancel',
-                     height=dp(58),
-                     size_hint=(1, None))
-        btn.bind(on_release=self.popup.dismiss)
-        content.add_widget(btn)
-        self.popup.open()
-
-
-# =============================================================================
-# SettingFixedOptions SETTINGS CLASS
-# =============================================================================
-class SettingTextScale(SettingString):
-
-    def _create_popup(self, instance):
-
-        # Create Popup layout
-        content     = BoxLayout(orientation='vertical', spacing=dp(5))
-        self.popup  = Popup(content=content,
-                            title=self.title,
-                            size_hint=(0.6, None),
-                            auto_dismiss=False,
-                            separator_color=[1, 1, 1, 0.3],
-                            height=dp(150))
-
-        # Add toggle buttons to change the text scale
-        self.toggles = BoxLayout()
-        text  = ['Smallest', 'Smaller', 'Normal', 'Larger', 'Largest']
-        scale = [0.50, 0.75, 1.00, 1.25, 1.50]
-        display = [0.70, 0.85, 1.00, 1.15, 1.30]
-        for index, value in enumerate(text):
-            self.toggles.add_widget(TextScaleLabel(text=value,
-                                                   font_size=sp(18 * display[index]),
-                                                   on_press=self._set_value,
-                                                   _scale=scale[index],
-                                                   on_release=self.popup.dismiss))
-        content.add_widget(BoxLayout(size_hint_y=0.05))
-        content.add_widget(self.toggles)
-
-        # Add cancel button
-        self.closeButton = BoxLayout(padding=[dp(150), dp(0)])
-        btn = Button(text='Cancel', font_size=sp(18))
-        btn.bind(on_release=self.popup.dismiss)
-        self.closeButton.add_widget(btn)
-        content.add_widget(SettingSpacer())
-        content.add_widget(self.closeButton)
-
-        # Open the popup
-        self.popup.open()
-
-    def _set_value(self, instance):
-        self.value = str(instance._scale)
-
-
-# =============================================================================
-# SettingToggleTemperature SETTINGS CLASS
-# =============================================================================
-class SettingToggleTemperature(SettingString):
-
-    def _create_popup(self, instance):
-
-        # Get temperature units from config file
-        config = App.get_running_app().config
-        Units = '[sup]o[/sup]' + config['Units']['Temp'].upper()
-
-        # Create Popup layout
-        content     = BoxLayout(orientation='vertical', spacing=dp(5))
-        self.popup  = Popup(content=content,
-                            title=self.title,
-                            size_hint=(0.25, None),
-                            auto_dismiss=False,
-                            separator_color=[1, 1, 1, 0],
-                            height=dp(234))
-        content.add_widget(SettingSpacer())
-
-        # Create the label to show the numeric value
-        self.Label = Label(text=self.value + Units,
-                           markup=True,
-                           font_size=sp(24),
-                           size_hint_y=None,
-                           height=dp(50),
-                           halign='left')
-        content.add_widget(self.Label)
-
-        # Add a plus and minus increment button to change the value by +/- one
-        btnlayout = BoxLayout(size_hint_y=None, height=dp(50), spacing=dp(50))
-        btn = Button(text='-')
-        btn.bind(on_press=self._minus_value)
-        btnlayout.add_widget(btn)
-        btn = Button(text='+')
-        btn.bind(on_press=self._plus_value)
-        btnlayout.add_widget(btn)
-        content.add_widget(btnlayout)
-        content.add_widget(SettingSpacer())
-
-        # Add an OK button to set the value, and a cancel button to return to
-        # the previous panel
-        btnlayout = BoxLayout(size_hint_y=None, height=dp(50), spacing=dp(5))
-        btn = Button(text='Ok')
-        btn.bind(on_release=self._set_value)
-        btnlayout.add_widget(btn)
-        btn = Button(text='Cancel')
-        btn.bind(on_release=self.popup.dismiss)
-        btnlayout.add_widget(btn)
-        content.add_widget(btnlayout)
-
-        # Open the popup
-        self.popup.open()
-
-    def _set_value(self, instance):
-        if '[sup]o[/sup]C' in self.Label.text:
-            Units = '[sup]o[/sup]C'
-        else:
-            Units = '[sup]o[/sup]F'
-        self.value = self.Label.text.replace(Units, '')
-        self.popup.dismiss()
-
-    def _minus_value(self, instance):
-        if '[sup]o[/sup]C' in self.Label.text:
-            Units = '[sup]o[/sup]C'
-        else:
-            Units = '[sup]o[/sup]F'
-        Value = int(self.Label.text.replace(Units, '')) - 1
-        self.Label.text = str(Value) + Units
-
-    def _plus_value(self, instance):
-        if '[sup]o[/sup]C' in self.Label.text:
-            Units = '[sup]o[/sup]C'
-        else:
-            Units = '[sup]o[/sup]F'
-        Value = int(self.Label.text.replace(Units, '')) + 1
-        self.Label.text = str(Value) + Units
+            self.buttonList[ii] = [button[0], button[1], newButton, 'Primary']
 
 
 # ==============================================================================

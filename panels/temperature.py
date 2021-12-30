@@ -1,5 +1,5 @@
-""" Define custom user panels for the Raspberry Pi Python console for
-WeatherFlow Tempest and Smart Home Weather stations.
+""" Defines the Temperature panel required by the Raspberry Pi Python console
+for WeatherFlow Tempest and Smart Home Weather stations.
 Copyright (C) 2018-2021 Peter Davis
 
 This program is free software: you can redistribute it and/or modify it under
@@ -15,15 +15,32 @@ You should have received a copy of the GNU General Public License along with
 this program. If not, see <http://www.gnu.org/licenses/>.
 """
 
-# Load required modules
+# Load required Kivy modules
 from kivy.uix.relativelayout import RelativeLayout
-from panels.customPanel      import panelTemplate
+from kivy.properties         import StringProperty
+from kivy.app                import App
+
+# Load required panel modules
+from panels.template         import panelTemplate
+
 
 # ==============================================================================
-# BigTemperature CUSTOM PANEL
+# TemperaturePanel AND TemperatureButton CLASS
 # ==============================================================================
-class BigTemperaturePanel(panelTemplate):
-    pass
+class TemperaturePanel(panelTemplate):
 
-class BigTemperatureButton(RelativeLayout):
+    # Define TemperaturePanel class properties
+    feelsLikeIcon = StringProperty('-')
+
+    # Initialise TemperaturePanel
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.setFeelsLikeIcon()
+
+    # Set "Feels Like" icon
+    def setFeelsLikeIcon(self):
+        self.feelsLikeIcon = App.get_running_app().CurrentConditions.Obs['FeelsLike'][3]
+
+
+class TemperatureButton(RelativeLayout):
     pass

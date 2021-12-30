@@ -1,6 +1,6 @@
 """ Contains system functions required by the Raspberry Pi Python console for
 WeatherFlow Tempest and Smart Home Weather stations.
-Copyright (C) 2018-2020 Peter Davis
+Copyright (C) 2018-2021 Peter Davis
 
 This program is free software: you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
@@ -16,13 +16,9 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 """
 
 # Import required Python modules
-from kivy.clock   import mainthread
 from datetime     import datetime
 import time
 import pytz
-
-# Define global variables
-NaN = float('NaN')
 
 
 def realtimeClock(System, Config, *largs):
@@ -63,62 +59,11 @@ def realtimeClock(System, Config, *largs):
             System['Time'] = datetime.fromtimestamp(time.time(), Tz).strftime(TimeFormat)
             System['Date'] = datetime.fromtimestamp(time.time(), Tz).strftime(DateFormat)
 
-@mainthread
-def updateDisplay(type, derivedObs, Console):
-
-    """ Update display with new variables derived from latest websocket message
-
-    INPUTS:
-        type                Latest Websocket message type
-        derivedObs          Derived variables from latest Websocket message
-        Console             Console object
-    """
-
-    # Update display values with new derived observations
-    for Key, Value in derivedObs.items():
-        if not (type == 'all' and 'rapid' in Key):                  # Don't update rapidWind display when type is 'all'
-            Console.CurrentConditions.Obs[Key] = Value              # as the RapidWind rose is not animated in this case
-
-    # Update display graphics with new derived observations
-    if type == 'rapid_wind':
-        if hasattr(Console, 'WindSpeedPanel'):
-            for panel in getattr(Console, 'WindSpeedPanel'):
-                panel.animateWindRose()
-    elif type == 'evt_strike':
-        if Console.config['Display']['LightningPanel'] == '1':
-            for ii, Button in enumerate(Console.CurrentConditions.buttonList):
-                if "Lightning" in Button[2]:
-                    Console.CurrentConditions.switchPanel([], Button)
-        if hasattr(Console, 'LightningPanel'):
-            for panel in getattr(Console, 'LightningPanel'):
-                panel.setLightningBoltIcon()
-                panel.animateLightningBoltIcon()
-    else:
-        if type in ['obs_st', 'obs_air', 'obs_all']:
-            if hasattr(Console, 'TemperaturePanel'):
-                for panel in getattr(Console, 'TemperaturePanel'):
-                    panel.setFeelsLikeIcon()
-            if hasattr(Console, 'LightningPanel'):
-                for panel in getattr(Console, 'LightningPanel'):
-                    panel.setLightningBoltIcon()
-            if hasattr(Console, 'BarometerPanel'):
-                for panel in getattr(Console, 'BarometerPanel'):
-                    panel.setBarometerArrow()
-        if type in ['obs_st', 'obs_sky', 'obs_all']:
-            if hasattr(Console, 'WindSpeedPanel'):
-                for panel in getattr(Console, 'WindSpeedPanel'):
-                    panel.setWindIcons()
-            if hasattr(Console, 'SunriseSunsetPanel'):
-                for panel in getattr(Console, 'SunriseSunsetPanel'):
-                    panel.setUVBackground()
-            if hasattr(Console, 'RainfallPanel'):
-                for panel in getattr(Console, 'RainfallPanel'):
-                    panel.animateRainRate()
-            if hasattr(Console, 'TemperaturePanel'):
-                for panel in getattr(Console, 'TemperaturePanel'):
-                    panel.setFeelsLikeIcon()
-
 
 def logTime():
+
+    """ Return current time in station timezone in correct format for console
+        log file
+    """
 
     return datetime.now().strftime('%Y-%m-%d %H:%M:%S')

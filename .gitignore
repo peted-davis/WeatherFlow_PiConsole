@@ -1,4 +1,13 @@
-*.pyc
-*__pycache__
-*.ini*
-*graphics
+# Ignore python cache and byte code
+*.py[cod]
+__pycache__/
+
+# Ignore user configuration file
+*.ini
+
+# Ignore custom user panels
+user/customPanels.kv
+user/customPanels.py
+
+# Ignore source graphics folder
+graphics/

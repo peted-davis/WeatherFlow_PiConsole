@@ -1,6 +1,6 @@
 """ Defines the Kivy property values required by the Raspberry Pi Python
 console for WeatherFlow Tempest and Smart Home Weather stations.
-Copyright (C) 2018-2020 Peter Davis
+Copyright (C) 2018-2021 Peter Davis
 
 This program is free software: you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
@@ -24,21 +24,20 @@ def Obs():
         Obs                Values for Obs Kivy property
     """
 
-    return [('rapidSpd', '--'),       ('rapidDir', '----'),      ('rapidShift', '-'),
-            ('WindSpd', '-----'),     ('WindGust', '--'),        ('WindDir', '---'),
-            ('AvgWind', '--'),        ('MaxGust', '--'),         ('RainRate', '---'),
-            ('TodayRain', '--'),      ('YesterdayRain', '--'),   ('MonthRain', '--'),
-            ('YearRain', '--'),       ('Radiation', '----'),     ('UVIndex', '----'),
-            ('peakSun', '------'),    ('outTemp', '--'),         ('outTempMin', '---'),
-            ('outTempMax', '---'),    ('outTempTrend', '---'),   ('outTempDiff', '---'),
-            ('inTemp', '--'),         ('inTempMin', '---'),      ('inTempMax', '---'),
-            ('Humidity', '--'),       ('DewPoint', '--'),        ('SLP', '---'),
-            ('SLPMax', '---'),        ('SLPMin', '---'),         ('SLPTrend', '----'),
-            ('FeelsLike', '----'),    ('StrikeDeltaT', '-----'), ('StrikeDist', '--'),
-            ('StrikeFreq', '----'),   ('Strikes3hr', '-'),       ('StrikesToday', '-'),
-            ('StrikesMonth', '-'),    ('StrikesYear', '-')
-            ]
-
+    return [('outTemp', '--'),       ('FeelsLike', '----'),     ('DewPoint', '--'),
+            ('outTempDiff', '---'),  ('outTempTrend', '---'),   ('outTempMax', '---'),
+            ('outTempMin', '---'),   ('Humidity', '--'),        ('SLP', '---'),
+            ('SLPTrend', '----'),    ('SLPMax', '---'),         ('SLPMin', '---'),
+            ('StrikeDist', '--'),    ('StrikeDeltaT', '-----'), ('StrikeFreq', '----'),
+            ('Strikes3hr', '-'),     ('StrikesToday', '-'),     ('StrikesMonth', '-'),
+            ('StrikesYear', '-'),    ('Radiation', '----'),     ('UVIndex', '----'),
+            ('peakSun', '------'),   ('RainRate', '---'),       ('TodayRain', '--'),
+            ('YesterdayRain', '--'), ('MonthRain', '--'),       ('YearRain', '--'),
+            ('WindSpd', '-----'),    ('WindGust', '--'),        ('AvgWind', '--'),
+            ('MaxGust', '--'),       ('WindDir', '---'),        ('inTemp', '--'),
+            ('inTempMax', '---'),    ('inTempMin', '---'),      ('rapidSpd', '--'),
+            ('rapidDir', '----'),
+           ]
 
 def Astro():
 

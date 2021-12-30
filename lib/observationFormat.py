@@ -1,6 +1,6 @@
 """ Formats and sets the required units of observations displayed on the
 Raspberry Pi Python console for Weather Flow Smart Home Weather Stations.
-Copyright (C) 2018-2020  Peter Davis
+Copyright (C) 2018-2021  Peter Davis
 
 This program is free software: you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
@@ -398,6 +398,7 @@ def Format(Obs, obType, config=[]):
                 if isinstance(UV, str) and UV.strip() == 'index':
                     if cObs[ii - 1] is None:
                         cObs[ii - 1] = '-'
+                        cObs.extend(['-', '#646464'])
                     else:
                         cObs[ii - 1] = '{:.1f}'.format(cObs[ii - 1])
 
@@ -464,15 +465,18 @@ def Format(Obs, obType, config=[]):
         elif Type == 'Time':
             for ii, Time in enumerate(Obs):
                 if isinstance(Time, str) and Time.strip() in ['s']:
-                    Tz = pytz.timezone(config['Station']['Timezone'])
-                    if config['Display']['TimeFormat'] == '12 hr':
-                        if config['System']['Hardware'] == 'Other':
-                            Format = '%#I:%M %p'
-                        else:
-                            Format = '%-I:%M %p'
+                    if cObs[ii - 1] is None:
+                        cObs[ii - 1] = '-'
                     else:
-                        Format = '%H:%M'
-                    cObs[ii - 1] = datetime.fromtimestamp(cObs[ii - 1], Tz).strftime(Format)
+                        Tz = pytz.timezone(config['Station']['Timezone'])
+                        if config['Display']['TimeFormat'] == '12 hr':
+                            if config['System']['Hardware'] == 'Other':
+                                Format = '%#I:%M %p'
+                            else:
+                                Format = '%-I:%M %p'
+                        else:
+                            Format = '%H:%M'
+                        cObs[ii - 1] = datetime.fromtimestamp(cObs[ii - 1], Tz).strftime(Format)
 
         # Format time difference observations
         elif Type == 'TimeDelta':
