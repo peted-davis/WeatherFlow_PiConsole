@@ -57,7 +57,7 @@ elif config['System']['Hardware'] in ['PiB','Pi3']:
 # INITIALISE KIVY WINDOW PROPERTIES BASED ON OPTIONS SET IN wfpiconsole.ini
 # ==============================================================================
 # Import required modules
-from kivy.config import Config as kivyconfig
+from kivy.config import Config as kivyconfig                                    # type: ignore
 
 # Generate default wfpiconsole Kivy config file. Config file is always
 # regenerated to ensure changes to the default file are always copied across
@@ -104,13 +104,13 @@ kivyconfig.write()
 # ==============================================================================
 # IMPORT REQUIRED CORE KIVY MODULES
 # ==============================================================================
-from kivy.properties         import ConfigParserProperty, StringProperty
-from kivy.properties         import DictProperty, NumericProperty
-from kivy.core.window        import Window
-from kivy.factory            import Factory
-from kivy.clock              import Clock
-from kivy.lang               import Builder
-from kivy.app                import App
+from kivy.properties         import ConfigParserProperty, StringProperty        # type: ignore
+from kivy.properties         import DictProperty, NumericProperty               # type: ignore
+from kivy.core.window        import Window                                      # type: ignore
+from kivy.factory            import Factory                                     # type: ignore
+from kivy.clock              import Clock                                       # type: ignore
+from kivy.lang               import Builder                                     # type: ignore
+from kivy.app                import App                                         # type: ignore
 
 # ==============================================================================
 # IMPORT REQUIRED LIBRARY MODULES
@@ -142,7 +142,7 @@ from panels.menu        import mainMenu
 # IMPORT CUSTOM USER PANELS
 # ==============================================================================
 if Path('user/customPanels.py').is_file():
-    from user.customPanels import *                               # type: ignore
+    from user.customPanels import *                                             # type: ignore
 
 # ==============================================================================
 # IMPORT REQUIRED SYSTEM MODULES
@@ -156,8 +156,8 @@ import json
 # ==============================================================================
 # IMPORT REQUIRED KIVY GRAPHICAL AND SETTINGS MODULES
 # ==============================================================================
-from kivy.uix.screenmanager  import ScreenManager, Screen, NoTransition
-from kivy.uix.settings       import SettingsWithSidebar, SettingOptions
+from kivy.uix.screenmanager  import ScreenManager, Screen, NoTransition         # type: ignore
+from kivy.uix.settings       import SettingsWithSidebar, SettingOptions         # type: ignore
 
 # ==============================================================================
 # DEFINE 'WeatherFlowPiConsole' APP CLASS
