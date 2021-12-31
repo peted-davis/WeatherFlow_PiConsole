@@ -46,11 +46,11 @@ config = configparser.ConfigParser()
 config.read('wfpiconsole.ini')
 
 # Initialise Kivy backend based on current hardware
-if config['System']['Hardware'] in ['Pi4','Linux']:
+if config['System']['Hardware'] in ['Pi4', 'Linux']:
     os.environ['SDL_VIDEO_ALLOW_SCREENSAVER'] = '1'
     os.environ['KIVY_GRAPHICS'] = 'gles'
     os.environ['KIVY_WINDOW']   = 'sdl2'
-elif config['System']['Hardware'] in ['PiB','Pi3']:
+elif config['System']['Hardware'] in ['PiB', 'Pi3']:
     os.environ['KIVY_GL_BACKEND'] = 'gl'
 
 # ==============================================================================
@@ -63,7 +63,7 @@ from kivy.config import Config as kivyconfig                                    
 # regenerated to ensure changes to the default file are always copied across
 defaultconfig = configparser.ConfigParser()
 defaultconfig.read(os.path.expanduser('~/.kivy/') + 'config.ini')
-with open(os.path.expanduser('~/.kivy/') + 'config_wfpiconsole.ini','w') as cfg:
+with open(os.path.expanduser('~/.kivy/') + 'config_wfpiconsole.ini', 'w') as cfg:
     defaultconfig.write(cfg)
 
 # Load wfpiconsole Kivy configuration file
@@ -88,9 +88,9 @@ if config['System']['Hardware'] in ['Pi4', 'Linux', 'Other']:
 # INITIALISE MOUSE SUPPORT IF OPTION SET in wfpiconsole.ini
 # ==============================================================================
 # Enable mouse support on Raspberry Pi 3 if not already set
-if config['System']['Hardware'] in ['PiB','Pi3']:
-    if not config.has_option('modules','cursor'):
-        kivyconfig.set('modules','cursor','1')
+if config['System']['Hardware'] in ['PiB', 'Pi3']:
+    if not config.has_option('modules', 'cursor'):
+        kivyconfig.set('modules', 'cursor', '1')
 
 # Initialise mouse support if required
 if int(config['Display']['Cursor']):
@@ -104,13 +104,13 @@ kivyconfig.write()
 # ==============================================================================
 # IMPORT REQUIRED CORE KIVY MODULES
 # ==============================================================================
-from kivy.properties         import ConfigParserProperty, StringProperty        # type: ignore
-from kivy.properties         import DictProperty, NumericProperty               # type: ignore
-from kivy.core.window        import Window                                      # type: ignore
-from kivy.factory            import Factory                                     # type: ignore
-from kivy.clock              import Clock                                       # type: ignore
-from kivy.lang               import Builder                                     # type: ignore
-from kivy.app                import App                                         # type: ignore
+from kivy.properties         import ConfigParserProperty, StringProperty
+from kivy.properties         import DictProperty, NumericProperty
+from kivy.core.window        import Window
+from kivy.factory            import Factory
+from kivy.clock              import Clock
+from kivy.lang               import Builder
+from kivy.app                import App
 
 # ==============================================================================
 # IMPORT REQUIRED LIBRARY MODULES
@@ -142,7 +142,7 @@ from panels.menu        import mainMenu
 # IMPORT CUSTOM USER PANELS
 # ==============================================================================
 if Path('user/customPanels.py').is_file():
-    from user.customPanels import *                                             # type: ignore
+    from user.customPanels import *
 
 # ==============================================================================
 # IMPORT REQUIRED SYSTEM MODULES
@@ -151,13 +151,13 @@ from functools     import partial
 from runpy         import run_path
 import subprocess
 import threading
-import json
 
 # ==============================================================================
 # IMPORT REQUIRED KIVY GRAPHICAL AND SETTINGS MODULES
 # ==============================================================================
-from kivy.uix.screenmanager  import ScreenManager, Screen, NoTransition         # type: ignore
-from kivy.uix.settings       import SettingsWithSidebar, SettingOptions         # type: ignore
+from kivy.uix.screenmanager  import ScreenManager, Screen, NoTransition
+from kivy.uix.settings       import SettingsWithSidebar
+
 
 # ==============================================================================
 # DEFINE 'WeatherFlowPiConsole' APP CLASS
@@ -204,8 +204,8 @@ class wfpiconsole(App):
 
     # SET DISPLAY SCALE FACTOR BASED ON SCREEN DIMENSIONS
     # --------------------------------------------------------------------------
-    def setScaleFactor(self,instance,x,y):
-        self.scaleFactor = max(min(x/800, y/480), 1)
+    def setScaleFactor(self, instance, x, y):
+        self.scaleFactor = max(min(x / 800, y / 480), 1)
         if self.scaleFactor > 1:
             self.scaleSuffix = '_hR.png'
         else:
@@ -346,7 +346,6 @@ class wfpiconsole(App):
         # Update derived variables to reflect configuration changes
         self.obsParser.reformatDisplay()
 
-
     # START WEBSOCKET SERVICE
     # --------------------------------------------------------------------------
     def startWebsocketService(self, *largs):
@@ -371,6 +370,7 @@ class wfpiconsole(App):
 class screenManager(ScreenManager):
     pass
 
+
 # ==============================================================================
 # CurrentConditions CLASS
 # ==============================================================================
@@ -385,7 +385,7 @@ class CurrentConditions(Screen):
         super(CurrentConditions, self).__init__(**kwargs)
         app = App.get_running_app()
         app.CurrentConditions = self
-        app.Station  = status.Station(app)
+        app.Station  = status.Station()
         self.Sager   = properties.Sager()
         self.Astro   = properties.Astro()
         self.Met     = properties.Met()
@@ -398,7 +398,7 @@ class CurrentConditions(Screen):
         app.startWebsocketService()
 
         # Schedule Station.getDeviceStatus to be called each second
-        app.Sched.deviceStatus = Clock.schedule_interval(app.Station.get_deviceStatus, 1.0)
+        app.Sched.deviceStatus = Clock.schedule_interval(app.Station.get_device_status, 1.0)
 
         # Initialise Sunrise, Sunset, Moonrise and Moonset times
         astro.SunriseSunset(self.Astro,   app.config)
@@ -454,7 +454,7 @@ class CurrentConditions(Screen):
 
         # Extract panel object that corresponds to the button that has been
         # pressed and determine new button type required
-        Panel =self.ids[button[1]].children
+        Panel = self.ids[button[1]].children
         newButton = App.get_running_app().config[button[3] + 'Panels'][button[1]]
 
         # Destroy reference to old panel class attribute
@@ -487,8 +487,8 @@ if __name__ == '__main__':
     try:
         wfpiconsole().run()
         if REBOOT:
-            subprocess.call('sudo shutdown -r now', shell = True)
+            subprocess.call('sudo shutdown -r now', shell=True)
         elif SHUTDOWN:
-            subprocess.call('sudo shutdown -h now', shell = True)
+            subprocess.call('sudo shutdown -h now', shell=True)
     except KeyboardInterrupt:
         wfpiconsole().stop()

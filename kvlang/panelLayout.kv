@@ -226,24 +226,81 @@
         size_hint: (1, 13/76)
         text: root._panelTitle
 
-## =============================================================================
-## DEVICE STATUS PANELS
-## =============================================================================
-<statusPanel>:
+# =============================================================================
+# DEVICE STATUS PANELS
+# =============================================================================
+<tempest_status>:
     size_hint: (1,.1)
     orientation: 'horizontal'
     StatusField:
         size_hint: (.15,1)
-        text: root.Device
+        text: 'TEMPEST'
     StatusField:
         size_hint: (.12,1)
-        text: root.Status
+        text: app.Station.Status['tempest_status']
     StatusField:
         size_hint: (.22,1)
-        text: root.SampleTime
+        text: app.Station.Status['tempest_sample_time']
     StatusField:
         size_hint: (.20,1)
-        text: root.Voltage
+        text: app.Station.Status['tempest_voltage']
     StatusField:
         size_hint: (.31,1)
-        text: root.ObCount
+        text: app.Station.Status['tempest_ob_count']
+
+<sky_status>:
+    size_hint: (1,.1)
+    orientation: 'horizontal'
+    StatusField:
+        size_hint: (.15,1)
+        text: 'SKY'
+    StatusField:
+        size_hint: (.12,1)
+        text: app.Station.Status['sky_status']
+    StatusField:
+        size_hint: (.22,1)
+        text: app.Station.Status['sky_sample_time']
+    StatusField:
+        size_hint: (.20,1)
+        text: app.Station.Status['sky_voltage']
+    StatusField:
+        size_hint: (.31,1)
+        text: app.Station.Status['sky_ob_count']
+
+<out_air_status>:
+    size_hint: (1,.1)
+    orientation: 'horizontal'
+    StatusField:
+        size_hint: (.15,1)
+        text: 'Outdoor AIR'
+    StatusField:
+        size_hint: (.12,1)
+        text: app.Station.Status['out_air_status']
+    StatusField:
+        size_hint: (.22,1)
+        text: app.Station.Status['out_air_sample_time']
+    StatusField:
+        size_hint: (.20,1)
+        text: app.Station.Status['out_air_voltage']
+    StatusField:
+        size_hint: (.31,1)
+        text: app.Station.Status['out_air_ob_count']
+
+<in_air_status>:
+    size_hint: (1,.1)
+    orientation: 'horizontal'
+    StatusField:
+        size_hint: (.15,1)
+        text: 'Indoor AIR'
+    StatusField:
+        size_hint: (.12,1)
+        text: app.Station.Status['in_air_status']
+    StatusField:
+        size_hint: (.22,1)
+        text: app.Station.Status['in_air_sample_time']
+    StatusField:
+        size_hint: (.20,1)
+        text: app.Station.Status['in_air_voltage']
+    StatusField:
+        size_hint: (.31,1)
+        text: app.Station.Status['in_air_ob_count']

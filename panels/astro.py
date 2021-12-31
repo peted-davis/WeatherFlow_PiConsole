@@ -52,5 +52,6 @@ class SunriseSunsetButton(RelativeLayout):
 class MoonPhasePanel(panelTemplate):
     pass
 
+
 class MoonPhaseButton(RelativeLayout):
     pass

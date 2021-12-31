@@ -39,15 +39,15 @@ NaN = float('NaN')
 # =============================================================================
 class Station(Widget):
 
-    Status = DictProperty([])
+    Status = DictProperty()
 
-    def __init__(self, App, **kwargs):
-        super(Station, self).__init__(**kwargs)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        App.get_running_app().Station = self
+        self.app = App.get_running_app()
         self.Status = properties.Status()
-        self.app = App
 
-
-    def get_hubFirmware(self):
+    def get_hub_firmware(self):
 
         """ Get the hub firmware_revision for the hub associated with the
             Station ID
@@ -55,14 +55,13 @@ class Station(Widget):
 
         URL = 'https://swd.weatherflow.com/swd/rest/stations?token=' + self.app.config['Keys']['WeatherFlow']
         UrlRequest(URL,
-                   on_success=self.parse_hubFirmware,
-                   on_failure=self.fail_hubFirmware,
-                   on_error=self.fail_hubFirmware,
+                   on_success=self.parse_hub_firmware,
+                   on_failure=self.fail_hub_firmware,
+                   on_error=self.fail_hub_firmware,
                    timeout=int(self.app.config['System']['Timeout']),
                    ca_file=certifi.where())
 
-
-    def parse_hubFirmware(self, request, response):
+    def parse_hub_firmware(self, request, response):
 
         """ Parse hub firmware_revision from response returned by request.url
         """
@@ -72,21 +71,19 @@ class Station(Widget):
                     for device in station['devices']:
                         if 'device_type' in device:
                             if device['device_type'] == 'HB':
-                                self.Status['hubFirmware'] = device['firmware_revision']
+                                self.Status['hub_firmware'] = device['firmware_revision']
         except Exception:
             pass
 
-
-    def fail_hubFirmware(self, request, response):
+    def fail_hub_firmware(self, request, response):
 
         """ Failed to get hub firmware_revision from response returned by
             request.url
         """
 
-        self.Status['hubFirmware'] = '[color=d73027ff]Error[/color]'
+        self.Status['hub_firmware'] = '[color=d73027ff]Error[/color]'
 
-
-    def get_observationCount(self):
+    def get_observation_count(self):
 
         """ Get last 24 hour observation count for all devices associated with
             the Station ID
@@ -109,30 +106,28 @@ class Station(Widget):
             urlList.append(Template.format(self.app.config['Station']['InAirID'],  startTime, endTime, self.app.config['Keys']['WeatherFlow']))
         for URL in urlList:
             UrlRequest(URL,
-                       on_success=self.parse_observationCount,
-                       on_failure=self.fail_observationCount,
-                       on_error=self.fail_observationCount,
+                       on_success=self.parse_observation_count,
+                       on_failure=self.fail_observation_count,
+                       on_error=self.fail_observation_count,
                        timeout=int(self.app.config['System']['Timeout']),
                        ca_file=certifi.where())
 
-
-    def parse_observationCount(self, request, response):
+    def parse_observation_count(self, request, response):
 
         """ Parse observation count from response returned by request.url """
 
         if 'Station' in self.app.config:
             if 'obs' in response and response['obs'] is not None:
                 if str(response['device_id']) == self.app.config['Station']['TempestID']:
-                    self.Status['TempestObCount'] = str(len(response['obs']))
+                    self.Status['tempest_ob_count'] = str(len(response['obs']))
                 elif str(response['device_id']) == self.app.config['Station']['SkyID']:
-                    self.Status['SkyObCount'] = str(len(response['obs']))
+                    self.Status['sky_ob_count'] = str(len(response['obs']))
                 elif str(response['device_id']) == self.app.config['Station']['OutAirID']:
-                    self.Status['OutAirObCount'] = str(len(response['obs']))
+                    self.Status['out_air_ob_count'] = str(len(response['obs']))
                 elif str(response['device_id']) == self.app.config['Station']['InAirID']:
-                    self.Status['InAirObCount'] = str(len(response['obs']))
+                    self.Status['in_air_ob_count'] = str(len(response['obs']))
 
-
-    def fail_observationCount(self, request, response):
+    def fail_observation_count(self, request, response):
 
         """ Failed to get observation count from response returned by
             request.url
@@ -140,16 +135,15 @@ class Station(Widget):
 
         deviceID = re.search(r'device\/(.*)\?', request.url).group(1)
         if deviceID == self.app.config['Station']['TempestID']:
-            self.Status['TempestObCount'] = '[color=d73027ff]Error[/color]'
+            self.Status['tempest_ob_count'] = '[color=d73027ff]Error[/color]'
         elif deviceID == self.app.config['Station']['SkyID']:
-            self.Status['SkyObCount'] = '[color=d73027ff]Error[/color]'
+            self.Status['sky_ob_count'] = '[color=d73027ff]Error[/color]'
         elif deviceID == self.app.config['Station']['OutAirID']:
-            self.Status['OutAirObCount'] = '[color=d73027ff]Error[/color]'
+            self.Status['out_air_ob_count'] = '[color=d73027ff]Error[/color]'
         elif deviceID == self.app.config['Station']['InAirID']:
-            self.Status['InAirObCount'] = '[color=d73027ff]Error[/color]'
+            self.Status['in_air_ob_count'] = '[color=d73027ff]Error[/color]'
 
-
-    def get_deviceStatus(self, dt):
+    def get_device_status(self, dt):
 
         """ Gets the current status of the devices and hub associated with the
             Station ID
@@ -178,10 +172,10 @@ class Station(Widget):
                 deviceStatus = '[color=d73027ff]Error[/color]'
 
             # Store TEMPEST device status variables
-            self.Status['TempestSampleTime'] = datetime.fromtimestamp(latestOb[0], Tz).strftime('%H:%M:%S')
-            self.Status['TempestLastSample'] = sampleDelay
-            self.Status['TempestVoltage']    = '{:.2f}'.format(deviceVoltage)
-            self.Status['TempestStatus']     = deviceStatus
+            self.Status['tempest_sample_time'] = datetime.fromtimestamp(latestOb[0], Tz).strftime('%H:%M:%S')
+            self.Status['tempest_last_sample'] = sampleDelay
+            self.Status['tempest_voltage']     = '{:.2f}'.format(deviceVoltage)
+            self.Status['tempest_status']      = deviceStatus
 
         # Get SKY device status
         if 'obs_sky' in self.app.CurrentConditions.Obs:
@@ -203,10 +197,10 @@ class Station(Widget):
                 deviceStatus = '[color=d73027ff]Error[/color]'
 
             # Store SKY device status variables
-            self.Status['SkySampleTime'] = datetime.fromtimestamp(latestOb[0], Tz).strftime('%H:%M:%S')
-            self.Status['SkyLastSample'] = sampleDelay
-            self.Status['SkyVoltage']    = '{:.2f}'.format(deviceVoltage)
-            self.Status['SkyStatus']     = deviceStatus
+            self.Status['sky_sample_time'] = datetime.fromtimestamp(latestOb[0], Tz).strftime('%H:%M:%S')
+            self.Status['sky_last_sample'] = sampleDelay
+            self.Status['sky_voltage']     = '{:.2f}'.format(deviceVoltage)
+            self.Status['sky_status']      = deviceStatus
 
         # Get outdoor AIR device status
         if 'obs_out_air' in self.app.CurrentConditions.Obs:
@@ -228,10 +222,10 @@ class Station(Widget):
                 deviceStatus = '[color=d73027ff]Error[/color]'
 
             # Store outdoor AIR device status variables
-            self.Status['OutAirSampleTime'] = datetime.fromtimestamp(latestOb[0], Tz).strftime('%H:%M:%S')
-            self.Status['OutAirLastSample'] = sampleDelay
-            self.Status['OutAirVoltage']    = '{:.2f}'.format(deviceVoltage)
-            self.Status['OutAirStatus']     = deviceStatus
+            self.Status['out_air_sample_time'] = datetime.fromtimestamp(latestOb[0], Tz).strftime('%H:%M:%S')
+            self.Status['out_air_last_sample'] = sampleDelay
+            self.Status['out_air_voltage']     = '{:.2f}'.format(deviceVoltage)
+            self.Status['out_air_status']      = deviceStatus
 
         # Get indoor AIR device status
         if 'obs_in_air' in self.app.CurrentConditions.Obs:
@@ -253,26 +247,26 @@ class Station(Widget):
                 deviceStatus = '[color=d73027ff]Error[/color]'
 
             # Store AIR device status variables
-            self.Status['InAirSampleTime'] = datetime.fromtimestamp(latestOb[0], Tz).strftime('%H:%M:%S')
-            self.Status['InAirLastSample'] = sampleDelay
-            self.Status['InAirVoltage']    = '{:.2f}'.format(deviceVoltage)
-            self.Status['InAirStatus']     = deviceStatus
+            self.Status['in_air_sample_time'] = datetime.fromtimestamp(latestOb[0], Tz).strftime('%H:%M:%S')
+            self.Status['in_air_last_sample'] = sampleDelay
+            self.Status['in_air_voltage']     = '{:.2f}'.format(deviceVoltage)
+            self.Status['in_air_status']      = deviceStatus
 
-        # Set hub status (i.e. stationStatus) based on device status
+        # Set hub status (i.e. station_status) based on device status
         deviceStatus = []
         if 'obs_st' in self.app.CurrentConditions.Obs:
-            deviceStatus.append(self.Status['TempestStatus'])
+            deviceStatus.append(self.Status['tempest_status'])
         if 'obs_sky' in self.app.CurrentConditions.Obs:
-            deviceStatus.append(self.Status['SkyStatus'])
+            deviceStatus.append(self.Status['sky_status'])
         if 'obs_out_air' in self.app.CurrentConditions.Obs:
-            deviceStatus.append(self.Status['outAirStatus'])
+            deviceStatus.append(self.Status['out_air_status'])
         if 'obs_in_air' in self.app.CurrentConditions.Obs:
-            deviceStatus.append(self.Status['InAirStatus'])
+            deviceStatus.append(self.Status['in_air_status'])
         if not deviceStatus or all('-' in Status for Status in deviceStatus):
-            self.Status['stationStatus'] = '-'
+            self.Status['station_status'] = '-'
         elif all('Error' in Status for Status in deviceStatus):
-            self.Status['stationStatus'] = 'Offline'
+            self.Status['station_status'] = 'Offline'
         elif all('OK' in Status for Status in deviceStatus):
-            self.Status['stationStatus'] = 'Online'
+            self.Status['station_status'] = 'Online'
         else:
-            self.Status['stationStatus'] = 'Error'
+            self.Status['station_status'] = 'Error'

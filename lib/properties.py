@@ -37,7 +37,8 @@ def Obs():
             ('MaxGust', '--'),       ('WindDir', '---'),        ('inTemp', '--'),
             ('inTempMax', '---'),    ('inTempMin', '---'),      ('rapidSpd', '--'),
             ('rapidDir', '----'),
-           ]
+            ]
+
 
 def Astro():
 
@@ -78,7 +79,7 @@ def Sager():
         Met                Values for Obs Kivy property
     """
 
-    return [('Forecast','--'),       ('Issued','--')
+    return [('Forecast', '--'), ('Issued', '--')
             ]
 
 
@@ -90,12 +91,14 @@ def Status():
         Met                Values for Obs Kivy property
     """
 
-    return [('tempestSampleTime', '-'), ('tempestLastSample', ' '), ('tempestVoltage', '-'),
-            ('tempestStatus', '-'),     ('tempestObCount', '-'),    ('skySampleTime', '-'),
-            ('skyLastSample', ' '),     ('skyVoltage', '-'),        ('skyStatus', '-'),
-            ('skyObCount', '-'),        ('outAirSampleTime', '-'),  ('outAirLastSample', ' '),
-            ('outAirVoltage', '-'),     ('outAirStatus', '-'),      ('outAirObCount', '-'),
-            ('inAirSampleTime', '-'),   ('inAirLastSample', ' '),   ('inAirVoltage', '-'),
-            ('inAirStatus', '-'),       ('inAirObCount', '-'),      ('stationStatus', '-'),
-            ('hubFirmware', '-')
-            ]
+    return {'tempest_sample_time': '-', 'tempest_last_sample': ' ',  'tempest_voltage': '-',
+            'tempest_status': '-',      'tempest_ob_count': '-',
+            'sky_sample_time': '-',     'sky_last_sample': ' ',      'sky_voltage': '-',
+            'sky_status': '-',          'sky_ob_count': '-',
+            'out_air_sample_time': '-', 'out_air_last_sample': ' ',  'out_air_voltage': '-',
+            'out_air_status': '-',      'out_air_ob_count': '-',
+            'in_air_sample_time': '-',  'in_air_last_sample': ' ',   'in_air_voltage': '-',
+            'in_air_status': '-',       'in_air_ob_count': '-',
+            'station_status': '-',
+            'hub_firmware': '-'
+            }

@@ -1,3 +1,4 @@
+##:kivy
 ## WeatherFlow PiConsole: Raspberry Pi Python console for WeatherFlow Tempest
 ## and Smart Home Weather stations.
 ## Copyright (C) 2018-2021 Peter Davis
@@ -66,7 +67,7 @@
                     id: PanelSix
         BoxLayout:
             spacing: '4dp'
-            size_hint: (1,31/444)
+            size_hint: (1, 31/444)
             BoxLayout:
                 id: ButtonOne
             BoxLayout:
@@ -209,7 +210,7 @@
     ## Panel background and title
     PanelBackground:
         _panelTitle: 'Temperature'
-        _panelStatus: app.Station.Status['outAirLastSample'] if app.config['Station']['OutAirID'] else app.Station.Status['tempestLastSample']
+        _panelStatus: app.Station.Status['out_air_last_sample'] if app.config['Station']['OutAirID'] else app.Station.Status['tempest_last_sample']
 
     ## Indoor temperature
     TitleField:
@@ -362,7 +363,7 @@
     ## Panel background and title
     PanelBackground:
         _panelTitle: 'Wind Speed'
-        _panelStatus: app.Station.Status['skyLastSample'] if app.config['Station']['SkyID'] else app.Station.Status['tempestLastSample']
+        _panelStatus: app.Station.Status['sky_last_sample'] if app.config['Station']['SkyID'] else app.Station.Status['tempest_last_sample']
 
     ## Rapid Wind wind speed and direction
     windRose:
@@ -472,7 +473,7 @@
     ## Panel background and title
     PanelBackground:
         _panelTitle: 'Solar  [size=' + str(int(self.ids.Title.font_size*0.8)) + ']|[/size]  UV'
-        _panelStatus: app.Station.Status['skyLastSample'] if app.config['Station']['SkyID'] else app.Station.Status['tempestLastSample']
+        _panelStatus: app.Station.Status['sky_last_sample'] if app.config['Station']['SkyID'] else app.Station.Status['tempest_last_sample']
 
     ## Night bar
     BoxLayout:
@@ -724,7 +725,7 @@
     ## Panel background, title, and RainGauge
     RainfallBackground:
         _panelTitle: 'Rainfall'
-        _panelStatus: app.Station.Status['skyLastSample'] if app.config['Station']['SkyID'] else app.Station.Status['tempestLastSample']
+        _panelStatus: app.Station.Status['sky_last_sample'] if app.config['Station']['SkyID'] else app.Station.Status['tempest_last_sample']
     RainGauge:
         id: rainGauge
         pos_hint: {'x': 198 / 262, 'y': 80 / 202}
@@ -806,7 +807,7 @@
         source: 'icons/misc/offline' + app.scaleSuffix
         keep_ratio: 0
         allow_stretch: 1
-        opacity: 1 if app.Station.Status['stationStatus'] == 'Offline' or app.Station.Status['stationStatus'] == 'Error'  else 0
+        opacity: 1 if app.Station.Status['station_status'] == 'Offline' or app.Station.Status['station_status'] == 'Error'  else 0
         pos_hint: {'x': 230/262, 'y': 9/202}
         size_hint: (30/262, 30/202)
 
@@ -823,7 +824,7 @@
     ## Panel background and title
     PanelBackground:
         _panelTitle: 'Lightning'
-        _panelStatus: app.Station.Status['outAirLastSample'] if app.config['Station']['OutAirID'] else app.Station.Status['tempestLastSample']
+        _panelStatus: app.Station.Status['out_air_last_sample'] if app.config['Station']['OutAirID'] else app.Station.Status['tempest_last_sample']
 
     ## Last strike time
     TitleField:
@@ -974,7 +975,7 @@
     ## Panel background, title, and Barometer dial
     PanelBackground:
         _panelTitle: 'Barometer'
-        _panelStatus: app.Station.Status['outAirLastSample'] if app.config['Station']['OutAirID'] else app.Station.Status['tempestLastSample']
+        _panelStatus: app.Station.Status['out_air_last_sample'] if app.config['Station']['OutAirID'] else app.Station.Status['tempest_last_sample']
     barometerDial:
 
     ## Current pressure arrow
@@ -1132,8 +1133,8 @@
                             font_size: dp(16*app.scaleFactor)
                             text: app.config['Station']['Name']
                         MenuField:
-                            _color: '#9aba2fff' if app.Station.Status['stationStatus'] == 'Online' else '#c8c8c8ff' if app.Station.Status['stationStatus'] == '-' else '#d73027ff'
-                            text: 'Station status: [color=' + self._color + ']' + app.Station.Status['stationStatus'] + '[/color]'
+                            _color: '#9aba2fff' if app.Station.Status['station_status'] == 'Online' else '#c8c8c8ff' if app.Station.Status['station_status'] == '-' else '#d73027ff'
+                            text: 'Station status: [color=' + self._color + ']' + app.Station.Status['station_status'] + '[/color]'
                     GridLayout:
                         cols: 2
                         padding: [dp(0),dp(0),dp(0),dp(10)]
@@ -1147,7 +1148,7 @@
                         MenuField:
                             text: 'Station Longitude: ' + '{:.4f}'.format(float(app.config['Station']['Longitude'])) + '\u00B0'
                         MenuField:
-                            text: 'Hub firmware: ' + app.Station.Status['hubFirmware']
+                            text: 'Hub firmware: ' + app.Station.Status['hub_firmware']
                         MenuField:
                             text: 'Console version: [color=00a4b4ff]' + app.config['System']['Version'] + '[/color]'
                     BoxLayout:
@@ -1194,7 +1195,7 @@
                             text: 'Shutdown'
                             on_release: root.shutdownSystem()
             MainMenuTab:
-                text: 'Stations'
+                text: 'Station'
                 MainMenuLayout:
                     BoxLayout:
                         orientation: 'vertical'
@@ -1220,7 +1221,7 @@
                                     StationSpinner:
                                         id: stationList
                                         values: root.stationList
-                                        on_text: root.get_stationDevices()
+                                        on_text: root.get_station_devices()
                             BoxLayout:
                                 orientation: 'vertical'
                                 Label:
@@ -1232,7 +1233,7 @@
                                     DeviceSpinner:
                                         id: tempestDropdown
                                         values: root.tempestList
-                                        on_text: if self.text not in ['Please select', 'Air or Sky selected', 'No device available']: root.on_deviceSelection(self)
+                                        on_text: if self.text not in ['Please select', 'Air or Sky selected', 'No device available']: root.on_device_selection(self)
                         BoxLayout:
                             orientation: 'horizontal'
                             spacing: dp(10)
@@ -1247,7 +1248,7 @@
                                     DeviceSpinner:
                                         id: skyDropdown
                                         values: root.skyList
-                                        on_text: if self.text not in ['Please select', 'Tempest selected', 'No device available']: root.on_deviceSelection(self)
+                                        on_text: if self.text not in ['Please select', 'Tempest selected', 'No device available']: root.on_device_selection(self)
                             BoxLayout:
                                 orientation: 'vertical'
                                 Label:
@@ -1259,7 +1260,7 @@
                                     DeviceSpinner:
                                         id: outAirDropdown
                                         values: root.outAirList
-                                        on_text: if self.text not in ['Please select', 'Tempest selected', 'No device available']: root.on_deviceSelection(self)
+                                        on_text: if self.text not in ['Please select', 'Tempest selected', 'No device available']: root.on_device_selection(self)
                         BoxLayout:
                             orientation: 'horizontal'
                             spacing: dp(10)
@@ -1274,7 +1275,7 @@
                                     DeviceSpinner:
                                         id: inAirDropdown
                                         values: root.inAirList
-                                        on_text: if self.text not in ['Please select', 'Tempest selected', 'No device available']: root.on_deviceSelection(self)
+                                        on_text: if self.text not in ['Please select', 'Tempest selected', 'No device available']: root.on_device_selection(self)
                             BoxLayout:
                                 orientation: 'horizontal'
                                 SwitchButton:
