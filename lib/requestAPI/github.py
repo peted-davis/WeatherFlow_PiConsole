@@ -18,7 +18,8 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 # Import required modules
 import requests
 
-def verifyResponse(Response,Field):
+
+def verifyResponse(Response, Field):
 
     """ Verifies the validity of the API response response
 
@@ -40,13 +41,14 @@ def verifyResponse(Response,Field):
         return False
     else:
         Response = Response.json()
-        if isinstance(Response,dict):
+        if isinstance(Response, dict):
             if Field in Response and Response[Field] is not None:
                 return True
             else:
                 return False
         else:
             return False
+
 
 def version(Config):
 
@@ -64,10 +66,10 @@ def version(Config):
     # Get latest version info from Github
     header = {'Accept': 'application/vnd.github.v3+json'}
     Template = 'https://api.github.com/repos/{}/{}/releases/latest'
-    URL = Template.format('peted-davis','WeatherFlow_PiConsole')
+    URL = Template.format('peted-davis', 'WeatherFlow_PiConsole')
     try:
-        Data = requests.get(URL,headers=header,timeout=int(Config['System']['Timeout']))
-    except:
+        Data = requests.get(URL, headers=header, timeout=int(Config['System']['Timeout']))
+    except Exception:
         Data = None
 
     # Return latest version info from Github

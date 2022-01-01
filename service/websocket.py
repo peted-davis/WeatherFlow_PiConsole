@@ -29,7 +29,7 @@ import asyncio
 import socket
 import json
 import ssl
-import os
+
 
 # ==============================================================================
 # DEFINE 'websocketClient' CLASS
@@ -66,7 +66,6 @@ class websocketClient():
         await self.__async__connect()
         return self
 
-
     async def __async__connect(self):
         while not self.connected:
             try:
@@ -95,7 +94,6 @@ class websocketClient():
                 Logger.error(f'Websocket: {system.logTime()} - General error: {error}')
                 await asyncio.sleep(self.sleep_time)
 
-
     async def __async__disconnect(self):
         Logger.info(f'Websocket: {system.logTime()} - Closing connection')
         try:
@@ -104,7 +102,6 @@ class websocketClient():
             Logger.info(f'Websocket: {system.logTime()} - Connection closed')
         except Exception:
             Logger.info(f'Websocket: {system.logTime()} - Unable to close connection')
-
 
     async def __async__verify(self):
         try:
@@ -115,7 +112,6 @@ class websocketClient():
             await self.__async__disconnect()
             await asyncio.sleep(self.sleep_time)
             await self.__async__connect()
-
 
     async def __async__manageDevices(self, action):
         deviceList = list()
@@ -128,16 +124,15 @@ class websocketClient():
                               + ' "device_id":' + device + ','
                               + ' "id":"rapidWind"}')
         if self.config['Station']['OutAirID']:
-           deviceList.append('{"type":"' + action + '",'
-                             + ' "device_id":' + self.config['Station']['OutAirID'] + ','
-                             + ' "id":"OutdoorAir"}')
+            deviceList.append('{"type":"' + action + '",'
+                              + ' "device_id":' + self.config['Station']['OutAirID'] + ','
+                              + ' "id":"OutdoorAir"}')
         if self.config['Station']['InAirID']:
-           deviceList.append('{"type":"' + action + '",'
-                             + ' "device_id":' + self.config['Station']['InAirID'] + ','
-                             + ' "id":"IndoorAir"}')
+            deviceList.append('{"type":"' + action + '",'
+                              + ' "device_id":' + self.config['Station']['InAirID'] + ','
+                              + ' "id":"IndoorAir"}')
         for device in deviceList:
             await self.connection.send(device)
-
 
     async def __async__getMessage(self):
         try:
@@ -153,7 +148,6 @@ class websocketClient():
             self.task_list['verify'] = asyncio.create_task(self.__async__verify())
             await self.task_list['verify']
             return {}
-
 
     async def __async__decodeMessage(self):
         try:
@@ -209,7 +203,6 @@ class websocketClient():
         except asyncio.CancelledError:
             raise
 
-
     async def __async__listen(self):
         try:
             while self._keep_running:
@@ -218,7 +211,6 @@ class websocketClient():
         except asyncio.CancelledError:
             raise
 
-
     async def __async__switch(self):
         while not self._switch_device:
             await asyncio.sleep(0.1)
@@ -226,7 +218,6 @@ class websocketClient():
             while not self.task_list['verify'].done():
                 await asyncio.sleep(0.1)
         self.task_list['listen'].cancel()
-
 
     def activeThreads(self):
         for thread in self.thread_list:

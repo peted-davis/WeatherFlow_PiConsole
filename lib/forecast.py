@@ -18,7 +18,6 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 # Import required library modules
 from lib import observationFormat  as observation
 from lib import derivedVariables   as derive
-from lib import requestAPI
 from lib import properties
 
 # Import required Kivy modules
@@ -32,11 +31,9 @@ import time     as UNIX
 import certifi
 import bisect
 import pytz
-import math
 
 
 class forecast():
-
 
     def __init__(self):
 
@@ -46,7 +43,6 @@ class forecast():
         # Create reference to app object
         App.get_running_app().forecast = self
         self.app = App.get_running_app()
-
 
     def fetch_forecast(self, *largs):
 
@@ -66,7 +62,6 @@ class forecast():
                    on_failure=self.fail_forecast,
                    on_error=self.fail_forecast,
                    ca_file=certifi.where())
-
 
     def fail_forecast(self, Request, Response):
 
@@ -110,7 +105,6 @@ class forecast():
         self.app.Sched.metDownload.cancel()
         self.app.Sched.metDownload = Clock.schedule_once(self.fetch_forecast, secondsSched)
 
-
     def success_forecast(self, Request, Response):
 
         """ Sucessfully fetched forecast from the WeatherFlow BetterForecast API.
@@ -124,7 +118,7 @@ class forecast():
         """
 
         # Schedule new forecast to be downloaded at the top of the next hour. Note
-        #secondsSched refers to number of seconds since the function was last called
+        # secondsSched refers to number of seconds since the function was last called
         Tz  = pytz.timezone(self.app.config['Station']['Timezone'])
         Now = datetime.now(pytz.utc).astimezone(Tz)
         downloadTime = Tz.localize(datetime.combine(Now.date(), time(Now.hour, 0, 0)) + timedelta(hours=1))
@@ -149,7 +143,6 @@ class forecast():
 
         # Get current time in station time zone
         Tz  = pytz.timezone(config['Station']['Timezone'])
-        #Now = datetime.now(pytz.utc).astimezone(Tz)
         funcError  = 0
 
         # Set time format based on user configuration

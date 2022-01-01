@@ -13,7 +13,7 @@ ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License along with
-this program. If not, see <http://www.gnu.org/licenses/>.
+this program. If not, see <http: //www.gnu.org/licenses/>.
 """
 
 # Import required core kivy modules
@@ -25,8 +25,7 @@ from kivy.uix.togglebutton   import ToggleButton
 from kivy.uix.scrollview     import ScrollView
 from kivy.uix.gridlayout     import GridLayout
 from kivy.uix.boxlayout      import BoxLayout
-from kivy.uix.behaviors      import ToggleButtonBehavior
-from kivy.uix.settings       import SettingsWithSidebar, SettingOptions
+from kivy.uix.settings       import SettingOptions
 from kivy.uix.settings       import SettingString, SettingSpacer
 from kivy.uix.button         import Button
 from kivy.uix.widget         import Widget
@@ -133,50 +132,6 @@ class FixedOptions(SettingOptions):
         self.popup.open()
 
 
-class TextScale(SettingString):
-
-    """ Define the TextScale settings type """
-
-    def _create_popup(self, instance):
-
-        # Create Popup layout
-        content     = BoxLayout(orientation='vertical', spacing=dp(5))
-        self.popup  = Popup(content=content,
-                            title=self.title,
-                            size_hint=(0.6, None),
-                            auto_dismiss=False,
-                            separator_color=[1, 1, 1, 0.3],
-                            height=dp(150))
-
-        # Add toggle buttons to change the text scale
-        self.toggles = BoxLayout()
-        text  = ['Smallest', 'Smaller', 'Normal', 'Larger', 'Largest']
-        scale = [0.50, 0.75, 1.00, 1.25, 1.50]
-        display = [0.70, 0.85, 1.00, 1.15, 1.30]
-        for index, value in enumerate(text):
-            self.toggles.add_widget(TextScaleLabel(text=value,
-                                                   font_size=sp(18 * display[index]),
-                                                   on_press=self._set_value,
-                                                   _scale=scale[index],
-                                                   on_release=self.popup.dismiss))
-        content.add_widget(BoxLayout(size_hint_y=0.05))
-        content.add_widget(self.toggles)
-
-        # Add cancel button
-        self.closeButton = BoxLayout(padding=[dp(150), dp(0)])
-        btn = Button(text='Cancel', font_size=sp(18))
-        btn.bind(on_release=self.popup.dismiss)
-        self.closeButton.add_widget(btn)
-        content.add_widget(SettingSpacer())
-        content.add_widget(self.closeButton)
-
-        # Open the popup
-        self.popup.open()
-
-    def _set_value(self, instance):
-        self.value = str(instance._scale)
-
-
 class SettingToggle(SettingString):
 
     """ Define the base class for the SettingToggle settings type """
@@ -274,93 +229,87 @@ def JSON(Section):
     """
 
     if 'Display' in Section:
-        Data =  [
-                 {'type':'FixedOptions', 'options':['24 hr','12 hr'],
-                  'title':'Time format', 'desc':'Set time to display in 12 hr or 24 hr format', 'section':'Display', 'key':'TimeFormat'},
-                 {'type':'FixedOptions', 'options':['Mon, 01 Jan 0000','Mon, Jan 01 0000','Monday, 01 Jan 0000','Monday, Jan 01 0000'],
-                  'title':'Date format', 'desc':'Set date format', 'section':'Display', 'key':'DateFormat'},
+        Data =  [{'type': 'FixedOptions', 'options': ['24 hr', '12 hr'],
+                  'title': 'Time format', 'desc': 'Set time to display in 12 hr or 24 hr format', 'section': 'Display', 'key': 'TimeFormat'},
+                 {'type': 'FixedOptions', 'options': ['Mon, 01 Jan 0000', 'Mon, Jan 01 0000', 'Monday, 01 Jan 0000', 'Monday, Jan 01 0000'],
+                  'title': 'Date format', 'desc': 'Set date format', 'section': 'Display', 'key': 'DateFormat'},
                  {'type': 'bool', 'desc': 'Switch to lightning panel when a strike is detected',
-                  'title': 'Lightning panel','section': 'Display', 'key': 'LightningPanel'},
+                  'title': 'Lightning panel', 'section': 'Display', 'key': 'LightningPanel'},
                  {'type': 'bool', 'desc': 'Show indoor temperature',
-                  'title': 'Indoor temperature','section': 'Display', 'key': 'IndoorTemp'},
+                  'title': 'Indoor temperature', 'section': 'Display', 'key': 'IndoorTemp'},
                  {'type': 'bool', 'desc': 'Show cursor',
-                  'title': 'Cursor','section': 'Display', 'key': 'Cursor'},
+                  'title': 'Cursor', 'section': 'Display', 'key': 'Cursor'},
                  {'type': 'bool', 'desc': 'Set console to run fullscreen',
-                  'title': 'Fullscreen','section': 'Display', 'key': 'Fullscreen'},
+                  'title': 'Fullscreen', 'section': 'Display', 'key': 'Fullscreen'},
                  {'type': 'bool', 'desc': 'Display console window with border',
-                  'title': 'Border','section': 'Display', 'key': 'Border'}
-                ]
+                  'title': 'Border', 'section': 'Display', 'key': 'Border'}
+                 ]
     elif 'Units' in Section:
-        Data =  [
-                 {'type':'FixedOptions', 'options':['c','f'],'title':'Temperature',
-                  'desc':'Set console temperature units', 'section':'Units', 'key':'Temp'},
-                 {'type':'FixedOptions', 'options':['inhg','mmhg','hpa','mb'],'title':'Pressure',
-                  'desc':'Set console pressure units', 'section':'Units', 'key':'Pressure'},
-                 {'type':'ScrollOptions', 'options':['mph','kph','kts','bft','mps','lfm'],'title':'Wind speed',
-                  'desc':'Set console wind speed units', 'section':'Units', 'key':'Wind'},
-                 {'type':'FixedOptions', 'options':['degrees','cardinal'],'title':'Wind direction',
-                  'desc':'Set console wind direction units', 'section':'Units', 'key':'Direction'},
-                 {'type':'FixedOptions', 'options':['in','cm','mm'],'title':'Rainfall',
-                  'desc':'Set console rainfall units', 'section':'Units', 'key':'Precip'},
-                 {'type':'FixedOptions', 'options':['km','mi'],'title':'Distance',
-                  'desc':'Set console distance units', 'section':'Units', 'key':'Distance'},
-                 {'type':'FixedOptions', 'options':['metric','imperial'],'title':'Other',
-                  'desc':'Set console other units', 'section':'Units', 'key':'Other'}
-                ]
+        Data =  [{'type': 'FixedOptions', 'options': ['c', 'f'], 'title': 'Temperature',
+                  'desc': 'Set console temperature units', 'section': 'Units', 'key': 'Temp'},
+                 {'type': 'FixedOptions', 'options': ['inhg', 'mmhg', 'hpa', 'mb'], 'title': 'Pressure',
+                  'desc': 'Set console pressure units', 'section': 'Units', 'key': 'Pressure'},
+                 {'type': 'ScrollOptions', 'options': ['mph', 'kph', 'kts', 'bft', 'mps', 'lfm'], 'title': 'Wind speed',
+                  'desc': 'Set console wind speed units', 'section': 'Units', 'key': 'Wind'},
+                 {'type': 'FixedOptions', 'options': ['degrees', 'cardinal'], 'title': 'Wind direction',
+                  'desc': 'Set console wind direction units', 'section': 'Units', 'key': 'Direction'},
+                 {'type': 'FixedOptions', 'options': ['in', 'cm', 'mm'], 'title': 'Rainfall',
+                  'desc': 'Set console rainfall units', 'section': 'Units', 'key': 'Precip'},
+                 {'type': 'FixedOptions', 'options': ['km', 'mi'], 'title': 'Distance',
+                  'desc': 'Set console distance units', 'section': 'Units', 'key': 'Distance'},
+                 {'type': 'FixedOptions', 'options': ['metric', 'imperial'], 'title': 'Other',
+                  'desc': 'Set console other units', 'section': 'Units', 'key': 'Other'}
+                 ]
     elif 'Primary' in Section:
-        Data =  [
-                 {'type':'ScrollOptions', 'options':primaryPanelList,'title':'Panel One',
-                  'desc':'Set primary display for Panel One', 'section':'PrimaryPanels', 'key':'PanelOne'},
-                 {'type':'ScrollOptions', 'options':primaryPanelList,'title':'Panel Two',
-                  'desc':'Set primary display for Panel Two', 'section':'PrimaryPanels', 'key':'PanelTwo'},
-                 {'type':'ScrollOptions', 'options':primaryPanelList,'title':'Panel Three',
-                  'desc':'Set primary display for Panel Three', 'section':'PrimaryPanels', 'key':'PanelThree'},
-                 {'type':'ScrollOptions', 'options':primaryPanelList,'title':'Panel Four',
-                  'desc':'Set primary display for Panel Four', 'section':'PrimaryPanels', 'key':'PanelFour'},
-                 {'type':'ScrollOptions', 'options':primaryPanelList,'title':'Panel Five',
-                  'desc':'Set primary display for Panel Five', 'section':'PrimaryPanels', 'key':'PanelFive'},
-                 {'type':'ScrollOptions', 'options':primaryPanelList,'title':'Panel Six',
-                  'desc':'Set primary display for Panel Six', 'section':'PrimaryPanels', 'key':'PanelSix'}
-                ]
+        Data =  [{'type': 'ScrollOptions', 'options': primaryPanelList, 'title': 'Panel One',
+                  'desc': 'Set primary display for Panel One', 'section': 'PrimaryPanels', 'key': 'PanelOne'},
+                 {'type': 'ScrollOptions', 'options': primaryPanelList, 'title': 'Panel Two',
+                  'desc': 'Set primary display for Panel Two', 'section': 'PrimaryPanels', 'key': 'PanelTwo'},
+                 {'type': 'ScrollOptions', 'options': primaryPanelList, 'title': 'Panel Three',
+                  'desc': 'Set primary display for Panel Three', 'section': 'PrimaryPanels', 'key': 'PanelThree'},
+                 {'type': 'ScrollOptions', 'options': primaryPanelList, 'title': 'Panel Four',
+                  'desc': 'Set primary display for Panel Four', 'section': 'PrimaryPanels', 'key': 'PanelFour'},
+                 {'type': 'ScrollOptions', 'options': primaryPanelList, 'title': 'Panel Five',
+                  'desc': 'Set primary display for Panel Five', 'section': 'PrimaryPanels', 'key': 'PanelFive'},
+                 {'type': 'ScrollOptions', 'options': primaryPanelList, 'title': 'Panel Six',
+                  'desc': 'Set primary display for Panel Six', 'section': 'PrimaryPanels', 'key': 'PanelSix'}
+                 ]
     elif 'Secondary' in Section:
-        Data =  [
-                 {'type':'ScrollOptions', 'options':secondaryPanelList,'title':'Panel One',
-                  'desc':'Set secondary display for Panel One', 'section':'SecondaryPanels', 'key':'PanelOne'},
-                 {'type':'ScrollOptions', 'options':secondaryPanelList,'title':'Panel Two',
-                  'desc':'Set secondary display for Panel Two', 'section':'SecondaryPanels', 'key':'PanelTwo'},
-                 {'type':'ScrollOptions', 'options':secondaryPanelList,'title':'Panel Three',
-                  'desc':'Set secondary display for Panel Three', 'section':'SecondaryPanels', 'key':'PanelThree'},
-                 {'type':'ScrollOptions', 'options':secondaryPanelList,'title':'Panel Four',
-                  'desc':'Set secondary display for Panel Four', 'section':'SecondaryPanels', 'key':'PanelFour'},
-                 {'type':'ScrollOptions', 'options':secondaryPanelList,'title':'Panel Five',
-                  'desc':'Set secondary display for Panel Five', 'section':'SecondaryPanels', 'key':'PanelFive'},
-                 {'type':'ScrollOptions', 'options':secondaryPanelList,'title':'Panel Six',
-                  'desc':'Set secondary display for Panel Six', 'section':'SecondaryPanels', 'key':'PanelSix'}
-                ]
+        Data =  [{'type': 'ScrollOptions', 'options': secondaryPanelList, 'title': 'Panel One',
+                  'desc': 'Set secondary display for Panel One', 'section': 'SecondaryPanels', 'key': 'PanelOne'},
+                 {'type': 'ScrollOptions', 'options': secondaryPanelList, 'title': 'Panel Two',
+                  'desc': 'Set secondary display for Panel Two', 'section': 'SecondaryPanels', 'key': 'PanelTwo'},
+                 {'type': 'ScrollOptions', 'options': secondaryPanelList, 'title': 'Panel Three',
+                  'desc': 'Set secondary display for Panel Three', 'section': 'SecondaryPanels', 'key': 'PanelThree'},
+                 {'type': 'ScrollOptions', 'options': secondaryPanelList, 'title': 'Panel Four',
+                  'desc': 'Set secondary display for Panel Four', 'section': 'SecondaryPanels', 'key': 'PanelFour'},
+                 {'type': 'ScrollOptions', 'options': secondaryPanelList, 'title': 'Panel Five',
+                  'desc': 'Set secondary display for Panel Five', 'section': 'SecondaryPanels', 'key': 'PanelFive'},
+                 {'type': 'ScrollOptions', 'options': secondaryPanelList, 'title': 'Panel Six',
+                  'desc': 'Set secondary display for Panel Six', 'section': 'SecondaryPanels', 'key': 'PanelSix'}
+                 ]
     elif 'FeelsLike' in Section:
-        Data =  [
-                 {'type':'ToggleTemperature', 'title':'Extremely Cold',
-                  'desc':'Set the maximum temperature for "Feeling extremely cold"', 'section':'FeelsLike', 'key':'ExtremelyCold'},
-                 {'type':'ToggleTemperature', 'title':'Freezing Cold',
-                  'desc':'Set the maximum temperature for "Feeling freezing cold"', 'section':'FeelsLike', 'key':'FreezingCold'},
-                 {'type':'ToggleTemperature', 'title':'Very Cold',
-                  'desc':'Set the maximum temperature for "Feeling very cold"', 'section':'FeelsLike', 'key':'VeryCold'},
-                 {'type':'ToggleTemperature', 'title':'Cold',
-                  'desc':'Set the maximum temperature for "Feeling cold"', 'section':'FeelsLike', 'key':'Cold'},
-                 {'type':'ToggleTemperature', 'title':'Mild',
-                  'desc':'Set the maximum temperature for "Feeling mild"', 'section':'FeelsLike', 'key':'Mild'},
-                 {'type':'ToggleTemperature', 'title':'Warm',
-                  'desc':'Set the maximum temperature for "Feeling warm"', 'section':'FeelsLike', 'key':'Warm'},
-                 {'type':'ToggleTemperature', 'title':'Hot',
-                  'desc':'Set the maximum temperature for "Feeling hot"', 'section':'FeelsLike', 'key':'Hot'},
-                 {'type':'ToggleTemperature', 'title':'Very Hot',
-                  'desc':'Set the maximum temperature for "Feeling very hot"', 'section':'FeelsLike', 'key':'VeryHot'}
-                ]
+        Data =  [{'type': 'ToggleTemperature', 'title': 'Extremely Cold',
+                  'desc': 'Set the maximum temperature for "Feeling extremely cold"', 'section': 'FeelsLike', 'key': 'ExtremelyCold'},
+                 {'type': 'ToggleTemperature', 'title': 'Freezing Cold',
+                  'desc': 'Set the maximum temperature for "Feeling freezing cold"', 'section': 'FeelsLike', 'key': 'FreezingCold'},
+                 {'type': 'ToggleTemperature', 'title': 'Very Cold',
+                  'desc': 'Set the maximum temperature for "Feeling very cold"', 'section': 'FeelsLike', 'key': 'VeryCold'},
+                 {'type': 'ToggleTemperature', 'title': 'Cold',
+                  'desc': 'Set the maximum temperature for "Feeling cold"', 'section': 'FeelsLike', 'key': 'Cold'},
+                 {'type': 'ToggleTemperature', 'title': 'Mild',
+                  'desc': 'Set the maximum temperature for "Feeling mild"', 'section': 'FeelsLike', 'key': 'Mild'},
+                 {'type': 'ToggleTemperature', 'title': 'Warm',
+                  'desc': 'Set the maximum temperature for "Feeling warm"', 'section': 'FeelsLike', 'key': 'Warm'},
+                 {'type': 'ToggleTemperature', 'title': 'Hot',
+                  'desc': 'Set the maximum temperature for "Feeling hot"', 'section': 'FeelsLike', 'key': 'Hot'},
+                 {'type': 'ToggleTemperature', 'title': 'Very Hot',
+                  'desc': 'Set the maximum temperature for "Feeling very hot"', 'section': 'FeelsLike', 'key': 'VeryHot'}
+                 ]
     elif 'System' in Section:
-        Data =  [
-                 {'type':'ToggleHours', 'title':'Sager Forecast interval',
-                  'desc':'Set the interval in hours between Sager Forecasts', 'section':'System', 'key':'SagerInterval'},
-                ]
+        Data =  [{'type': 'ToggleHours', 'title': 'Sager Forecast interval',
+                  'desc': 'Set the interval in hours between Sager Forecasts', 'section': 'System', 'key': 'SagerInterval'},
+                 ]
 
     # Returns JSON object for settings section
     return json.dumps(Data)

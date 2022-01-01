@@ -598,8 +598,8 @@ def tempMax(Temp, obTime, maxTemp, device, apiData, config):
     Now = datetime.now(pytz.utc).astimezone(Tz)
 
     # Define index of temperature in websocket packets
-    if (str(device) == config['Station']['OutAirID'] or
-        str(device) == config['Station']['InAirID']):
+    if (str(device) == config['Station']['OutAirID']
+            or str(device) == config['Station']['InAirID']):
         index_bucket_a  = 2
     elif str(device) == config['Station']['TempestID']:
         index_bucket_a  = 7
@@ -667,8 +667,8 @@ def tempMin(Temp, obTime, minTemp, device, apiData, config):
     Now = datetime.now(pytz.utc).astimezone(Tz)
 
     # Define index of temperature in websocket packets
-    if (str(device) == config['Station']['OutAirID'] or
-        str(device) == config['Station']['InAirID']):
+    if (str(device) == config['Station']['OutAirID']
+            or str(device) == config['Station']['InAirID']):
         index_bucket_a  = 2
     elif str(device) == config['Station']['TempestID']:
         index_bucket_a  = 7
@@ -883,9 +883,14 @@ def strikeCount(count, strikeCount, device, apiData, config):
         updatedCount = currentCount + count[0] if count[0] is not None else currentCount
         todayStrikes = [updatedCount, 'count', updatedCount, time.time()]
 
-    # If console is initialising, download all data for current month using
-    # Weatherflow API and calculate total monthly lightning strikes
-    if 'month' in apiData[device]:
+    # If console is initialising and today is the first day on the month, set
+    # monthly lightning strikes to current daily lightning strikes
+    if strikeCount['month'][0] is None and Now.day == 1:
+        monthStrikes = [todayStrikes[0], 'count', todayStrikes[0], time.time()]
+
+    # Else if console is initialising, calculate total monthly lightning strikes
+    # from the WeatherFlow API data
+    elif 'month' in apiData[device]:
         if verifyResponse(apiData[device]['month'], 'obs'):
             dataMonth  = apiData[device]['month'].json()['obs']
             apiStrikes = [item[index_bucket_e] for item in dataMonth if item[index_bucket_e] is not None]
@@ -911,9 +916,14 @@ def strikeCount(count, strikeCount, device, apiData, config):
         updatedCount = currentCount + count[0] if count[0] is not None else currentCount
         monthStrikes = [updatedCount, 'count', updatedCount, time.time()]
 
-    # If console is initialising, download all data for current year using
-    # Weatherflow API and calculate total yearly lightning strikes
-    if 'year' in apiData[device]:
+    # If console is initialising and today is the first day on the year, set
+    # yearly lightning strikes to current daily lightning strikes
+    if strikeCount['year'][0] is None and Now.timetuple().tm_yday == 1:
+        yearStrikes = [todayStrikes[0], 'count', todayStrikes[0], time.time()]
+
+    # Else if console is initialising, calculate total yearly lightning strikes
+    # from the WeatherFlow API data
+    elif 'year' in apiData[device]:
         if verifyResponse(apiData[device]['year'], 'obs'):
             dataYear   = apiData[device]['year'].json()['obs']
             apiStrikes = [item[index_bucket_e] for item in dataYear if item[index_bucket_e] is not None]
@@ -1059,7 +1069,7 @@ def rainAccumulation(dailyRain, rainAccum, device, apiData, config):
 
     # Else if console is initialising, calculate total monthly rainfall from
     # the WeatherFlow API data
-    if 'month' in apiData[device]:
+    elif 'month' in apiData[device]:
         if verifyResponse(apiData[device]['month'], 'obs'):
             monthData = apiData[device]['month'].json()['obs']
             rainData = [item[index_bucket_e] for item in monthData if item[index_bucket_e] is not None]
@@ -1098,8 +1108,7 @@ def rainAccumulation(dailyRain, rainAccum, device, apiData, config):
 
     # Else if console is initialising, calculate total yearly rainfall from the
     # WeatherFlow API data
-    #elif rainAccum['year'][0] is None:
-    if 'year' in apiData[device]:
+    elif 'year' in apiData[device]:
         if verifyResponse(apiData[device]['year'], 'obs'):
             yearData = apiData[device]['year'].json()['obs']
             rainData = [item[index_bucket_e] for item in yearData if item[index_bucket_e] is not None]
@@ -1430,7 +1439,7 @@ def peakSunHours(radiation, peakSun, device, apiData, config):
             try:
                 watthrs = sum([item * (1 / 60) for item in radiation])
                 peakSun = [watthrs / 1000, 'hrs', watthrs, sunrise, sunset, time.time()]
-            except exception as Error:
+            except Exception as Error:
                 Logger.warning(f'peakSun: {system.logTime()} - {Error}')
                 return errorOutput
         else:

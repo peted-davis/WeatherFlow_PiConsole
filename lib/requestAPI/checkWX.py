@@ -18,7 +18,8 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 # Import required modules
 import requests
 
-def verifyResponse(Response,Field):
+
+def verifyResponse(Response, Field):
 
     """ Verifies the validity of the API response response
 
@@ -40,13 +41,14 @@ def verifyResponse(Response,Field):
         return False
     else:
         Response = Response.json()
-        if isinstance(Response,dict):
+        if isinstance(Response, dict):
             if Field in Response and Response[Field] is not None:
                 return True
             else:
                 return False
         else:
             return False
+
 
 def METAR(Config):
 
@@ -63,12 +65,12 @@ def METAR(Config):
     """
 
     # Download closest METAR report to station location
-    header = {'X-API-Key':Config['Keys']['CheckWX']}
+    header = {'X-API-Key': Config['Keys']['CheckWX']}
     Template = 'https://api.checkwx.com/metar/lat/{}/lon/{}/'
-    URL = Template.format(Config['Station']['Latitude'],Config['Station']['Longitude'])
+    URL = Template.format(Config['Station']['Latitude'], Config['Station']['Longitude'])
     try:
-        Data = requests.get(URL,headers=header,timeout=int(Config['System']['Timeout']))
-    except:
+        Data = requests.get(URL, headers=header, timeout=int(Config['System']['Timeout']))
+    except Exception:
         Data = None
 
     # Return closest METAR report to station location

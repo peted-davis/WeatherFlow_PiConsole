@@ -22,7 +22,8 @@ from lib         import system
 import requests
 import pytz
 
-def verifyResponse(Response,Field):
+
+def verifyResponse(Response, Field):
 
     """ Verifies the validity of the API response response
 
@@ -44,7 +45,7 @@ def verifyResponse(Response,Field):
         return False
     else:
         Response = Response.json()
-        if isinstance(Response,dict):
+        if isinstance(Response, dict):
             if 'SUCCESS' in Response['status']['status_message'] and Field in Response and Response[Field] is not None:
                 return True
             else:
@@ -53,7 +54,7 @@ def verifyResponse(Response,Field):
             return False
 
 
-def Last6h(Device,endTime,Config):
+def Last6h(Device, endTime, Config):
 
     """ API Request for last six hours of data from a WeatherFlow Smart Home
     Weather Station device
@@ -68,14 +69,14 @@ def Last6h(Device,endTime,Config):
     """
 
     # Calculate timestamp three hours past
-    startTime = endTime - int(3600*6)
+    startTime = endTime - int(3600 * 6)
 
     # Download WeatherFlow data for last three hours
     Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?bucket=a&time_start={}&time_end={}&token={}'
-    URL = Template.format(Device,startTime,endTime,Config['Keys']['WeatherFlow'])
+    URL = Template.format(Device, startTime, endTime, Config['Keys']['WeatherFlow'])
     try:
-        apiData = requests.get(URL,timeout=int(Config['System']['Timeout']))
-    except:
+        apiData = requests.get(URL, timeout=int(Config['System']['Timeout']))
+    except Exception:
         apiData = None
 
     # Verify response
@@ -86,7 +87,7 @@ def Last6h(Device,endTime,Config):
     return apiData
 
 
-def Last24h(Device,endTime,Config):
+def Last24h(Device, endTime, Config):
 
     """ API Request for last twenty fouts hours of data from a WeatherFlow Smart
     Home Weather Station device
@@ -101,14 +102,14 @@ def Last24h(Device,endTime,Config):
     """
 
     # Calculate timestamp 24 hours past
-    startTime = endTime - int(3600*24)
+    startTime = endTime - int(3600 * 24)
 
     # Download WeatherFlow data for last three hours
     Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?bucket=a&time_start={}&time_end={}&token={}'
-    URL = Template.format(Device,startTime,endTime,Config['Keys']['WeatherFlow'])
+    URL = Template.format(Device, startTime, endTime, Config['Keys']['WeatherFlow'])
     try:
-        apiData = requests.get(URL,timeout=int(Config['System']['Timeout']))
-    except:
+        apiData = requests.get(URL, timeout=int(Config['System']['Timeout']))
+    except Exception:
         apiData = None
 
     # Verify response
@@ -119,7 +120,7 @@ def Last24h(Device,endTime,Config):
     return apiData
 
 
-def Today(Device,Config):
+def Today(Device, Config):
 
     """ API Request for data from the current calendar day in the station
         timezone from a WeatherFlow Smart Home Weather Station device
@@ -146,10 +147,10 @@ def Today(Device,Config):
 
     # Download WeatherFlow data
     Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?bucket=a&time_start={}&time_end={}&token={}'
-    URL = Template.format(Device,startTime,endTime,Config['Keys']['WeatherFlow'])
+    URL = Template.format(Device, startTime, endTime, Config['Keys']['WeatherFlow'])
     try:
-        apiData = requests.get(URL,timeout=int(Config['System']['Timeout']))
-    except:
+        apiData = requests.get(URL, timeout=int(Config['System']['Timeout']))
+    except Exception:
         apiData = None
 
     # Verify response
@@ -160,7 +161,7 @@ def Today(Device,Config):
     return apiData
 
 
-def Yesterday(Device,Config):
+def Yesterday(Device, Config):
 
     """ API Request for data from yesterday in the station timezone from a
     WeatherFlow Smart Home Weather Station device
@@ -179,20 +180,20 @@ def Yesterday(Device,Config):
 
     # Convert midnight yesterday in Station timezone to midnight yesterday in
     # UTC. Convert UTC time into UNIX timestamp
-    Yesterday = Tz.localize(datetime(Now.year,Now.month,Now.day)) - timedelta(days=1)
+    Yesterday = Tz.localize(datetime(Now.year, Now.month, Now.day)) - timedelta(days=1)
     startTime = int(Yesterday.timestamp())
 
     # Convert midnight today in Station timezone to midnight yesterday in UTC.
     # Convert UTC time into UNIX timestamp
-    Today = Tz.localize(datetime(Now.year,Now.month,Now.day))
-    endTime = int(Today.timestamp())-1
+    Today = Tz.localize(datetime(Now.year, Now.month, Now.day))
+    endTime = int(Today.timestamp()) - 1
 
     # Download WeatherFlow data
     Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?bucket=a&time_start={}&time_end={}&token={}'
-    URL = Template.format(Device,startTime,endTime,Config['Keys']['WeatherFlow'])
+    URL = Template.format(Device, startTime, endTime, Config['Keys']['WeatherFlow'])
     try:
-        apiData = requests.get(URL,timeout=int(Config['System']['Timeout']))
-    except:
+        apiData = requests.get(URL, timeout=int(Config['System']['Timeout']))
+    except Exception:
         apiData = None
 
     # Verify response
@@ -203,7 +204,7 @@ def Yesterday(Device,Config):
     return apiData
 
 
-def Month(Device,Config):
+def Month(Device, Config):
 
     """ API Request for data from the last month in the station timezone from a
         WeatherFlow Smart Home Weather Station device
@@ -233,16 +234,16 @@ def Month(Device,Config):
         endTime = int(Yesterday.timestamp()) - 1
 
     # If today is the first day of the month, set the endTime to one second
-    # less than the startTime
+    # more than the startTime
     else:
-        endTime = startTime - 1
+        endTime = startTime + 1
 
     # Download WeatherFlow data
     Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?bucket=e&time_start={}&time_end={}&token={}'
-    URL = Template.format(Device,startTime,endTime,Config['Keys']['WeatherFlow'])
+    URL = Template.format(Device, startTime, endTime, Config['Keys']['WeatherFlow'])
     try:
-        apiData = requests.get(URL,timeout=int(Config['System']['Timeout']))
-    except:
+        apiData = requests.get(URL, timeout=int(Config['System']['Timeout']))
+    except Exception:
         apiData = None
 
     # Verify response
@@ -253,7 +254,7 @@ def Month(Device,Config):
     return apiData
 
 
-def Year(Device,Config):
+def Year(Device, Config):
 
     """ API Request for data from the last year in the station timezone from a
         WeatherFlow Smart Home Weather Station device
@@ -275,17 +276,24 @@ def Year(Device,Config):
     yearStart = Tz.localize(datetime(Now.year, 1, 1))
     startTime = int(yearStart.timestamp())
 
-    # Convert midnight yesterday in Station timezone to midnight yesterday in
-    # UTC. Convert UTC time into UNIX timestamp.
-    yearEnd = Tz.localize(datetime(Now.year, Now.month, Now.day)) - timedelta(days=1)
-    endTime = int(yearEnd.timestamp()) - 1
+    # # If today is not the first day of the year, convert midnight yesterday
+    # in Station timezone to midnight yesterday in UTC. Convert UTC time into
+    # UNIX timestamp.
+    if Now.timetuple().tm_yday != 1:
+        yearEnd = Tz.localize(datetime(Now.year, Now.month, Now.day)) - timedelta(days=1)
+        endTime = int(yearEnd.timestamp()) - 1
+
+    # If today is the first day of the month, set the endTime to one second
+    # more than the startTime
+    else:
+        endTime = startTime + 1
 
     # Download WeatherFlow data
     Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?bucket=e&time_start={}&time_end={}&token={}'
-    URL = Template.format(Device,startTime,endTime,Config['Keys']['WeatherFlow'])
+    URL = Template.format(Device, startTime, endTime, Config['Keys']['WeatherFlow'])
     try:
-        apiData = requests.get(URL,timeout=int(Config['System']['Timeout']))
-    except:
+        apiData = requests.get(URL, timeout=int(Config['System']['Timeout']))
+    except Exception:
         apiData = None
 
     # Verify response
@@ -296,7 +304,7 @@ def Year(Device,Config):
     return apiData
 
 
-def stationMetaData(Station,Config):
+def stationMetaData(Station, Config):
 
     """ API Request for station meta data from a WeatherFlow Smart Home Weather
     Station
@@ -311,10 +319,10 @@ def stationMetaData(Station,Config):
 
     # Download station meta data
     Template = 'https://swd.weatherflow.com/swd/rest/stations/{}?token={}'
-    URL = Template.format(Station,Config['Keys']['WeatherFlow'])
+    URL = Template.format(Station, Config['Keys']['WeatherFlow'])
     try:
-        apiData = requests.get(URL,timeout=int(Config['System']['Timeout']))
-    except:
+        apiData = requests.get(URL, timeout=int(Config['System']['Timeout']))
+    except Exception:
         apiData = None
 
     # Verify response
@@ -323,6 +331,7 @@ def stationMetaData(Station,Config):
 
     # Return station meta data
     return apiData
+
 
 def Forecast(Config):
 
@@ -337,11 +346,11 @@ def Forecast(Config):
 
     # Download WeatherFlow forecast
     Template = 'https://swd.weatherflow.com/swd/rest/better_forecast?token={}&station_id={}&lat={}&lon={}'
-    URL = Template.format(Config['Keys']['WeatherFlow'],Config['Station']['StationID'],Config['Station']['Latitude'],Config['Station']['Longitude'])
+    URL = Template.format(Config['Keys']['WeatherFlow'], Config['Station']['StationID'], Config['Station']['Latitude'], Config['Station']['Longitude'])
     print(URL)
     try:
-        apiData = requests.get(URL,timeout=int(Config['System']['Timeout']))
-    except:
+        apiData = requests.get(URL, timeout=int(Config['System']['Timeout']))
+    except Exception:
         apiData = None
 
     # Verify response

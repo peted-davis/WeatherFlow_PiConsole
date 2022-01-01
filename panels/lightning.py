@@ -19,10 +19,12 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 from kivy.uix.relativelayout import RelativeLayout
 from kivy.properties         import StringProperty, NumericProperty
 from kivy.animation          import Animation
+from kivy.metrics            import dp
 from kivy.app                import App
 
 # Load required panel modules
 from panels.template         import panelTemplate
+
 
 # ==============================================================================
 # LightningPanel AND LightningButton CLASS
