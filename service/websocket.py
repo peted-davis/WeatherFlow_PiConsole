@@ -235,11 +235,6 @@ async def main():
             await asyncio.gather(*list(websocket.task_list.values()))
         except asyncio.CancelledError:
             if websocket._switch_device:
-                current_station = int(websocket.app.config['Station']['StationID'])
-                switch_station  = websocket.app.mainMenu.stationMetaData['station_id']
-                if current_station != switch_station:
-                    websocket.app.forecast.resetDisplay()
-                websocket.app.obsParser.resetDisplay()
                 await websocket._websocketClient__async__manageDevices('listen_stop')
                 config.switch(websocket.app.mainMenu.stationMetaData,
                               websocket.app.mainMenu.deviceList,
