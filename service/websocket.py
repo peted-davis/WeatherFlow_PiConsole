@@ -21,7 +21,6 @@
 from kivy.logger            import Logger
 from kivy.app               import App
 from lib                    import system
-from lib                    import config
 from lib.observationParser  import obsParser
 import websockets
 import threading
@@ -75,7 +74,8 @@ class websocketClient():
                 self.message    = json.loads(self.message)
                 try:
                     if 'type' in self.message and self.message['type'] == 'connection_opened':
-                        await self.__async__manageDevices('listen_start')
+                        await self.__async__get_devices()
+                        await self.__async__listen_devices('listen_start')
                         self.app.obsParser.flagAPI = [1, 1, 1, 1]
                         self.connected = True
                         Logger.info(f'Websocket: {system.logTime()} - Connection open')
@@ -113,25 +113,36 @@ class websocketClient():
             await asyncio.sleep(self.sleep_time)
             await self.__async__connect()
 
-    async def __async__manageDevices(self, action):
-        deviceList = list()
-        if self.config['Station']['TempestID'] or self.config['Station']['SkyID']:
-            device = self.config['Station']['TempestID'] or self.config['Station']['SkyID']
-            deviceList.append('{"type":"' + action + '",'
-                              + ' "device_id":' + device + ','
-                              + ' "id":"Sky/Tempest"}')
-            deviceList.append('{"type":"' + action.split('_')[0] + '_rapid_' + action.split('_')[1] + '",'
-                              + ' "device_id":' + device + ','
-                              + ' "id":"rapidWind"}')
-        if self.config['Station']['OutAirID']:
-            deviceList.append('{"type":"' + action + '",'
-                              + ' "device_id":' + self.config['Station']['OutAirID'] + ','
-                              + ' "id":"OutdoorAir"}')
+    async def __async__get_devices(self):
+        self.device_list = {'tempest': None, 'sky': None, 'out_air': None, 'in_air': None}
+        if self.config['Station']['TempestID']:
+            self.device_list['tempest'] = self.config['Station']['TempestID']
+        else:
+            if self.config['Station']['SkyID']:
+                self.device_list['sky'] = self.config['Station']['SkyID']
+            if self.config['Station']['OutAirID']:
+                self.device_list['out_air'] = self.config['Station']['OutAirID']
         if self.config['Station']['InAirID']:
-            deviceList.append('{"type":"' + action + '",'
-                              + ' "device_id":' + self.config['Station']['InAirID'] + ','
-                              + ' "id":"IndoorAir"}')
-        for device in deviceList:
+            self.device_list['in_air'] = self.config['Station']['InAirID']
+
+    async def __async__listen_devices(self, action):
+        devices = []
+        if self.device_list['tempest'] or self.device_list['sky']:
+            devices.append('{"type":"' + action + '",'
+                           + ' "device_id":' + (self.device_list['tempest'] or self.device_list['sky']) + ','
+                           + ' "id":"tempest_sky"}')
+            devices.append('{"type":"' + action.split('_')[0] + '_rapid_' + action.split('_')[1] + '",'
+                           + ' "device_id":' + (self.device_list['tempest'] or self.device_list['sky']) + ','
+                           + ' "id":"rapid_wind"}')
+        if self.device_list['out_air']:
+            devices.append('{"type":"' + action + '",'
+                           + ' "device_id":' + self.device_list['out_air'] + ','
+                           + ' "id":"outdoor_air"}')
+        if self.device_list['in_air']:
+            devices.append('{"type":"' + action + '",'
+                           + ' "device_id":' + self.device_list['in_air'] + ','
+                           + ' "id":"indoor_air"}')
+        for device in devices:
             await self.connection.send(device)
 
     async def __async__getMessage(self):
@@ -235,11 +246,9 @@ async def main():
             await asyncio.gather(*list(websocket.task_list.values()))
         except asyncio.CancelledError:
             if websocket._switch_device:
-                await websocket._websocketClient__async__manageDevices('listen_stop')
-                config.switch(websocket.app.mainMenu.stationMetaData,
-                              websocket.app.mainMenu.deviceList,
-                              websocket.app.config)
-                await websocket._websocketClient__async__manageDevices('listen_start')
+                await websocket._websocketClient__async__listen_devices('listen_stop')
+                await websocket._websocketClient__async__get_devices()
+                await websocket._websocketClient__async__listen_devices('listen_start')
                 Logger.info(f'Websocket: {system.logTime()} - Switching devices and/or station')
                 websocket._switch_device = False
 

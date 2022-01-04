@@ -15,6 +15,8 @@ You should have received a copy of the GNU General Public License along with
 this program. If not, see <http://www.gnu.org/licenses/>.
 """
 
+from lib                    import config
+
 # Load required Kivy modules
 from kivy.network.urlrequest import UrlRequest
 from kivy.uix.modalview      import ModalView
@@ -357,11 +359,14 @@ class mainMenu(ModalView):
     def switchStations(self):
         self.dismiss(animation=False)
         current_station = int(self.app.config['Station']['StationID'])
-        switch_station  = self.stationMetaData['station_id']
-        if current_station != switch_station:
-            self.app.forecast.resetDisplay()
+        config.switch(self.stationMetaData,
+                      self.deviceList,
+                      self.app.config)
         self.app.obsParser.resetDisplay()
         self.app.websocket_client._switch_device = True
+        if current_station != self.stationMetaData['station_id']:
+            self.app.forecast.reset_forecast()
+            self.app.sager.reset_forecast()
 
     # EXIT CONSOLE AND SHUTDOWN SYSTEM
     # -------------------------------------------------------------------------

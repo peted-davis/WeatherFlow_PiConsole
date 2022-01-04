@@ -40,7 +40,6 @@ class BarometerPanel(panelTemplate):
     # Set Barometer arrow rotation angle to match current sea level pressure
     def setBarometerArrow(self):
         SLP = App.get_running_app().CurrentConditions.Obs['SLP'][2]
-        print(SLP)
         if SLP is None or SLP == '-':
             self.barometerArrow = '-'
         else:

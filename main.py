@@ -116,9 +116,9 @@ from kivy.app                import App
 # IMPORT REQUIRED LIBRARY MODULES
 # ==============================================================================
 from lib.forecast import forecast
+from lib.sager    import sager_forecast
 from lib          import astronomical as astro
 from lib          import settings     as userSettings
-from lib          import sager        as sagerForecast
 from lib          import properties
 from lib          import status
 from lib          import system
@@ -226,7 +226,6 @@ class wfpiconsole(App):
         settings.register_type('FixedOptions',      userSettings.FixedOptions)
         settings.register_type('ToggleTemperature', userSettings.ToggleTemperature)
         settings.register_type('ToggleHours',       userSettings.ToggleHours)
-        settings.register_type('TextScale',         userSettings.TextScale)
 
         # Add required panels to setting screen. Remove Kivy settings panel
         settings.add_json_panel('Display',          self.config, data=userSettings.JSON('Display'))
@@ -267,6 +266,7 @@ class wfpiconsole(App):
         # are changed
         if section == 'Units' and key in ['Temp', 'Wind']:
             self.forecast.parse_forecast()
+            self.sager.get_forecast_text()
 
         # Update current weather forecast, sunrise/sunset and moonrise/moonset
         # times when time format changed
@@ -341,7 +341,7 @@ class wfpiconsole(App):
 
         # Update Sager Forecast schedule
         if section == 'System' and key == 'SagerInterval':
-            sagerForecast.Schedule(self.CurrentConditions.Sager, True, self)
+            self.sager.schedule_forecast(True)
 
         # Update derived variables to reflect configuration changes
         self.obsParser.reformatDisplay()
@@ -376,44 +376,45 @@ class screenManager(ScreenManager):
 # ==============================================================================
 class CurrentConditions(Screen):
 
-    Sager = DictProperty([])
+    Sager = DictProperty()
     Astro = DictProperty([])
     Obs   = DictProperty([])
     Met   = DictProperty([])
 
     def __init__(self, **kwargs):
         super(CurrentConditions, self).__init__(**kwargs)
-        app = App.get_running_app()
-        app.CurrentConditions = self
-        app.Station  = status.Station()
-        self.Sager   = properties.Sager()
-        self.Astro   = properties.Astro()
-        self.Met     = properties.Met()
-        self.Obs     = properties.Obs()
+        self.app = App.get_running_app()
+        self.app.CurrentConditions = self
+        self.app.Station  = status.Station()
+        self.Sager        = properties.Sager()
+        self.Astro        = properties.Astro()
+        self.Met          = properties.Met()
+        self.Obs          = properties.Obs()
 
         # Add display panels
         self.addPanels()
 
         # Start Websocket service
-        app.startWebsocketService()
+        self.app.startWebsocketService()
 
         # Schedule Station.getDeviceStatus to be called each second
-        app.Sched.deviceStatus = Clock.schedule_interval(app.Station.get_device_status, 1.0)
+        self.app.Sched.deviceStatus = Clock.schedule_interval(self.app.Station.get_device_status, 1.0)
 
         # Initialise Sunrise, Sunset, Moonrise and Moonset times
-        astro.SunriseSunset(self.Astro,   app.config)
-        astro.MoonriseMoonset(self.Astro, app.config)
+        astro.SunriseSunset(self.Astro,   self.app.config)
+        astro.MoonriseMoonset(self.Astro, self.app.config)
 
         # Schedule sunTransit and moonPhase functions to be called each second
-        app.Sched.sunTransit = Clock.schedule_interval(partial(astro.sunTransit, self.Astro, app.config), 1)
-        app.Sched.moonPhase  = Clock.schedule_interval(partial(astro.moonPhase,  self.Astro, app.config), 1)
+        self.app.Sched.sunTransit = Clock.schedule_interval(partial(astro.sunTransit, self.Astro, self.app.config), 1)
+        self.app.Sched.moonPhase  = Clock.schedule_interval(partial(astro.moonPhase,  self.Astro, self.app.config), 1)
 
         # Schedule WeatherFlow weather forecast download
-        app.forecat = forecast()
-        app.Sched.metDownload = Clock.schedule_once(app.forecast.fetch_forecast)
+        self.app.forecast = forecast()
+        self.app.Sched.metDownload = Clock.schedule_once(self.app.forecast.fetch_forecast)
 
         # Generate Sager Weathercaster forecast
-        threading.Thread(target=sagerForecast.Generate, args=(self.Sager, app), name="Sager", daemon=True).start()
+        self.app.sager = sager_forecast()
+        threading.Thread(target=self.app.sager.generate_forecast(), name="Sager", daemon=True).start()
 
     # ADD USER SELECTED PANELS TO CURRENT CONDITIONS SCREEN
     # --------------------------------------------------------------------------

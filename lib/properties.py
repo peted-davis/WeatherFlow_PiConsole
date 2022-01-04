@@ -79,8 +79,7 @@ def Sager():
         Met                Values for Obs Kivy property
     """
 
-    return [('Forecast', '--'), ('Issued', '--')
-            ]
+    return {'Forecast': '-', 'Issued': '-'}
 
 
 def Status():

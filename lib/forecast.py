@@ -25,7 +25,7 @@ from kivy.network.urlrequest import UrlRequest
 from kivy.clock              import Clock
 from kivy.app                import App
 
-# Import required Python modules
+# Import required system modules
 from datetime   import datetime, timedelta, time
 import time     as UNIX
 import certifi
@@ -36,12 +36,7 @@ import pytz
 class forecast():
 
     def __init__(self):
-
-        # Define instance variables
         self.funcCalled = []
-
-        # Create reference to app object
-        App.get_running_app().forecast = self
         self.app = App.get_running_app()
 
     def fetch_forecast(self, *largs):
@@ -288,7 +283,7 @@ class forecast():
         if funcError:
             self.fail_forecast(None, None)
 
-    def resetDisplay(self):
+    def reset_forecast(self):
 
         """ Reset the weather forecast displayed on screen to default values and
         fetch new forecast from WeatherFlow BetterForecast API
