@@ -1,10 +1,10 @@
 """ Defines the Kivy property values required by the Raspberry Pi Python
 console for WeatherFlow Tempest and Smart Home Weather stations.
-Copyright (C) 2018-2021 Peter Davis
+Copyright C) 2018-2021 Peter Davis
 
 This program is free software: you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
-Foundation, either version 3 of the License, or (at your option) any later
+Foundation, either version 3 of the License, or at your option) any later
 version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
@@ -24,20 +24,20 @@ def Obs():
         Obs                Values for Obs Kivy property
     """
 
-    return [('outTemp', '--'),       ('FeelsLike', '----'),     ('DewPoint', '--'),
-            ('outTempDiff', '---'),  ('outTempTrend', '---'),   ('outTempMax', '---'),
-            ('outTempMin', '---'),   ('Humidity', '--'),        ('SLP', '---'),
-            ('SLPTrend', '----'),    ('SLPMax', '---'),         ('SLPMin', '---'),
-            ('StrikeDist', '--'),    ('StrikeDeltaT', '-----'), ('StrikeFreq', '----'),
-            ('Strikes3hr', '-'),     ('StrikesToday', '-'),     ('StrikesMonth', '-'),
-            ('StrikesYear', '-'),    ('Radiation', '----'),     ('UVIndex', '----'),
-            ('peakSun', '------'),   ('RainRate', '---'),       ('TodayRain', '--'),
-            ('YesterdayRain', '--'), ('MonthRain', '--'),       ('YearRain', '--'),
-            ('WindSpd', '-----'),    ('WindGust', '--'),        ('AvgWind', '--'),
-            ('MaxGust', '--'),       ('WindDir', '---'),        ('inTemp', '--'),
-            ('inTempMax', '---'),    ('inTempMin', '---'),      ('rapidSpd', '--'),
-            ('rapidDir', '----'),
-            ]
+    return {'outTemp': '--',       'FeelsLike': '----',     'DewPoint': '--',
+            'outTempDiff': '---',  'outTempTrend': '---',   'outTempMax': '---',
+            'outTempMin': '---',   'Humidity': '--',        'SLP': '---',
+            'SLPTrend': '----',    'SLPMax': '---',         'SLPMin': '---',
+            'StrikeDist': '--',    'StrikeDeltaT': '-----', 'StrikeFreq': '----',
+            'Strikes3hr': '-',     'StrikesToday': '-',     'StrikesMonth': '-',
+            'StrikesYear': '-',    'Radiation': '----',     'UVIndex': '----',
+            'peakSun': '------',   'RainRate': '---',       'TodayRain': '--',
+            'YesterdayRain': '--', 'MonthRain': '--',       'YearRain': '--',
+            'WindSpd': '-----',    'WindGust': '--',        'AvgWind': '--',
+            'MaxGust': '--',       'WindDir': '---',        'inTemp': '--',
+            'inTempMax': '---',    'inTempMin': '---',      'rapidSpd': '--',
+            'rapidDir': '----',
+            }
 
 
 def Astro():
@@ -48,11 +48,11 @@ def Astro():
         Astro                Values for Obs Kivy property
     """
 
-    return [('Sunrise', ['-', '-', 0]), ('Sunset', ['-', '-', 0]), ('Dawn', ['-', '-', 0]),
-            ('Dusk', ['-', '-', 0]),    ('sunEvent', '----'),      ('sunIcon', ['-', 0, 0]),
-            ('Moonrise', ['-', '-']),   ('Moonset', ['-', '-']),   ('NewMoon', '--'),
-            ('FullMoon', '--'),         ('Phase', '---'),          ('Reformat', '-'),
-            ]
+    return {'Sunrise': ['-', '-', 0], 'Sunset': ['-', '-', 0], 'Dawn': ['-', '-', 0],
+            'Dusk': ['-', '-', 0],    'sunEvent': '----',      'sunIcon': ['-', 0, 0],
+            'Moonrise': ['-', '-'],   'Moonset': ['-', '-'],   'NewMoon': '--',
+            'FullMoon': '--',         'Phase': '---'
+            }
 
 
 def Met():
@@ -63,12 +63,12 @@ def Met():
         Met                Values for Obs Kivy property
     """
 
-    return [('Valid', '--'),        ('Temp', '--'),         ('highTemp', '--'),
-            ('lowTemp', '--'),      ('WindSpd', '--'),      ('WindGust', '--'),
-            ('WindDir', '--'),      ('PrecipPercnt', '--'), ('PrecipDay', '--'),
-            ('PrecipAmount', '--'), ('PrecipType', '--'),   ('Conditions', '-'),
-            ('Icon', '-'),          ('Status', '--')
-            ]
+    return {'Valid': '--',        'Temp': '--',         'highTemp': '--',
+            'lowTemp': '--',      'WindSpd': '--',      'WindGust': '--',
+            'WindDir': '--',      'PrecipPercnt': '--', 'PrecipDay': '--',
+            'PrecipAmount': '--', 'PrecipType': '--',   'Conditions': '-',
+            'Icon': '-',          'Status': '--'
+            }
 
 
 def Sager():

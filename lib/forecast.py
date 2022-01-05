@@ -38,6 +38,21 @@ class forecast():
     def __init__(self):
         self.funcCalled = []
         self.app = App.get_running_app()
+        self.data = self.app.CurrentConditions.Met
+
+    def reset_forecast(self):
+
+        """ Reset the weather forecast displayed on screen to default values and
+        fetch new forecast from WeatherFlow BetterForecast API
+        """
+
+        # Reset the forecast and schedule new forecast to be generated
+        self.app.CurrentConditions.Met =  properties.Met()
+        self.data = self.app.CurrentConditions.Met
+        if hasattr(self.app, 'ForecastPanel'):
+            for panel in getattr(self.app, 'ForecastPanel'):
+                panel.setForecastIcon()
+        self.fetch_forecast()
 
     def fetch_forecast(self, *largs):
 
@@ -71,20 +86,20 @@ class forecast():
 
         # Set forecast variables to blank and indicate to user that forecast is
         # unavailable
-        self.app.CurrentConditions.Met['Valid']        = '--'
-        self.app.CurrentConditions.Met['Temp']         = '--'
-        self.app.CurrentConditions.Met['highTemp']     = '--'
-        self.app.CurrentConditions.Met['lowTemp']      = '--'
-        self.app.CurrentConditions.Met['WindSpd']      = '--'
-        self.app.CurrentConditions.Met['WindGust']     = '--'
-        self.app.CurrentConditions.Met['WindDir']      = '--'
-        self.app.CurrentConditions.Met['PrecipPercnt'] = '--'
-        self.app.CurrentConditions.Met['PrecipDay']    = '--'
-        self.app.CurrentConditions.Met['PrecipAmount'] = '--'
-        self.app.CurrentConditions.Met['PrecipType']   = '--'
-        self.app.CurrentConditions.Met['Conditions']   = ''
-        self.app.CurrentConditions.Met['Icon']         = '-'
-        self.app.CurrentConditions.Met['Status']       = 'Forecast currently\nunavailable...'
+        self.data['Valid']        = '--'
+        self.data['Temp']         = '--'
+        self.data['highTemp']     = '--'
+        self.data['lowTemp']      = '--'
+        self.data['WindSpd']      = '--'
+        self.data['WindGust']     = '--'
+        self.data['WindDir']      = '--'
+        self.data['PrecipPercnt'] = '--'
+        self.data['PrecipDay']    = '--'
+        self.data['PrecipAmount'] = '--'
+        self.data['PrecipType']   = '--'
+        self.data['Conditions']   = ''
+        self.data['Icon']         = '-'
+        self.data['Status']       = 'Forecast currently\nunavailable...'
 
         # Update forecast icon in mainthread
         if hasattr(self.app, 'ForecastPanel'):
@@ -122,7 +137,7 @@ class forecast():
         self.app.Sched.metDownload = Clock.schedule_once(self.fetch_forecast, secondsSched)
 
         # Parse the latest daily and hourly weather forecast data
-        self.app.CurrentConditions.Met['Response'] = Response
+        self.data['Response'] = Response
         self.parse_forecast()
 
     def parse_forecast(self):
@@ -133,7 +148,7 @@ class forecast():
         """
 
         # Extract metData dictionary and configuration from self.app object
-        metData = self.app.CurrentConditions.Met
+        metData = self.data
         config  = self.app.config
 
         # Get current time in station time zone
@@ -282,15 +297,3 @@ class forecast():
         # If error is detected, download forecast again in 5 minutes
         if funcError:
             self.fail_forecast(None, None)
-
-    def reset_forecast(self):
-
-        """ Reset the weather forecast displayed on screen to default values and
-        fetch new forecast from WeatherFlow BetterForecast API
-        """
-
-        self.app.CurrentConditions.Met = properties.Met()
-        if hasattr(self.app, 'ForecastPanel'):
-            for panel in getattr(self.app, 'ForecastPanel'):
-                panel.setForecastIcon()
-        self.fetch_forecast()

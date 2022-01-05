@@ -54,6 +54,16 @@ class sager_forecast():
         self.device_obs = {}
         self.data = self.app.CurrentConditions.Sager
 
+    def reset_forecast(self):
+
+        ''' Reset the Sager Weathercaster forecast when station ID changes
+        '''
+
+        # Reset the Sager forecast and schedule new forecast to be generated
+        self.app.CurrentConditions.Sager = properties.Sager()
+        self.data = self.app.CurrentConditions.Sager
+        Clock.schedule_once(lambda dt: self.generate_forecast(), 2)
+
     def schedule_forecast(self, overide):
 
         ''' Schedules the Sager Weathercaster forecast based on the specified
@@ -74,6 +84,7 @@ class sager_forecast():
         hourList = [time.hour for time in timeList]
         genrList = [hour % int(self.app.config['System']['SagerInterval']) for hour in hourList]
         foreTime = timeList[genrList.index(0)]
+        print('Sager scheduled:', foreTime)
 
         # Schedule next forecast time
         if hasattr(self.app.Sched, 'sager'):
@@ -83,16 +94,6 @@ class sager_forecast():
         else:
             secondsSched = (foreTime - self.app.Sched.sagerFuncCalled).total_seconds()
         self.app.Sched.sager = Clock.schedule_once(lambda dt: self.generate_forecast(), secondsSched)
-
-    def reset_forecast(self):
-
-        ''' Resets the Sager Weathercaster forecast when station ID changes
-        '''
-
-        # Reset the Sager forecast and schedule new forecast to be generated
-        self.app.CurrentConditions.Sager = properties.Sager()
-        self.data = self.app.CurrentConditions.Sager
-        Clock.schedule_once(lambda dt: self.generate_forecast(), 2)
 
     def generate_forecast(self):
 
@@ -113,6 +114,7 @@ class sager_forecast():
         Now = int(UNIX.time())
         Tz  = pytz.timezone(self.app.config['Station']['Timezone'])
         self.app.Sched.sagerFuncCalled = datetime.now(pytz.utc).astimezone(Tz)
+        print('Sager called:', self.app.Sched.sagerFuncCalled)
 
         # Define required station variables for the Sager Weathercaster Forecast
         self.data['Lat']   = float(self.app.config['Station']['Latitude'])

@@ -366,6 +366,7 @@ class mainMenu(ModalView):
         self.app.websocket_client._switch_device = True
         if current_station != self.stationMetaData['station_id']:
             self.app.forecast.reset_forecast()
+            self.app.astro.reset_astro()
             self.app.sager.reset_forecast()
 
     # EXIT CONSOLE AND SHUTDOWN SYSTEM

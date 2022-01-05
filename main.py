@@ -115,14 +115,14 @@ from kivy.app                import App
 # ==============================================================================
 # IMPORT REQUIRED LIBRARY MODULES
 # ==============================================================================
-from lib.forecast import forecast
-from lib.sager    import sager_forecast
-from lib          import astronomical as astro
-from lib          import settings     as userSettings
-from lib          import properties
-from lib          import status
-from lib          import system
-from lib          import config
+from lib.astronomical import astro
+from lib.forecast     import forecast
+from lib.sager        import sager_forecast
+from lib              import settings     as userSettings
+from lib              import properties
+from lib              import status
+from lib              import system
+from lib              import config
 
 # ==============================================================================
 # IMPORT REQUIRED PANELS
@@ -377,19 +377,19 @@ class screenManager(ScreenManager):
 class CurrentConditions(Screen):
 
     Sager = DictProperty()
-    Astro = DictProperty([])
-    Obs   = DictProperty([])
-    Met   = DictProperty([])
+    Astro = DictProperty()
+    Obs   = DictProperty()
+    Met   = DictProperty()
 
     def __init__(self, **kwargs):
         super(CurrentConditions, self).__init__(**kwargs)
         self.app = App.get_running_app()
         self.app.CurrentConditions = self
+        self.Sager  = properties.Sager()
+        self.Astro  = properties.Astro()
+        self.Met    = properties.Met()
+        self.Obs    = properties.Obs()
         self.app.Station  = status.Station()
-        self.Sager        = properties.Sager()
-        self.Astro        = properties.Astro()
-        self.Met          = properties.Met()
-        self.Obs          = properties.Obs()
 
         # Add display panels
         self.addPanels()
@@ -401,12 +401,13 @@ class CurrentConditions(Screen):
         self.app.Sched.deviceStatus = Clock.schedule_interval(self.app.Station.get_device_status, 1.0)
 
         # Initialise Sunrise, Sunset, Moonrise and Moonset times
-        astro.SunriseSunset(self.Astro,   self.app.config)
-        astro.MoonriseMoonset(self.Astro, self.app.config)
+        self.app.astro = astro()
+        self.app.astro.sunrise_sunset()
+        self.app.astro.moonrise_moonset()
 
         # Schedule sunTransit and moonPhase functions to be called each second
-        self.app.Sched.sunTransit = Clock.schedule_interval(partial(astro.sunTransit, self.Astro, self.app.config), 1)
-        self.app.Sched.moonPhase  = Clock.schedule_interval(partial(astro.moonPhase,  self.Astro, self.app.config), 1)
+        self.app.Sched.sun_transit = Clock.schedule_interval(self.app.astro.sun_transit, 1)
+        self.app.Sched.moon_phase  = Clock.schedule_interval(self.app.astro.moon_phase, 1)
 
         # Schedule WeatherFlow weather forecast download
         self.app.forecast = forecast()
