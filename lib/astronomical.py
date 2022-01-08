@@ -131,7 +131,7 @@ class astro():
         self.data['Dusk'][2]    = (duskMidnight - dawnMidnight) / 86400
 
         # Format sunrise/sunset labels based on date of next sunrise
-        self.format('sun')
+        self.format_labels('sun')
 
     def moonrise_moonset(self):
 
@@ -201,73 +201,7 @@ class astro():
         self.data['NewMoon']  = [NewMoon.astimezone(Tz).strftime('%b %d'),  NewMoon]
 
         # Format sunrise/sunset labels based on date of next sunrise
-        self.format('moon')
-
-    def format(self, Type):
-
-        """ Format the sunrise/sunset labels and moonrise/moonset labels based on
-        the current time of day in the station timezone
-
-        INPUTS:
-            self.data           Dictionary holding sunrise/sunset and moonrise/moonset
-                                data
-            Config              Station configuration
-            Type                Flag specifying whether to format sun or moon data
-
-        OUTPUT:
-            self.data           Dictionary holding moonrise and moonset data
-        """
-
-        # Get current time in Station timezone
-        Tz = pytz.timezone(self.app.config['Station']['Timezone'])
-        Now = datetime.now(pytz.utc).astimezone(Tz)
-
-        # Set time format based on user configuration
-        if self.app.config['Display']['TimeFormat'] == '12 hr':
-            if self.app.config['System']['Hardware'] == 'Other':
-                Format = '%#I:%M %p'
-            else:
-                Format = '%-I:%M %p'
-        else:
-            Format = '%H:%M'
-
-        # Format Sunrise/Sunset data
-        if Type == 'sun':
-            if Now.date() == self.data['Sunrise'][0].date():
-                self.data['Sunrise'][1] = self.data['Sunrise'][0].strftime(Format)
-                self.data['Sunset'][1]  = self.data['Sunset'][0].strftime(Format)
-                self.data['Reformat']   = 0
-            else:
-                self.data['Sunrise'][1] = self.data['Sunrise'][0].strftime(Format) + ' (+1)'
-                self.data['Sunset'][1]  = self.data['Sunset'][0].strftime(Format)  + ' (+1)'
-                self.data['Reformat']   = 1
-
-        # Format Moonrise/Moonset data
-        elif Type == 'moon':
-
-            # Update Moonrise Kivy Label bind based on date of next moonrise
-            if Now.date() == self.data['Moonrise'][0].date():
-                self.data['Moonrise'][1] = self.data['Moonrise'][0].strftime(Format)
-            elif Now.date() < self.data['Moonrise'][0].date():
-                self.data['Moonrise'][1] = self.data['Moonrise'][0].strftime(Format) + ' (+1)'
-            else:
-                self.data['Moonrise'][1] = self.data['Moonrise'][0].strftime(Format) + ' (-1)'
-
-            # Update Moonset Kivy Label bind based on date of next moonset
-            if Now.date() == self.data['Moonset'][0].date():
-                self.data['Moonset'][1] = self.data['Moonset'][0].strftime(Format)
-            elif Now.date() < self.data['Moonset'][0].date():
-                self.data['Moonset'][1] = self.data['Moonset'][0].strftime(Format) + ' (+1)'
-            else:
-                self.data['Moonset'][1] = self.data['Moonset'][0].strftime(Format) + ' (-1)'
-
-            # Update New Moon Kivy Label bind based on date of next new moon
-            if self.data['FullMoon'][1].date() == Now.date():
-                self.data['FullMoon'] = ['[color=ff8837ff]Today[/color]', self.data['FullMoon'][1]]
-
-            # Update Full Moon Kivy Label bind based on date of next full moon
-            elif self.data['NewMoon'][1].date() == Now.date():
-                self.data['NewMoon'] = ['[color=ff8837ff]Today[/color]', self.data['NewMoon'][1]]
+        self.format_labels('moon')
 
     def sun_transit(self, *largs):
 
@@ -348,8 +282,8 @@ class astro():
 
         # At midnight update sunrise/sunset times
         if self.data['Reformat'] and Now.replace(second=0).replace(microsecond=0).time() == time(0, 0, 0):
-            self.Format('sun')
-            self.Format('moon')
+            self.format_labels('sun')
+            self.format_labels('moon')
 
     def moon_phase(self, *largs):
 
@@ -406,3 +340,69 @@ class astro():
 
         # Define Kivy Label binds
         self.data['Phase'] = [PhaseIcon, PhaseTxt, Illumination]
+
+    def format_labels(self, Type):
+
+        """ Format the sunrise/sunset labels and moonrise/moonset labels based on
+        the current time of day in the station timezone
+
+        INPUTS:
+            self.data           Dictionary holding sunrise/sunset and moonrise/moonset
+                                data
+            Config              Station configuration
+            Type                Flag specifying whether to format sun or moon data
+
+        OUTPUT:
+            self.data           Dictionary holding moonrise and moonset data
+        """
+
+        # Get current time in Station timezone
+        Tz = pytz.timezone(self.app.config['Station']['Timezone'])
+        Now = datetime.now(pytz.utc).astimezone(Tz)
+
+        # Set time format based on user configuration
+        if self.app.config['Display']['TimeFormat'] == '12 hr':
+            if self.app.config['System']['Hardware'] == 'Other':
+                time_format = '%#I:%M %p'
+            else:
+                time_format = '%-I:%M %p'
+        else:
+            time_format = '%H:%M'
+
+        # time_format Sunrise/Sunset data
+        if Type == 'sun':
+            if Now.date() == self.data['Sunrise'][0].date():
+                self.data['Sunrise'][1] = self.data['Sunrise'][0].strftime(time_format)
+                self.data['Sunset'][1]  = self.data['Sunset'][0].strftime(time_format)
+                self.data['Reformat']   = 0
+            else:
+                self.data['Sunrise'][1] = self.data['Sunrise'][0].strftime(time_format) + ' (+1)'
+                self.data['Sunset'][1]  = self.data['Sunset'][0].strftime(time_format)  + ' (+1)'
+                self.data['Reformat']   = 1
+
+        # time_format Moonrise/Moonset data
+        elif Type == 'moon':
+
+            # Update Moonrise Kivy Label bind based on date of next moonrise
+            if Now.date() == self.data['Moonrise'][0].date():
+                self.data['Moonrise'][1] = self.data['Moonrise'][0].strftime(time_format)
+            elif Now.date() < self.data['Moonrise'][0].date():
+                self.data['Moonrise'][1] = self.data['Moonrise'][0].strftime(time_format) + ' (+1)'
+            else:
+                self.data['Moonrise'][1] = self.data['Moonrise'][0].strftime(time_format) + ' (-1)'
+
+            # Update Moonset Kivy Label bind based on date of next moonset
+            if Now.date() == self.data['Moonset'][0].date():
+                self.data['Moonset'][1] = self.data['Moonset'][0].strftime(time_format)
+            elif Now.date() < self.data['Moonset'][0].date():
+                self.data['Moonset'][1] = self.data['Moonset'][0].strftime(time_format) + ' (+1)'
+            else:
+                self.data['Moonset'][1] = self.data['Moonset'][0].strftime(time_format) + ' (-1)'
+
+            # Update New Moon Kivy Label bind based on date of next new moon
+            if self.data['FullMoon'][1].date() == Now.date():
+                self.data['FullMoon'] = ['[color=ff8837ff]Today[/color]', self.data['FullMoon'][1]]
+
+            # Update Full Moon Kivy Label bind based on date of next full moon
+            elif self.data['NewMoon'][1].date() == Now.date():
+                self.data['NewMoon'] = ['[color=ff8837ff]Today[/color]', self.data['NewMoon'][1]]
