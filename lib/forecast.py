@@ -52,7 +52,7 @@ class forecast():
         if hasattr(self.app, 'ForecastPanel'):
             for panel in getattr(self.app, 'ForecastPanel'):
                 panel.setForecastIcon()
-        self.fetch_forecast()
+        Clock.schedule_once(self.fetch_forecast)
 
     def fetch_forecast(self, *largs):
 
@@ -60,9 +60,8 @@ class forecast():
         WeatherFlow BetterForecast API
         """
 
-        # Get current time in station time zone
         Tz  = pytz.timezone(self.app.config['Station']['Timezone'])
-        self.funcCalled = datetime.now(pytz.utc).astimezone(Tz)
+        print('Forecast called:   ', datetime.now(pytz.utc).astimezone(Tz))
 
         # Fetch latest hourly and daily forecast
         URL = 'https://swd.weatherflow.com/swd/rest/better_forecast?token={}&station_id={}'
@@ -73,7 +72,7 @@ class forecast():
                    on_error=self.fail_forecast,
                    ca_file=certifi.where())
 
-    def fail_forecast(self, Request, Response):
+    def fail_forecast(self, *largs):
 
         """ Failed to fetch forecast from the WeatherFlow BetterForecast API.
         Reschedule fetch_forecast in 300 seconds
@@ -110,8 +109,9 @@ class forecast():
         # refers to number of seconds since the function was last called.
         Tz  = pytz.timezone(self.app.config['Station']['Timezone'])
         Now = datetime.now(pytz.utc).astimezone(Tz)
-        downloadTime = Now + timedelta(minutes=5)
-        secondsSched = (downloadTime - Now).total_seconds()
+        sched_time = Now + timedelta(minutes=5)
+        print('Forecast scheduled:', sched_time)
+        secondsSched = (sched_time - Now).total_seconds()
         self.app.Sched.metDownload.cancel()
         self.app.Sched.metDownload = Clock.schedule_once(self.fetch_forecast, secondsSched)
 
@@ -127,18 +127,25 @@ class forecast():
 
         """
 
+        # Parse the latest daily and hourly weather forecast data
+        self.data['Response'] = Response
+        self.parse_forecast()
+
+    def schedule_forecast(self, dt):
+
+        """ Schedule new Forecast to be fetched from the WeatherFlow BetterForecast
+        API at the top of the next hour
+        """
+
         # Schedule new forecast to be downloaded at the top of the next hour. Note
         # secondsSched refers to number of seconds since the function was last called
         Tz  = pytz.timezone(self.app.config['Station']['Timezone'])
         Now = datetime.now(pytz.utc).astimezone(Tz)
-        downloadTime = Tz.localize(datetime.combine(Now.date(), time(Now.hour, 0, 0)) + timedelta(hours=1))
-        secondsSched = (downloadTime - Now).total_seconds()
+        sched_time = Tz.localize(datetime.combine(Now.date(), time(Now.hour, 0, 0)) + timedelta(hours=1))
+        print('Forecast scheduled:', sched_time)
+        seconds_sched = (sched_time - Now).total_seconds()
         self.app.Sched.metDownload.cancel()
-        self.app.Sched.metDownload = Clock.schedule_once(self.fetch_forecast, secondsSched)
-
-        # Parse the latest daily and hourly weather forecast data
-        self.data['Response'] = Response
-        self.parse_forecast()
+        self.app.Sched.metDownload = Clock.schedule_once(self.fetch_forecast, seconds_sched)
 
     def parse_forecast(self):
 
@@ -153,6 +160,7 @@ class forecast():
 
         # Get current time in station time zone
         Tz  = pytz.timezone(config['Station']['Timezone'])
+        Now = datetime.now(pytz.utc).astimezone(Tz)
         funcError  = 0
 
         # Set time format based on user configuration
@@ -224,9 +232,9 @@ class forecast():
             except StopIteration:
                 Ind = len(conditionList) - 1
             Time = datetime.fromtimestamp(Hours[Ind], pytz.utc).astimezone(Tz)
-            if Time.date() == self.funcCalled.date():
+            if Time.date() == Now.date():
                 Conditions = hourlyCurrent['conditions'].capitalize() + ' until ' + datetime.strftime(Time, TimeFormat) + ' today'
-            elif Time.date() == self.funcCalled.date() + timedelta(days=1):
+            elif Time.date() == Now.date() + timedelta(days=1):
                 Conditions = hourlyCurrent['conditions'].capitalize() + ' until ' + datetime.strftime(Time, TimeFormat) + ' tomorrow'
             else:
                 Conditions = hourlyCurrent['conditions'].capitalize() + ' until ' + datetime.strftime(Time, TimeFormat) + ' on ' + Time.strftime('%A')
@@ -294,6 +302,9 @@ class forecast():
             for panel in getattr(self.app, 'ForecastPanel'):
                 panel.setForecastIcon()
 
-        # If error is detected, download forecast again in 5 minutes
-        if funcError:
-            self.fail_forecast(None, None)
+        # Schedule new forecast or if error is detected, scehdule forecast again in
+        # 5 minutes
+        if not funcError:
+            Clock.schedule_once(self.schedule_forecast)
+        else:
+            Clock.schedule_once(self.fail_forecast)

@@ -55,8 +55,8 @@ class mainMenu(ModalView):
     def add_status_panels(self):
 
         # Populate status fields
-        self.app.Station.get_observation_count()
-        self.app.Station.get_hub_firmware()
+        self.app.station.get_observation_count()
+        self.app.station.get_hub_firmware()
 
         # Add device status panels to main menu as required
         if self.app.config['Station']['TempestID']:

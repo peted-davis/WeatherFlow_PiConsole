@@ -210,7 +210,7 @@
     ## Panel background and title
     PanelBackground:
         _panelTitle: 'Temperature'
-        _panelStatus: app.Station.Status['out_air_last_sample'] if app.config['Station']['OutAirID'] else app.Station.Status['tempest_last_sample']
+        _panelStatus: app.CurrentConditions.Status['out_air_last_sample'] if app.config['Station']['OutAirID'] else app.CurrentConditions.Status['tempest_last_sample']
 
     ## Indoor temperature
     TitleField:
@@ -363,7 +363,7 @@
     ## Panel background and title
     PanelBackground:
         _panelTitle: 'Wind Speed'
-        _panelStatus: app.Station.Status['sky_last_sample'] if app.config['Station']['SkyID'] else app.Station.Status['tempest_last_sample']
+        _panelStatus: app.CurrentConditions.Status['sky_last_sample'] if app.config['Station']['SkyID'] else app.CurrentConditions.Status['tempest_last_sample']
 
     ## Rapid Wind wind speed and direction
     windRose:
@@ -473,7 +473,7 @@
     ## Panel background and title
     PanelBackground:
         _panelTitle: 'Solar  [size=' + str(int(self.ids.Title.font_size*0.8)) + ']|[/size]  UV'
-        _panelStatus: app.Station.Status['sky_last_sample'] if app.config['Station']['SkyID'] else app.Station.Status['tempest_last_sample']
+        _panelStatus: app.CurrentConditions.Status['sky_last_sample'] if app.config['Station']['SkyID'] else app.CurrentConditions.Status['tempest_last_sample']
 
     ## Night bar
     BoxLayout:
@@ -725,7 +725,7 @@
     ## Panel background, title, and RainGauge
     RainfallBackground:
         _panelTitle: 'Rainfall'
-        _panelStatus: app.Station.Status['sky_last_sample'] if app.config['Station']['SkyID'] else app.Station.Status['tempest_last_sample']
+        _panelStatus: app.CurrentConditions.Status['sky_last_sample'] if app.config['Station']['SkyID'] else app.CurrentConditions.Status['tempest_last_sample']
     RainGauge:
         id: rainGauge
         pos_hint: {'x': 198 / 262, 'y': 80 / 202}
@@ -807,7 +807,7 @@
         source: 'icons/misc/offline' + app.scaleSuffix
         keep_ratio: 0
         allow_stretch: 1
-        opacity: 1 if app.Station.Status['station_status'] == 'Offline' or app.Station.Status['station_status'] == 'Error'  else 0
+        opacity: 1 if app.CurrentConditions.Status['station_status'] == 'Offline' or app.CurrentConditions.Status['station_status'] == 'Error'  else 0
         pos_hint: {'x': 230/262, 'y': 9/202}
         size_hint: (30/262, 30/202)
 
@@ -824,7 +824,7 @@
     ## Panel background and title
     PanelBackground:
         _panelTitle: 'Lightning'
-        _panelStatus: app.Station.Status['out_air_last_sample'] if app.config['Station']['OutAirID'] else app.Station.Status['tempest_last_sample']
+        _panelStatus: app.CurrentConditions.Status['out_air_last_sample'] if app.config['Station']['OutAirID'] else app.CurrentConditions.Status['tempest_last_sample']
 
     ## Last strike time
     TitleField:
@@ -975,7 +975,7 @@
     ## Panel background, title, and Barometer dial
     PanelBackground:
         _panelTitle: 'Barometer'
-        _panelStatus: app.Station.Status['out_air_last_sample'] if app.config['Station']['OutAirID'] else app.Station.Status['tempest_last_sample']
+        _panelStatus: app.CurrentConditions.Status['out_air_last_sample'] if app.config['Station']['OutAirID'] else app.CurrentConditions.Status['tempest_last_sample']
     barometerDial:
 
     ## Current pressure arrow
@@ -1133,8 +1133,8 @@
                             font_size: dp(16*app.scaleFactor)
                             text: app.config['Station']['Name']
                         MenuField:
-                            _color: '#9aba2fff' if app.Station.Status['station_status'] == 'Online' else '#c8c8c8ff' if app.Station.Status['station_status'] == '-' else '#d73027ff'
-                            text: 'Station status: [color=' + self._color + ']' + app.Station.Status['station_status'] + '[/color]'
+                            _color: '#9aba2fff' if app.CurrentConditions.Status['station_status'] == 'Online' else '#c8c8c8ff' if app.CurrentConditions.Status['station_status'] == '-' else '#d73027ff'
+                            text: 'Station status: [color=' + self._color + ']' + app.CurrentConditions.Status['station_status'] + '[/color]'
                     GridLayout:
                         cols: 2
                         padding: [dp(0),dp(0),dp(0),dp(10)]
@@ -1148,7 +1148,7 @@
                         MenuField:
                             text: 'Station Longitude: ' + '{:.4f}'.format(float(app.config['Station']['Longitude'])) + '\u00B0'
                         MenuField:
-                            text: 'Hub firmware: ' + app.Station.Status['hub_firmware']
+                            text: 'Hub firmware: ' + app.CurrentConditions.Status['hub_firmware']
                         MenuField:
                             text: 'Console version: [color=00a4b4ff]' + app.config['System']['Version'] + '[/color]'
                     BoxLayout:
