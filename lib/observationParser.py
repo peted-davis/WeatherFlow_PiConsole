@@ -591,7 +591,7 @@ class obsParser():
         """
 
         # Update display values with new derived observations
-        for Key, Value in self.displayObs.items():
+        for Key, Value in list(self.displayObs.items()):
             if not (type == 'obs_all' and 'rapid' in Key):                  # Don't update rapidWind display when type is 'all'
                 self.app.CurrentConditions.Obs[Key] = Value                 # as the RapidWind rose is not animated in this case
 
