@@ -24,7 +24,6 @@ http://www.freewebs.com/btjustice/bt-forecasters.html
 from lib import derivedVariables  as derive
 from lib import requestAPI
 from lib import properties
-from lib import system
 
 # Import required Kivy modules
 from kivy.clock  import Clock
@@ -87,9 +86,9 @@ class sager_forecast():
         # Schedule new Sager forecast to be generated in 5 minutes.
         Tz  = pytz.timezone(self.app.config['Station']['Timezone'])
         Now = datetime.now(pytz.utc).astimezone(Tz)
-        sched_time = Now + timedelta(minutes=5)
-        print('Sager scheduled:', sched_time)
-        seconds_sched = (sched_time - Now).total_seconds()
+        self.sched_time = Now + timedelta(minutes=5)
+        print('Sager scheduled:', self.sched_time)
+        seconds_sched = (self.sched_time - Now).total_seconds()
         self.app.Sched.sager.cancel()
         self.app.Sched.sager = Clock.schedule_once(self.fetch_forecast, seconds_sched)
 
@@ -108,11 +107,11 @@ class sager_forecast():
         time_list = [curr_hour + timedelta(hours=hour) for hour in range(1, 25)]
         hour_list = [time.hour for time in time_list]
         genr_list = [hour % int(self.app.config['System']['SagerInterval']) for hour in hour_list]
-        sched_time = time_list[genr_list.index(0)]
-        print('Sager scheduled:', sched_time)
+        self.sched_time = time_list[genr_list.index(0)]
+        print('Sager scheduled:', self.sched_time)
 
         # Schedule next forecast time
-        secondsSched = (sched_time - Now).total_seconds()
+        secondsSched = (self.sched_time - Now).total_seconds()
         self.app.Sched.sager.cancel()
         self.app.Sched.sager = Clock.schedule_once(self.fetch_forecast, secondsSched)
 
@@ -133,7 +132,9 @@ class sager_forecast():
         # Get station timezone, current UNIX timestamp in UTC and time that function
         # was called
         Tz  = pytz.timezone(self.app.config['Station']['Timezone'])
-        Now = datetime.now(pytz.utc).astimezone(Tz)
+        sched_time = getattr(self, 'sched_time', datetime.now(pytz.utc).astimezone(Tz))
+        currt_time = datetime.now(pytz.utc).astimezone(Tz)
+        Now = sched_time if sched_time > currt_time else currt_time
 
         # Define required station variables for the Sager Weathercaster Forecast
         self.data['Lat']   = float(self.app.config['Station']['Latitude'])
@@ -167,7 +168,7 @@ class sager_forecast():
             self.get_tempest_data(int(UNIX.time()))
             if not self.device_obs:
                 self.data['Forecast'] = '[color=f05e40ff]ERROR:[/color] Missing TEMPEST data. Forecast will be regenerated in 60 minutes'
-                self.data['Issued']   = system.round_time(Now, 1).strftime(time_format)
+                self.data['Issued']   = Now.strftime(time_format)
                 Clock.schedule_once(self.fail_forecast)
                 return
 
@@ -177,7 +178,7 @@ class sager_forecast():
             self.get_sky_data(int(UNIX.time()))
             if not self.device_obs:
                 self.data['Forecast'] = '[color=f05e40ff]ERROR:[/color] Missing SKY data. Forecast will be regenerated in 60 minutes'
-                self.data['Issued']   = system.round_time(Now, 1).strftime(time_format)
+                self.data['Issued']   = Now.strftime(time_format)
                 Clock.schedule_once(self.fail_forecast)
                 return
 
@@ -196,7 +197,7 @@ class sager_forecast():
         WindDir  = self.device_obs['WindDir'][-15:]
         if np.all(np.isnan(WindDir6)) or np.all(np.isnan(WindDir)):
             self.data['Forecast'] = '[color=f05e40ff]ERROR:[/color] Missing wind direction data. Forecast will be regenerated in 60 minutes'
-            self.data['Issued']   = system.round_time(Now, 1).strftime(time_format)
+            self.data['Issued']   = Now.strftime(time_format)
             Clock.schedule_once(self.fail_forecast)
             return
         else:
@@ -209,7 +210,7 @@ class sager_forecast():
         WindSpd  = self.device_obs['WindSpd'][-15:]
         if np.all(np.isnan(WindSpd6)) or np.all(np.isnan(WindSpd)):
             self.data['Forecast'] = '[color=f05e40ff]ERROR:[/color] Missing wind speed data. Forecast will be regenerated in 60 minutes'
-            self.data['Issued']   = system.round_time(Now, 1).strftime(time_format)
+            self.data['Issued']   = Now.strftime(time_format)
             Clock.schedule_once(self.fail_forecast)
             return
         else:
@@ -234,7 +235,7 @@ class sager_forecast():
             self.get_air_data(int(UNIX.time()))
             if not self.device_obs:
                 self.data['Forecast'] = '[color=f05e40ff]ERROR:[/color] Missing AIR data. Forecast will be regenerated in 60 minutes'
-                self.data['Issued']   = system.round_time(Now, 1).strftime(time_format)
+                self.data['Issued']   = Now.strftime(time_format)
                 Clock.schedule_once(self.fail_forecast)
                 return
 
@@ -251,7 +252,7 @@ class sager_forecast():
         Pres  = self.device_obs['Pres'][-15:]
         if np.all(np.isnan(Pres6)) or np.all(np.isnan(Pres)):
             self.data['Forecast'] = '[color=f05e40ff]ERROR:[/color] Missing pressure data. Forecast will be regenerated in 60 minutes'
-            self.data['Issued']   = system.round_time(Now, 1).strftime(time_format)
+            self.data['Issued']   = Now.strftime(time_format)
             Clock.schedule_once(self.fail_forecast)
             return
         else:
@@ -263,7 +264,7 @@ class sager_forecast():
         Temp = self.device_obs['Temp'][-15:]
         if np.all(np.isnan(Temp)):
             self.data['Forecast'] = '[color=f05e40ff]ERROR:[/color] Missing temperature data. Forecast will be regenerated in 60 minutes'
-            self.data['Issued']   = system.round_time(Now, 1).strftime(time_format)
+            self.data['Issued']   = Now.strftime(time_format)
             Clock.schedule_once(self.fail_forecast)
             return
         else:
@@ -276,7 +277,7 @@ class sager_forecast():
             self.data['METAR'] = Data.json()['data'][0]
         else:
             self.data['Forecast'] = '[color=f05e40ff]ERROR:[/color] Missing METAR information. Forecast will be regenerated in 60 minutes'
-            self.data['Issued']   = system.round_time(Now, 1).strftime(time_format)
+            self.data['Issued']   = Now.strftime(time_format)
             Clock.schedule_once(self.fail_forecast)
             return
 
@@ -285,11 +286,11 @@ class sager_forecast():
         self.get_dial_setting()
         if self.data['Dial'] is not None:
             self.get_forecast_text()
-            self.data['Issued']   = system.round_time(Now, 1).strftime(time_format)
+            self.data['Issued']   = Now.strftime(time_format)
             Clock.schedule_once(self.schedule_forecast)
         else:
             self.data['Forecast'] = '[color=f05e40ff]ERROR:[/color] Forecast will be regenerated in 60 minutes'
-            self.data['Issued']   = system.round_time(Now, 1).strftime(time_format)
+            self.data['Issued']   = Now.strftime(time_format)
             Clock.schedule_once(self.fail_forecast)
 
     def get_tempest_data(self, Now):
