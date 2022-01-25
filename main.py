@@ -165,7 +165,7 @@ from kivy.uix.settings       import SettingsWithSidebar
 class wfpiconsole(App):
 
     # Define App class dictionary properties
-    System  = DictProperty([('Time', '-'), ('Date', '-')])
+    # System  = DictProperty([('Time', '-'), ('Date', '-')])
     Sched   = DictProperty([])
 
     # Define App class configParser properties
@@ -188,7 +188,7 @@ class wfpiconsole(App):
         self.window.bind(on_resize=self.setScaleFactor)
 
         # Initialise realtime clock
-        self.Sched.realtimeClock = Clock.schedule_interval(partial(system.realtimeClock, self.System, self.config), 1.0)
+        # self.Sched.realtimeClock = Clock.schedule_interval(partial(system.realtimeClock, self.System, self.config), 1.0)
 
         # Set Settings syle class
         self.settings_cls = SettingsWithSidebar
@@ -376,6 +376,7 @@ class screenManager(ScreenManager):
 # ==============================================================================
 class CurrentConditions(Screen):
 
+    System = DictProperty({'Time': '-', 'Date': '-'})
     Status = DictProperty()
     Sager  = DictProperty()
     Astro  = DictProperty()
@@ -397,6 +398,9 @@ class CurrentConditions(Screen):
 
         # Start Websocket service
         self.app.startWebsocketService()
+
+        # Initialise realtime clock
+        self.app.Sched.realtimeClock = Clock.schedule_interval(partial(system.realtimeClock, self.System, self.app.config), 1.0)
 
         # Schedule Station.getDeviceStatus to be called each second
         self.app.station = station()

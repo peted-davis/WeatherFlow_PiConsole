@@ -60,9 +60,6 @@ class forecast():
         WeatherFlow BetterForecast API
         """
 
-        Tz  = pytz.timezone(self.app.config['Station']['Timezone'])
-        print('Forecast called:   ', datetime.now(pytz.utc).astimezone(Tz))
-
         # Fetch latest hourly and daily forecast
         URL = 'https://swd.weatherflow.com/swd/rest/better_forecast?token={}&station_id={}'
         URL = URL.format(self.app.config['Keys']['WeatherFlow'], self.app.config['Station']['StationID'])
@@ -110,7 +107,6 @@ class forecast():
         Tz  = pytz.timezone(self.app.config['Station']['Timezone'])
         Now = datetime.now(pytz.utc).astimezone(Tz)
         sched_time = Now + timedelta(minutes=5)
-        print('Forecast scheduled:', sched_time)
         secondsSched = (sched_time - Now).total_seconds()
         self.app.Sched.metDownload.cancel()
         self.app.Sched.metDownload = Clock.schedule_once(self.fetch_forecast, secondsSched)
@@ -137,12 +133,12 @@ class forecast():
         API at the top of the next hour
         """
 
-        # Schedule new forecast to be downloaded at the top of the next hour. Note
-        # secondsSched refers to number of seconds since the function was last called
+        # Calculate next forecast time for the top of the next hour
         Tz  = pytz.timezone(self.app.config['Station']['Timezone'])
         Now = datetime.now(pytz.utc).astimezone(Tz)
         sched_time = Tz.localize(datetime.combine(Now.date(), time(Now.hour, 0, 0)) + timedelta(hours=1))
-        print('Forecast scheduled:', sched_time)
+
+        # Schedule next forecast
         seconds_sched = (sched_time - Now).total_seconds()
         self.app.Sched.metDownload.cancel()
         self.app.Sched.metDownload = Clock.schedule_once(self.fetch_forecast, seconds_sched)

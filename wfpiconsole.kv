@@ -795,11 +795,11 @@
 
     ## Time and date
     TimeDateField:
-        text: app.System['Date']
+        text: app.CurrentConditions.System['Date']
         pos_hint: {'x': 0/262, 'y': 24/202}
         size_hint_x: (262/262)
     TimeDateField:
-        text: app.System['Time']
+        text: app.CurrentConditions.System['Time']
         pos_hint: {'x': 0/262, 'y': 3/202}
         size_hint_x: (262/262)
 
@@ -1140,7 +1140,7 @@
                         padding: [dp(0),dp(0),dp(0),dp(10)]
                         size_hint: (1,.28)
                         MenuField:
-                            text: 'Station time: ' + app.System['Time']
+                            text: 'Station time: ' + app.CurrentConditions.System['Time']
                         MenuField:
                             text: 'Station elevation: ' + '{:.2f}'.format(float(app.config['Station']['Elevation'])) + ' m'
                         MenuField:
@@ -1281,7 +1281,7 @@
                                 SwitchButton:
                                     id: switchButton
                                     disabled: 1
-                                    text: 'Switch stations'
+                                    text: 'Fetching all available stations'
                                     on_release: root.switchStations()
                                     size_hint: (1, .5)
                                     pos_hint: {'center_y': 0.5}
