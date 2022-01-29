@@ -15,23 +15,31 @@ You should have received a copy of the GNU General Public License along with
 this program. If not, see <http://www.gnu.org/licenses/>.
 """
 
+# Import required library modules
+from lib import requestAPI
+
+# Import required panels
+from panels.update  import updateNotification
+
+# Import required Kivy modules
+from kivy.clock     import Clock
+from kivy.app       import App
+
 # Import required Python modules
-from datetime     import datetime
+from datetime       import datetime, timedelta
+from packaging      import version
 import time
 import pytz
 
 
-def realtimeClock(System, Config, *largs):
+def realtimeClock(dt):
 
-    """ Realtime clock in station timezone
-
-    INPUTS:
-        System                 Dictionary holding system information
-        Config                 Station configuration
-
-    OUTPUT:
-        System                 Dictionary holding system information
+    """ Format Realtime clock and date in station timezone
     """
+
+    # Extract app config and System dictionary
+    Config = App.get_running_app().config
+    System = App.get_running_app().CurrentConditions.System
 
     # Define time and date format based on user settings
     if 'Display' in Config:
@@ -58,6 +66,45 @@ def realtimeClock(System, Config, *largs):
             # Format realtime Clock
             System['Time'] = datetime.fromtimestamp(time.time(), Tz).strftime(TimeFormat)
             System['Date'] = datetime.fromtimestamp(time.time(), Tz).strftime(DateFormat)
+
+
+def checkVersion(dt):
+
+    """ Checks current version of the PiConsole against the latest available
+    version on Github
+    """
+
+    # Get current time in station time zone
+    config = App.get_running_app().config
+    Tz = pytz.timezone(config['Station']['Timezone'])
+    Now = datetime.now(pytz.utc).astimezone(Tz)
+
+    # Get version information from Github API
+    Data = requestAPI.github.version(config)
+
+    # Extract version number from API response
+    if requestAPI.github.verifyResponse(Data, 'tag_name'):
+        latest_ver = Data.json()['tag_name']
+    else:
+        Next = Tz.localize(datetime(Now.year, Now.month, Now.day) + timedelta(days=1))
+        Clock.schedule_once(checkVersion, (Next - Now).total_seconds())
+
+    # If current and latest version numbers do not match, open update
+    # notification
+    if version.parse(config['System']['Version']) < version.parse(latest_ver):
+
+        # Check if update notification is already open. Close if required
+        try:
+            App.get_running_app().updateNotification.dismiss()
+        except AttributeError:
+            pass
+
+        # Open update notification
+        updateNotification(latest_ver).open()
+
+    # Schedule next Version Check
+    Next = Tz.localize(datetime(Now.year, Now.month, Now.day) + timedelta(days=1))
+    Clock.schedule_once(checkVersion, (Next - Now).total_seconds())
 
 
 def logTime():

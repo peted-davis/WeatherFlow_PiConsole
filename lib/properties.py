@@ -18,11 +18,7 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 
 def Obs():
 
-    """ Define the Obs Kivy properties values
-
-    OUTPUTS
-        Obs                Values for Obs Kivy property
-    """
+    """ Define the Obs property values """
 
     return {'outTemp': '--',       'FeelsLike': '----',     'DewPoint': '--',
             'outTempDiff': '---',  'outTempTrend': '---',   'outTempMax': '---',
@@ -42,11 +38,7 @@ def Obs():
 
 def Astro():
 
-    """ Define the Astro Kivy properties values
-
-    OUTPUTS
-        Astro                Values for Obs Kivy property
-    """
+    """ Define the Astro property values """
 
     return {'Sunrise': ['-', '-', 0], 'Sunset': ['-', '-', 0], 'Dawn': ['-', '-', 0],
             'Dusk': ['-', '-', 0],    'sunEvent': '----',      'sunIcon': ['-', 0, 0],
@@ -57,11 +49,7 @@ def Astro():
 
 def Met():
 
-    """ Define the Met Kivy properties values
-
-    OUTPUTS
-        Met                Values for Obs Kivy property
-    """
+    """ Define the Met property values """
 
     return {'Valid': '--',        'Temp': '--',         'highTemp': '--',
             'lowTemp': '--',      'WindSpd': '--',      'WindGust': '--',
@@ -73,22 +61,14 @@ def Met():
 
 def Sager():
 
-    """ Define the Sager Kivy properties values
-
-    OUTPUTS
-        Met                Values for Obs Kivy property
-    """
+    """ Define the Sager property values """
 
     return {'Forecast': '-', 'Issued': '-'}
 
 
 def Status():
 
-    """ Define the Status Kivy properties values
-
-    OUTPUTS
-        Met                Values for Obs Kivy property
-    """
+    """ Define the Status property values """
 
     return {'tempest_sample_time': '-', 'tempest_last_sample': ' ',  'tempest_voltage': '-',
             'tempest_status': '-',      'tempest_ob_count': '-',
@@ -101,3 +81,10 @@ def Status():
             'station_status': '-',
             'hub_firmware': '-'
             }
+
+
+def System():
+
+    """ Define the System property values """
+
+    return {'Time': '-', 'Date': '-'}

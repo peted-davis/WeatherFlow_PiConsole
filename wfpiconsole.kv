@@ -1065,7 +1065,7 @@
 ## =============================================================================
 ## UPDATE NOTIFICATION
 ## =============================================================================
-<updateNotif>:
+<updateNotification>:
     size_hint: (None, 76/480)
     pos_hint: {'x': app.CurrentConditions.ids.PanelSix.x/app.window.width, 'y': 2/app.window.height}
     width: app.CurrentConditions.ids.PanelSix.size[0]
@@ -1089,7 +1089,7 @@
             text_size: self.size
             halign: 'left'
         BoldField:
-            text: '[color=9aba2fff]' + app.Version['Latest'] + '[/color]'
+            text: '[color=9aba2fff]' + root.latest_ver + '[/color]'
             pos_hint: {'x': 0.5, 'y': 0.30}
             size_hint: (0.3, 14/76)
         BoldField:

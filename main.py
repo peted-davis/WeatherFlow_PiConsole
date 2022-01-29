@@ -147,7 +147,6 @@ if Path('user/customPanels.py').is_file():
 # ==============================================================================
 # IMPORT REQUIRED SYSTEM MODULES
 # ==============================================================================
-from functools     import partial
 from runpy         import run_path
 import subprocess
 import threading
@@ -187,12 +186,6 @@ class wfpiconsole(App):
         self.setScaleFactor(self.window, self.window.width, self.window.height)
         self.window.bind(on_resize=self.setScaleFactor)
 
-        # Initialise realtime clock
-        # self.Sched.realtimeClock = Clock.schedule_interval(partial(system.realtimeClock, self.System, self.config), 1.0)
-
-        # Set Settings syle class
-        self.settings_cls = SettingsWithSidebar
-
         # Load Custom Panel KV file if present
         if Path('user/customPanels.py').is_file():
             Builder.load_file('user/customPanels.kv')
@@ -200,6 +193,20 @@ class wfpiconsole(App):
         # Initialise ScreenManager
         self.screenManager = screenManager(transition=NoTransition())
         self.screenManager.add_widget(CurrentConditions())
+
+        # Start Websocket service
+        self.startWebsocketService()
+
+        # Check for latest version
+        Clock.schedule_once(system.checkVersion)
+
+        # Set Settings syle class
+        self.settings_cls = SettingsWithSidebar
+
+        # Initialise realtime clock
+        self.Sched.realtimeClock = Clock.schedule_interval(system.realtimeClock, 1.0)
+
+        # Return ScreenManager
         return self.screenManager
 
     # SET DISPLAY SCALE FACTOR BASED ON SCREEN DIMENSIONS
@@ -376,7 +383,7 @@ class screenManager(ScreenManager):
 # ==============================================================================
 class CurrentConditions(Screen):
 
-    System = DictProperty({'Time': '-', 'Date': '-'})
+    System = DictProperty()
     Status = DictProperty()
     Sager  = DictProperty()
     Astro  = DictProperty()
@@ -387,20 +394,15 @@ class CurrentConditions(Screen):
         super(CurrentConditions, self).__init__(**kwargs)
         self.app = App.get_running_app()
         self.app.CurrentConditions = self
+        self.System = properties.System()
         self.Status = properties.Status()
         self.Sager  = properties.Sager()
         self.Astro  = properties.Astro()
         self.Met    = properties.Met()
-        self.Obs    =  properties.Obs()
+        self.Obs    = properties.Obs()
 
         # Add display panels
         self.addPanels()
-
-        # Start Websocket service
-        self.app.startWebsocketService()
-
-        # Initialise realtime clock
-        self.app.Sched.realtimeClock = Clock.schedule_interval(partial(system.realtimeClock, self.System, self.app.config), 1.0)
 
         # Schedule Station.getDeviceStatus to be called each second
         self.app.station = station()
