@@ -44,7 +44,7 @@ PIP_UPDATE="python3 -m pip install --user --upgrade"
 
 # wfpiconsole and Kivy dependencies
 WFPICONSOLE_DEPENDENCIES=(git curl rng-tools build-essential python3-dev python3-pip python3-setuptools
-                          libssl-dev libffi6 libffi-dev libatlas-base-dev jq)
+                          libssl-dev libffi-dev libatlas-base-dev jq)
 KIVY_DEPENDENCIES_ARM=(pkg-config libgl1-mesa-dev libgles2-mesa-dev libgstreamer1.0-dev
                        gstreamer1.0-plugins-{bad,base,good,ugly} gstreamer1.0-{omx,alsa}
                        libmtdev-dev xclip xsel libjpeg-dev libsdl2-dev libsdl2-image-dev
@@ -55,18 +55,13 @@ KIVY_DEPENDENCIES=(ffmpeg libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl
 
 # Python modules and versions
 KIVY_VERSION="2.0.0"
-PYTHON_MODULES=(cython==0.29.24
-                cryptography==35.0.0
-                autobahn[twisted]==21.3.1
-                pyasn1-modules==0.2.8
-                service-identity==21.1.0
-                numpy==1.21.4
+PYTHON_MODULES=(cython==0.29.26
+                websockets==10.1
+                numpy==1.22.0
                 pytz==2021.3
-                ephem==4.1
-                pillow==8.4.0
-                packaging==21.2
-                pyOpenSSL==21.0.0
-                distro==1.6.0)
+                ephem==4.1.3
+                packaging==21.3
+                pyOpenSSL==21.0.0)
 
 # Github repositories
 KIVY_REPO="https://github.com/kivy/kivy/archive/"$KIVY_VERSION".zip"
@@ -449,7 +444,7 @@ getLatestVersion() {
                 printf "%b  %b %b\\n" "${OVER}" "${TICK}" "${str}"
             else
               printf "%b  %b %b\\n" "${OVER}" "${CROSS}" "${str}"
-              printf "  %bError: Unable to update the WeatherFlow PiConsole\\n\\n %b" "${COL_LIGHT_RED}" "${COL_NC}"
+              printf "  %bError: Unable to update WeatherFlow PiConsole\\n\\n %b" "${COL_LIGHT_RED}" "${COL_NC}"
               printf "%s\\n\\n" "$(<errorLog)"
               cleanUp
               exit 1
@@ -459,7 +454,7 @@ getLatestVersion() {
     # Else, the WeatherFlow PiConsole is not installed so get the latest stable
     # version and install
     else
-        local str="Installing the latest version of WeatherFlow PiConsole: ${COL_LIGHT_GREEN}${latestVer}${COL_NC}"
+        local str="Installing latest version of WeatherFlow PiConsole: ${COL_LIGHT_GREEN}${latestVer}${COL_NC}"
         printf "\\n  %b %b..." "${INFO}" "${str}"
         if (isRepo ${CONSOLEDIR} &> errorLog); then
             if (updateRepoLatestTag ${CONSOLEDIR} &> errorLog); then status=1; fi
@@ -470,7 +465,7 @@ getLatestVersion() {
             printf "%b  %b %b\\n" "${OVER}" "${TICK}" "${str}"
         else
           printf "%b  %b %b\\n" "${OVER}" "${CROSS}" "${str}"
-          printf "  %bError: Unable to install the WeatherFlow PiConsole\\n\\n %b" "${COL_LIGHT_RED}" "${COL_NC}"
+          printf "  %bError: Unable to install WeatherFlow PiConsole\\n\\n %b" "${COL_LIGHT_RED}" "${COL_NC}"
           printf "%s\\n\\n" "$(<errorLog)"
           cleanUp
           exit 1
@@ -499,9 +494,9 @@ getLatestPatch() {
     patchInfo=$(curl -s $WFPICONSOLE_TAGS -H 'Accept: application/vnd.github.v3+json')
     patchVer=$(echo $patchInfo | jq -r '.[0].name')
 
-    # Fetch the latest stable patch for the WeatherFlow PiConsole from Github
+    # Fetch the latest stable commit for the WeatherFlow PiConsole from Github
     local status=0
-    local str="Patching the WeatherFlow PiConsole"
+    local str="Patching WeatherFlow PiConsole to latest stable commit"
     printf "  %b %b..." "${INFO}" "${str}"
     if (isRepo ${CONSOLEDIR}); then
         if (updateRepoLatestCommit ${CONSOLEDIR}); then status=1; fi
@@ -510,7 +505,7 @@ getLatestPatch() {
         printf "%b  %b %b\\n" "${OVER}" "${TICK}" "${str}"
     else
         printf "%b  %b %b\\n" "${OVER}" "${CROSS}" "${str}"
-        printf "  %bError: Unable to patch the WeatherFlow PiConsole\\n\\n %b" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "  %bError: Unable to patch WeatherFlow PiConsole\\n\\n %b" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "%s\\n\\n" "$(<errorLog)"
         cleanUp
         exit 1
@@ -530,7 +525,7 @@ getLatestBeta() {
 
     # Fetch the latest beta version of the WeatherFlow PiConsole from Github
     local status=0
-    local str="Installing the latest beta version of WeatherFlow PiConsole"
+    local str="Installing latest beta version of WeatherFlow PiConsole"
     printf "  %b %b..." "${INFO}" "${str}"
     if (isRepo ${CONSOLEDIR}); then
         if (updateRepoLatestBeta ${CONSOLEDIR}); then status=1; fi
@@ -539,7 +534,7 @@ getLatestBeta() {
         printf "%b  %b %b\\n" "${OVER}" "${TICK}" "${str}"
     else
         printf "%b  %b %b\\n" "${OVER}" "${CROSS}" "${str}"
-        printf "  %bError: Unable to install the latest beta version of WeatherFlow PiConsole\\n\\n %b" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "  %bError: Unable to install latest beta version of WeatherFlow PiConsole\\n\\n %b" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "%s\\n\\n" "$(<errorLog)"
         cleanUp
         exit 1
@@ -583,7 +578,7 @@ installServiceFile () {
 enableService () {
 
     # Enable wfpiconsole.service file
-    local str="Enabling the WeatherFlow PiConsole service file"
+    local str="Enabling WeatherFlow PiConsole service file"
     printf "  %b %s..." "${INFO}" "${str}"
     rm -f wfpiconsole.log
     if (sudo systemctl enable wfpiconsole &> errorLog); then
@@ -591,14 +586,14 @@ enableService () {
             printf "%b  %b %s\\n\\n" "${OVER}" "${TICK}" "${str}"
         else
             printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
-            printf "  %bError: Unable to enable the WeatherFlow PiConsole service file\\n\\n %b" "${COL_LIGHT_RED}" "${COL_NC}"
+            printf "  %bError: Unable to enable WeatherFlow PiConsole service file\\n\\n %b" "${COL_LIGHT_RED}" "${COL_NC}"
             printf "%s\\n\\n" "$(<errorLog)"
             cleanUp
             exit 1
         fi
     else
         printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
-        printf "  %bError: Unable to enable the WeatherFlow PiConsole service file\\n\\n %b" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "  %bError: Unable to enable WeatherFlow PiConsole service file\\n\\n %b" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "%s\\n\\n" "$(<errorLog)"
         cleanUp
         exit 1
@@ -610,13 +605,13 @@ enableService () {
 disableService () {
 
     # Disable the wfpiconsole service
-    local str="Disabling the WeatherFlow PiConsole service file"
+    local str="Disabling WeatherFlow PiConsole service file"
     printf "  %b %s..." "${INFO}" "${str}"
     if (sudo systemctl disable wfpiconsole.service &> errorLog); then
         printf "%b  %b %s\\n\\n" "${OVER}" "${TICK}" "${str}"
     else
         printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
-        printf "  %bError: Unable to disable the WeatherFlow PiConsole service file\\n\\n %b" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "  %bError: Unable to disable WeatherFlow PiConsole service file\\n\\n %b" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "%s\\n\\n" "$(<errorLog)"
         cleanUp
         exit 1
@@ -636,7 +631,7 @@ isRepo() {
     return "${rc:-0}"
 }
 
-# CREATE NEW GIT REPOSITORY (MASTER BRANCH) AT LATEST TAG
+# CREATE NEW GIT REPOSITORY (MAIN BRANCH) AT LATEST TAG
 # ------------------------------------------------------------------------------
 createRepo() {
 
@@ -653,10 +648,10 @@ createRepo() {
         git clone ${repository} ${directory} &> errorLog || return $?
     fi
 
-    # Checkout the master branch if required and reset code to latest tag
+    # Checkout the main branch if required and reset code to latest tag
     local curBranch=$(git rev-parse --abbrev-ref HEAD)
-    if [[ "${curBranch}" != "master" ]]; then
-        git -C ${directory} checkout master &> errorLog || return $?
+    if [[ "${curBranch}" != "main" ]]; then
+        git -C ${directory} checkout main &> errorLog || return $?
     fi
     git -C ${directory} reset --hard "$(git -C ${directory} describe --abbrev=0 --tags)" &> errorLog || return $?
 }
@@ -671,10 +666,10 @@ updateRepoLatestTag() {
     git -C ${directory} clean --force -d &> errorLog || true
     git -C ${directory} pull &> errorLog || return $?
 
-    # Checkout the master branch if required and reset code to latest tag
+    # Checkout the main branch if required and reset code to latest tag
     local curBranch=$(git -C ${directory} rev-parse --abbrev-ref HEAD)
-    if [[ "${curBranch}" != "master" ]]; then
-      git -C ${directory} checkout master &> errorLog || return $?
+    if [[ "${curBranch}" != "main" ]]; then
+      git -C ${directory} checkout main &> errorLog || return $?
     fi
     git -C ${directory} reset --hard "$(git -C ${directory} describe --abbrev=0 --tags)" &> errorLog || return $?
 }
@@ -689,10 +684,10 @@ updateRepoLatestCommit() {
     git -C ${directory} clean --force -d &> errorLog || true
     git -C ${directory} pull &> errorLog || return $?
 
-    # Checkout the master branch if required
+    # Checkout the main branch if required
     local curBranch=$(git -C ${directory} rev-parse --abbrev-ref HEAD)
-    if [[ "${curBranch}" != "master" ]]; then
-        git -C ${directory} checkout master &> errorLog || return $?
+    if [[ "${curBranch}" != "main" ]]; then
+        git -C ${directory} checkout main &> errorLog || return $?
     fi
 }
 
@@ -706,7 +701,7 @@ updateRepoLatestBeta() {
     git -C ${directory} clean --force -d &> errorLog || true
     git -C ${directory} pull &> errorLog || return $?
 
-    # Checkout the master branch if required
+    # Checkout the develop branch if required
     local curBranch=$(git -C ${directory} rev-parse --abbrev-ref HEAD)
     if [[ "${curBranch}" != "develop" ]]; then
         git -C ${directory} checkout develop &> errorLog || return $?
@@ -867,7 +862,7 @@ install() {
 # ------------------------------------------------------------------------------
 update() {
 
-    # Fetch the latest update code directly from the master Github branch. This
+    # Fetch the latest update code directly from the main Github branch. This
     # ensures that changes in dependencies are addressed during this update
     curl -sSL $WFPICONSOLE_MAIN_UPDATE | bash -s runUpdate
 }
