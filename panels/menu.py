@@ -329,23 +329,32 @@ class mainMenu(ModalView):
     # -------------------------------------------------------------------------
     def set_switch_button(self):
         newStation = self.ids.stationList.text != self.app.config['Station']['Name']
-        newDevice = ((self.ids.tempestDropdown.selected and (not self.app.config['Station']['TempestID'] or self.app.config['Station']['TempestID'] not in self.ids.tempestDropdown.text))
-                     or (self.ids.skyDropdown.selected     and (not self.app.config['Station']['SkyID']     or self.app.config['Station']['SkyID']     not in self.ids.skyDropdown.text))
-                     or (self.ids.outAirDropdown.selected  and (not self.app.config['Station']['OutAirID']  or self.app.config['Station']['OutAirID']  not in self.ids.outAirDropdown.text))
-                     or (self.ids.inAirDropdown.selected   and (not self.app.config['Station']['InAirID']   or self.app.config['Station']['InAirID']   not in self.ids.inAirDropdown.text)))
-        deviceSelected = (self.ids.tempestDropdown.selected
-                          or self.ids.skyDropdown.selected
-                          or self.ids.outAirDropdown.selected
-                          or self.ids.inAirDropdown.selected)
+        newDevice = True if ((self.ids.tempestDropdown.selected
+                             and (not self.app.config['Station']['TempestID'] or self.app.config['Station']['TempestID'] not in self.ids.tempestDropdown.text))
+                             or (self.ids.skyDropdown.selected
+                             and (not self.app.config['Station']['SkyID']     or self.app.config['Station']['SkyID']     not in self.ids.skyDropdown.text))
+                             or (self.ids.outAirDropdown.selected
+                             and (not self.app.config['Station']['OutAirID']  or self.app.config['Station']['OutAirID']  not in self.ids.outAirDropdown.text))
+                             or (self.ids.inAirDropdown.selected
+                             and (not self.app.config['Station']['InAirID']   or self.app.config['Station']['InAirID']   not in self.ids.inAirDropdown.text))) else False
+        removeDevice = True if ((not self.ids.tempestDropdown.selected   and self.app.config['Station']['TempestID'])
+                                or (not self.ids.skyDropdown.selected    and self.app.config['Station']['SkyID'])
+                                or (not self.ids.outAirDropdown.selected and self.app.config['Station']['OutAirID'])
+                                or (not self.ids.inAirDropdown.selected  and self.app.config['Station']['InAirID'])) else False
+        deviceSelected = True if (self.ids.tempestDropdown.selected
+                                  or self.ids.skyDropdown.selected
+                                  or self.ids.outAirDropdown.selected
+                                  or self.ids.inAirDropdown.selected) else False
         if newStation:
             if newDevice:
                 self.ids.switchButton.disabled = 0
-                self.ids.switchButton.text = 'Switch station'
+                self.ids.switchButton.text = 'Continue'
             else:
+                self.ids.switchButton.disabled = 1
                 self.ids.switchButton.text = 'Please select devices'
-        elif newDevice:
+        elif newDevice or removeDevice:
             self.ids.switchButton.disabled = 0
-            self.ids.switchButton.text = 'Switch devices'
+            self.ids.switchButton.text = 'Continue'
         else:
             if deviceSelected:
                 self.ids.switchButton.disabled = 1

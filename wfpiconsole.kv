@@ -1277,14 +1277,17 @@
                                         values: root.inAirList
                                         on_text: if self.text not in ['Please select', 'Tempest selected', 'No device available']: root.on_device_selection(self)
                             BoxLayout:
-                                orientation: 'horizontal'
+                                orientation: 'vertical'
+                                Label:
+                                    text: 'Switch Station/Device'
+                                    font_size: dp(14*app.scaleFactor)
+                                    font_name: 'fonts/Inter-Bold.ttf'
+                                    color: utils.rgba('#c8c8c8ff')
                                 SwitchButton:
                                     id: switchButton
                                     disabled: 1
                                     text: 'Fetching all available stations'
                                     on_release: root.switchStations()
-                                    size_hint: (1, .5)
-                                    pos_hint: {'center_y': 0.5}
             MainMenuTab:
                 text: 'Credits'
                 MainMenuLayout:
