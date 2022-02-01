@@ -15,11 +15,14 @@ You should have received a copy of the GNU General Public License along with
 this program. If not, see <http://www.gnu.org/licenses/>.
 """
 
-# Import required Python modules
+# Import required Kivy modules
 from kivy.network.urlrequest import UrlRequest
+from kivy.uix.boxlayout      import BoxLayout
 from kivy.uix.widget         import Widget
-from datetime                import datetime
 from kivy.app                import App
+
+# Import required Python modules
+from datetime                import datetime
 import certifi
 import time
 import math
@@ -39,6 +42,14 @@ class station(Widget):
         super().__init__(**kwargs)
         self.app = App.get_running_app()
         self.data = self.app.CurrentConditions.Status
+        self.set_status_panels()
+
+    def set_status_panels(self):
+
+        self.tempest_status_panel = tempest_status()
+        self.sky_status_panel     = sky_status()
+        self.out_air_status_panel = out_air_status()
+        self.in_air_status_panel  = in_air_status()
 
     def get_hub_firmware(self):
 
@@ -263,3 +274,23 @@ class station(Widget):
             self.data['station_status'] = 'Online'
         else:
             self.data['station_status'] = 'Error'
+
+# =============================================================================
+# [device]_status STATUS PANEL CLASSES
+# =============================================================================
+
+
+class tempest_status(BoxLayout):
+    pass
+
+
+class sky_status(BoxLayout):
+    pass
+
+
+class out_air_status(BoxLayout):
+    pass
+
+
+class in_air_status(BoxLayout):
+    pass

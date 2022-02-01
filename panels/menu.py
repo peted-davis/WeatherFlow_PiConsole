@@ -20,7 +20,6 @@ from lib                    import config
 # Load required Kivy modules
 from kivy.network.urlrequest import UrlRequest
 from kivy.uix.modalview      import ModalView
-from kivy.uix.boxlayout      import BoxLayout
 from kivy.properties         import ListProperty, DictProperty
 from kivy.clock              import Clock
 from kivy.app                import App
@@ -48,11 +47,15 @@ class mainMenu(ModalView):
         super().__init__(**kwargs)
         self.app = App.get_running_app()
         self.app.mainMenu = self
-        self.add_status_panels()
-        self.get_station_list()
 
-    # Display device status panels based on devices connected to station
-    def add_status_panels(self):
+    def on_pre_open(self):
+
+        """ Get list of stations associated with WeatherFlow Key and add
+            required device status panels to devicePanel BoxLayout
+        """
+
+        # Get list of stations associated with WeatherFlow Key
+        self.get_station_list()
 
         # Populate status fields
         self.app.station.get_observation_count()
@@ -60,15 +63,24 @@ class mainMenu(ModalView):
 
         # Add device status panels to main menu as required
         if self.app.config['Station']['TempestID']:
-            self.ids.devicePanel.add_widget(tempest_status())
+            self.ids.devicePanel.add_widget(self.app.station.tempest_status_panel)
         if self.app.config['Station']['SkyID']:
-            self.ids.devicePanel.add_widget(sky_status())
+            self.ids.devicePanel.add_widget(self.app.station.sky_status_panel)
         if self.app.config['Station']['OutAirID']:
-            self.ids.devicePanel.add_widget(out_air_status())
+            self.ids.devicePanel.add_widget(self.app.station.out_air_status_panel)
         if self.app.config['Station']['InAirID']:
-            self.ids.devicePanel.add_widget(in_air_status())
+            self.ids.devicePanel.add_widget(self.app.station.in_air_status_panel)
 
-    # Fetch list of stations associated with WeatherFlow key
+    def on_dismiss(self):
+
+        """ Remove all device status panels from devicePanel Box Layout
+        """
+
+        # Remove all device status panels
+        for child in self.ids.devicePanel.children:
+            self.ids.devicePanel.remove_widget(child)
+
+    # Get list of stations associated with WeatherFlow key
     def get_station_list(self):
         URL = 'https://swd.weatherflow.com/swd/rest/stations?token={}'
         URL = URL.format(self.app.config['Keys']['WeatherFlow'])
@@ -391,19 +403,3 @@ class mainMenu(ModalView):
         global REBOOT
         REBOOT = 1
         App.get_running_app().stop()
-
-
-class tempest_status(BoxLayout):
-    pass
-
-
-class sky_status(BoxLayout):
-    pass
-
-
-class out_air_status(BoxLayout):
-    pass
-
-
-class in_air_status(BoxLayout):
-    pass
