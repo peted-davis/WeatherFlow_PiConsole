@@ -1126,31 +1126,9 @@
                 MainMenuLayout:
                     id: statusPanel
                     BoxLayout:
+                        id: stationPanel
                         orientation: 'vertical'
-                        padding: [dp(0),dp(0),dp(0),dp(10)]
-                        size_hint: (1,.22)
-                        MenuField:
-                            font_size: dp(16*app.scaleFactor)
-                            text: app.config['Station']['Name']
-                        MenuField:
-                            _color: '#9aba2fff' if app.CurrentConditions.Status['station_status'] == 'Online' else '#c8c8c8ff' if app.CurrentConditions.Status['station_status'] == '-' else '#d73027ff'
-                            text: 'Station status: [color=' + self._color + ']' + app.CurrentConditions.Status['station_status'] + '[/color]'
-                    GridLayout:
-                        cols: 2
-                        padding: [dp(0),dp(0),dp(0),dp(10)]
-                        size_hint: (1,.28)
-                        MenuField:
-                            text: 'Station time: ' + app.CurrentConditions.System['Time']
-                        MenuField:
-                            text: 'Station elevation: ' + '{:.2f}'.format(float(app.config['Station']['Elevation'])) + ' m'
-                        MenuField:
-                            text: 'Station latitude: ' + '{:.4f}'.format(float(app.config['Station']['Latitude'])) + '\u00B0'
-                        MenuField:
-                            text: 'Station Longitude: ' + '{:.4f}'.format(float(app.config['Station']['Longitude'])) + '\u00B0'
-                        MenuField:
-                            text: 'Hub firmware: ' + app.CurrentConditions.Status['hub_firmware']
-                        MenuField:
-                            text: 'Console version: [color=00a4b4ff]' + app.config['System']['Version'] + '[/color]'
+                        size_hint: (1,.5)
                     BoxLayout:
                         orientation: 'horizontal'
                         size_hint: (1,.1)

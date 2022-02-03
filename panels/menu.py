@@ -15,14 +15,15 @@ You should have received a copy of the GNU General Public License along with
 this program. If not, see <http://www.gnu.org/licenses/>.
 """
 
-from lib                    import config
+# Load required library modules
+from lib                      import config
 
 # Load required Kivy modules
-from kivy.network.urlrequest import UrlRequest
-from kivy.uix.modalview      import ModalView
-from kivy.properties         import ListProperty, DictProperty
-from kivy.clock              import Clock
-from kivy.app                import App
+from kivy.network.urlrequest  import UrlRequest
+from kivy.uix.modalview       import ModalView
+from kivy.properties          import ListProperty, DictProperty
+from kivy.clock               import Clock
+from kivy.app                 import App
 
 # Load required system modules
 import certifi
@@ -61,7 +62,8 @@ class mainMenu(ModalView):
         self.app.station.get_observation_count()
         self.app.station.get_hub_firmware()
 
-        # Add device status panels to main menu as required
+        # Add station and device status panels to main menu
+        self.ids.stationPanel.add_widget(self.app.station.station_status_panel)
         if self.app.config['Station']['TempestID']:
             self.ids.devicePanel.add_widget(self.app.station.tempest_status_panel)
         if self.app.config['Station']['SkyID']:
@@ -76,12 +78,14 @@ class mainMenu(ModalView):
         """ Remove all device status panels from devicePanel Box Layout
         """
 
-        # Remove all device status panels
-        for child in self.ids.devicePanel.children:
-            self.ids.devicePanel.remove_widget(child)
+        self.ids.stationPanel.clear_widgets()
+        self.ids.devicePanel.clear_widgets()
 
-    # Get list of stations associated with WeatherFlow key
     def get_station_list(self):
+
+        """ Get list of all stations associated with WeatherFlow key
+        """
+
         URL = 'https://swd.weatherflow.com/swd/rest/stations?token={}'
         URL = URL.format(self.app.config['Keys']['WeatherFlow'])
         UrlRequest(URL,
@@ -91,8 +95,11 @@ class mainMenu(ModalView):
                    ca_file=certifi.where()
                    )
 
-    # Parse list of stations associated with WeatherFlow key
     def parse_station_list(self, Request, Response):
+
+        """ Parse list of all stations associated with WeatherFlow key
+        """
+
         if 'status' in Response:
             if 'SUCCESS' in Response['status']['status_message']:
                 self.stationDetails = {}
@@ -101,28 +108,32 @@ class mainMenu(ModalView):
                 self.stationList = list(self.stationDetails.keys())
                 self.ids.stationList.text = self.app.config['Station']['Name']
 
-    # FALIED TO FETCH LIST OF STATIONS
-    # -------------------------------------------------------------------------
     def fail_station_list(self, Request, Response):
+
+        """ Failed to fetch list of all stations associated with WeatherFlow key
+        """
+
         if isinstance(Response, socket.gaierror):
             self.ids.switchButton.text = 'Host name error. Please try again'
         else:
             self.ids.switchButton.text = f'Error {Request.resp_status}. Please try again'
 
-    # GET DEVICES ASSOCIATED WITH SELECTED STATION
-    # -------------------------------------------------------------------------
     def get_station_devices(self):
 
+        """ Get list of all devices associated with currently selected station.
+            Initialise device selection lists based on the number and type of
+            devices associated with station
+        """
+
         # Define required variables
-        # self.ids.continueButton.text = 'Fetching Station information'
         self.stationMetaData = {}
-        self.deviceMetaData = {}
-        self.deviceList = {}
-        self.tempestList = []
-        self.skyList = []
-        self.outAirList = []
-        self.inAirList = []
-        self.retries = 0
+        self.deviceMetaData  = {}
+        self.deviceList      = {}
+        self.tempestList     = []
+        self.skyList         = []
+        self.outAirList      = []
+        self.inAirList       = []
+        self.retries         = 0
 
         # Fetch all devices associated with Station
         if self.stationDetails:
@@ -254,9 +265,12 @@ class mainMenu(ModalView):
             self.ids.inAirDropdown.text = 'No device available'
             self.ids.inAirDropdown.disabled = 1
 
-    # SET BEHAVIOUR OF DEVICE SELECTION LISTS AS USER SELECTS THEIR DEVICES
-    # --------------------------------------------------------------------------
     def on_device_selection(self, instance):
+
+        """ Set the behaviour of the device selection lists as the user selects
+            different combinations of devices
+        """
+
         instance_id = list(self.ids.keys())[list(self.ids.values()).index(instance)]
         if instance.text == 'Clear':
             getattr(self.ids, instance_id).text = 'Please select'
@@ -289,9 +303,11 @@ class mainMenu(ModalView):
         if self.ids.switchButton.text != 'Fetching Station information':
             self.set_switch_button()
 
-    # GET METADATA ASSOCIATED WITH SELECTED STATION
-    # -------------------------------------------------------------------------
     def get_station_metadata(self):
+
+        """ Get the metadata associated with the selected station
+        """
+
         self.ids.switchButton.text = 'Fetching Station information'
         self.ids.switchButton.disabled = 1
         if hasattr(self, 'pendingRequest'):
@@ -308,11 +324,11 @@ class mainMenu(ModalView):
                                             on_error=self.fail_station_metadata,
                                             ca_file=certifi.where())
 
-    # PARSE METADATA ASSOCIATED WITH SELECTED STATION
-    # -------------------------------------------------------------------------
     def parse_station_metadata(self, Request, Response):
 
-        # Parse Station metadata received from API request
+        """ Parse the metadata associated with the selected station
+        """
+
         self.retries += 1
         if 'status' in Response:
             if 'SUCCESS' in Response['status']['status_message']:
@@ -327,9 +343,11 @@ class mainMenu(ModalView):
                 return
         self.set_switch_button()
 
-    # FAILED TO GET METADATA ASSOCIATED WITH SELECTED STATION
-    # -------------------------------------------------------------------------
     def fail_station_metadata(self, Request, Response):
+
+        """ Failed to fetch the metadata associated with the selected station
+        """
+
         self.retries += 1
         if self.retries <= 3:
             self.ids.switchButton.text = 'Bad response. Retrying...'
@@ -337,9 +355,12 @@ class mainMenu(ModalView):
         else:
             self.ids.switchButton.text = 'Failed to fetch Station information'
 
-    # SET TEXT OF continueButton BASED ON STATUS OF DEVICE SELECTION LISTS
-    # -------------------------------------------------------------------------
     def set_switch_button(self):
+
+        """ Set the text of the 'switchButton' based on the status of the
+            device selection lists
+        """
+
         newStation = self.ids.stationList.text != self.app.config['Station']['Name']
         newDevice = True if ((self.ids.tempestDropdown.selected
                              and (not self.app.config['Station']['TempestID'] or self.app.config['Station']['TempestID'] not in self.ids.tempestDropdown.text))
@@ -375,9 +396,11 @@ class mainMenu(ModalView):
                 self.ids.switchButton.disabled = 1
                 self.ids.switchButton.text = 'Please select devices'
 
-    # SWITCH STATIONS/DEVICES FOR WEBSOCKET CONNECTION
-    # -------------------------------------------------------------------------
     def switchStations(self):
+
+        """ Switch Stations/Devices for the Websocket connection
+        """
+
         self.dismiss(animation=False)
         current_station = int(self.app.config['Station']['StationID'])
         config.switch(self.stationMetaData,
@@ -390,16 +413,20 @@ class mainMenu(ModalView):
             self.app.astro.reset_astro()
             self.app.sager.reset_forecast()
 
-    # EXIT CONSOLE AND SHUTDOWN SYSTEM
-    # -------------------------------------------------------------------------
     def shutdownSystem(self):
+
+        """ Exit console and shutdown system
+        """
+
         global SHUTDOWN
         SHUTDOWN = 1
         App.get_running_app().stop()
 
-    # EXIT CONSOLE AND REBOOT SYSTEM
-    # -------------------------------------------------------------------------
     def rebootSystem(self):
+
+        """ Reboot console and shutdown system
+        """
+
         global REBOOT
         REBOOT = 1
         App.get_running_app().stop()

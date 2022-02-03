@@ -46,6 +46,7 @@ class station(Widget):
 
     def set_status_panels(self):
 
+        self.station_status_panel = station_status()
         self.tempest_status_panel = tempest_status()
         self.sky_status_panel     = sky_status()
         self.out_air_status_panel = out_air_status()
@@ -275,11 +276,17 @@ class station(Widget):
         else:
             self.data['station_status'] = 'Error'
 
+
+# =============================================================================
+# station_status STATUS PANEL CLASS
+# =============================================================================
+class station_status(BoxLayout):
+    pass
+
+
 # =============================================================================
 # [device]_status STATUS PANEL CLASSES
 # =============================================================================
-
-
 class tempest_status(BoxLayout):
     pass
 

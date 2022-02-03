@@ -45,7 +45,7 @@ class websocketClient():
         # Load configuration file
         self.config = self.app.config
 
-        # Initial websocketClient class variables
+        # Initialise websocketClient class variables
         self._keep_running  = True
         self._switch_device = False
         self.reply_timeout  = 60
