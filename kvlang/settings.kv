@@ -1,3 +1,23 @@
+## WeatherFlow PiConsole: Raspberry Pi Python console for WeatherFlow Tempest
+## and Smart Home Weather stations.
+## Copyright (C) 2018-2022 Peter Davis
+
+## This program is free software: you can redistribute it and/or modify it under
+## the terms of the GNU General Public License as published by the Free Software
+## Foundation, either version 3 of the License, or (at your option) any later
+## version.
+
+## This program is distributed in the hope that it will be useful, but WITHOUT
+## ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+## FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+## details.
+
+## You should have received a copy of the GNU General Public License along with
+## this program. If not, see <http://www.gnu.org/licenses/>.
+
+## =============================================================================
+## CUSTOM MenuSidebar
+## =============================================================================
 <-MenuSidebar>:
     size_hint_x: None
     width: min(dp(200*app.scaleFactor), dp(350))
@@ -25,6 +45,9 @@
         pos: root.x + dp(10*app.scaleFactor), root.y + dp(10)
         font_size: sp(15*app.scaleFactor)
 
+## =============================================================================
+## CUSTOM SettingItem
+## =============================================================================
 <-SettingItem>:
     size_hint: .25, None
     height: labellayout.texture_size[1] + dp(10)
@@ -56,6 +79,9 @@
             id: content
             size_hint_x: .33
 
+## =============================================================================
+## CUSTOM SettingsPanel
+## =============================================================================
 <-SettingsPanel>:
     spacing: 5
     padding: 5
@@ -77,6 +103,9 @@
                 pos: self.x, self.y - 2
                 size: self.width, 1
 
+## =============================================================================
+## CUSTOM SettingSidebarLabel
+## =============================================================================
 <SettingSidebarLabel>:
     size_hint: 1, None
     text_size: self.width - 32, None
@@ -89,12 +118,18 @@
             pos: self.pos
             size: self.size
 
+## =============================================================================
+## CUSTOM SettingString
+## =============================================================================
 <SettingString>:
     Label:
         text: root.value or ''
         pos: root.pos
         font_size: sp(15*app.scaleFactor)
 
+## =============================================================================
+## CUSTOM SettingBoolean
+## =============================================================================
 <SettingBoolean>:
     Switch:
         text: 'Boolean'
@@ -102,12 +137,18 @@
         active: bool(root.values.index(root.value)) if root.value in root.values else False
         on_active: root.value = root.values[int(args[1])]
 
+## =============================================================================
+## CUSTOM SettingOptions
+## =============================================================================
 <SettingOptions>:
     Label:
         text: root.value or ''
         pos: root.pos
         font_size: sp(15*app.scaleFactor)
 
+## =============================================================================
+## CUSTOM SettingPath
+## =============================================================================
 <SettingPath>:
     Label:
         text: root.value or ''
