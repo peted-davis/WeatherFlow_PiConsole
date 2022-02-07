@@ -741,7 +741,7 @@
                     keep_ratio: 0
                     allow_stretch: 1
                     source: 'icons/misc/rainIntensity' + app.scaleSuffix
-                    pos_hint: {'x': root.rainRatePosX, 'y': root.rainRatePosY}
+                    pos_hint: {'x': root.rain_rate_x, 'y': root.rain_rate_y}
 
     ## Current rain rate and text
     SmallField:
@@ -1257,7 +1257,7 @@
                             BoxLayout:
                                 orientation: 'vertical'
                                 Label:
-                                    text: 'Switch Station & Devices'
+                                    text: 'Switch Station/Device'
                                     font_size: dp(14*app.scaleFactor)
                                     font_name: 'fonts/Inter-Bold.ttf'
                                     color: utils.rgba('#c8c8c8ff')

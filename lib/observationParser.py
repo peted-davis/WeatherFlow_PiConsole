@@ -629,7 +629,7 @@ class obsParser():
                         panel.setUVBackground()
                 if hasattr(self.app, 'RainfallPanel'):
                     for panel in getattr(self.app, 'RainfallPanel'):
-                        panel.animateRainRate()
+                        panel.animate_rain_rate()
                 if hasattr(self.app, 'TemperaturePanel'):
                     for panel in getattr(self.app, 'TemperaturePanel'):
                         panel.setFeelsLikeIcon()

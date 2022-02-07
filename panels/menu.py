@@ -403,9 +403,7 @@ class mainMenu(ModalView):
 
         self.dismiss(animation=False)
         current_station = int(self.app.config['Station']['StationID'])
-        config.switch(self.stationMetaData,
-                      self.deviceList,
-                      self.app.config)
+        config.switch(self.stationMetaData, self.deviceList, self.app.config)
         self.app.obsParser.resetDisplay()
         self.app.websocket_client._switch_device = True
         if current_station != self.stationMetaData['station_id']:

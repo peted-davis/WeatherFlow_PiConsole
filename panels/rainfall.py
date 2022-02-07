@@ -34,51 +34,60 @@ import math
 class RainfallPanel(panelTemplate):
 
     # Define RainfallPanel class properties
-    rainRatePosX  = NumericProperty(+0)
-    rainRatePosY  = NumericProperty(-1)
+    rain_rate_x  = NumericProperty(+0)
+    rain_rate_y  = NumericProperty(-1)
 
     # Initialise RainfallPanel
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.animateRainRate()
+        self.animate_rain_rate()
 
     # Animate RainRate level
-    def animateRainRate(self):
+    def animate_rain_rate(self):
 
-        # Get current rain rate and convert to float
+        # If available, get current rain rate and convert to float
         if App.get_running_app().CurrentConditions.Obs['RainRate'][0] != '-':
-            RainRate = float(App.get_running_app().CurrentConditions.Obs['RainRate'][3])
+
+            # Get current rain rate and convert to float
+            rain_rate = float(App.get_running_app().CurrentConditions.Obs['RainRate'][3])
 
             # Set RainRate level y position
             y0 = -1.00
             yt = 0
             t = 50
-            if RainRate == 0:
-                self.rainRatePosY = y0
-            elif RainRate < 50.0:
-                A = (yt - y0) / t**0.5 * RainRate**0.5 + y0
-                B = (yt - y0) / t**0.3 * RainRate**0.3 + y0
-                C = (1 + math.tanh(RainRate - 3)) / 2
-                self.rainRatePosY = (A + C * (B - A))
+            if rain_rate == 0:
+                self.rain_rate_y = y0
+            elif rain_rate < 50.0:
+                A = (yt - y0) / t**0.5 * rain_rate**0.5 + y0
+                B = (yt - y0) / t**0.3 * rain_rate**0.3 + y0
+                C = (1 + math.tanh(rain_rate - 3)) / 2
+                self.rain_rate_y = (A + C * (B - A))
             else:
-                self.rainRatePosY = yt
+                self.rain_rate_y = yt
 
             # Animate RainRate level x position
-            if RainRate == 0:
-                if hasattr(self, 'Anim'):
-                    self.Anim.stop(self)
-                    delattr(self, 'Anim')
+            if rain_rate == 0:
+                if hasattr(self, 'animation'):
+                    self.animation.stop(self)
+                    delattr(self, 'animation')
             else:
-                if not hasattr(self, 'Anim'):
-                    self.Anim  = Animation(rainRatePosX=-0.875, duration=12)
-                    self.Anim += Animation(rainRatePosX=-0.875, duration=12)
-                    self.Anim.repeat = True
-                    self.Anim.start(self)
+                if not hasattr(self, 'animation'):
+                    self.animation  = Animation(rain_rate_x=-0.875, duration=12)
+                    self.animation += Animation(rain_rate_x=-0.875, duration=12)
+                    self.animation.repeat = True
+                    self.animation.start(self)
+
+        # Else, stop animation if it is running
+        else:
+            if hasattr(self, 'animation'):
+                self.rain_rate_y = -1.00
+                self.animation.stop(self)
+                delattr(self, 'animation')
 
     # Loop RainRate animation in the x direction
-    def on_rainRatePosX(self, item, rainRatePosX):
-        if round(rainRatePosX, 3) == -0.875:
-            item.rainRatePosX = 0
+    def on_rain_rate_x(self, item, rain_rate_x):
+        if round(rain_rate_x, 3) == -0.875:
+            item.rain_rate_x = 0
 
 
 class RainfallButton(RelativeLayout):
