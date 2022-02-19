@@ -26,6 +26,7 @@ from kivy.app    import App
 from datetime import datetime, timedelta, time
 import ephem
 import pytz
+import math
 
 
 class astro():
@@ -33,6 +34,14 @@ class astro():
     def __init__(self):
         self.app = App.get_running_app()
         self.data = self.app.CurrentConditions.Astro
+
+        # Define observer properties
+        self.observer          = ephem.Observer()
+        self.observer.lat      = str(self.app.config['Station']['Latitude'])
+        self.observer.lon      = str(self.app.config['Station']['Longitude'])
+
+        self.sun  = ephem.Sun()
+        self.moon = ephem.Moon()
 
     def reset_astro(self):
 
@@ -68,13 +77,12 @@ class astro():
             self.data           Dictionary holding sunrise and sunset data
         """
 
-        # Define Sunrise/Sunset observer properties to match the United States Naval
-        # Observatory Astronomical Almanac
+        # Get station timezone
         Tz = pytz.timezone(self.app.config['Station']['Timezone'])
-        Observer          = ephem.Observer()
-        Observer.pressure = 0
-        Observer.lat      = str(self.app.config['Station']['Latitude'])
-        Observer.lon      = str(self.app.config['Station']['Longitude'])
+
+        # Set pressure to 0 to match the United States Naval Observatory Astronomical
+        # Almanac
+        self.observer.pressure = 0
 
         # The code is initialising. Calculate sunset/sunrise times for current day
         # starting at midnight today in UTC
@@ -83,7 +91,7 @@ class astro():
             # Set Observer time to midnight today in UTC
             UTC = datetime.now(pytz.utc)
             Midnight = datetime(UTC.year, UTC.month, UTC.day, 0, 0, 0)
-            Observer.date = Midnight.strftime('%Y/%m/%d %H:%M:%S')
+            self.observer.date = Midnight.strftime('%Y/%m/%d %H:%M:%S')
 
         # Dusk has passed. Calculate sunset/sunrise times for tomorrow starting at
         # time of last Dusk in UTC
@@ -91,27 +99,27 @@ class astro():
 
             # Set Observer time to last Sunset time in UTC
             Dusk = self.data['Dusk'][0].astimezone(pytz.utc) + timedelta(minutes=1)
-            Observer.date = Dusk.strftime('%Y/%m/%d %H:%M:%S')
+            self.observer.date = Dusk.strftime('%Y/%m/%d %H:%M:%S')
 
         # Calculate Dawn time in UTC
-        Observer.horizon = '-6'
-        Dawn             = Observer.next_rising(ephem.Sun(), use_center=True)
-        Dawn             = pytz.utc.localize(Dawn.datetime().replace(second=0, microsecond=0))
+        self.observer.horizon = '-6'
+        Dawn = self.observer.next_rising(self.sun, use_center=True)
+        Dawn = pytz.utc.localize(Dawn.datetime().replace(second=0, microsecond=0))
 
         # Calculate Sunrise time in UTC
-        Observer.horizon = '-0:34'
-        Sunrise          = Observer.next_rising(ephem.Sun())
-        Sunrise          = pytz.utc.localize(Sunrise.datetime().replace(second=0, microsecond=0))
+        self.observer.horizon = '-0:34'
+        Sunrise = self.observer.next_rising(self.sun)
+        Sunrise = pytz.utc.localize(Sunrise.datetime().replace(second=0, microsecond=0))
 
         # Calculate Sunset time in UTC
-        Observer.horizon = '-0:34'
-        Sunset           = Observer.next_setting(ephem.Sun())
-        Sunset           = pytz.utc.localize(Sunset.datetime().replace(second=0, microsecond=0))
+        self.observer.horizon = '-0:34'
+        Sunset = self.observer.next_setting(self.sun)
+        Sunset = pytz.utc.localize(Sunset.datetime().replace(second=0, microsecond=0))
 
         # Calculate Dusk time in UTC
-        Observer.horizon = '-6'
-        Dusk             = Observer.next_setting(ephem.Sun(), use_center=True)
-        Dusk             = pytz.utc.localize(Dusk.datetime().replace(second=0, microsecond=0))
+        self.observer.horizon = '-6'
+        Dusk = self.observer.next_setting(self.sun, use_center=True)
+        Dusk = pytz.utc.localize(Dusk.datetime().replace(second=0, microsecond=0))
 
         # Define Dawn/Dusk and Sunrise/Sunset times in Station timezone
         self.data['Dawn'][0]    = Dawn.astimezone(Tz)
@@ -148,9 +156,10 @@ class astro():
 
         # Define Moonrise/Moonset location properties
         Tz = pytz.timezone(self.app.config['Station']['Timezone'])
-        Observer     = ephem.Observer()
-        Observer.lat = str(self.app.config['Station']['Latitude'])
-        Observer.lon = str(self.app.config['Station']['Longitude'])
+
+        # Define Moonrise/Moonset location properties
+        self.observer.horizon = '0'
+        self.observer.pressure = 1010
 
         # The code is initialising. Calculate moonrise time for current day
         # starting at midnight today in UTC
@@ -159,7 +168,7 @@ class astro():
             # Set Observer time to midnight today in UTC
             UTC = datetime.now(pytz.utc)
             Midnight = datetime(UTC.year, UTC.month, UTC.day, 0, 0, 0)
-            Observer.date = Midnight.strftime('%Y/%m/%d %H:%M:%S')
+            self.observer.date = Midnight.strftime('%Y/%m/%d %H:%M:%S')
 
         # Moonset has passed. Calculate time of next moonrise starting at
         # time of last Moonset in UTC
@@ -167,10 +176,10 @@ class astro():
 
             # Set Observer time to last Moonset time in UTC
             Moonset = self.data['Moonset'][0].astimezone(pytz.utc) + timedelta(minutes=1)
-            Observer.date = Moonset.strftime('%Y/%m/%d %H:%M:%S')
+            self.observer.date = Moonset.strftime('%Y/%m/%d %H:%M:%S')
 
         # Calculate Moonrise time in UTC
-        Moonrise = Observer.next_rising(ephem.Moon())
+        Moonrise = self.observer.next_rising(self.moon)
         Moonrise = pytz.utc.localize(Moonrise.datetime().replace(second=0, microsecond=0))
 
         # Define Moonrise time in Station timezone
@@ -178,22 +187,22 @@ class astro():
 
         # Convert Moonrise time in Station timezone to Moonrise time in UTC
         Moonrise = self.data['Moonrise'][0].astimezone(pytz.utc)
-        Observer.date = Moonrise.strftime('%Y/%m/%d %H:%M:%S')
+        self.observer.date = Moonrise.strftime('%Y/%m/%d %H:%M:%S')
 
         # Calculate time of next Moonset starting at time of last Moonrise in UTC
-        Moonset = Observer.next_setting(ephem.Moon())
+        Moonset = self.observer.next_setting(self.moon)
         Moonset = pytz.utc.localize(Moonset.datetime().replace(second=0, microsecond=0))
 
         # Define Moonset time in Station timezone
         self.data['Moonset'][0] = Moonset.astimezone(Tz)
 
         # Calculate date of next full moon in UTC
-        Observer.date = datetime.now(pytz.utc).strftime('%Y/%m/%d')
-        FullMoon = ephem.next_full_moon(Observer.date)
+        self.observer.date = datetime.now(pytz.utc).strftime('%Y/%m/%d')
+        FullMoon = ephem.next_full_moon(self.observer.date)
         FullMoon = pytz.utc.localize(FullMoon.datetime())
 
         # Calculate date of next new moon in UTC
-        NewMoon = ephem.next_new_moon(Observer.date)
+        NewMoon = ephem.next_new_moon(self.observer.date)
         NewMoon = pytz.utc.localize(NewMoon.datetime())
 
         # Define next new/full moon in station time zone
@@ -302,44 +311,52 @@ class astro():
         UTC = datetime.now(pytz.utc)
 
         # Get date of next full moon in station time zone
-        FullMoon = self.data['FullMoon'][1].astimezone(Tz)
+        full_moon = self.data['FullMoon'][1].astimezone(Tz)
 
         # Get date of next new moon in station time zone
-        NewMoon = self.data['NewMoon'][1].astimezone(Tz)
+        new_moon = self.data['NewMoon'][1].astimezone(Tz)
 
         # Calculate phase of moon
-        Moon = ephem.Moon()
-        Moon.compute(UTC.strftime('%Y/%m/%d %H:%M:%S'))
+        self.moon.compute(UTC.strftime('%Y/%m/%d %H:%M:%S'))
 
         # Define Moon phase icon
-        if FullMoon < NewMoon:
-            PhaseIcon = 'Waxing_' + '{:.0f}'.format(Moon.phase)
-        elif NewMoon < FullMoon:
-            PhaseIcon = 'Waning_' + '{:.0f}'.format(Moon.phase)
+        if full_moon < new_moon:
+            phase_icon = 'Waxing_' + '{:.0f}'.format(self.moon.phase)
+        elif new_moon < full_moon:
+            phase_icon = 'Waning_' + '{:.0f}'.format(self.moon.phase)
 
         # Define Moon phase text
         if self.data['NewMoon'] == '[color=ff8837ff]Today[/color]':
-            PhaseTxt = 'New Moon'
+            phase_text = 'New Moon'
         elif self.data['FullMoon'] == '[color=ff8837ff]Today[/color]':
-            PhaseTxt = 'Full Moon'
-        elif FullMoon < NewMoon and Moon.phase < 49:
-            PhaseTxt = 'Waxing crescent'
-        elif FullMoon < NewMoon and 49 <= Moon.phase <= 51:
-            PhaseTxt = 'First Quarter'
-        elif FullMoon < NewMoon and Moon.phase > 51:
-            PhaseTxt = 'Waxing gibbous'
-        elif NewMoon < FullMoon and Moon.phase > 51:
-            PhaseTxt = 'Waning gibbous'
-        elif NewMoon < FullMoon and 49 <= Moon.phase <= 51:
-            PhaseTxt = 'Last Quarter'
-        elif NewMoon < FullMoon and Moon.phase < 49:
-            PhaseTxt = 'Waning crescent'
+            phase_text = 'Full Moon'
+        elif full_moon < new_moon and self.moon.phase < 49:
+            phase_text = 'Waxing crescent'
+        elif full_moon < new_moon and 49 <= self.moon.phase <= 51:
+            phase_text = 'First Quarter'
+        elif full_moon < new_moon and self.moon.phase > 51:
+            phase_text = 'Waxing gibbous'
+        elif new_moon < full_moon and self.moon.phase > 51:
+            phase_text = 'Waning gibbous'
+        elif new_moon < full_moon and 49 <= self.moon.phase <= 51:
+            phase_text = 'Last Quarter'
+        elif new_moon < full_moon and self.moon.phase < 49:
+            phase_text = 'Waning crescent'
 
         # Define Moon phase illumination
-        Illumination = '{:.0f}'.format(Moon.phase)
+        illumination = '{:.0f}'.format(self.moon.phase)
 
-        # Define Kivy Label binds
-        self.data['Phase'] = [PhaseIcon, PhaseTxt, Illumination]
+        # Calculate tilt of illuminated moon face
+        self.observer.date = UTC.strftime('%Y/%m/%d %H:%M:%S')
+        self.moon.compute(self.observer)
+        self.sun.compute(self.observer)
+        dLon = self.sun.az - self.moon.az
+        y = math.sin(dLon) * math.cos(self.sun.alt)
+        x = math.cos(self.moon.alt) * math.sin(self.sun.alt) - math.sin(self.moon.alt) * math.cos(self.sun.alt) * math.cos(dLon)
+        tilt = 90 - math.degrees(math.atan2(y, x))
+
+        # Define Kivy labels
+        self.data['Phase'] = [phase_icon, phase_text, illumination, tilt]
 
     def format_labels(self, Type):
 

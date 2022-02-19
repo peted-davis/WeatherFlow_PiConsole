@@ -43,7 +43,7 @@ def Astro():
     return {'Sunrise': ['-', '-', 0], 'Sunset': ['-', '-', 0], 'Dawn': ['-', '-', 0],
             'Dusk': ['-', '-', 0],    'sunEvent': '----',      'sunIcon': ['-', 0, 0],
             'Moonrise': ['-', '-'],   'Moonset': ['-', '-'],   'NewMoon': '--',
-            'FullMoon': '--',         'Phase': '---'
+            'FullMoon': '--',         'Phase': ['-', '-', '-', 0]
             }
 
 

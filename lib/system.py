@@ -88,6 +88,7 @@ def checkVersion(dt):
     else:
         Next = Tz.localize(datetime(Now.year, Now.month, Now.day) + timedelta(days=1))
         Clock.schedule_once(checkVersion, (Next - Now).total_seconds())
+        return
 
     # If current and latest version numbers do not match, open update
     # notification

@@ -699,6 +699,13 @@
         size_hint: (46/262, 46/202)
         keep_ratio: 0
         allow_stretch: 1
+        canvas.before:
+            PushMatrix
+            Rotate:
+                angle: app.CurrentConditions.Astro['Phase'][3]
+                origin: self.center
+        canvas.after:
+            PopMatrix
 
     ## Moon phase text
     SmallField:
