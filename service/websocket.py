@@ -108,7 +108,7 @@ class websocketClient():
             pong = await self.connection.ping()
             await asyncio.wait_for(pong, timeout=self.ping_timeout)
         except Exception:
-            Logger.error(f'Websocket: {system.logTime()} - Ping error')
+            Logger.warning(f'Websocket: {system.logTime()} - Ping failed')
             await self.__async__disconnect()
             await asyncio.sleep(self.sleep_time)
             await self.__async__connect()
@@ -206,11 +206,11 @@ class websocketClient():
                             elif self.message['type'] == 'evt_strike':
                                 self.app.obsParser.parse_evt_strike(self.message, self.config)
                             else:
-                                Logger.error(f'Websocket: {system.logTime()} - Unknown message type: {json.dumps(self.message)}')
+                                Logger.warning(f'Websocket: {system.logTime()} - Unknown message type: {json.dumps(self.message)}')
                         else:
-                            Logger.info(f'Websocket: {system.logTime()} - Missing device ID: {json.dumps(self.message)}')
+                            Logger.warning(f'Websocket: {system.logTime()} - Missing device ID: {json.dumps(self.message)}')
                 else:
-                    Logger.info(f'Websocket: {system.logTime()} - Missing message type: {json.dumps(self.message)}')
+                    Logger.warning(f'Websocket: {system.logTime()} - Missing message type: {json.dumps(self.message)}')
         except asyncio.CancelledError:
             raise
 
