@@ -186,16 +186,16 @@ def switch(stationMetaData, deviceList, config):
             Value = deviceList['ST']['device_id']
         elif key == 'SkyID' and 'SK' in deviceList:
             Value = deviceList['SK']['device_id']
-        elif key == 'OutAirID' and 'AR' in deviceList and deviceList['AR']['device_meta']['environment'] == 'outdoor':
-            Value = deviceList['AR']['device_id']
-        elif key == 'InAirID' and 'AR' in deviceList and deviceList['AR']['device_meta']['environment'] == 'indoor':
-            Value = deviceList['AR']['device_id']
+        elif key == 'OutAirID' and 'AR_out' in deviceList:
+            Value = deviceList['AR_out']['device_id']
+        elif key == 'InAirID' and 'AR_in' in deviceList:
+            Value = deviceList['AR_in']['device_id']
         elif key == 'TempestHeight' and 'ST' in deviceList:
             Value = deviceList['ST']['device_meta']['agl']
         elif key == 'SkyHeight' and 'SK' in deviceList:
             Value = deviceList['SK']['device_meta']['agl']
-        elif key == 'OutAirHeight' and 'AR' in deviceList:
-            Value = deviceList['AR']['device_meta']['agl']
+        elif key == 'OutAirHeight' and 'AR_out' in deviceList:
+            Value = deviceList['AR_out']['device_meta']['agl']
         config.set('Station', key, str(Value))
 
     # Write updated configuration file to disk

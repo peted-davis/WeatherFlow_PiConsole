@@ -1204,8 +1204,8 @@
                                     color: utils.rgba('#c8c8c8ff')
                                 FloatLayout:
                                     StationSpinner:
-                                        id: stationList
-                                        values: root.stationList
+                                        id: stationDropdown
+                                        values: root.station_list
                                         on_text: root.get_station_devices()
                             BoxLayout:
                                 orientation: 'vertical'
@@ -1217,7 +1217,7 @@
                                 FloatLayout:
                                     DeviceSpinner:
                                         id: tempestDropdown
-                                        values: root.tempestList
+                                        values: root.tempest_list
                                         on_text: if self.text not in ['Please select', 'Air or Sky selected', 'No device available']: root.on_device_selection(self)
                         BoxLayout:
                             orientation: 'horizontal'
@@ -1232,7 +1232,7 @@
                                 FloatLayout:
                                     DeviceSpinner:
                                         id: skyDropdown
-                                        values: root.skyList
+                                        values: root.sky_list
                                         on_text: if self.text not in ['Please select', 'Tempest selected', 'No device available']: root.on_device_selection(self)
                             BoxLayout:
                                 orientation: 'vertical'
@@ -1244,7 +1244,7 @@
                                 FloatLayout:
                                     DeviceSpinner:
                                         id: outAirDropdown
-                                        values: root.outAirList
+                                        values: root.out_air_list
                                         on_text: if self.text not in ['Please select', 'Tempest selected', 'No device available']: root.on_device_selection(self)
                         BoxLayout:
                             orientation: 'horizontal'
@@ -1259,7 +1259,7 @@
                                 FloatLayout:
                                     DeviceSpinner:
                                         id: inAirDropdown
-                                        values: root.inAirList
+                                        values: root.in_air_list
                                         on_text: if self.text not in ['Please select', 'Tempest selected', 'No device available']: root.on_device_selection(self)
                             BoxLayout:
                                 orientation: 'vertical'
