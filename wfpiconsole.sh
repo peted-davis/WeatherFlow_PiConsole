@@ -32,7 +32,7 @@ CONSOLEDIR=/home/${USER}/wfpiconsole/
 DLDIR=${CONSOLEDIR}/temp/
 
 # Package manager commands
-PKG_MANAGER="apt-get"
+PKG_MANAGER="apt"
 PKG_UPDATE_CACHE="${PKG_MANAGER} update"
 PKG_UPDATE_INSTALL="${PKG_MANAGER} dist-upgrade -y"
 PKG_UPDATE_COUNT="${PKG_MANAGER} -s -o Debug::NoLocking=true upgrade | grep -c ^Inst || true"
@@ -70,7 +70,6 @@ WFPICONSOLE_TAGS="https://api.github.com/repos/peted-davis/WeatherFlow_PiConsole
 WFPICONSOLE_RAW="https://raw.githubusercontent.com/peted-davis/WeatherFlow_PiConsole"
 WFPICONSOLE_MAIN_UPDATE=$WFPICONSOLE_RAW"/main/wfpiconsole.sh"
 WFPICONSOLE_BETA_UPDATE=$WFPICONSOLE_RAW"/develop/wfpiconsole.sh"
-
 
 # DEFINE INSTALLER PREAMBLE
 # ------------------------------------------------------------------------------
@@ -669,7 +668,7 @@ updateRepoLatestTag() {
     # Checkout the main branch if required and reset code to latest tag
     local curBranch=$(git -C ${directory} rev-parse --abbrev-ref HEAD)
     if [[ "${curBranch}" != "main" ]]; then
-      git -C ${directory} checkout main &> errorLog || return $?
+        git -C ${directory} checkout main &> errorLog || return $?
     fi
     git -C ${directory} reset --hard "$(git -C ${directory} describe --abbrev=0 --tags)" &> errorLog || return $?
 }
