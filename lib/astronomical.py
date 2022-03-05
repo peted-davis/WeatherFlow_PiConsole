@@ -319,11 +319,13 @@ class astro():
         # Calculate phase of moon
         self.moon.compute(UTC.strftime('%Y/%m/%d %H:%M:%S'))
 
-        # Define Moon phase icon
+        # Define Moon phase icon and tilt_sign
         if full_moon < new_moon:
             phase_icon = 'Waxing_' + '{:.0f}'.format(self.moon.phase)
+            tilt_sign  = +1
         elif new_moon < full_moon:
             phase_icon = 'Waning_' + '{:.0f}'.format(self.moon.phase)
+            tilt_sign  = -1
 
         # Define Moon phase text
         if self.data['NewMoon'] == '[color=ff8837ff]Today[/color]':
@@ -353,7 +355,7 @@ class astro():
         dLon = self.sun.az - self.moon.az
         y = math.sin(dLon) * math.cos(self.sun.alt)
         x = math.cos(self.moon.alt) * math.sin(self.sun.alt) - math.sin(self.moon.alt) * math.cos(self.sun.alt) * math.cos(dLon)
-        tilt = 90 - math.degrees(math.atan2(y, x))
+        tilt = tilt_sign * 90 - math.degrees(math.atan2(y, x))
 
         # Define Kivy labels
         self.data['Phase'] = [phase_icon, phase_text, illumination, tilt]
