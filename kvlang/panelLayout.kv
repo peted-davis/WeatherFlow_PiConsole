@@ -1,6 +1,6 @@
 ## WeatherFlow PiConsole: Raspberry Pi Python console for WeatherFlow Tempest
 ## and Smart Home Weather stations.
-## Copyright (C) 2018-2021 Peter Davis
+## Copyright (C) 2018-2022 Peter Davis
 
 ## This program is free software: you can redistribute it and/or modify it under
 ## the terms of the GNU General Public License as published by the Free Software
@@ -31,7 +31,7 @@
             size: self.size
             radius: [14*app.scaleFactor]
 
-<MenuButton>:
+<MenuButton@Button>:
     font_size: dp(15.5*app.scaleFactor)
     font_name: 'fonts/Inter-SemiBold.ttf'
     color: utils.rgba('#d6d6d6ff')
@@ -52,6 +52,7 @@
     background_down: 'atlas://atlas/wfpiconsole/tab_btn_pressed'
     font_name: 'fonts/Inter-SemiBold.ttf'
     font_size: dp(14.2*app.scaleFactor)
+    color: utils.rgba('#d6d6d6ff')
     canvas.after:
         Color:
             rgb: [.3,.3,.3,1]
@@ -70,10 +71,88 @@
             size: self.width, 1
 
 ## =============================================================================
+## CUSTOM DeviceSpinner, StationSpinner and SwitchButton
+## =============================================================================
+<SwitchButton@Button>
+    canvas.before:
+        Color:
+            rgba: utils.rgba('#1e1e1eff') if self.state=='normal' else utils.rgba('#00525aff')
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [14*app.scaleFactor]
+    background_normal: ''
+    background_color: 0, 0, 0, 0
+    font_size: dp(14*app.scaleFactor)
+    font_name: 'fonts/Inter-SemiBold.ttf'
+    color: utils.rgba('#d6d6d6ff')
+
+<DeviceSpinner@Spinner>:
+    canvas.before:
+        Color:
+            rgba: utils.rgba('#1e1e1eff') if self.state=='normal' else utils.rgba('#00525aff')
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [14*app.scaleFactor]
+    font_size: dp(14*app.scaleFactor)
+    font_name: 'fonts/Inter-SemiBold.ttf'
+    color: utils.rgba('#d6d6d6ff')
+    background_normal: ''
+    background_color: 0, 0, 0, 0
+    sync_height: True
+    disabled: 1
+    selected: 1 if self.text != 'Please select' and not self.disabled else 0
+    pos_hint: {'center': (.5, .5)}
+    option_cls: Factory.selectOption
+    dropdown_cls: Factory.CustomDropdown
+
+<StationSpinner@Spinner>:
+    canvas.before:
+        Color:
+            rgba: utils.rgba('#1e1e1eff') if self.state=='normal' else utils.rgba('#00525aff')
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [14*app.scaleFactor]
+    font_size: dp(14*app.scaleFactor)
+    font_name: 'fonts/Inter-SemiBold.ttf'
+    color: utils.rgba('#d6d6d6ff')
+    background_normal: ''
+    background_color: 0, 0, 0, 0
+    sync_height: True
+    pos_hint: {'center': (.5, .5)}
+    option_cls: Factory.selectOption
+    dropdown_cls: Factory.CustomDropdown
+
+<selectOption@SpinnerOption>
+    canvas.before:
+        Color:
+            rgba: utils.rgba('#404040ff') if self.state=='normal' else utils.rgba('#00525aff')
+        RoundedRectangle:
+            pos: [self.x+2, self.y+2]
+            size: [self.width-4, self.height-4]
+            radius: [14*app.scaleFactor]
+    background_color: (0,0,1,0)
+    font_size: dp(14*app.scaleFactor)
+    font_name: 'fonts/Inter-SemiBold.ttf'
+    color: utils.rgba('#c8c8c8ff')
+
+<CustomDropdown@DropDown>:
+    canvas.before:
+        Color:
+            rgba: utils.rgba('#101010ff')
+        RoundedRectangle:
+            pos: [self.x, self.y+1]
+            size: [self.width, self.height-2]
+            radius: [14*app.scaleFactor]
+
+## =============================================================================
 ## PANEL BACKGROUNDS
 ## =============================================================================
-<PanelBackground@BoxLayout>:
+<PanelBackground@FloatLayout>:
     _panelTitle: str()
+    _panelStatus: str()
     pos_hint: {'x': 0/262, 'y': 0/202}
     size_hint: [1, 1]
     cols: 1
@@ -92,9 +171,13 @@
     PanelTitle:
         id: Title
         text: root._panelTitle
+    PanelStatus:
+        id: Status
+        text: root._panelStatus
 
-<RainfallBackground@BoxLayout>:
+<RainfallBackground@FloatLayout>:
     _panelTitle: str()
+    _panelStatus: str()
     pos_hint: {'x': 0/262, 'y': 47/202}
     size_hint: [1, 155/202]
     cols: 1
@@ -115,6 +198,11 @@
         size_hint: (1, 13/155)
         pos_hint: {'x': 0, 'y': 138/155}
         text: root._panelTitle
+    PanelStatus:
+        id: Status
+        size_hint: (0.97, 23 / 155)
+        pos_hint: {'x': 0.015, 'y': 133 / 155}
+        text: root._panelStatus
 
 <UpdateNotifBackground@BoxLayout>:
     _panelTitle: str()
@@ -138,10 +226,42 @@
         size_hint: (1, 13/76)
         text: root._panelTitle
 
-## =============================================================================
-## DEVICE STATUS PANELS
-## =============================================================================
-<tempestStatus>:
+# =============================================================================
+# StationStatus PANELS
+# =============================================================================
+<station_status>:
+    orientation: 'vertical'
+    BoxLayout:
+        orientation: 'vertical'
+        padding: [dp(0),dp(0),dp(0),dp(10)]
+        size_hint: (1,.44)
+        MenuField:
+            font_size: dp(16*app.scaleFactor)
+            text: app.config['Station']['Name']
+        MenuField:
+            _color: '#9aba2fff' if app.CurrentConditions.Status['station_status'] == 'Online' else '#c8c8c8ff' if app.CurrentConditions.Status['station_status'] == '-' else '#d73027ff'
+            text: 'Station status: [color=' + self._color + ']' + app.CurrentConditions.Status['station_status'] + '[/color]'
+    GridLayout:
+        cols: 2
+        padding: [dp(0),dp(0),dp(0),dp(10)]
+        size_hint: (1,.56)
+        MenuField:
+            text: 'Station time: ' + app.CurrentConditions.System['Time']
+        MenuField:
+            text: 'Station elevation: ' + '{:.2f}'.format(float(app.config['Station']['Elevation'])) + ' m'
+        MenuField:
+            text: 'Station latitude: ' + '{:.4f}'.format(float(app.config['Station']['Latitude'])) + '\u00B0'
+        MenuField:
+            text: 'Station Longitude: ' + '{:.4f}'.format(float(app.config['Station']['Longitude'])) + '\u00B0'
+        MenuField:
+            text: 'Hub firmware: ' + app.CurrentConditions.Status['hub_firmware']
+        MenuField:
+            text: 'Console version: [color=00a4b4ff]' + app.config['System']['Version'] + '[/color]'
+
+# =============================================================================
+# DEVICE STATUS PANELS
+# =============================================================================
+<tempest_status>:
     size_hint: (1,.1)
     orientation: 'horizontal'
     StatusField:
@@ -149,18 +269,18 @@
         text: 'TEMPEST'
     StatusField:
         size_hint: (.12,1)
-        text: app.Station.Device['tempestStatus']
+        text: app.CurrentConditions.Status['tempest_status']
     StatusField:
         size_hint: (.22,1)
-        text: app.Station.Device['tempestSampleTime']
+        text: app.CurrentConditions.Status['tempest_sample_time']
     StatusField:
         size_hint: (.20,1)
-        text: app.Station.Device['tempestVoltage']
+        text: app.CurrentConditions.Status['tempest_voltage']
     StatusField:
         size_hint: (.31,1)
-        text: app.Station.Device['tempestObCount']
+        text: app.CurrentConditions.Status['tempest_ob_count']
 
-<skyStatus>:
+<sky_status>:
     size_hint: (1,.1)
     orientation: 'horizontal'
     StatusField:
@@ -168,18 +288,18 @@
         text: 'SKY'
     StatusField:
         size_hint: (.12,1)
-        text: app.Station.Device['skyStatus']
+        text: app.CurrentConditions.Status['sky_status']
     StatusField:
         size_hint: (.22,1)
-        text: app.Station.Device['skySampleTime']
+        text: app.CurrentConditions.Status['sky_sample_time']
     StatusField:
         size_hint: (.20,1)
-        text: app.Station.Device['skyVoltage']
+        text: app.CurrentConditions.Status['sky_voltage']
     StatusField:
         size_hint: (.31,1)
-        text: app.Station.Device['skyObCount']
+        text: app.CurrentConditions.Status['sky_ob_count']
 
-<outAirStatus>:
+<out_air_status>:
     size_hint: (1,.1)
     orientation: 'horizontal'
     StatusField:
@@ -187,18 +307,18 @@
         text: 'Outdoor AIR'
     StatusField:
         size_hint: (.12,1)
-        text: app.Station.Device['outAirStatus']
+        text: app.CurrentConditions.Status['out_air_status']
     StatusField:
         size_hint: (.22,1)
-        text: app.Station.Device['outAirSampleTime']
+        text: app.CurrentConditions.Status['out_air_sample_time']
     StatusField:
         size_hint: (.20,1)
-        text: app.Station.Device['outAirVoltage']
+        text: app.CurrentConditions.Status['out_air_voltage']
     StatusField:
         size_hint: (.31,1)
-        text: app.Station.Device['outAirObCount']
+        text: app.CurrentConditions.Status['out_air_ob_count']
 
-<inAirStatus>:
+<in_air_status>:
     size_hint: (1,.1)
     orientation: 'horizontal'
     StatusField:
@@ -206,13 +326,13 @@
         text: 'Indoor AIR'
     StatusField:
         size_hint: (.12,1)
-        text: app.Station.Device['inAirStatus']
+        text: app.CurrentConditions.Status['in_air_status']
     StatusField:
         size_hint: (.22,1)
-        text: app.Station.Device['inAirSampleTime']
+        text: app.CurrentConditions.Status['in_air_sample_time']
     StatusField:
         size_hint: (.20,1)
-        text: app.Station.Device['inAirVoltage']
+        text: app.CurrentConditions.Status['in_air_voltage']
     StatusField:
         size_hint: (.31,1)
-        text: app.Station.Device['inAirObCount']
+        text: app.CurrentConditions.Status['in_air_ob_count']

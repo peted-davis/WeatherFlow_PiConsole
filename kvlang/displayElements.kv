@@ -1,6 +1,6 @@
 ## WeatherFlow PiConsole: Raspberry Pi Python console for WeatherFlow Tempest
 ## and Smart Home Weather stations.
-## Copyright (C) 2018-2021 Peter Davis
+## Copyright (C) 2018-2022 Peter Davis
 
 ## This program is free software: you can redistribute it and/or modify it under
 ## the terms of the GNU General Public License as published by the Free Software
@@ -72,10 +72,14 @@
 ## RAIN GAUGE
 ## =============================================================================
 <RainGauge@FloatLayout>:
+    _width: 41
+    _height: 118
+
+    # Gauge text
     TitleField:
         text: 'Rain Rate'
-        pos_hint: {'x': 182/262, 'y': 126/202}
-        size_hint_x: (70/262)
+        pos_hint: {'x': -16 / root._width, 'y': 54 / root._height}
+        size_hint_x: (70 / root._width)
         color: utils.rgba('#807e76ff')
         canvas.before:
             PushMatrix
@@ -84,9 +88,11 @@
                 origin: self.center
         canvas.after:
             PopMatrix
+
+    # Gauge shape
     Widget:
-        pos_hint: {'x': 198/262, 'y': 187/202}
-        size_hint: [4/262, 1/202]
+        pos_hint: {'x': 0, 'y': (root._height - 1) / root._height}
+        size_hint: [4 / root._width, 1 / root._height]
         canvas.after:
             Color:
                 rgba: utils.rgba('646464ff')
@@ -94,8 +100,8 @@
                 pos: self.pos
                 size: self.size
     Widget:
-        pos_hint: {'x': 201/262, 'y': 80/202}
-        size_hint: [1/262, 108/202]
+        pos_hint: {'x': 3 / root._width, 'y': 0}
+        size_hint: [1 / root._width, 1]
         canvas.after:
             Color:
                 rgba: utils.rgba('646464ff')
@@ -103,8 +109,8 @@
                 pos: self.pos
                 size: self.size
     Widget:
-        pos_hint: {'x': 201/262, 'y': 80/202}
-        size_hint: [35/262, 1/202]
+        pos_hint: {'x': 3 / root._width, 'y': 0}
+        size_hint: [(root._width - 6) / root._width, 1 / root._height]
         canvas.after:
             Color:
                 rgba: utils.rgba('646464ff')
@@ -112,8 +118,8 @@
                 pos: self.pos
                 size: self.size
     Widget:
-        pos_hint: {'x': 235/262, 'y': 80/202}
-        size_hint: [1/262, 108/202]
+        pos_hint: {'x': (root._width - 4) / root._width, 'y': 0}
+        size_hint: [1 / root._width, 1]
         canvas.after:
             Color:
                 rgba: utils.rgba('646464ff')
@@ -121,17 +127,19 @@
                 pos: self.pos
                 size: self.size
     Widget:
-        pos_hint: {'x': 235/262, 'y': 187/202}
-        size_hint: [4/262, 1/202]
+        pos_hint: {'x': (root._width - 4) / root._width, 'y': (root._height - 1) / root._height}
+        size_hint: [4 / root._width, 1 / root._height]
         canvas.after:
             Color:
                 rgba: utils.rgba('646464ff')
             Rectangle:
                 pos: self.pos
                 size: self.size
+
+    # Gauge increments left-hand side (top set)
     Widget:
-        pos_hint: {'x': 202/262, 'y': 181/202}
-        size_hint: [8/262, 2.5/202]
+        pos_hint: {'x': 4 / root._width, 'y': 110.5 / root._height}
+        size_hint: [8 / root._width, 2.5 / root._height]
         canvas.after:
             Color:
                 rgba: utils.rgba('f05e40b2')
@@ -139,8 +147,8 @@
                 pos: self.pos
                 size: self.size
     Widget:
-        pos_hint: {'x': 202/262, 'y': 174.5/202}
-        size_hint: [4/262, 2.5/202]
+        pos_hint: {'x': 4 / root._width, 'y': 103.5 / root._height}
+        size_hint: [4 / root._width, 2.5 / root._height]
         canvas.after:
             Color:
                 rgba: utils.rgba('e06247b2')
@@ -148,8 +156,8 @@
                 pos: self.pos
                 size: self.size
     Widget:
-        pos_hint: {'x': 202/262, 'y': 168/202}
-        size_hint: [4/262, 2.5/202]
+        pos_hint: {'x': 4 / root._width, 'y': 96.5 / root._height}
+        size_hint: [4 / root._width, 2.5 / root._height]
         canvas.after:
             Color:
                 rgba: utils.rgba('d0674fb2')
@@ -157,8 +165,8 @@
                 pos: self.pos
                 size: self.size
     Widget:
-        pos_hint: {'x': 202/262, 'y': 161.5/202}
-        size_hint: [4/262, 2.5/202]
+        pos_hint: {'x': 4 / root._width, 'y': 89.5 / root._height}
+        size_hint: [4 / root._width, 2.5 / root._height]
         canvas.after:
             Color:
                 rgba: utils.rgba('c06c57b2')
@@ -166,17 +174,19 @@
                 pos: self.pos
                 size: self.size
     Widget:
-        pos_hint: {'x': 202/262, 'y': 155/202}
-        size_hint: [4/262, 2.5/202]
+        pos_hint: {'x': 4 / root._width, 'y': 82.5 / root._height}
+        size_hint: [4 / root._width, 2.5 / root._height]
         canvas.after:
             Color:
                 rgba: utils.rgba('b0705eb2')
             Rectangle:
                 pos: self.pos
                 size: self.size
+
+    # Gauge increments left-hand side (middle set)
     Widget:
-        pos_hint: {'x': 202/262, 'y': 148.5/202}
-        size_hint: [8/262, 2.5/202]
+        pos_hint: {'x': 4 / root._width, 'y': 75.5 / root._height}
+        size_hint: [8 / root._width, 2.5 / root._height]
         canvas.after:
             Color:
                 rgba: utils.rgba('a07566b2')
@@ -184,8 +194,8 @@
                 pos: self.pos
                 size: self.size
     Widget:
-        pos_hint: {'x': 202/262, 'y': 142/202}
-        size_hint: [4/262, 2.5/202]
+        pos_hint: {'x': 4 / root._width, 'y': 68.5 / root._height}
+        size_hint: [4 / root._width, 2.5 / root._height]
         canvas.after:
             Color:
                 rgba: utils.rgba('907a6eb2')
@@ -193,8 +203,8 @@
                 pos: self.pos
                 size: self.size
     Widget:
-        pos_hint: {'x': 202/262, 'y': 135.5/202}
-        size_hint: [4/262, 2.5/202]
+        pos_hint: {'x': 4 / root._width, 'y': 61.5 / root._height}
+        size_hint: [4 / root._width, 2.5 / root._height]
         canvas.after:
             Color:
                 rgba: utils.rgba('807e76b2')
@@ -202,8 +212,8 @@
                 pos: self.pos
                 size: self.size
     Widget:
-        pos_hint: {'x': 202/262, 'y': 129/202}
-        size_hint: [4/262, 2.5/202]
+        pos_hint: {'x': 4 / root._width, 'y': 54.5 / root._height}
+        size_hint: [4 / root._width, 2.5 / root._height]
         canvas.after:
             Color:
                 rgba: utils.rgba('70837db2')
@@ -211,17 +221,19 @@
                 pos: self.pos
                 size: self.size
     Widget:
-        pos_hint: {'x': 202/262, 'y': 122.5/202}
-        size_hint: [4/262, 2.5/202]
+        pos_hint: {'x': 4 / root._width, 'y': 47.5 / root._height}
+        size_hint: [4 / root._width, 2.5 / root._height]
         canvas.after:
             Color:
                 rgba: utils.rgba('608885b2')
             Rectangle:
                 pos: self.pos
                 size: self.size
+
+    # Gauge increments left-hand side (bottom set)
     Widget:
-        pos_hint: {'x': 202/262, 'y': 116/202}
-        size_hint: [8/262, 2.5/202]
+        pos_hint: {'x': 4 / root._width, 'y': 40.5 / root._height}
+        size_hint: [8 / root._width, 2.5 / root._height]
         canvas.after:
             Color:
                 rgba: utils.rgba('508c8db2')
@@ -229,8 +241,8 @@
                 pos: self.pos
                 size: self.size
     Widget:
-        pos_hint: {'x': 202/262, 'y': 109.5/202}
-        size_hint: [4/262, 2.5/202]
+        pos_hint: {'x': 4 / root._width, 'y': 33.5 / root._height}
+        size_hint: [4 / root._width, 2.5 / root._height]
         canvas.after:
             Color:
                 rgba: utils.rgba('409195b2')
@@ -238,8 +250,8 @@
                 pos: self.pos
                 size: self.size
     Widget:
-        pos_hint: {'x': 202/262, 'y': 103/202}
-        size_hint: [4/262, 2.5/202]
+        pos_hint: {'x': 4 / root._width, 'y': 26.5 / root._height}
+        size_hint: [4 / root._width, 2.5 / root._height]
         canvas.after:
             Color:
                 rgba: utils.rgba('30969cb2')
@@ -247,8 +259,8 @@
                 pos: self.pos
                 size: self.size
     Widget:
-        pos_hint: {'x': 202/262, 'y': 96.5/202}
-        size_hint: [4/262, 2.5/202]
+        pos_hint: {'x': 4 / root._width, 'y': 19.5 / root._height}
+        size_hint: [4 / root._width, 2.5 / root._height]
         canvas.after:
             Color:
                 rgba: utils.rgba('209aa4b2')
@@ -256,8 +268,8 @@
                 pos: self.pos
                 size: self.size
     Widget:
-        pos_hint: {'x': 202/262, 'y': 90/202}
-        size_hint: [4/262, 2.5/202]
+        pos_hint: {'x': 4 / root._width, 'y': 12.5 / root._height}
+        size_hint: [4 / root._width, 2.5 / root._height]
         canvas.after:
             Color:
                 rgba: utils.rgba('109facb2')
@@ -265,17 +277,19 @@
                 pos: self.pos
                 size: self.size
     Widget:
-        pos_hint: {'x': 202/262, 'y': 83.5/202}
-        size_hint: [8/262, 2.5/202]
+        pos_hint: {'x': 4 / root._width, 'y': 5.5 / root._height}
+        size_hint: [8 / root._width, 2.5 / root._height]
         canvas.after:
             Color:
                 rgba: utils.rgba('00a4b4b2')
             Rectangle:
                 pos: self.pos
                 size: self.size
+
+    # Gauge increments right-hand side (top set)
     Widget:
-        pos_hint: {'x': 227/262, 'y': 181/202}
-        size_hint: [8/262, 2.5/202]
+        pos_hint: {'x': (root._width - 12) / root._width, 'y': 110.5 / root._height}
+        size_hint: [8 / root._width, 2.5 / root._height]
         canvas.after:
             Color:
                 rgba: utils.rgba('f05e40b2')
@@ -283,8 +297,8 @@
                 pos: self.pos
                 size: self.size
     Widget:
-        pos_hint: {'x': 231/262, 'y': 174.5/202}
-        size_hint: [4/262, 2.5/202]
+        pos_hint: {'x': (root._width - 8) / root._width, 'y': 103.5 / root._height}
+        size_hint: [4 / root._width, 2.5 / root._height]
         canvas.after:
             Color:
                 rgba: utils.rgba('e06247b2')
@@ -292,8 +306,8 @@
                 pos: self.pos
                 size: self.size
     Widget:
-        pos_hint: {'x': 231/262, 'y': 168/202}
-        size_hint: [4/262, 2.5/202]
+        pos_hint: {'x': (root._width - 8) / root._width, 'y': 96.5 / root._height}
+        size_hint: [4 / root._width, 2.5 / root._height]
         canvas.after:
             Color:
                 rgba: utils.rgba('d0674fb2')
@@ -301,8 +315,8 @@
                 pos: self.pos
                 size: self.size
     Widget:
-        pos_hint: {'x': 231/262, 'y': 161.5/202}
-        size_hint: [4/262, 2.5/202]
+        pos_hint: {'x': (root._width - 8) / root._width, 'y': 89.5 / root._height}
+        size_hint: [4 / root._width, 2.5 / root._height]
         canvas.after:
             Color:
                 rgba: utils.rgba('c06c57b2')
@@ -310,17 +324,19 @@
                 pos: self.pos
                 size: self.size
     Widget:
-        pos_hint: {'x': 231/262, 'y': 155/202}
-        size_hint: [4/262, 2.5/202]
+        pos_hint: {'x': (root._width - 8) / root._width, 'y': 82.5 / root._height}
+        size_hint: [4 / root._width, 2.5 / root._height]
         canvas.after:
             Color:
                 rgba: utils.rgba('b0705eb2')
             Rectangle:
                 pos: self.pos
                 size: self.size
+
+    # Gauge increments right-hand side (middle set)
     Widget:
-        pos_hint: {'x': 227/262, 'y': 148.5/202}
-        size_hint: [8/262, 2.5/202]
+        pos_hint: {'x': (root._width - 12) / root._width, 'y': 75.5 / root._height}
+        size_hint: [8 / root._width, 2.5 / root._height]
         canvas.after:
             Color:
                 rgba: utils.rgba('a07566b2')
@@ -328,8 +344,8 @@
                 pos: self.pos
                 size: self.size
     Widget:
-        pos_hint: {'x': 231/262, 'y': 142/202}
-        size_hint: [4/262, 2.5/202]
+        pos_hint: {'x': (root._width - 8) / root._width, 'y': 68.5 / root._height}
+        size_hint: [4 / root._width, 2.5 / root._height]
         canvas.after:
             Color:
                 rgba: utils.rgba('907a6eb2')
@@ -337,8 +353,8 @@
                 pos: self.pos
                 size: self.size
     Widget:
-        pos_hint: {'x': 231/262, 'y': 135.5/202}
-        size_hint: [4/262, 2.5/202]
+        pos_hint: {'x': (root._width - 8) / root._width, 'y': 61.5 / root._height}
+        size_hint: [4 / root._width, 2.5 / root._height]
         canvas.after:
             Color:
                 rgba: utils.rgba('807e76b2')
@@ -346,8 +362,8 @@
                 pos: self.pos
                 size: self.size
     Widget:
-        pos_hint: {'x': 231/262, 'y': 129/202}
-        size_hint: [4/262, 2.5/202]
+        pos_hint: {'x': (root._width - 8) / root._width, 'y': 54.5 / root._height}
+        size_hint: [4 / root._width, 2.5 / root._height]
         canvas.after:
             Color:
                 rgba: utils.rgba('70837db2')
@@ -355,17 +371,19 @@
                 pos: self.pos
                 size: self.size
     Widget:
-        pos_hint: {'x': 231/262, 'y': 122.5/202}
-        size_hint: [4/262, 2.5/202]
+        pos_hint: {'x': (root._width - 8) / root._width, 'y': 47.5 / root._height}
+        size_hint: [4 / root._width, 2.5 / root._height]
         canvas.after:
             Color:
                 rgba: utils.rgba('608885b2')
             Rectangle:
                 pos: self.pos
                 size: self.size
+
+    # Gauge increments right-hand side (bottom set)
     Widget:
-        pos_hint: {'x': 227/262, 'y': 116/202}
-        size_hint: [8/262, 2.5/202]
+        pos_hint: {'x': (root._width - 12) / root._width, 'y': 40.5 / root._height}
+        size_hint: [8 / root._width, 2.5 / root._height]
         canvas.after:
             Color:
                 rgba: utils.rgba('508c8db2')
@@ -373,8 +391,8 @@
                 pos: self.pos
                 size: self.size
     Widget:
-        pos_hint: {'x': 231/262, 'y': 109.5/202}
-        size_hint: [4/262, 2.5/202]
+        pos_hint: {'x': (root._width - 8) / root._width, 'y': 33.5 / root._height}
+        size_hint: [4 / root._width, 2.5 / root._height]
         canvas.after:
             Color:
                 rgba: utils.rgba('409195b2')
@@ -382,8 +400,8 @@
                 pos: self.pos
                 size: self.size
     Widget:
-        pos_hint: {'x': 231/262, 'y': 103/202}
-        size_hint: [4/262, 2.5/202]
+        pos_hint: {'x': (root._width - 8) / root._width, 'y': 26.5 / root._height}
+        size_hint: [4 / root._width, 2.5 / root._height]
         canvas.after:
             Color:
                 rgba: utils.rgba('30969cb2')
@@ -391,8 +409,8 @@
                 pos: self.pos
                 size: self.size
     Widget:
-        pos_hint: {'x': 231/262, 'y': 96.5/202}
-        size_hint: [4/262, 2.5/202]
+        pos_hint: {'x': (root._width - 8) / root._width, 'y': 19.5 / root._height}
+        size_hint: [4 / root._width, 2.5 / root._height]
         canvas.after:
             Color:
                 rgba: utils.rgba('209aa4b2')
@@ -400,8 +418,8 @@
                 pos: self.pos
                 size: self.size
     Widget:
-        pos_hint: {'x': 231/262, 'y': 90/202}
-        size_hint: [4/262, 2.5/202]
+        pos_hint: {'x': (root._width - 8) / root._width, 'y': 12.5 / root._height}
+        size_hint: [4 / root._width, 2.5 / root._height]
         canvas.after:
             Color:
                 rgba: utils.rgba('109facb2')
@@ -409,8 +427,8 @@
                 pos: self.pos
                 size: self.size
     Widget:
-        pos_hint: {'x': 227/262, 'y': 83.5/202}
-        size_hint: [8/262, 2.5/202]
+        pos_hint: {'x': (root._width - 12) / root._width, 'y': 5.5 / root._height}
+        size_hint: [8 / root._width, 2.5 / root._height]
         canvas.after:
             Color:
                 rgba: utils.rgba('00a4b4b2')
