@@ -32,7 +32,7 @@ CONSOLEDIR=/home/${USER}/wfpiconsole/
 DLDIR=${CONSOLEDIR}/temp/
 
 # Package manager commands
-PKG_MANAGER="apt"
+PKG_MANAGER="apt-get"
 PKG_UPDATE_CACHE="${PKG_MANAGER} update"
 PKG_UPDATE_INSTALL="${PKG_MANAGER} dist-upgrade -y"
 PKG_UPDATE_COUNT="${PKG_MANAGER} -s -o Debug::NoLocking=true upgrade | grep -c ^Inst || true"
@@ -57,7 +57,7 @@ KIVY_DEPENDENCIES=(ffmpeg libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl
 KIVY_VERSION="2.0.0"
 PYTHON_MODULES=(cython==0.29.26
                 websockets==10.1
-                numpy==1.22.0
+                numpy==1.21.4
                 pytz==2021.3
                 ephem==4.1.3
                 packaging==21.3
