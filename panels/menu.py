@@ -64,8 +64,12 @@ class mainMenu(ModalView):
         self.app.station.get_observation_count()
         self.app.station.get_hub_firmware()
 
-        # Add station and device status panels to main menu
+        # Add station status panels to main menu
+        if self.app.station.station_status_panel.parent is not None:
+            self.app.station.station_status_panel.parent.clear_widgets()
         self.ids.stationPanel.add_widget(self.app.station.station_status_panel)
+
+        # Add device status panels to main menu
         if self.app.config['Station']['TempestID']:
             self.ids.devicePanel.add_widget(self.app.station.tempest_status_panel)
         if self.app.config['Station']['SkyID']:
