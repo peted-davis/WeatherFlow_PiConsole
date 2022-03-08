@@ -95,12 +95,14 @@ if config['System']['Hardware'] in ['PiB', 'Pi3']:
 # Initialise mouse support if required
 if int(config['Display']['Cursor']):
     kivyconfig.set('graphics', 'show_cursor', '1')
-    if 'Pi' in config['System']['Hardware']:
-        kivyconfig.set('input', 'mtdev_%(name)s', 'probesysfs,provider=mtdev')
+    if config['System']['Hardware'] == 'Pi4':
+        kivyconfig.set('input', 'mouse', 'mouse')
+        kivyconfig.remove_option('input', 'mtdev_%(name)s')
+        kivyconfig.remove_option('input', 'hid_%(name)s')
 else:
     kivyconfig.set('graphics', 'show_cursor', '0')
-    if 'Pi' in config['System']['Hardware']:
-        kivyconfig.remove_option('input', 'mtdev_%(name)s')
+    if config['System']['Hardware'] == 'Pi4':
+        kivyconfig.remove_option('input', 'mouse')
 
 # Save wfpiconsole Kivy configuration file
 kivyconfig.write()
