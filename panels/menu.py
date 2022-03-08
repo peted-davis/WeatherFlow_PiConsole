@@ -21,7 +21,6 @@ from lib                      import config
 # Load required Kivy modules
 from kivy.network.urlrequest  import UrlRequest
 from kivy.uix.modalview       import ModalView
-from kivy.uix.widget          import WidgetException
 from kivy.properties          import ListProperty, DictProperty
 from kivy.clock               import Clock
 from kivy.app                 import App
@@ -51,12 +50,6 @@ class mainMenu(ModalView):
         super().__init__(**kwargs)
         self.app = App.get_running_app()
         self.app.mainMenu = self
-
-    def open(self, **kwargs):
-        try:
-            return super().open(**kwargs)
-        except WidgetException:
-            pass
 
     def on_pre_open(self):
 
