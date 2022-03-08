@@ -21,6 +21,7 @@ from lib                      import config
 # Load required Kivy modules
 from kivy.network.urlrequest  import UrlRequest
 from kivy.uix.modalview       import ModalView
+from kivy.uix.widget          import WidgetException
 from kivy.properties          import ListProperty, DictProperty
 from kivy.clock               import Clock
 from kivy.app                 import App
@@ -51,6 +52,12 @@ class mainMenu(ModalView):
         self.app = App.get_running_app()
         self.app.mainMenu = self
 
+    def open(self, **kwargs):
+        try:
+            return super().open(**kwargs)
+        except WidgetException:
+            pass
+
     def on_pre_open(self):
 
         """ Get list of stations associated with WeatherFlow Key and add
@@ -65,8 +72,6 @@ class mainMenu(ModalView):
         self.app.station.get_hub_firmware()
 
         # Add station status panels to main menu
-        if self.app.station.station_status_panel.parent is not None:
-            self.app.station.station_status_panel.parent.clear_widgets()
         self.ids.stationPanel.add_widget(self.app.station.station_status_panel)
 
         # Add device status panels to main menu
