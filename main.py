@@ -283,8 +283,8 @@ class wfpiconsole(App):
         # times when time format changed
         if section == 'Display' and key in 'TimeFormat':
             self.forecast.parse_forecast()
-            astro.Format(self.CurrentConditions.Astro,   self.config, 'Sun')
-            astro.Format(self.CurrentConditions.Astro,   self.config, 'Moon')
+            self.astro.format_labels('Sun')
+            self.astro.format_labels('Moon')
 
         # Update "Feels Like" temperature cutoffs in wfpiconsole.ini and the
         # settings screen when temperature units are changed

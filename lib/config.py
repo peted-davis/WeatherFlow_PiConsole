@@ -316,10 +316,8 @@ def writeConfigKey(Config, Section, Key, keyDetails):
         # Get dependent Key value
         if Key == 'IndoorTemp':
             if Config['Station']['InAirID']:
-                print("HERE")
                 Value = '1'
             else:
-                print("NO HERE")
                 Value = '0'
         elif Key == 'BarometerMax':
             Units = ['mb', 'hpa', 'inhg', 'mmhg']

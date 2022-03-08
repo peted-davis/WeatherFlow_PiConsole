@@ -108,7 +108,7 @@ class mainMenu(ModalView):
             if 'SUCCESS' in Response['status']['status_message']:
                 self.station_details = {}
                 for Station in Response['stations']:
-                    self.station_details[Station['name']] = Station
+                    self.station_details[Station['name'].strip()] = Station
                 self.station_list = list(self.station_details.keys())
                 self.ids.stationDropdown.text = self.app.config['Station']['Name']
 
