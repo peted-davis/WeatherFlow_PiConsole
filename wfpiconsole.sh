@@ -56,12 +56,13 @@ KIVY_DEPENDENCIES=(ffmpeg libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl
 # Python modules and versions
 KIVY_VERSION="2.0.0"
 PYTHON_MODULES=(cython==0.29.26
-                websockets==10.1
+                websockets==10.2
                 numpy==1.21.4
                 pytz==2021.3
                 ephem==4.1.3
                 packaging==21.3
-                pyOpenSSL==21.0.0)
+                pyOpenSSL==22.0.0
+                certifi==2021.10.8)
 
 # Github repositories
 KIVY_REPO="https://github.com/kivy/kivy/archive/"$KIVY_VERSION".zip"
