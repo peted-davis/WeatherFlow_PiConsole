@@ -370,6 +370,20 @@ class wfpiconsole(App):
         self.websocket_thread.join()
         del self.websocket_client
 
+    # EXIT CONSOLE AND SHUTDOWN SYSTEM
+    # --------------------------------------------------------------------------
+    def shutdown_system(self):
+        global SHUTDOWN
+        SHUTDOWN = 1
+        App.get_running_app().stop()
+
+    # EXIT CONSOLE AND REBOOT SYSTEM
+    # --------------------------------------------------------------------------
+    def reboot_system(self):
+        global REBOOT
+        REBOOT = 1
+        App.get_running_app().stop()
+
 
 # ==============================================================================
 # screenManager CLASS

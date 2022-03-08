@@ -1175,10 +1175,10 @@
                             on_release: app.stop()
                         MenuButton:
                             text: 'Reboot'
-                            on_release: root.rebootSystem()
+                            on_release: app.reboot_system()
                         MenuButton:
                             text: 'Shutdown'
-                            on_release: root.shutdownSystem()
+                            on_release: app.shutdown_system()
             MainMenuTab:
                 text: 'Station'
                 MainMenuLayout:

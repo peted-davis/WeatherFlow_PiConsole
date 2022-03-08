@@ -435,21 +435,3 @@ class mainMenu(ModalView):
             self.app.forecast.reset_forecast()
             self.app.astro.reset_astro()
             self.app.sager.reset_forecast()
-
-    def shutdownSystem(self):
-
-        """ Exit console and shutdown system
-        """
-
-        global SHUTDOWN
-        SHUTDOWN = 1
-        App.get_running_app().stop()
-
-    def rebootSystem(self):
-
-        """ Reboot console and shutdown system
-        """
-
-        global REBOOT
-        REBOOT = 1
-        App.get_running_app().stop()
