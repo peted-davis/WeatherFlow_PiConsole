@@ -663,52 +663,52 @@ createRepo() {
 # ------------------------------------------------------------------------------
 updateRepoLatestTag() {
 
-    # Clear all local changes and fetch latest commits from git repository
+    # Clear all changes from local git repository
     local directory=${1}
     git -C ${directory} checkout . &> errorLog || return $?
     git -C ${directory} clean --force -d &> errorLog || true
-    git -C ${directory} pull &> errorLog || return $?
 
-    # Checkout the main branch if required and reset code to latest release
+    # Checkout the main branch if required and pull latest commits. Reset code
+    # to most recent release
     local curBranch=$(git -C ${directory} rev-parse --abbrev-ref HEAD)
     if [[ "${curBranch}" != "main" ]]; then
         git -C ${directory} checkout main &> errorLog || return $?
     fi
-    git -C ${directory} reset --hard "$(git -C ${directory} describe --abbrev=0 --tags)" &> errorLog || return $?
+    git -C ${directory} pull &> errorLog || return $?
 }
 
 # SWITCH GIT REPOSITORY TO LATEST MAIN BRANCH COMMIT
 # ------------------------------------------------------------------------------
 switchRepoStable() {
 
-    # Clear all local changes and fetch latest commits from git repository
+    # Clear all changes from local git repository
     local directory=${1}
     git -C ${directory} checkout . &> errorLog || return $?
     git -C ${directory} clean --force -d &> errorLog || true
-    git -C ${directory} pull &> errorLog || return $?
 
-    # Checkout the main branch if required
+    # Checkout the main branch if required and pull latest commits
     local curBranch=$(git -C ${directory} rev-parse --abbrev-ref HEAD)
     if [[ "${curBranch}" != "main" ]]; then
         git -C ${directory} checkout main &> errorLog || return $?
     fi
+    git -C ${directory} pull &> errorLog || return $?
 }
 
 # SWITCH GIT REPOSITORY TO LATEST DEVELOP BRANCH COMMIT
 # ------------------------------------------------------------------------------
 switchRepoBeta() {
 
-    # Clear all local changes and fetch latest commits from git repository
+    # Clear all changes from local git repository
     local directory=${1}
     git -C ${directory} checkout . &> errorLog || return $?
     git -C ${directory} clean --force -d &> errorLog || true
-    git -C ${directory} pull &> errorLog || return $?
 
-    # Checkout the develop branch if required
+    # Checkout the develop branch if required and pull latest commits
     local curBranch=$(git -C ${directory} rev-parse --abbrev-ref HEAD)
     if [[ "${curBranch}" != "develop" ]]; then
         git -C ${directory} checkout develop &> errorLog || return $?
     fi
+    git -C ${directory} pull &> errorLog || return $?
 }
 
 # DISPLAY REQUIRED PROCESS STARTING DIALOGUE
