@@ -61,7 +61,8 @@ PYTHON_MODULES=(cython==0.29.26
                 pytz==2021.3
                 ephem==4.1.3
                 packaging==21.3
-                pyOpenSSL==21.0.0)
+                pyOpenSSL==21.0.0
+                certifi==2021.10.8)
 
 # Github repositories
 KIVY_REPO="https://github.com/kivy/kivy/archive/"$KIVY_VERSION".zip"
@@ -408,7 +409,7 @@ updateKivyConfig() {
     fi
 }
 
-# GET THE LATEST STABLE VERSION OF THE WeatherFlow PiConsole FROM GITHUB
+# GET THE LATEST VERSION OF THE WeatherFlow PiConsole FROM GITHUB
 # ------------------------------------------------------------------------------
 getLatestVersion() {
 
@@ -424,13 +425,21 @@ getLatestVersion() {
         printf "\\n  %b Latest version of WeatherFlow PiConsole: %s" ${INFO} ${latestVer}
         printf "\\n  %b Installed version of WeatherFlow PiConsole: %s" ${INFO} ${currentVer}
 
-        # Compare current version with latest version. If verions match, there
-        # is no need to get the latest version
+        # Compare current version with latest version. If versions match, there
+        # is no need to get the latest version, but make sure we are on the main
+        # branch
         if [[ "$currentVer" == "$latestVer" ]]; then
             printf "\\n  %b Versions match: %bNo update required%b\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            if (isRepo ${CONSOLEDIR}); then
+                local curBranch=$(git -C ${CONSOLEDIR} rev-parse --abbrev-ref HEAD)
+                if [[ "${curBranch}" != "main" ]]; then
+                    git -C ${CONSOLEDIR} checkout main &> errorLog || return $?
+                fi
+                git -C ${CONSOLEDIR} reset --hard "$(git -C ${CONSOLEDIR} describe --abbrev=0 --tags)" &> errorLog || return $?
+            fi
             return
 
-        # Else, get the latest version of the WeatherFlow PiConsole and install
+        # Else, get the latest version of the WeatherFlow PiConsole
         else
             local str="Updating WeatherFlow PiConsole to ${COL_LIGHT_GREEN}${latestVer}${COL_NC}"
             printf "\\n\\n  %b %b..." "${INFO}" "${str}"
@@ -451,7 +460,7 @@ getLatestVersion() {
         fi
 
     # Else, the WeatherFlow PiConsole is not installed so get the latest stable
-    # version and install
+    # version
     else
         local str="Installing latest version of WeatherFlow PiConsole: ${COL_LIGHT_GREEN}${latestVer}${COL_NC}"
         printf "\\n  %b %b..." "${INFO}" "${str}"
@@ -484,27 +493,22 @@ getLatestVersion() {
     sudo ln -sf $CONSOLEDIR/wfpiconsole.sh /usr/local/bin/wfpiconsole
 }
 
-# GET THE LATEST STABLE PATCH FOR THE WeatherFlow PiConsole FROM GITHUB
+# SWITCH TO THE WeatherFlow PiConsole STABLE BRANCH
 # ------------------------------------------------------------------------------
-getLatestPatch() {
+switchStableBranch() {
 
-    # Get info on latest patch from Github API and extract latest version
-    # number using jq JSON tools
-    patchInfo=$(curl -s $WFPICONSOLE_TAGS -H 'Accept: application/vnd.github.v3+json')
-    patchVer=$(echo $patchInfo | jq -r '.[0].name')
-
-    # Fetch the latest stable commit for the WeatherFlow PiConsole from Github
+    # Switch to the WeatherFlow PiConsole stable branch
     local status=0
-    local str="Patching WeatherFlow PiConsole to latest stable commit"
+    local str="Switching to stable branch"
     printf "  %b %b..." "${INFO}" "${str}"
     if (isRepo ${CONSOLEDIR}); then
-        if (updateRepoLatestCommit ${CONSOLEDIR}); then status=1; fi
+        if (switchRepoStable ${CONSOLEDIR}); then status=1; fi
     fi
     if [[ $status -eq 1 ]]; then
         printf "%b  %b %b\\n" "${OVER}" "${TICK}" "${str}"
     else
         printf "%b  %b %b\\n" "${OVER}" "${CROSS}" "${str}"
-        printf "  %bError: Unable to patch WeatherFlow PiConsole\\n\\n %b" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "  %bError: Unable to switch to WeatherFlow PiConsole stable branch\\n\\n %b" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "%s\\n\\n" "$(<errorLog)"
         cleanUp
         exit 1
@@ -518,22 +522,22 @@ getLatestPatch() {
     fi
 }
 
-# GET THE LATEST BETA VERSION FOR THE WeatherFlow PiConsole FROM GITHUB
+# SWITCH TO THE WeatherFlow PiConsole BETA BRANCH
 # ------------------------------------------------------------------------------
-getLatestBeta() {
+switchBetaBranch() {
 
-    # Fetch the latest beta version of the WeatherFlow PiConsole from Github
+    # Switch to the WeatherFlow PiConsole beta branch
     local status=0
-    local str="Installing latest beta version of WeatherFlow PiConsole"
+    local str="Switching to WeatherFlow PiConsole beta branch"
     printf "  %b %b..." "${INFO}" "${str}"
     if (isRepo ${CONSOLEDIR}); then
-        if (updateRepoLatestBeta ${CONSOLEDIR}); then status=1; fi
+        if (switchRepoBeta ${CONSOLEDIR}); then status=1; fi
     fi
     if [[ $status -eq 1 ]]; then
         printf "%b  %b %b\\n" "${OVER}" "${TICK}" "${str}"
     else
         printf "%b  %b %b\\n" "${OVER}" "${CROSS}" "${str}"
-        printf "  %bError: Unable to install latest beta version of WeatherFlow PiConsole\\n\\n %b" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "  %bError: Unable to switch to WeatherFlow PiConsole beta branch\\n\\n %b" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "%s\\n\\n" "$(<errorLog)"
         cleanUp
         exit 1
@@ -630,7 +634,7 @@ isRepo() {
     return "${rc:-0}"
 }
 
-# CREATE NEW GIT REPOSITORY (MAIN BRANCH) AT LATEST TAG
+# CREATE NEW GIT REPOSITORY AT LATEST MAIN BRANCH RELEASE
 # ------------------------------------------------------------------------------
 createRepo() {
 
@@ -655,7 +659,7 @@ createRepo() {
     git -C ${directory} reset --hard "$(git -C ${directory} describe --abbrev=0 --tags)" &> errorLog || return $?
 }
 
-# UPDATE GIT REPOSITORY TO LATEST TAG (MAIN BRANCH)
+# UPDATE GIT REPOSITORY TO LATEST MAIN BRANCH RELEASE
 # ------------------------------------------------------------------------------
 updateRepoLatestTag() {
 
@@ -665,7 +669,7 @@ updateRepoLatestTag() {
     git -C ${directory} clean --force -d &> errorLog || true
     git -C ${directory} pull &> errorLog || return $?
 
-    # Checkout the main branch if required and reset code to latest tag
+    # Checkout the main branch if required and reset code to latest release
     local curBranch=$(git -C ${directory} rev-parse --abbrev-ref HEAD)
     if [[ "${curBranch}" != "main" ]]; then
         git -C ${directory} checkout main &> errorLog || return $?
@@ -673,9 +677,9 @@ updateRepoLatestTag() {
     git -C ${directory} reset --hard "$(git -C ${directory} describe --abbrev=0 --tags)" &> errorLog || return $?
 }
 
-# PATCH GIT REPOSITORY TO LATEST COMMIT (MAIN BRANCH)
+# SWITCH GIT REPOSITORY TO LATEST MAIN BRANCH COMMIT
 # ------------------------------------------------------------------------------
-updateRepoLatestCommit() {
+switchRepoStable() {
 
     # Clear all local changes and fetch latest commits from git repository
     local directory=${1}
@@ -690,9 +694,9 @@ updateRepoLatestCommit() {
     fi
 }
 
-# UPDATE GIT REPOSITORY TO LATEST COMMIT (DEVELOP BRANCH)
+# SWITCH GIT REPOSITORY TO LATEST DEVELOP BRANCH COMMIT
 # ------------------------------------------------------------------------------
-updateRepoLatestBeta() {
+switchRepoBeta() {
 
     # Clear all local changes and fetch latest commits from git repository
     local directory=${1}
@@ -728,19 +732,19 @@ processStarting() {
             printf "  Updating WeatherFlow PiConsole \\n"
             printf "  ============================== \\n\\n"
             ;;
-    # Display patch starting dialogue
-        patch)
+    # Display stable starting dialogue
+        stable)
             printf "\\n"
             printf "  ============================== \\n"
-            printf "  Patching WeatherFlow PiConsole \\n"
+            printf "  Switching to the stable branch \\n"
             printf "  ============================== \\n\\n"
             ;;
     # Display update starting dialogue
         runBeta)
             printf "\\n"
-            printf "  ===================================================== \\n"
-            printf "  Updating WeatherFlow PiConsole to latest beta version \\n"
-            printf "  ===================================================== \\n\\n"
+            printf "  ============================ \\n"
+            printf "  Switching to the beta branch \\n"
+            printf "  ============================ \\n\\n"
             ;;
     # Display autostart-enable starting dialogue
         autostart-enable)
@@ -781,10 +785,10 @@ processComplete() {
             printf "  ============================================= \\n\\n"
             ;;
     # Display patch complete dialogue
-        patch)
+        stable)
             printf "  \\n"
             printf "  ============================================= \\n"
-            printf "  WeatherFlow PiConsole patching complete!      \\n"
+            printf "  Switch to stable branch complete!             \\n"
             printf "  Restart the console with: 'wfpiconsole start' \\n"
             printf "  or 'wfpiconsole autostart-enable'             \\n"
             printf "  ============================================= \\n\\n"
@@ -793,7 +797,7 @@ processComplete() {
         runBeta)
             printf "  \\n"
             printf "  ============================================= \\n"
-            printf "  WeatherFlow PiConsole beta update complete!   \\n"
+            printf "  Switch to beta branch complete!               \\n"
             printf "  Restart the console with: 'wfpiconsole start' \\n"
             printf "  or 'wfpiconsole autostart-enable'             \\n"
             printf "  ============================================= \\n\\n"
@@ -833,7 +837,7 @@ stop () {
     cleanUp
 }
 
-# INSTALL WeatherFlow PiConsole
+# INSTALL THE WeatherFlow PiConsole
 # ------------------------------------------------------------------------------
 install() {
 
@@ -857,7 +861,7 @@ install() {
     processComplete ${FUNCNAME[0]}
 }
 
-# UPDATE WeatherFlow PiConsole TO THE LATEST STABLE VERSION
+# UPDATE THE WeatherFlow PiConsole TO THE LATEST STABLE VERSION
 # ------------------------------------------------------------------------------
 update() {
 
@@ -866,8 +870,6 @@ update() {
     curl -sSL $WFPICONSOLE_MAIN_UPDATE | bash -s runUpdate
 }
 
-# RUN THE STABLE VERSION UPDATE PROCESS
-# ------------------------------------------------------------------------------
 runUpdate() {
 
     # Display installation starting dialogue
@@ -890,21 +892,21 @@ runUpdate() {
     processComplete ${FUNCNAME[0]}
 }
 
-# PATCH THE WeatherFlow PiConsole WITH THE LATEST STABLE CHANGES
+# SWITCH THE WeatherFlow PiConsole TO THE STABLE BRANCH
 # ------------------------------------------------------------------------------
-patch() {
+stable() {
 
     # Display installation starting dialogue
     processStarting ${FUNCNAME[0]}
     # Get the latest patch for the WeatherFlow PiConsole and install
-    getLatestPatch
+    switchStableBranch
     # Clean up after installation
     cleanUp
     # Display update complete dialogue
     processComplete ${FUNCNAME[0]}
 }
 
-# UPDATE WeatherFlow PiConsole TO THE LATEST STABLE BETA VERSION
+# SWITCH THE WeatherFlow PiConsole TO THE BETA BRANCH
 # ------------------------------------------------------------------------------
 beta() {
 
@@ -913,8 +915,6 @@ beta() {
     curl -sSL $WFPICONSOLE_BETA_UPDATE | bash -s runBeta
 }
 
-# RUN THE BETA VERSION UPDATE PROCESS
-# ------------------------------------------------------------------------------
 runBeta() {
 
     # Display installation starting dialogue
@@ -929,8 +929,8 @@ runBeta() {
     installKivyPackages
     # Install Kivy Python library
     installKivy
-    # Get the latest patch for the WeatherFlow PiConsole and install
-    getLatestBeta
+    # Switch to the WeatherFlow PiConsole beta branch
+    switchBetaBranch
     # Clean up after installation
     cleanUp
     # Display update complete dialogue
@@ -978,7 +978,8 @@ Options:
   stop                  : Stop the WeatherFlow PiConsole
   install               : Install the WeatherFlow PiConsole
   update                : Update the WeatherFlow PiConsole
-  patch                 : Patch the WeatherFlow PiConsole
+  stable                : Switch the WeatherFlow PiConsole to the stable branch
+  beta                  : Switch the WeatherFlow PiConsole to the beta branch
   autostart-enable      : Set the WeatherFlow PiConsole to autostart at boot
   autostart-disable     : Stop the WeatherFlow PiConsole autostarting at boot"
   exit 0
@@ -1018,7 +1019,7 @@ fi
 
 # CHECK OS/HARDWARE AND ADD REQUIRED REPOSITORIES WHEN INSTALL OR UPDATING
 # ------------------------------------------------------------------------------
-if [[ "${1}" == "install" ]] || [[ "${1}" == "runUpdate" ]] || [[ "${1}" == "runBeta" ]] || [[ "${1}" == "patch" ]] ; then
+if [[ "${1}" == "install" ]] || [[ "${1}" == "runUpdate" ]] || [[ "${1}" == "runBeta" ]] || [[ "${1}" == "stable" ]] ; then
 
     # Check compatability of hardware/OS
     PROCESSOR=$(uname -m)
@@ -1063,7 +1064,7 @@ case "${1}" in
     "stop"                ) stop;;
     "install"             ) install;;
     "update"              ) update;;
-    "patch"               ) patch;;
+    "stable"              ) stable;;
     "beta"                ) beta;;
     "runUpdate"           ) runUpdate;;
     "runBeta"             ) runBeta;;

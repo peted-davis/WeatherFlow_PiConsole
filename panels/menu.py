@@ -64,8 +64,10 @@ class mainMenu(ModalView):
         self.app.station.get_observation_count()
         self.app.station.get_hub_firmware()
 
-        # Add station and device status panels to main menu
+        # Add station status panels to main menu
         self.ids.stationPanel.add_widget(self.app.station.station_status_panel)
+
+        # Add device status panels to main menu
         if self.app.config['Station']['TempestID']:
             self.ids.devicePanel.add_widget(self.app.station.tempest_status_panel)
         if self.app.config['Station']['SkyID']:
@@ -106,7 +108,7 @@ class mainMenu(ModalView):
             if 'SUCCESS' in Response['status']['status_message']:
                 self.station_details = {}
                 for Station in Response['stations']:
-                    self.station_details[Station['name']] = Station
+                    self.station_details[Station['name'].strip()] = Station
                 self.station_list = list(self.station_details.keys())
                 self.ids.stationDropdown.text = self.app.config['Station']['Name']
 
@@ -431,21 +433,3 @@ class mainMenu(ModalView):
             self.app.forecast.reset_forecast()
             self.app.astro.reset_astro()
             self.app.sager.reset_forecast()
-
-    def shutdownSystem(self):
-
-        """ Exit console and shutdown system
-        """
-
-        global SHUTDOWN
-        SHUTDOWN = 1
-        App.get_running_app().stop()
-
-    def rebootSystem(self):
-
-        """ Reboot console and shutdown system
-        """
-
-        global REBOOT
-        REBOOT = 1
-        App.get_running_app().stop()

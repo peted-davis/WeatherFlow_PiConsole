@@ -16,6 +16,7 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 """
 
 # Import required modules
+from kivy.logger    import Logger
 from packaging      import version
 import configparser
 import collections
@@ -26,7 +27,7 @@ import sys
 import os
 
 # Define wfpiconsole version number
-Version = 'v22.3.1'
+Version = 'v22.3.2'
 
 # Define required variables
 TEMPEST       = False
@@ -109,9 +110,8 @@ def update():
         file to wfpiconsole.ini
     """
 
-    # Load default configuration dictionary
-    default = defaultConfig()
-    defaultVersion = default['System']['Version']['Value']
+    # Fetch latest version number
+    latestVersion = defaultConfig()['System']['Version']['Value']
 
     # Load current user configuration file
     currentConfig = configparser.ConfigParser(allow_no_value=True)
@@ -119,14 +119,9 @@ def update():
     currentConfig.read('wfpiconsole.ini')
     currentVersion = currentConfig['System']['Version']
 
-    # Create new config parser object to hold updated user configuration file
-    newConfig = configparser.ConfigParser(allow_no_value=True)
-    newConfig.optionxform = str
-
-    # CONVERT DEFAULT CONFIGURATION DICTIONARY INTO .ini FILE
+    # NEW VERSION DETECTED. GENERATE UPDATED CONFIGURATION FILE
     # --------------------------------------------------------------------------
-    # Check if version numbers are different
-    if version.parse(currentVersion) < version.parse(defaultVersion):
+    if version.parse(currentVersion) < version.parse(latestVersion):
 
         # Print progress dialogue to screen
         print('')
@@ -138,37 +133,79 @@ def update():
         print('  Required fields are marked with an asterix (*)     ')
         print('')
 
+        # Create new config parser object to hold updated user configuration file
+        newConfig = configparser.ConfigParser(allow_no_value=True)
+        newConfig.optionxform = str
+
         # Loop through all sections in default configuration dictionary. Take
         # existing key values from current configuration file
-        for Section in default:
+        for Section in defaultConfig():
             Changes = False
             newConfig.add_section(Section)
-            for Key in default[Section]:
+            for Key in defaultConfig()[Section]:
                 if Key == 'Description':
-                    print(default[Section][Key])
+                    print(defaultConfig()[Section][Key])
                     print('  ---------------------------------')
                 else:
                     if currentConfig.has_option(Section, Key):
                         if updateRequired(Key, currentVersion):
                             Changes = True
-                            writeConfigKey(newConfig, Section, Key, default[Section][Key])
+                            writeConfigKey(newConfig, Section, Key, defaultConfig()[Section][Key])
                         else:
-                            copyConfigKey(newConfig, currentConfig, Section, Key, default[Section][Key])
+                            copyConfigKey(newConfig, currentConfig, Section, Key, defaultConfig()[Section][Key])
                     if not currentConfig.has_option(Section, Key):
                         Changes = True
-                        writeConfigKey(newConfig, Section, Key, default[Section][Key])
+                        writeConfigKey(newConfig, Section, Key, defaultConfig()[Section][Key])
                     elif Key == 'Version':
                         Changes = True
-                        newConfig.set(Section, Key, defaultVersion)
-                        print('  Updating version number to: ' + defaultVersion)
+                        newConfig.set(Section, Key, latestVersion)
+                        print('  Updating version number to: ' + latestVersion)
             if not Changes:
                 print('  No changes required')
             print('')
 
-        # WRITE UPDATED USER .INI FILE TO DISK
-        # ----------------------------------------------------------------------
+        # Verify station details for updated configuration
+        newConfig = verify_station(newConfig)
+
+        # Write updated configuration file to disk
         with open('wfpiconsole.ini', 'w') as configfile:
             newConfig.write(configfile)
+
+    #  VERSION UNCHANGED. VERIFY STATION DETAILS FOR EXISTING CONFIGURATION
+    # --------------------------------------------------------------------------
+    elif version.parse(currentVersion) == version.parse(latestVersion):
+        currentConfig = verify_station(currentConfig)
+        with open('wfpiconsole.ini', 'w') as configfile:
+            currentConfig.write(configfile)
+
+
+def verify_station(config):
+
+    # Fetch latest station metadata
+    Logger.info('Config: Verifying station details')
+    RETRIES = 0
+    while True:
+        Template = 'https://swd.weatherflow.com/swd/rest/observations/station/{}?api_key={}'
+        URL = Template.format(config['Station']['StationID'], config['Keys']['WeatherFlow'])
+        try:
+            STATION = requests.get(URL).json()
+        except Exception:
+            STATION = None
+        if 'status' in STATION:
+            if 'SUCCESS' in STATION['status']['status_message']:
+                break
+            else:
+                RETRIES += 1
+        else:
+            RETRIES += 1
+        if RETRIES >= MAXRETRIES:
+            sys.exit('\n    Error: unable to fetch station metadata')
+
+    # Confirm existing station name
+    config.set('Station', 'Name', STATION['station_name'])
+
+    # Return verified configuration
+    return config
 
 
 def switch(stationMetaData, deviceList, config):
@@ -316,10 +353,8 @@ def writeConfigKey(Config, Section, Key, keyDetails):
         # Get dependent Key value
         if Key == 'IndoorTemp':
             if Config['Station']['InAirID']:
-                print("HERE")
                 Value = '1'
             else:
-                print("NO HERE")
                 Value = '0'
         elif Key == 'BarometerMax':
             Units = ['mb', 'hpa', 'inhg', 'mmhg']
@@ -373,7 +408,7 @@ def writeConfigKey(Config, Section, Key, keyDetails):
                 else:
                     RETRIES += 1
                 if RETRIES >= MAXRETRIES:
-                    sys.exit('\n    Error: unable to fetch observation meta-data')
+                    sys.exit('\n    Error: unable to fetch observation metadata')
 
         # Validate TEMPEST device ID and get height above ground of TEMPEST
         if Section == 'Station':
@@ -553,7 +588,7 @@ def validateAPIKeys(Config):
                 else:
                     RETRIES += 1
                 if RETRIES >= MAXRETRIES:
-                    sys.exit('\n    Error: unable to fetch station meta-data')
+                    sys.exit('\n    Error: unable to fetch station metadata')
 
 
 def queryUser(Question, Default=None):

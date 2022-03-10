@@ -71,8 +71,6 @@ kivyconfig.read(os.path.expanduser('~/.kivy/') + 'config_wfpiconsole.ini')
 
 # Set Kivy window properties
 if config['System']['Hardware'] in ['Pi4', 'Linux', 'Other']:
-    kivyconfig.set('graphics', 'minimum_width',  '800')
-    kivyconfig.set('graphics', 'minimum_height', '480')
     if int(config['Display']['Fullscreen']):
         kivyconfig.set('graphics', 'fullscreen', 'auto')
     else:
@@ -95,8 +93,14 @@ if config['System']['Hardware'] in ['PiB', 'Pi3']:
 # Initialise mouse support if required
 if int(config['Display']['Cursor']):
     kivyconfig.set('graphics', 'show_cursor', '1')
+    if config['System']['Hardware'] == 'Pi4':
+        kivyconfig.set('input', 'mouse', 'mouse')
+        kivyconfig.remove_option('input', 'mtdev_%(name)s')
+        kivyconfig.remove_option('input', 'hid_%(name)s')
 else:
     kivyconfig.set('graphics', 'show_cursor', '0')
+    if config['System']['Hardware'] == 'Pi4':
+        kivyconfig.remove_option('input', 'mouse')
 
 # Save wfpiconsole Kivy configuration file
 kivyconfig.write()
@@ -212,7 +216,7 @@ class wfpiconsole(App):
     # SET DISPLAY SCALE FACTOR BASED ON SCREEN DIMENSIONS
     # --------------------------------------------------------------------------
     def setScaleFactor(self, instance, x, y):
-        self.scaleFactor = max(min(x / 800, y / 480), 1)
+        self.scaleFactor = min(x / 800, y / 480)
         if self.scaleFactor > 1:
             self.scaleSuffix = '_hR.png'
         else:
@@ -279,8 +283,8 @@ class wfpiconsole(App):
         # times when time format changed
         if section == 'Display' and key in 'TimeFormat':
             self.forecast.parse_forecast()
-            astro.Format(self.CurrentConditions.Astro,   self.config, 'Sun')
-            astro.Format(self.CurrentConditions.Astro,   self.config, 'Moon')
+            self.astro.format_labels('Sun')
+            self.astro.format_labels('Moon')
 
         # Update "Feels Like" temperature cutoffs in wfpiconsole.ini and the
         # settings screen when temperature units are changed
@@ -369,6 +373,20 @@ class wfpiconsole(App):
         self.websocket_client._keep_running = False
         self.websocket_thread.join()
         del self.websocket_client
+
+    # EXIT CONSOLE AND SHUTDOWN SYSTEM
+    # --------------------------------------------------------------------------
+    def shutdown_system(self):
+        global SHUTDOWN
+        SHUTDOWN = 1
+        App.get_running_app().stop()
+
+    # EXIT CONSOLE AND REBOOT SYSTEM
+    # --------------------------------------------------------------------------
+    def reboot_system(self):
+        global REBOOT
+        REBOOT = 1
+        App.get_running_app().stop()
 
 
 # ==============================================================================
