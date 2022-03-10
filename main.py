@@ -71,8 +71,6 @@ kivyconfig.read(os.path.expanduser('~/.kivy/') + 'config_wfpiconsole.ini')
 
 # Set Kivy window properties
 if config['System']['Hardware'] in ['Pi4', 'Linux', 'Other']:
-    kivyconfig.set('graphics', 'minimum_width',  '800')
-    kivyconfig.set('graphics', 'minimum_height', '480')
     if int(config['Display']['Fullscreen']):
         kivyconfig.set('graphics', 'fullscreen', 'auto')
     else:
@@ -218,7 +216,7 @@ class wfpiconsole(App):
     # SET DISPLAY SCALE FACTOR BASED ON SCREEN DIMENSIONS
     # --------------------------------------------------------------------------
     def setScaleFactor(self, instance, x, y):
-        self.scaleFactor = max(min(x / 800, y / 480), 1)
+        self.scaleFactor = min(x / 800, y / 480)
         if self.scaleFactor > 1:
             self.scaleSuffix = '_hR.png'
         else:
