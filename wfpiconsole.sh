@@ -675,7 +675,6 @@ updateRepoLatestTag() {
         git -C ${directory} checkout main &> errorLog || return $?
     fi
     git -C ${directory} pull &> errorLog || return $?
-    git -C ${directory} reset --hard "$(git -C ${directory} describe --abbrev=0 --tags)" &> errorLog || return $?
 }
 
 # SWITCH GIT REPOSITORY TO LATEST MAIN BRANCH COMMIT
@@ -692,7 +691,7 @@ switchRepoStable() {
     if [[ "${curBranch}" != "main" ]]; then
         git -C ${directory} checkout main &> errorLog || return $?
     fi
-    git -C ${directory} pull --all &> errorLog || return $?
+    git -C ${directory} pull &> errorLog || return $?
 }
 
 # SWITCH GIT REPOSITORY TO LATEST DEVELOP BRANCH COMMIT
@@ -709,7 +708,7 @@ switchRepoBeta() {
     if [[ "${curBranch}" != "develop" ]]; then
         git -C ${directory} checkout develop &> errorLog || return $?
     fi
-    git -C ${directory} pull --all &> errorLog || return $?
+    git -C ${directory} pull &> errorLog || return $?
 }
 
 # DISPLAY REQUIRED PROCESS STARTING DIALOGUE
