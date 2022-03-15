@@ -145,8 +145,8 @@ class mainMenu(ModalView):
         if self.station_details:
             self.get_station_metadata()
             for station in self.station_details:
-                for device in self.station_details[station]['devices']:
-                    if 'device_type' in device:
+                try:
+                    for device in self.station_details[station]['devices']:
                         if station == self.ids.stationDropdown.text:
                             if device['device_type'] == 'ST':
                                 self.tempest_list.append(device['device_meta']['name'] + ': ' + str(device['device_id']))
@@ -165,6 +165,8 @@ class mainMenu(ModalView):
                             if device['device_type'] == 'AR' and device['device_meta']['environment'] == 'indoor':
                                 self.in_air_list.append(device['device_meta']['name'] + ': ' + str(device['device_id']))
                                 self.device_meta_data[str(device['device_id'])] = device
+                except KeyError:
+                    pass
 
         # Initialise device selection dropdowns based on the number and type of
         # devices associated with the station.
@@ -257,7 +259,15 @@ class mainMenu(ModalView):
                 self.ids.skyDropdown.text = 'No device available'
                 self.ids.skyDropdown.disabled = 1
 
-        # [4] Indoor Air
+        # [4] No devices associated with station, or failed to fetch station
+        # metadata
+        else:
+            for device in ['tempest', 'sky', 'outAir']:
+                dropdown = getattr(self.ids, device + 'Dropdown')
+                setattr(dropdown, 'text', 'No device available')
+                setattr(dropdown, 'disabled', 1)
+
+        # [5] Indoor Air
         if self.in_air_list:
             self.ids.inAirDropdown.disabled = 0
             if self.app.config['Station']['InAirID']:
@@ -356,7 +366,7 @@ class mainMenu(ModalView):
         if 'status' in Response:
             if 'SUCCESS' in Response['status']['status_message']:
                 self.station_meta_data = Response
-            elif self.retries <= 3:
+            elif self.retries < 3:
                 self.ids.switchButton.text = 'Bad response. Retrying...'
                 self.pendingRequest = Clock.schedule_once(lambda dt: self.get_station_metadata(), 2)
                 return
