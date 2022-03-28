@@ -43,7 +43,7 @@ class BarometerPanel(panelTemplate):
         if SLP is None or SLP == '-':
             self.barometerArrow = '-'
         else:
-            self.barometerArrow = '{:.1f}'.format(SLP)
+            self.barometerArrow = '{:.1f}'.format(max(min(1050, SLP), 950))
 
 
 class BarometerButton(RelativeLayout):
