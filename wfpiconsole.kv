@@ -836,7 +836,7 @@
     ## Last strike time
     TitleField:
         text:
-            'Last Strike' if app.CurrentConditions.Obs['StrikeDeltaT'][4] is None else \
+            'Last Strike' if app.CurrentConditions.Obs['StrikeDeltaT'][4] in ['-', None] else \
             'Strike Detected!' if app.CurrentConditions.Obs['StrikeDeltaT'][4] < 360 else \
             'Last Strike'
         pos_hint: {'x': 83/262, 'y': 168/202}
