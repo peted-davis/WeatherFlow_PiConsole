@@ -96,7 +96,7 @@ if int(config['Display']['Cursor']):
     if config['System']['Hardware'] == 'Pi4':
         kivyconfig.set('input', 'mouse', 'mouse')
         kivyconfig.remove_option('input', 'mtdev_%(name)s')
-        kivyconfig.remove_option('input', 'hid_%(name)s')
+        # kivyconfig.remove_option('input', 'hid_%(name)s')
 else:
     kivyconfig.set('graphics', 'show_cursor', '0')
     if config['System']['Hardware'] == 'Pi4':
@@ -122,7 +122,7 @@ from kivy.app                import App
 from lib.astronomical import astro
 from lib.forecast     import forecast
 from lib.sager        import sager_forecast
-from lib.status       import station
+# from lib.status       import station
 from lib              import settings     as userSettings
 from lib              import properties
 from lib              import system
@@ -168,8 +168,7 @@ from kivy.uix.settings       import SettingsWithSidebar
 class wfpiconsole(App):
 
     # Define App class dictionary properties
-    # System  = DictProperty([('Time', '-'), ('Date', '-')])
-    Sched   = DictProperty([])
+    Sched = DictProperty([])
 
     # Define App class configParser properties
     BarometerMax = ConfigParserProperty('-', 'System',  'BarometerMax', 'app')
@@ -423,8 +422,8 @@ class CurrentConditions(Screen):
         self.addPanels()
 
         # Schedule Station.getDeviceStatus to be called each second
-        self.app.station = station()
-        self.app.Sched.deviceStatus = Clock.schedule_interval(self.app.station.get_device_status, 1.0)
+        # self.app.station = station()
+        # self.app.Sched.deviceStatus = Clock.schedule_interval(self.app.station.get_device_status, 1.0)
 
         # Initialise Sunrise, Sunset, Moonrise and Moonset times
         self.app.astro = astro()
