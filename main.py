@@ -122,7 +122,7 @@ from kivy.app                import App
 from lib.astronomical import astro
 from lib.forecast     import forecast
 from lib.sager        import sager_forecast
-# from lib.status       import station
+from lib.status       import station
 from lib              import settings     as userSettings
 from lib              import properties
 from lib              import system
@@ -422,8 +422,8 @@ class CurrentConditions(Screen):
         self.addPanels()
 
         # Schedule Station.getDeviceStatus to be called each second
-        # self.app.station = station()
-        # self.app.Sched.deviceStatus = Clock.schedule_interval(self.app.station.get_device_status, 1.0)
+        self.app.station = station()
+        self.app.Sched.deviceStatus = Clock.schedule_interval(self.app.station.get_device_status, 1.0)
 
         # Initialise Sunrise, Sunset, Moonrise and Moonset times
         self.app.astro = astro()

@@ -60,22 +60,22 @@ class mainMenu(ModalView):
         # Get list of stations associated with WeatherFlow Key
         self.get_station_list()
 
-        # # Populate status fields
-        # self.app.station.get_observation_count()
-        # self.app.station.get_hub_firmware()
+        # Populate status fields
+        self.app.station.get_observation_count()
+        self.app.station.get_hub_firmware()
 
-        # # Add station status panels to main menu
-        # self.ids.stationPanel.add_widget(self.app.station.station_status_panel)
+        # Add station status panels to main menu
+        self.ids.stationPanel.add_widget(self.app.station.station_status_panel)
 
-        # # Add device status panels to main menu
-        # if self.app.config['Station']['TempestID']:
-        #     self.ids.devicePanel.add_widget(self.app.station.tempest_status_panel)
-        # if self.app.config['Station']['SkyID']:
-        #     self.ids.devicePanel.add_widget(self.app.station.sky_status_panel)
-        # if self.app.config['Station']['OutAirID']:
-        #     self.ids.devicePanel.add_widget(self.app.station.out_air_status_panel)
-        # if self.app.config['Station']['InAirID']:
-        #     self.ids.devicePanel.add_widget(self.app.station.in_air_status_panel)
+        # Add device status panels to main menu
+        if self.app.config['Station']['TempestID']:
+            self.ids.devicePanel.add_widget(self.app.station.tempest_status_panel)
+        if self.app.config['Station']['SkyID']:
+            self.ids.devicePanel.add_widget(self.app.station.sky_status_panel)
+        if self.app.config['Station']['OutAirID']:
+            self.ids.devicePanel.add_widget(self.app.station.out_air_status_panel)
+        if self.app.config['Station']['InAirID']:
+            self.ids.devicePanel.add_widget(self.app.station.in_air_status_panel)
 
     def on_dismiss(self):
 
