@@ -191,7 +191,7 @@ def verify_station(config):
             STATION = requests.get(URL).json()
         except Exception:
             STATION = None
-        if 'status' in STATION:
+        if STATION is not None and 'status' in STATION:
             if 'SUCCESS' in STATION['status']['status_message']:
                 break
             else:
@@ -199,7 +199,8 @@ def verify_station(config):
         else:
             RETRIES += 1
         if RETRIES >= MAXRETRIES:
-            sys.exit('\n    Error: unable to fetch station metadata')
+            Logger.error('Config: Unable to fetch station metadata')
+            sys.exit()
 
     # Confirm existing station name
     config.set('Station', 'Name', STATION['station_name'])
