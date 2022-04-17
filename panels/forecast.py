@@ -18,8 +18,6 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 # Load required Kivy modules
 from kivy.uix.relativelayout import RelativeLayout
 from kivy.properties         import StringProperty
-from kivy.clock              import mainthread
-from kivy.app                import App
 
 # Load required panel modules
 from panels.template         import panelTemplate
@@ -39,9 +37,8 @@ class ForecastPanel(panelTemplate):
         self.setForecastIcon()
 
     # Set Forecast icon
-    @mainthread
     def setForecastIcon(self):
-        self.forecastIcon = App.get_running_app().CurrentConditions.Met['Icon']
+        self.forecastIcon = self.app().CurrentConditions.Met['Icon']
 
 
 class ForecastButton(RelativeLayout):

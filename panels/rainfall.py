@@ -19,7 +19,6 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 from kivy.uix.relativelayout import RelativeLayout
 from kivy.properties         import NumericProperty
 from kivy.animation          import Animation
-from kivy.app                import App
 
 # Load required panel modules
 from panels.template         import panelTemplate
@@ -46,10 +45,10 @@ class RainfallPanel(panelTemplate):
     def animate_rain_rate(self):
 
         # If available, get current rain rate and convert to float
-        if App.get_running_app().CurrentConditions.Obs['RainRate'][0] != '-':
+        if self.app().CurrentConditions.Obs['RainRate'][0] != '-':
 
             # Get current rain rate and convert to float
-            rain_rate = float(App.get_running_app().CurrentConditions.Obs['RainRate'][3])
+            rain_rate = float(self.app().CurrentConditions.Obs['RainRate'][3])
 
             # Set RainRate level y position
             y0 = -1.00

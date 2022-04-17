@@ -18,7 +18,6 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 # Load required Kivy modules
 from kivy.uix.relativelayout import RelativeLayout
 from kivy.properties         import StringProperty
-from kivy.app                import App
 
 # Load required panel modules
 from panels.template         import panelTemplate
@@ -39,7 +38,7 @@ class BarometerPanel(panelTemplate):
 
     # Set Barometer arrow rotation angle to match current sea level pressure
     def setBarometerArrow(self):
-        SLP = App.get_running_app().CurrentConditions.Obs['SLP'][2]
+        SLP = self.app().CurrentConditions.Obs['SLP'][2]
         if SLP is None or SLP == '-':
             self.barometerArrow = '-'
         else:

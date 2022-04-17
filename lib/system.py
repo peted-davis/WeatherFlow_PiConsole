@@ -37,35 +37,32 @@ def realtimeClock(dt):
     """ Format Realtime clock and date in station timezone
     """
 
-    # Extract app config and System dictionary
-    Config = App.get_running_app().config
-    System = App.get_running_app().CurrentConditions.System
-
     # Define time and date format based on user settings
-    if 'Display' in Config:
-        if 'TimeFormat' in Config['Display'] and 'DateFormat' in Config['Display']:
-            if Config['Display']['TimeFormat'] == '12 hr':
-                if Config['System']['Hardware'] == 'Other':
+    app = App.get_running_app
+    if 'Display' in app().config:
+        if 'TimeFormat' in app().config['Display'] and 'DateFormat' in app().config['Display']:
+            if app().config['Display']['TimeFormat'] == '12 hr':
+                if app().config['System']['Hardware'] == 'Other':
                     TimeFormat = '%#I:%M:%S %p'
                 else:
                     TimeFormat = '%-I:%M:%S %p'
             else:
                 TimeFormat = '%H:%M:%S'
-            if Config['Display']['DateFormat']  == 'Mon, Jan 01 0000':
+            if app().config['Display']['DateFormat']  == 'Mon, Jan 01 0000':
                 DateFormat = '%a, %b %d %Y'
-            elif Config['Display']['DateFormat'] == 'Monday, 01 Jan 0000':
+            elif app().config['Display']['DateFormat'] == 'Monday, 01 Jan 0000':
                 DateFormat = '%A, %d %b %Y'
-            elif Config['Display']['DateFormat'] == 'Monday, Jan 01 0000':
+            elif app().config['Display']['DateFormat'] == 'Monday, Jan 01 0000':
                 DateFormat = '%A, %b %d %Y'
             else:
                 DateFormat = '%a, %d %b %Y'
 
             # Get station time zone
-            Tz = pytz.timezone(Config['Station']['Timezone'])
+            Tz = pytz.timezone(app().config['Station']['Timezone'])
 
             # Format realtime Clock
-            System['Time'] = datetime.fromtimestamp(time.time(), Tz).strftime(TimeFormat)
-            System['Date'] = datetime.fromtimestamp(time.time(), Tz).strftime(DateFormat)
+            app().CurrentConditions.System['Time'] = datetime.fromtimestamp(time.time(), Tz).strftime(TimeFormat)
+            app().CurrentConditions.System['Date'] = datetime.fromtimestamp(time.time(), Tz).strftime(DateFormat)
 
 
 def checkVersion(dt):
@@ -75,12 +72,12 @@ def checkVersion(dt):
     """
 
     # Get current time in station time zone
-    config = App.get_running_app().config
-    Tz = pytz.timezone(config['Station']['Timezone'])
+    app = App.get_running_app
+    Tz = pytz.timezone(app().config['Station']['Timezone'])
     Now = datetime.now(pytz.utc).astimezone(Tz)
 
     # Get version information from Github API
-    Data = requestAPI.github.version(config)
+    Data = requestAPI.github.version(app().config)
 
     # Extract version number from API response
     if requestAPI.github.verifyResponse(Data, 'tag_name'):
@@ -92,7 +89,7 @@ def checkVersion(dt):
 
     # If current and latest version numbers do not match, open update
     # notification
-    if version.parse(config['System']['Version']) < version.parse(latest_ver):
+    if version.parse(app().config['System']['Version']) < version.parse(latest_ver):
 
         # Check if update notification is already open. Close if required
         try:

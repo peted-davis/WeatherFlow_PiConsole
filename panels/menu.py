@@ -48,8 +48,8 @@ class mainMenu(ModalView):
     # Initialise 'mainMenu' ModalView class
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.app = App.get_running_app()
-        self.app.mainMenu = self
+        self.app = App.get_running_app
+        self.app().mainMenu = self
 
     def on_pre_open(self):
 
@@ -61,21 +61,21 @@ class mainMenu(ModalView):
         self.get_station_list()
 
         # Populate status fields
-        self.app.station.get_observation_count()
-        self.app.station.get_hub_firmware()
+        self.app().station.get_observation_count()
+        self.app().station.get_hub_firmware()
 
         # Add station status panels to main menu
-        self.ids.stationPanel.add_widget(self.app.station.station_status_panel)
+        self.ids.stationPanel.add_widget(self.app().station.station_status_panel)
 
         # Add device status panels to main menu
-        if self.app.config['Station']['TempestID']:
-            self.ids.devicePanel.add_widget(self.app.station.tempest_status_panel)
-        if self.app.config['Station']['SkyID']:
-            self.ids.devicePanel.add_widget(self.app.station.sky_status_panel)
-        if self.app.config['Station']['OutAirID']:
-            self.ids.devicePanel.add_widget(self.app.station.out_air_status_panel)
-        if self.app.config['Station']['InAirID']:
-            self.ids.devicePanel.add_widget(self.app.station.in_air_status_panel)
+        if self.app().config['Station']['TempestID']:
+            self.ids.devicePanel.add_widget(self.app().station.tempest_status_panel)
+        if self.app().config['Station']['SkyID']:
+            self.ids.devicePanel.add_widget(self.app().station.sky_status_panel)
+        if self.app().config['Station']['OutAirID']:
+            self.ids.devicePanel.add_widget(self.app().station.out_air_status_panel)
+        if self.app().config['Station']['InAirID']:
+            self.ids.devicePanel.add_widget(self.app().station.in_air_status_panel)
 
     def on_dismiss(self):
 
@@ -91,7 +91,7 @@ class mainMenu(ModalView):
         """
 
         URL = 'https://swd.weatherflow.com/swd/rest/stations?token={}'
-        URL = URL.format(self.app.config['Keys']['WeatherFlow'])
+        URL = URL.format(self.app().config['Keys']['WeatherFlow'])
         UrlRequest(URL,
                    on_success=self.parse_station_list,
                    on_failure=self.fail_station_list,
@@ -110,7 +110,7 @@ class mainMenu(ModalView):
                 for Station in Response['stations']:
                     self.station_details[Station['name'].strip()] = Station
                 self.station_list = list(self.station_details.keys())
-                self.ids.stationDropdown.text = self.app.config['Station']['Name']
+                self.ids.stationDropdown.text = self.app().config['Station']['Name']
 
     def fail_station_list(self, Request, Response):
 
@@ -174,9 +174,10 @@ class mainMenu(ModalView):
         if self.tempest_list and (self.sky_list or self.out_air_list):
             self.ids.tempestDropdown.disabled = 0
             self.tempest_list.insert(len(self.tempest_list), 'Clear')
-            if self.app.config['Station']['TempestID'] and self.ids.stationDropdown.text == self.app.config['Station']['Name']:
+            if (self.app().config['Station']['TempestID']
+                    and self.ids.stationDropdown.text == self.app().config['Station']['Name']):
                 for tempest in self.tempest_list:
-                    if tempest.split(':')[1].strip() == self.app.config['Station']['TempestID']:
+                    if tempest.split(':')[1].strip() == self.app().config['Station']['TempestID']:
                         self.ids.tempestDropdown.text = tempest
                 self.ids.skyDropdown.text     = self.ids.outAirDropdown.text     = 'Tempest selected'
                 self.ids.skyDropdown.disabled = self.ids.outAirDropdown.disabled = 1
@@ -184,10 +185,11 @@ class mainMenu(ModalView):
                 self.ids.tempestDropdown.text = 'Please select'
 
                 if self.sky_list:
-                    if self.app.config['Station']['SkyID'] and self.ids.stationDropdown.text == self.app.config['Station']['Name']:
+                    if (self.app().config['Station']['SkyID']
+                            and self.ids.stationDropdown.text == self.app().config['Station']['Name']):
                         self.ids.skyDropdown.disabled = 0
                         for sky in self.sky_list:
-                            if sky.split(':')[1].strip() == self.app.config['Station']['SkyID']:
+                            if sky.split(':')[1].strip() == self.app().config['Station']['SkyID']:
                                 self.ids.skyDropdown.text = sky
                         self.ids.tempestDropdown.text = 'Sky selected'
                         self.ids.tempestDropdown.disabled = 0
@@ -200,10 +202,11 @@ class mainMenu(ModalView):
                     self.ids.skyDropdown.disabled = 1
 
                 if self.out_air_list:
-                    if self.app.config['Station']['OutAirID'] and self.ids.stationDropdown.text == self.app.config['Station']['Name']:
+                    if (self.app().config['Station']['OutAirID']
+                            and self.ids.stationDropdown.text == self.app().config['Station']['Name']):
                         self.ids.outAirDropdown.disabled = 0
                         for air in self.out_air_list:
-                            if air.split(':')[1].strip() == self.app.config['Station']['OutAirID']:
+                            if air.split(':')[1].strip() == self.app().config['Station']['OutAirID']:
                                 self.ids.outAirDropdown.text = air
                         self.ids.tempestDropdown.text = 'Air selected'
                         self.ids.tempestDropdown.disabled = 0
@@ -220,9 +223,10 @@ class mainMenu(ModalView):
             self.ids.tempestDropdown.disabled = 0
             self.ids.outAirDropdown.disabled = self.ids.skyDropdown.disabled = 1
             self.ids.outAirDropdown.text     = self.ids.skyDropdown.text     = 'No device available'
-            if self.app.config['Station']['TempestID'] and self.ids.stationDropdown.text == self.app.config['Station']['Name']:
+            if (self.app().config['Station']['TempestID']
+                    and self.ids.stationDropdown.text == self.app().config['Station']['Name']):
                 for tempest in self.tempest_list:
-                    if tempest.split(':')[1].strip() == self.app.config['Station']['TempestID']:
+                    if tempest.split(':')[1].strip() == self.app().config['Station']['TempestID']:
                         self.ids.tempestDropdown.text = tempest
             else:
                 self.ids.tempestDropdown.text = 'Please select'
@@ -235,9 +239,10 @@ class mainMenu(ModalView):
 
             if self.out_air_list:
                 self.ids.outAirDropdown.disabled = 0
-                if self.app.config['Station']['OutAirID'] and self.ids.stationDropdown.text == self.app.config['Station']['Name']:
+                if (self.app().config['Station']['OutAirID']
+                        and self.ids.stationDropdown.text == self.app().config['Station']['Name']):
                     for air in self.out_air_list:
-                        if air.split(':')[1].strip() == self.app.config['Station']['OutAirID']:
+                        if air.split(':')[1].strip() == self.app().config['Station']['OutAirID']:
                             self.ids.outAirDropdown.text = air
                 else:
                     self.ids.outAirDropdown.text = 'Please select'
@@ -248,9 +253,10 @@ class mainMenu(ModalView):
 
             if self.sky_list:
                 self.ids.skyDropdown.disabled = 0
-                if self.app.config['Station']['SkyID'] and self.ids.stationDropdown.text == self.app.config['Station']['Name']:
+                if (self.app().config['Station']['SkyID']
+                        and self.ids.stationDropdown.text == self.app().config['Station']['Name']):
                     for sky in self.sky_list:
-                        if sky.split(':')[1].strip() == self.app.config['Station']['SkyID']:
+                        if sky.split(':')[1].strip() == self.app().config['Station']['SkyID']:
                             self.ids.skyDropdown.text = sky
                 else:
                     self.ids.skyDropdown.text = 'Please select'
@@ -270,9 +276,10 @@ class mainMenu(ModalView):
         # [5] Indoor Air
         if self.in_air_list:
             self.ids.inAirDropdown.disabled = 0
-            if self.app.config['Station']['InAirID']:
+            if self.app().config['Station']['InAirID']:
                 for air in self.in_air_list:
-                    if air.split(':')[1].strip() == self.app.config['Station']['InAirID'] and not self.in_air_cleared:
+                    if (air.split(':')[1].strip() == self.app().config['Station']['InAirID']
+                            and not self.in_air_cleared):
                         self.ids.inAirDropdown.text = air
             else:
                 self.ids.inAirDropdown.text = 'Please select'
@@ -394,19 +401,23 @@ class mainMenu(ModalView):
             device selection dropdowns
         """
 
-        new_station = True if self.ids.stationDropdown.text != self.app.config['Station']['Name'] else False
+        new_station = True if self.ids.stationDropdown.text != self.app().config['Station']['Name'] else False
         new_device  = True if ((self.ids.tempestDropdown.selected
-                               and (not self.app.config['Station']['TempestID'] or self.app.config['Station']['TempestID'] not in self.ids.tempestDropdown.text))
+                               and (not self.app().config['Station']['TempestID']
+                                    or self.app().config['Station']['TempestID'] not in self.ids.tempestDropdown.text))
                                or (self.ids.skyDropdown.selected
-                               and (not self.app.config['Station']['SkyID']     or self.app.config['Station']['SkyID']     not in self.ids.skyDropdown.text))
+                               and (not self.app().config['Station']['SkyID']
+                                    or self.app().config['Station']['SkyID']     not in self.ids.skyDropdown.text))
                                or (self.ids.outAirDropdown.selected
-                               and (not self.app.config['Station']['OutAirID']  or self.app.config['Station']['OutAirID']  not in self.ids.outAirDropdown.text))
+                               and (not self.app().config['Station']['OutAirID']
+                                    or self.app().config['Station']['OutAirID']  not in self.ids.outAirDropdown.text))
                                or (self.ids.inAirDropdown.selected
-                               and (not self.app.config['Station']['InAirID']   or self.app.config['Station']['InAirID']   not in self.ids.inAirDropdown.text))) else False
-        remove_device = True if ((not self.ids.tempestDropdown.selected   and self.app.config['Station']['TempestID'])
-                                 or (not self.ids.skyDropdown.selected    and self.app.config['Station']['SkyID'])
-                                 or (not self.ids.outAirDropdown.selected and self.app.config['Station']['OutAirID'])
-                                 or (not self.ids.inAirDropdown.selected  and self.app.config['Station']['InAirID'])) else False
+                               and (not self.app().config['Station']['InAirID']
+                                    or self.app().config['Station']['InAirID']   not in self.ids.inAirDropdown.text))) else False
+        remove_device = True if ((not self.ids.tempestDropdown.selected   and self.app().config['Station']['TempestID'])
+                                 or (not self.ids.skyDropdown.selected    and self.app().config['Station']['SkyID'])
+                                 or (not self.ids.outAirDropdown.selected and self.app().config['Station']['OutAirID'])
+                                 or (not self.ids.inAirDropdown.selected  and self.app().config['Station']['InAirID'])) else False
         device_selected = True if (self.ids.tempestDropdown.selected
                                    or self.ids.skyDropdown.selected
                                    or self.ids.outAirDropdown.selected
@@ -435,11 +446,11 @@ class mainMenu(ModalView):
         """
 
         self.dismiss(animation=False)
-        current_station = self.app.config['Station']['StationID']
-        config.switch(self.station_meta_data, self.device_list, self.app.config)
-        self.app.obsParser.resetDisplay()
-        self.app.websocket_client._switch_device = True
+        current_station = self.app().config['Station']['StationID']
+        config.switch(self.station_meta_data, self.device_list, self.app().config)
+        self.app().obsParser.resetDisplay()
+        self.app().websocket_client._switch_device = True
         if current_station != str(self.station_meta_data['station_id']):
-            self.app.forecast.reset_forecast()
-            self.app.astro.reset_astro()
-            self.app.sager.reset_forecast()
+            self.app().forecast.reset_forecast()
+            self.app().astro.reset_astro()
+            self.app().sager.reset_forecast()

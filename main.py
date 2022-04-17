@@ -316,7 +316,7 @@ class wfpiconsole(App):
         # Update primary and secondary panels displayed on CurrentConditions
         # screen
         if section in ['PrimaryPanels', 'SecondaryPanels']:
-            for Panel, Type in App.get_running_app().config['PrimaryPanels'].items():
+            for Panel, Type in self.config['PrimaryPanels'].items():
                 if Panel == key:
                     self.CurrentConditions.ids[Panel].clear_widgets()
                     self.CurrentConditions.ids[Panel].add_widget(eval(Type + 'Panel')())
@@ -329,7 +329,7 @@ class wfpiconsole(App):
             buttonList = ['Button' + Num for Num in ['One', 'Two', 'Three', 'Four', 'Five', 'Six']]
             for button in buttonList:
                 self.CurrentConditions.ids[button].clear_widgets()
-            for Panel, Type in App.get_running_app().config['SecondaryPanels'].items():
+            for Panel, Type in self.config['SecondaryPanels'].items():
                 if Type and Type != 'None':
                     self.CurrentConditions.ids[buttonList[ii]].add_widget(eval(Type + 'Button')())
                     self.CurrentConditions.buttonList.append([buttonList[ii], Panel, Type, 'Primary'])
@@ -378,14 +378,14 @@ class wfpiconsole(App):
     def shutdown_system(self):
         global SHUTDOWN
         SHUTDOWN = 1
-        App.get_running_app().stop()
+        self.stop()
 
     # EXIT CONSOLE AND REBOOT SYSTEM
     # --------------------------------------------------------------------------
     def reboot_system(self):
         global REBOOT
         REBOOT = 1
-        App.get_running_app().stop()
+        self.stop()
 
 
 # ==============================================================================
@@ -409,8 +409,8 @@ class CurrentConditions(Screen):
 
     def __init__(self, **kwargs):
         super(CurrentConditions, self).__init__(**kwargs)
-        self.app = App.get_running_app()
-        self.app.CurrentConditions = self
+        self.app = App.get_running_app
+        self.app().CurrentConditions = self
         self.System = properties.System()
         self.Status = properties.Status()
         self.Sager  = properties.Sager()
@@ -422,39 +422,39 @@ class CurrentConditions(Screen):
         self.addPanels()
 
         # Schedule Station.getDeviceStatus to be called each second
-        self.app.station = station()
-        self.app.Sched.deviceStatus = Clock.schedule_interval(self.app.station.get_device_status, 1.0)
+        self.app().station = station()
+        self.app().Sched.deviceStatus = Clock.schedule_interval(self.app().station.get_device_status, 1.0)
 
         # Initialise Sunrise, Sunset, Moonrise and Moonset times
-        self.app.astro = astro()
-        self.app.astro.sunrise_sunset()
-        self.app.astro.moonrise_moonset()
+        self.app().astro = astro()
+        self.app().astro.sunrise_sunset()
+        self.app().astro.moonrise_moonset()
 
         # Schedule sunTransit and moonPhase functions to be called each second
-        self.app.Sched.sun_transit = Clock.schedule_interval(self.app.astro.sun_transit, 1)
-        self.app.Sched.moon_phase  = Clock.schedule_interval(self.app.astro.moon_phase, 1)
+        self.app().Sched.sun_transit = Clock.schedule_interval(self.app().astro.sun_transit, 1)
+        self.app().Sched.moon_phase  = Clock.schedule_interval(self.app().astro.moon_phase, 1)
 
         # Schedule WeatherFlow weather forecast download
-        self.app.forecast = forecast()
-        self.app.Sched.metDownload = Clock.schedule_once(self.app.forecast.fetch_forecast)
+        self.app().forecast = forecast()
+        self.app().Sched.metDownload = Clock.schedule_once(self.app().forecast.fetch_forecast)
 
         # Generate Sager Weathercaster forecast
-        self.app.sager = sager_forecast()
-        self.app.Sched.sager = Clock.schedule_once(self.app.sager.fetch_forecast)
+        self.app().sager = sager_forecast()
+        self.app().Sched.sager = Clock.schedule_once(self.app().sager.fetch_forecast)
 
     # ADD USER SELECTED PANELS TO CURRENT CONDITIONS SCREEN
     # --------------------------------------------------------------------------
     def addPanels(self):
 
         # Add primary panels to CurrentConditions screen
-        for Panel, Type in App.get_running_app().config['PrimaryPanels'].items():
+        for Panel, Type in self.app().config['PrimaryPanels'].items():
             self.ids[Panel].add_widget(eval(Type + 'Panel')())
 
         # Add secondary panel buttons to CurrentConditions screen
         self.buttonList = []
         ii = 0
         buttonList = ['Button' + Num for Num in ['One', 'Two', 'Three', 'Four', 'Five', 'Six']]
-        for Panel, Type in App.get_running_app().config['SecondaryPanels'].items():
+        for Panel, Type in self.app().config['SecondaryPanels'].items():
             if Type:
                 self.ids[buttonList[ii]].add_widget(eval(Type + 'Button')())
                 self.buttonList.append([buttonList[ii], Panel, Type, 'Primary'])
@@ -482,17 +482,17 @@ class CurrentConditions(Screen):
         # Extract panel object that corresponds to the button that has been
         # pressed and determine new button type required
         Panel = self.ids[button[1]].children
-        newButton = App.get_running_app().config[button[3] + 'Panels'][button[1]]
+        newButton = self.app().config[button[3] + 'Panels'][button[1]]
 
         # Destroy reference to old panel class attribute
-        if hasattr(App.get_running_app(), newButton + 'Panel'):
-            if len(getattr(App.get_running_app(), newButton + 'Panel')) > 1:
+        if hasattr(self.app(), newButton + 'Panel'):
+            if len(getattr(self.app(), newButton + 'Panel')) > 1:
                 try:
-                    getattr(App.get_running_app(), newButton + 'Panel').remove(Panel[0])
+                    getattr(self.app(), newButton + 'Panel').remove(Panel[0])
                 except ValueError:
                     print('Unable to remove panel reference from wfpiconsole class')
             else:
-                delattr(App.get_running_app(), newButton + 'Panel')
+                delattr(self.app(), newButton + 'Panel')
 
         # Switch panel
         self.ids[button[1]].clear_widgets()

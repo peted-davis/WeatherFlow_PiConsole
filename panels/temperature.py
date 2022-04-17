@@ -18,7 +18,6 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 # Load required Kivy modules
 from kivy.uix.relativelayout import RelativeLayout
 from kivy.properties         import StringProperty
-from kivy.app                import App
 
 # Load required panel modules
 from panels.template         import panelTemplate
@@ -39,7 +38,7 @@ class TemperaturePanel(panelTemplate):
 
     # Set "Feels Like" icon
     def setFeelsLikeIcon(self):
-        self.feelsLikeIcon = App.get_running_app().CurrentConditions.Obs['FeelsLike'][3]
+        self.feelsLikeIcon = self.app().CurrentConditions.Obs['FeelsLike'][3]
 
 
 class TemperatureButton(RelativeLayout):

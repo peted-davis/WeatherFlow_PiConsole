@@ -20,7 +20,6 @@ from kivy.uix.relativelayout import RelativeLayout
 from kivy.properties         import StringProperty, NumericProperty
 from kivy.animation          import Animation
 from kivy.metrics            import dp
-from kivy.app                import App
 
 # Load required panel modules
 from panels.template         import panelTemplate
@@ -42,8 +41,8 @@ class LightningPanel(panelTemplate):
 
     # Set lightning bolt icon
     def setLightningBoltIcon(self):
-        if App.get_running_app().CurrentConditions.Obs['StrikeDeltaT'][0] != '-':
-            if App.get_running_app().CurrentConditions.Obs['StrikeDeltaT'][4] < 360:
+        if self.app().CurrentConditions.Obs['StrikeDeltaT'][0] != '-':
+            if self.app().CurrentConditions.Obs['StrikeDeltaT'][4] < 360:
                 self.lightningBoltIcon = 'lightningBoltStrike'
             else:
                 self.lightningBoltIcon = 'lightningBolt'
