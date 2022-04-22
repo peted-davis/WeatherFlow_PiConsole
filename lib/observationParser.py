@@ -602,9 +602,9 @@ class obsParser():
                     panel.animateWindRose()
         elif type == 'evt_strike':
             if self.app().config['Display']['LightningPanel'] == '1':
-                for ii, Button in enumerate(self.app().CurrentConditions.buttonList):
-                    if "Lightning" in Button[2]:
-                        self.app().CurrentConditions.switchPanel([], Button)
+                for ii, button in enumerate(self.app().CurrentConditions.button_list):
+                    if "Lightning" in button[2]:
+                        self.app().CurrentConditions.switchPanel([], button)
             if hasattr(self.app(), 'LightningPanel'):
                 for panel in getattr(self.app(), 'LightningPanel'):
                     panel.setLightningBoltIcon()

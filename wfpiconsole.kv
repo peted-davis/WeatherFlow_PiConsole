@@ -36,6 +36,18 @@
 <CurrentConditions>:
     name: 'CurrentConditions'
     id: CurrentConditions
+    panel_one:   panel_one.__self__
+    panel_two:   panel_two.__self__
+    panel_three: panel_three.__self__
+    panel_four:  panel_four.__self__
+    panel_five:  panel_five.__self__
+    panel_six:   panel_six.__self__
+    button_one:   button_one.__self__
+    button_two:   button_two.__self__
+    button_three: button_three.__self__
+    button_four:  button_four.__self__
+    button_five:  button_five.__self__
+    button_six:   button_six.__self__
     canvas.before:
         Color:
             rgba: utils.rgba('000000ff')
@@ -52,39 +64,38 @@
             BoxLayout:
                 spacing: '5dp'
                 BoxLayout:
-                    id: PanelOne
+                    id: panel_one
                 BoxLayout:
-                    id: PanelTwo
+                    id: panel_two
                 BoxLayout:
-                    id: PanelThree
+                    id: panel_three
             BoxLayout:
                 spacing: '5dp'
                 BoxLayout:
-                    id: PanelFour
+                    id: panel_four
                 BoxLayout:
-                    id: PanelFive
+                    id: panel_five
                 BoxLayout:
-                    id: PanelSix
+                    id: panel_six
         BoxLayout:
             spacing: '4dp'
             size_hint: (1, 31/444)
             BoxLayout:
-                id: ButtonOne
+                id: button_one
             BoxLayout:
-                id: ButtonTwo
+                id: button_two
             BoxLayout:
-                id: ButtonThree
+                id: button_three
             BoxLayout:
-                id: ButtonFour
+                id: button_four
             BoxLayout:
-                id: ButtonFive
+                id: button_five
             BoxLayout:
-                id: ButtonSix
+                id: button_six
             BoxLayout:
                 id: GraphsButton
             BoxLayout:
                 PanelButton:
-                    id: 'mainPanelButton'
                     text: 'Menu'
                     on_release: Factory.mainMenu().open()
 
@@ -729,17 +740,20 @@
 ## =============================================================================
 <RainfallPanel>
 
+    ## Create direct reference to widget id's
+    rain_gauge: rain_gauge.__self__
+
     ## Panel background, title, and RainGauge
     RainfallBackground:
         _panelTitle: 'Rainfall'
         _panelStatus: app.CurrentConditions.Status['sky_last_sample'] if app.config['Station']['SkyID'] else app.CurrentConditions.Status['tempest_last_sample']
     RainGauge:
-        id: rainGauge
+        id: rain_gauge
         pos_hint: {'x': 198 / 262, 'y': 80 / 202}
         size_hint: (41 / 262, 99 / 202)
         StencilView:
-            pos_hint: {'x': 4 / rainGauge._width, 'y': 1 / rainGauge._height}
-            size_hint: [1 - 8 / rainGauge._width, 1 - 1 / rainGauge._height]
+            pos_hint: {'x': 4 / rain_gauge._width, 'y': 1 / rain_gauge._height}
+            size_hint: [1 - 8 / rain_gauge._width, 1 - 1 / rain_gauge._height]
             FloatLayout:
                 width: self.parent.width * 8
                 height: self.parent.height
@@ -1108,7 +1122,17 @@
 ## MAIN MENU
 ## =============================================================================
 <mainMenu>:
-    statusPanel: statusPanel.__self__
+
+    ## Create direct reference to widget id's
+    status_panel:     status_panel.__self__
+    station_panel:    station_panel.__self__
+    device_panel:     device_panel.__self__
+    tempest_dropdown: tempest_dropdown.__self__
+    sky_dropdown:     sky_dropdown.__self__
+    out_air_dropdown: out_air_dropdown.__self__
+    in_air_dropdown:  in_air_dropdown.__self__
+    switch_button:    switch_button.__self__
+
     size_hint: (.8, .8)
     canvas:
         Color:
@@ -1131,9 +1155,9 @@
             MainMenuTab:
                 text: 'System'
                 MainMenuLayout:
-                    id: statusPanel
+                    id: status_panel
                     BoxLayout:
-                        id: stationPanel
+                        id: station_panel
                         orientation: 'vertical'
                         size_hint: (1,.5)
                     BoxLayout:
@@ -1155,7 +1179,7 @@
                             size_hint: (.31,1)
                             text: '24 hr Observation Count'
                     BoxLayout:
-                        id: devicePanel
+                        id: device_panel
                         size_hint: (1, .4)
                         orientation: 'vertical'
                         padding: [dp(0), dp(0), dp(0), dp(10)]
@@ -1204,7 +1228,7 @@
                                     color: utils.rgba('#c8c8c8ff')
                                 FloatLayout:
                                     StationSpinner:
-                                        id: stationDropdown
+                                        id: station_dropdown
                                         values: root.station_list
                                         on_text: root.get_station_devices()
                             BoxLayout:
@@ -1216,7 +1240,7 @@
                                     color: utils.rgba('#c8c8c8ff')
                                 FloatLayout:
                                     DeviceSpinner:
-                                        id: tempestDropdown
+                                        id: tempest_dropdown
                                         values: root.tempest_list
                                         on_text: if self.text not in ['Please select', 'Air or Sky selected', 'No device available']: root.on_device_selection(self)
                         BoxLayout:
@@ -1231,7 +1255,7 @@
                                     color: utils.rgba('#c8c8c8ff')
                                 FloatLayout:
                                     DeviceSpinner:
-                                        id: skyDropdown
+                                        id: sky_dropdown
                                         values: root.sky_list
                                         on_text: if self.text not in ['Please select', 'Tempest selected', 'No device available']: root.on_device_selection(self)
                             BoxLayout:
@@ -1243,7 +1267,7 @@
                                     color: utils.rgba('#c8c8c8ff')
                                 FloatLayout:
                                     DeviceSpinner:
-                                        id: outAirDropdown
+                                        id: out_air_dropdown
                                         values: root.out_air_list
                                         on_text: if self.text not in ['Please select', 'Tempest selected', 'No device available']: root.on_device_selection(self)
                         BoxLayout:
@@ -1258,7 +1282,7 @@
                                     color: utils.rgba('#c8c8c8ff')
                                 FloatLayout:
                                     DeviceSpinner:
-                                        id: inAirDropdown
+                                        id: in_air_dropdown
                                         values: root.in_air_list
                                         on_text: if self.text not in ['Please select', 'Tempest selected', 'No device available']: root.on_device_selection(self)
                             BoxLayout:
@@ -1269,7 +1293,7 @@
                                     font_name: 'fonts/Inter-Bold.ttf'
                                     color: utils.rgba('#c8c8c8ff')
                                 SwitchButton:
-                                    id: switchButton
+                                    id: switch_button
                                     disabled: 1
                                     text: 'Fetching all available stations'
                                     on_release: root.switchStations()
