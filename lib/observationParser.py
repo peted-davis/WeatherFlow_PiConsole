@@ -580,7 +580,7 @@ class obsParser():
         self.updateDisplay('obs_reset')
 
     @mainthread
-    def updateDisplay(self, type):
+    def updateDisplay(self, ob_type):
 
         """ Update display with new variables derived from latest websocket message
 
@@ -592,15 +592,18 @@ class obsParser():
 
         # Update display values with new derived observations
         for Key, Value in list(self.displayObs.items()):
-            if not (type == 'obs_all' and 'rapid' in Key):                  # Don't update rapidWind display when type is 'all'
-                self.app().CurrentConditions.Obs[Key] = Value               # as the RapidWind rose is not animated in this case
+            if not (ob_type == 'obs_all' and 'rapid' in Key):
+                try:                                                            # Don't update rapidWind display when type is 'all'
+                    self.app().CurrentConditions.Obs[Key] = Value               # as the RapidWind rose is not animated in this case
+                except ReferenceError:
+                    print('Reference error:', Key, Value, ob_type)
 
         # Update display graphics with new derived observations
-        if type == 'rapid_wind':
+        if ob_type == 'rapid_wind':
             if hasattr(self.app(), 'WindSpeedPanel'):
                 for panel in getattr(self.app(), 'WindSpeedPanel'):
                     panel.animateWindRose()
-        elif type == 'evt_strike':
+        elif ob_type == 'evt_strike':
             if self.app().config['Display']['LightningPanel'] == '1':
                 for ii, button in enumerate(self.app().CurrentConditions.button_list):
                     if "Lightning" in button[2]:
@@ -610,7 +613,7 @@ class obsParser():
                     panel.setLightningBoltIcon()
                     panel.animateLightningBoltIcon()
         else:
-            if type in ['obs_st', 'obs_air', 'obs_all', 'obs_reset']:
+            if ob_type in ['obs_st', 'obs_air', 'obs_all', 'obs_reset']:
                 if hasattr(self.app(), 'TemperaturePanel'):
                     for panel in getattr(self.app(), 'TemperaturePanel'):
                         panel.setFeelsLikeIcon()
@@ -620,7 +623,7 @@ class obsParser():
                 if hasattr(self.app(), 'BarometerPanel'):
                     for panel in getattr(self.app(), 'BarometerPanel'):
                         panel.setBarometerArrow()
-            if type in ['obs_st', 'obs_sky', 'obs_all', 'obs_reset']:
+            if ob_type in ['obs_st', 'obs_sky', 'obs_all', 'obs_reset']:
                 if hasattr(self.app(), 'WindSpeedPanel'):
                     for panel in getattr(self.app(), 'WindSpeedPanel'):
                         panel.setWindIcons()

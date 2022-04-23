@@ -475,17 +475,14 @@ class CurrentConditions(Screen):
     # --------------------------------------------------------------------------
     def switchPanel(self, button_pressed, button_overide=None):
 
-        # Determine ID of button that has been pressed
-        for id, Object in self.ids.items():
-            if button_pressed:
+        # Determine ID of button that has been pressed and extract corresponding
+        # entry in buttonList
+        if button_pressed:
+            for id, Object in self.ids.items():
                 if Object == button_pressed.parent.parent:
                     break
-            else:
-                if Object == button_overide:
-                    break
-
-        # Extract entry in buttonList that correponds to the button that has
-        # been pressed
+        else:
+            id = button_overide[0]
         for ii, button in enumerate(self.button_list):
             if button[0] == id:
                 break
