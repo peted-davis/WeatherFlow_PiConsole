@@ -20,8 +20,10 @@ from lib import derivedVariables   as derive
 from lib import observationFormat  as observation
 from lib import requestAPI
 from lib import properties
+from lib import system
 
 # Import required Kivy modules
+from kivy.logger  import Logger
 from kivy.clock   import mainthread
 from kivy.app     import App
 
@@ -582,7 +584,8 @@ class obsParser():
     @mainthread
     def updateDisplay(self, ob_type):
 
-        """ Update display with new variables derived from latest websocket message
+        """ Update display with new variables derived from latest websocket
+        message
 
         INPUTS:
             type                Latest Websocket message type
@@ -591,12 +594,15 @@ class obsParser():
         """
 
         # Update display values with new derived observations
+        reference_error = False
         for Key, Value in list(self.displayObs.items()):
             if not (ob_type == 'obs_all' and 'rapid' in Key):
                 try:                                                            # Don't update rapidWind display when type is 'all'
                     self.app().CurrentConditions.Obs[Key] = Value               # as the RapidWind rose is not animated in this case
                 except ReferenceError:
-                    print('Reference error:', Key, Value, ob_type)
+                    if not reference_error:
+                        Logger.warning(f'obs_parser: {system.logTime()} - Reference error {ob_type}')
+                        reference_error = True
 
         # Update display graphics with new derived observations
         if ob_type == 'rapid_wind':
