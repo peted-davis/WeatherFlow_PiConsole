@@ -111,4 +111,5 @@ def logTime():
         log file
     """
 
-    return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    Tz = pytz.timezone(App.get_running_app().config['Station']['Timezone'])
+    return datetime.fromtimestamp(time.time(), Tz).strftime('%Y-%m-%d %H:%M:%S')

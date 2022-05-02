@@ -29,5 +29,5 @@ class updateNotification(ModalView):
 
     def __init__(self, latest_ver, **kwargs):
         super().__init__(**kwargs)
-        setattr(self.app(), self.__class__.__name__, self)
+        setattr(self.app, self.__class__.__name__, self)
         self.latest_ver = latest_ver

@@ -38,7 +38,7 @@ class SunriseSunsetPanel(panelTemplate):
 
     # Set current UV index backgroud
     def setUVBackground(self):
-        self.uvBackground = self.app().CurrentConditions.Obs['UVIndex'][3]
+        self.uvBackground = self.app.CurrentConditions.Obs['UVIndex'][3]
 
 
 class SunriseSunsetButton(RelativeLayout):

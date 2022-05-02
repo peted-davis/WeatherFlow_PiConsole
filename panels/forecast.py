@@ -38,7 +38,7 @@ class ForecastPanel(panelTemplate):
 
     # Set Forecast icon
     def setForecastIcon(self):
-        self.forecastIcon = self.app().CurrentConditions.Met['Icon']
+        self.forecastIcon = self.app.CurrentConditions.Met['Icon']
 
 
 class ForecastButton(RelativeLayout):

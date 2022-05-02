@@ -27,10 +27,10 @@ class panelTemplate(RelativeLayout):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.app = App.get_running_app
-        if not hasattr(self.app(), self.__class__.__name__):
+        self.app = App.get_running_app()
+        if not hasattr(self.app, self.__class__.__name__):
             panelList = []
         else:
-            panelList = getattr(self.app(), self.__class__.__name__, 'panelList')
+            panelList = getattr(self.app, self.__class__.__name__, 'panelList')
         panelList.append(self)
-        setattr(self.app(), self.__class__.__name__, panelList)
+        setattr(self.app, self.__class__.__name__, panelList)

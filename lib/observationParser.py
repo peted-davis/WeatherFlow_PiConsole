@@ -71,8 +71,8 @@ class obsParser():
         self.flagAPI    = [1, 1, 1, 1]
 
         # Create reference to app object
-        self.app = App.get_running_app
-        self.app().obsParser = self
+        self.app = App.get_running_app()
+        self.app.obsParser = self
 
         # Define device and derived observations dictionary
         self.deviceObs = deviceObs.copy()
@@ -567,14 +567,14 @@ class obsParser():
         self.updateDisplay(device_type)
 
     def reformatDisplay(self):
-        while self.app().websocket_client.activeThreads():
+        while self.app.websocket_client.activeThreads():
             pass
-        self.formatDerivedVariables(self.app().config, 'obs_all')
+        self.formatDerivedVariables(self.app.config, 'obs_all')
 
     def resetDisplay(self):
-        while self.app().websocket_client.activeThreads():
+        while self.app.websocket_client.activeThreads():
             pass
-        self.app().CurrentConditions.Obs = properties.Obs()
+        self.app.CurrentConditions.Obs = properties.Obs()
         self.displayObs = dict(properties.Obs())
         self.deviceObs  = deviceObs.copy()
         self.deriveObs  = deriveObs.copy()
@@ -598,7 +598,7 @@ class obsParser():
         for Key, Value in list(self.displayObs.items()):
             if not (ob_type == 'obs_all' and 'rapid' in Key):
                 try:                                                            # Don't update rapidWind display when type is 'all'
-                    self.app().CurrentConditions.Obs[Key] = Value               # as the RapidWind rose is not animated in this case
+                    self.app.CurrentConditions.Obs[Key] = Value               # as the RapidWind rose is not animated in this case
                 except ReferenceError:
                     if not reference_error:
                         Logger.warning(f'obs_parser: {system.logTime()} - Reference error {ob_type}')
@@ -606,39 +606,39 @@ class obsParser():
 
         # Update display graphics with new derived observations
         if ob_type == 'rapid_wind':
-            if hasattr(self.app(), 'WindSpeedPanel'):
-                for panel in getattr(self.app(), 'WindSpeedPanel'):
+            if hasattr(self.app, 'WindSpeedPanel'):
+                for panel in getattr(self.app, 'WindSpeedPanel'):
                     panel.animateWindRose()
         elif ob_type == 'evt_strike':
-            if self.app().config['Display']['LightningPanel'] == '1':
-                for ii, button in enumerate(self.app().CurrentConditions.button_list):
+            if self.app.config['Display']['LightningPanel'] == '1':
+                for ii, button in enumerate(self.app.CurrentConditions.button_list):
                     if "Lightning" in button[2]:
-                        self.app().CurrentConditions.switchPanel([], button)
-            if hasattr(self.app(), 'LightningPanel'):
-                for panel in getattr(self.app(), 'LightningPanel'):
+                        self.app.CurrentConditions.switchPanel([], button)
+            if hasattr(self.app, 'LightningPanel'):
+                for panel in getattr(self.app, 'LightningPanel'):
                     panel.setLightningBoltIcon()
                     panel.animateLightningBoltIcon()
         else:
             if ob_type in ['obs_st', 'obs_air', 'obs_all', 'obs_reset']:
-                if hasattr(self.app(), 'TemperaturePanel'):
-                    for panel in getattr(self.app(), 'TemperaturePanel'):
+                if hasattr(self.app, 'TemperaturePanel'):
+                    for panel in getattr(self.app, 'TemperaturePanel'):
                         panel.setFeelsLikeIcon()
-                if hasattr(self.app(), 'LightningPanel'):
-                    for panel in getattr(self.app(), 'LightningPanel'):
+                if hasattr(self.app, 'LightningPanel'):
+                    for panel in getattr(self.app, 'LightningPanel'):
                         panel.setLightningBoltIcon()
-                if hasattr(self.app(), 'BarometerPanel'):
-                    for panel in getattr(self.app(), 'BarometerPanel'):
+                if hasattr(self.app, 'BarometerPanel'):
+                    for panel in getattr(self.app, 'BarometerPanel'):
                         panel.setBarometerArrow()
             if ob_type in ['obs_st', 'obs_sky', 'obs_all', 'obs_reset']:
-                if hasattr(self.app(), 'WindSpeedPanel'):
-                    for panel in getattr(self.app(), 'WindSpeedPanel'):
+                if hasattr(self.app, 'WindSpeedPanel'):
+                    for panel in getattr(self.app, 'WindSpeedPanel'):
                         panel.setWindIcons()
-                if hasattr(self.app(), 'SunriseSunsetPanel'):
-                    for panel in getattr(self.app(), 'SunriseSunsetPanel'):
+                if hasattr(self.app, 'SunriseSunsetPanel'):
+                    for panel in getattr(self.app, 'SunriseSunsetPanel'):
                         panel.setUVBackground()
-                if hasattr(self.app(), 'RainfallPanel'):
-                    for panel in getattr(self.app(), 'RainfallPanel'):
+                if hasattr(self.app, 'RainfallPanel'):
+                    for panel in getattr(self.app, 'RainfallPanel'):
                         panel.animate_rain_rate()
-                if hasattr(self.app(), 'TemperaturePanel'):
-                    for panel in getattr(self.app(), 'TemperaturePanel'):
+                if hasattr(self.app, 'TemperaturePanel'):
+                    for panel in getattr(self.app, 'TemperaturePanel'):
                         panel.setFeelsLikeIcon()

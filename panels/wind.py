@@ -37,8 +37,8 @@ class WindSpeedPanel(panelTemplate):
     # Initialise WindSpeedPanel
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        if self.app().CurrentConditions.Obs['rapidDir'][0] != '-':
-            self.rapidWindDir = self.app().CurrentConditions.Obs['rapidDir'][0]
+        if self.app.CurrentConditions.Obs['rapidDir'][0] != '-':
+            self.rapidWindDir = self.app.CurrentConditions.Obs['rapidDir'][0]
         self.setWindIcons()
 
     # Animate rapid wind rose
@@ -46,8 +46,8 @@ class WindSpeedPanel(panelTemplate):
 
         # Get current wind direction, old wind direction and change in wind
         # direction over last Rapid-Wind period
-        if self.app().CurrentConditions.Obs['rapidDir'][0] != '-':
-            rapidWindDir_New = int(self.app().CurrentConditions.Obs['rapidDir'][0])
+        if self.app.CurrentConditions.Obs['rapidDir'][0] != '-':
+            rapidWindDir_New = int(self.app.CurrentConditions.Obs['rapidDir'][0])
             rapidWindDir_Old = self.rapidWindDir
             rapidWindShift   = rapidWindDir_New - self.rapidWindDir
 
@@ -72,8 +72,8 @@ class WindSpeedPanel(panelTemplate):
 
     # Set mean windspeed and direction icons
     def setWindIcons(self):
-        self.windDirIcon = self.app().CurrentConditions.Obs['WindDir'][2]
-        self.windSpdIcon = self.app().CurrentConditions.Obs['WindSpd'][3]
+        self.windDirIcon = self.app.CurrentConditions.Obs['WindDir'][2]
+        self.windSpdIcon = self.app.CurrentConditions.Obs['WindSpd'][3]
 
 
 class WindSpeedButton(RelativeLayout):

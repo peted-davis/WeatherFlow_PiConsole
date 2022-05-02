@@ -37,7 +37,7 @@ class forecast():
 
     def __init__(self):
         self.funcCalled = []
-        self.app = App.get_running_app
+        self.app = App.get_running_app()
 
     def reset_forecast(self):
 
@@ -46,9 +46,9 @@ class forecast():
         """
 
         # Reset the forecast and schedule new forecast to be generated
-        self.app().CurrentConditions.Met =  properties.Met()
-        if hasattr(self.app(), 'ForecastPanel'):
-            for panel in getattr(self.app(), 'ForecastPanel'):
+        self.app.CurrentConditions.Met =  properties.Met()
+        if hasattr(self.app, 'ForecastPanel'):
+            for panel in getattr(self.app, 'ForecastPanel'):
                 panel.setForecastIcon()
         Clock.schedule_once(self.fetch_forecast)
 
@@ -60,8 +60,8 @@ class forecast():
 
         # Fetch latest hourly and daily forecast
         URL = 'https://swd.weatherflow.com/swd/rest/better_forecast?token={}&station_id={}'
-        URL = URL.format(self.app().config['Keys']['WeatherFlow'],
-                         self.app().config['Station']['StationID'])
+        URL = URL.format(self.app.config['Keys']['WeatherFlow'],
+                         self.app.config['Station']['StationID'])
         UrlRequest(URL,
                    on_success=self.success_forecast,
                    on_failure=self.fail_forecast,
@@ -75,14 +75,14 @@ class forecast():
         """
 
         # Calculate next forecast time for the top of the next hour
-        Tz  = pytz.timezone(self.app().config['Station']['Timezone'])
+        Tz  = pytz.timezone(self.app.config['Station']['Timezone'])
         Now = datetime.now(pytz.utc).astimezone(Tz)
         sched_time = Tz.localize(datetime.combine(Now.date(), time(Now.hour, 0, 0)) + timedelta(hours=1))
 
         # Schedule next forecast
         seconds_sched = (sched_time - Now).total_seconds()
-        self.app().Sched.metDownload.cancel()
-        self.app().Sched.metDownload = Clock.schedule_once(self.fetch_forecast, seconds_sched)
+        self.app.Sched.metDownload.cancel()
+        self.app.Sched.metDownload = Clock.schedule_once(self.fetch_forecast, seconds_sched)
 
     def success_forecast(self, Request, Response):
 
@@ -96,7 +96,7 @@ class forecast():
         """
 
         # Parse the latest daily and hourly weather forecast data
-        self.app().CurrentConditions.Met['Response'] = Response
+        self.app.CurrentConditions.Met['Response'] = Response
         self.parse_forecast()
 
     def fail_forecast(self, *largs):
@@ -112,34 +112,34 @@ class forecast():
 
         # Set forecast variables to blank and indicate to user that forecast is
         # unavailable
-        self.app().CurrentConditions.Met['Valid']        = '--'
-        self.app().CurrentConditions.Met['Temp']         = '--'
-        self.app().CurrentConditions.Met['highTemp']     = '--'
-        self.app().CurrentConditions.Met['lowTemp']      = '--'
-        self.app().CurrentConditions.Met['WindSpd']      = '--'
-        self.app().CurrentConditions.Met['WindGust']     = '--'
-        self.app().CurrentConditions.Met['WindDir']      = '--'
-        self.app().CurrentConditions.Met['PrecipPercnt'] = '--'
-        self.app().CurrentConditions.Met['PrecipDay']    = '--'
-        self.app().CurrentConditions.Met['PrecipAmount'] = '--'
-        self.app().CurrentConditions.Met['PrecipType']   = '--'
-        self.app().CurrentConditions.Met['Conditions']   = ''
-        self.app().CurrentConditions.Met['Icon']         = '-'
-        self.app().CurrentConditions.Met['Status']       = 'Forecast currently\nunavailable...'
+        self.app.CurrentConditions.Met['Valid']        = '--'
+        self.app.CurrentConditions.Met['Temp']         = '--'
+        self.app.CurrentConditions.Met['highTemp']     = '--'
+        self.app.CurrentConditions.Met['lowTemp']      = '--'
+        self.app.CurrentConditions.Met['WindSpd']      = '--'
+        self.app.CurrentConditions.Met['WindGust']     = '--'
+        self.app.CurrentConditions.Met['WindDir']      = '--'
+        self.app.CurrentConditions.Met['PrecipPercnt'] = '--'
+        self.app.CurrentConditions.Met['PrecipDay']    = '--'
+        self.app.CurrentConditions.Met['PrecipAmount'] = '--'
+        self.app.CurrentConditions.Met['PrecipType']   = '--'
+        self.app.CurrentConditions.Met['Conditions']   = ''
+        self.app.CurrentConditions.Met['Icon']         = '-'
+        self.app.CurrentConditions.Met['Status']       = 'Forecast currently\nunavailable...'
 
         # Update forecast icon in mainthread
-        if hasattr(self.app(), 'ForecastPanel'):
-            for panel in getattr(self.app(), 'ForecastPanel'):
+        if hasattr(self.app, 'ForecastPanel'):
+            for panel in getattr(self.app, 'ForecastPanel'):
                 panel.setForecastIcon()
 
         # Schedule new forecast to be downloaded in 5 minutes. Note secondsSched
         # refers to number of seconds since the function was last called.
-        Tz  = pytz.timezone(self.app().config['Station']['Timezone'])
+        Tz  = pytz.timezone(self.app.config['Station']['Timezone'])
         Now = datetime.now(pytz.utc).astimezone(Tz)
         sched_time = Now + timedelta(minutes=5)
         secondsSched = (sched_time - Now).total_seconds()
-        self.app().Sched.metDownload.cancel()
-        self.app().Sched.metDownload = Clock.schedule_once(self.fetch_forecast, secondsSched)
+        self.app.Sched.metDownload.cancel()
+        self.app.Sched.metDownload = Clock.schedule_once(self.fetch_forecast, secondsSched)
 
     def parse_forecast(self):
 
@@ -149,15 +149,15 @@ class forecast():
         """
 
         # Extract Forecast dictionary
-        Forecast = self.app().CurrentConditions.Met['Response']
+        Forecast = self.app.CurrentConditions.Met['Response']
 
         # Get current time in station time zone
-        Tz  = pytz.timezone(self.app().config['Station']['Timezone'])
+        Tz  = pytz.timezone(self.app.config['Station']['Timezone'])
         Now = datetime.now(pytz.utc).astimezone(Tz)
 
         # Set time format based on user configuration
-        if self.app().config['Display']['TimeFormat'] == '12 hr':
-            if self.app().config['System']['Hardware'] == 'Other':
+        if self.app.config['Display']['TimeFormat'] == '12 hr':
+            if self.app.config['System']['Hardware'] == 'Other':
                 TimeFormat = '%#I %p'
             else:
                 TimeFormat = '%-I %p'
@@ -235,29 +235,29 @@ class forecast():
             WindDir = derive.cardinalWindDir(WindDir, WindSpd)
 
             # Convert forecast units as required
-            Temp         = observation.Units(Temp,         self.app().config['Units']['Temp'])
-            highTemp     = observation.Units(highTemp,     self.app().config['Units']['Temp'])
-            lowTemp      = observation.Units(lowTemp,      self.app().config['Units']['Temp'])
-            WindSpd      = observation.Units(WindSpd,      self.app().config['Units']['Wind'])
-            WindGust     = observation.Units(WindGust,     self.app().config['Units']['Wind'])
-            WindDir      = observation.Units(WindDir,      self.app().config['Units']['Direction'])
-            PrecipAmount = observation.Units(PrecipAmount, self.app().config['Units']['Precip'])
+            Temp         = observation.Units(Temp,         self.app.config['Units']['Temp'])
+            highTemp     = observation.Units(highTemp,     self.app.config['Units']['Temp'])
+            lowTemp      = observation.Units(lowTemp,      self.app.config['Units']['Temp'])
+            WindSpd      = observation.Units(WindSpd,      self.app.config['Units']['Wind'])
+            WindGust     = observation.Units(WindGust,     self.app.config['Units']['Wind'])
+            WindDir      = observation.Units(WindDir,      self.app.config['Units']['Direction'])
+            PrecipAmount = observation.Units(PrecipAmount, self.app.config['Units']['Precip'])
 
             # Define and format labels
-            self.app().CurrentConditions.Met['Valid']        = datetime.strftime(Valid,          TimeFormat)
-            self.app().CurrentConditions.Met['Temp']         = observation.Format(Temp,         'forecastTemp')
-            self.app().CurrentConditions.Met['highTemp']     = observation.Format(highTemp,     'forecastTemp')
-            self.app().CurrentConditions.Met['lowTemp']      = observation.Format(lowTemp,      'forecastTemp')
-            self.app().CurrentConditions.Met['WindSpd']      = observation.Format(WindSpd,      'forecastWind')
-            self.app().CurrentConditions.Met['WindGust']     = observation.Format(WindGust,     'forecastWind')
-            self.app().CurrentConditions.Met['WindDir']      = observation.Format(WindDir,      'Direction')
-            self.app().CurrentConditions.Met['PrecipPercnt'] = observation.Format(PrecipPercnt, 'Humidity')
-            self.app().CurrentConditions.Met['PrecipDay']    = observation.Format(precipDay,    'Humidity')
-            self.app().CurrentConditions.Met['PrecipAmount'] = observation.Format(PrecipAmount, 'Precip')
-            self.app().CurrentConditions.Met['PrecipType']   = PrecipType
-            self.app().CurrentConditions.Met['Conditions']   = Conditions
-            self.app().CurrentConditions.Met['Icon']         = Icon
-            self.app().CurrentConditions.Met['Status']       = ''
+            self.app.CurrentConditions.Met['Valid']        = datetime.strftime(Valid,          TimeFormat)
+            self.app.CurrentConditions.Met['Temp']         = observation.Format(Temp,         'forecastTemp')
+            self.app.CurrentConditions.Met['highTemp']     = observation.Format(highTemp,     'forecastTemp')
+            self.app.CurrentConditions.Met['lowTemp']      = observation.Format(lowTemp,      'forecastTemp')
+            self.app.CurrentConditions.Met['WindSpd']      = observation.Format(WindSpd,      'forecastWind')
+            self.app.CurrentConditions.Met['WindGust']     = observation.Format(WindGust,     'forecastWind')
+            self.app.CurrentConditions.Met['WindDir']      = observation.Format(WindDir,      'Direction')
+            self.app.CurrentConditions.Met['PrecipPercnt'] = observation.Format(PrecipPercnt, 'Humidity')
+            self.app.CurrentConditions.Met['PrecipDay']    = observation.Format(precipDay,    'Humidity')
+            self.app.CurrentConditions.Met['PrecipAmount'] = observation.Format(PrecipAmount, 'Precip')
+            self.app.CurrentConditions.Met['PrecipType']   = PrecipType
+            self.app.CurrentConditions.Met['Conditions']   = Conditions
+            self.app.CurrentConditions.Met['Icon']         = Icon
+            self.app.CurrentConditions.Met['Status']       = ''
 
             # Check expected conditions icon is recognised
             if Icon in ['clear-day', 'clear-night', 'rainy', 'possibly-rainy-day',
@@ -266,13 +266,13 @@ class forecast():
                         'possibly-sleet-night', 'thunderstorm', 'possibly-thunderstorm-day',
                         'possibly-thunderstorm-night', 'windy', 'foggy', 'cloudy',
                         'partly-cloudy-day', 'partly-cloudy-night']:
-                self.app().CurrentConditions.Met['Icon'] = Icon
+                self.app.CurrentConditions.Met['Icon'] = Icon
             else:
-                self.app().CurrentConditions.Met['Icon'] = '-'
+                self.app.CurrentConditions.Met['Icon'] = '-'
 
             # Update forecast icon in mainthread
-            if hasattr(self.app(), 'ForecastPanel'):
-                for panel in getattr(self.app(), 'ForecastPanel'):
+            if hasattr(self.app, 'ForecastPanel'):
+                for panel in getattr(self.app, 'ForecastPanel'):
                     panel.setForecastIcon()
 
             # Schedule new forecast

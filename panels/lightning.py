@@ -41,8 +41,8 @@ class LightningPanel(panelTemplate):
 
     # Set lightning bolt icon
     def setLightningBoltIcon(self):
-        if self.app().CurrentConditions.Obs['StrikeDeltaT'][0] != '-':
-            if self.app().CurrentConditions.Obs['StrikeDeltaT'][4] < 360:
+        if self.app.CurrentConditions.Obs['StrikeDeltaT'][0] != '-':
+            if self.app.CurrentConditions.Obs['StrikeDeltaT'][4] < 360:
                 self.lightningBoltIcon = 'lightningBoltStrike'
             else:
                 self.lightningBoltIcon = 'lightningBolt'

@@ -34,13 +34,13 @@ class astro():
     def __init__(self):
 
         # Store reference to app class
-        self.app = App.get_running_app
-        self.data = self.app().CurrentConditions.Astro
+        self.app = App.get_running_app()
+        self.data = self.app.CurrentConditions.Astro
 
         # Define observer properties
         self.observer          = ephem.Observer()
-        self.observer.lat      = str(self.app().config['Station']['Latitude'])
-        self.observer.lon      = str(self.app().config['Station']['Longitude'])
+        self.observer.lat      = str(self.app.config['Station']['Latitude'])
+        self.observer.lon      = str(self.app.config['Station']['Longitude'])
 
         self.sun  = ephem.Sun()
         self.moon = ephem.Moon()
@@ -50,21 +50,21 @@ class astro():
         ''' Reset the Astro data when the station ID changes
         '''
         # Cancel sun_transit and moon_phase schedules
-        self.app().Sched.sun_transit.cancel()
-        self.app().Sched.moon_phase.cancel()
+        self.app.Sched.sun_transit.cancel()
+        self.app.Sched.moon_phase.cancel()
 
         # Reset the astro data and generate new sunrise/sunset and moonrise/moonset
         # times
-        self.app().CurrentConditions.Astro = properties.Astro()
-        self.data = self.app().CurrentConditions.Astro
+        self.app.CurrentConditions.Astro = properties.Astro()
+        self.data = self.app.CurrentConditions.Astro
         self.sunrise_sunset()
         self.moonrise_moonset()
 
         # Force update sun_transit to correct sunrise/sunset times and then
         # reschedule sun_transit and moon_phase
         self.sun_transit()
-        self.app().Sched.sun_transit = Clock.schedule_interval(self.sun_transit, 1)
-        self.app().Sched.moon_phase  = Clock.schedule_interval(self.moon_phase,  1)
+        self.app.Sched.sun_transit = Clock.schedule_interval(self.sun_transit, 1)
+        self.app.Sched.moon_phase  = Clock.schedule_interval(self.moon_phase,  1)
 
     def sunrise_sunset(self):
 
@@ -80,7 +80,7 @@ class astro():
         """
 
         # Get station timezone
-        Tz = pytz.timezone(self.app().config['Station']['Timezone'])
+        Tz = pytz.timezone(self.app.config['Station']['Timezone'])
 
         # Set pressure to 0 to match the United States Naval Observatory Astronomical
         # Almanac
@@ -157,7 +157,7 @@ class astro():
         """
 
         # Define Moonrise/Moonset location properties
-        Tz = pytz.timezone(self.app().config['Station']['Timezone'])
+        Tz = pytz.timezone(self.app.config['Station']['Timezone'])
 
         # Define Moonrise/Moonset location properties
         self.observer.horizon = '0'
@@ -227,7 +227,7 @@ class astro():
         """
 
         # Get current time in station time zone
-        Tz = pytz.timezone(self.app().config['Station']['Timezone'])
+        Tz = pytz.timezone(self.app.config['Station']['Timezone'])
         Now = datetime.now(pytz.utc).astimezone(Tz)
 
         # Calculate sun icon position on daytime/nightime bar
@@ -309,7 +309,7 @@ class astro():
         """
 
         # Get current time in UTC
-        Tz = pytz.timezone(self.app().config['Station']['Timezone'])
+        Tz = pytz.timezone(self.app.config['Station']['Timezone'])
         UTC = datetime.now(pytz.utc)
 
         # Get date of next full moon in station time zone
@@ -378,12 +378,12 @@ class astro():
         """
 
         # Get current time in Station timezone
-        Tz = pytz.timezone(self.app().config['Station']['Timezone'])
+        Tz = pytz.timezone(self.app.config['Station']['Timezone'])
         Now = datetime.now(pytz.utc).astimezone(Tz)
 
         # Set time format based on user configuration
-        if self.app().config['Display']['TimeFormat'] == '12 hr':
-            if self.app().config['System']['Hardware'] == 'Other':
+        if self.app.config['Display']['TimeFormat'] == '12 hr':
+            if self.app.config['System']['Hardware'] == 'Other':
                 time_format = '%#I:%M %p'
             else:
                 time_format = '%-I:%M %p'

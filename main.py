@@ -419,8 +419,8 @@ class CurrentConditions(Screen):
 
     def __init__(self, **kwargs):
         super(CurrentConditions, self).__init__(**kwargs)
-        self.app = App.get_running_app
-        self.app().CurrentConditions = self
+        self.app = App.get_running_app()
+        self.app.CurrentConditions = self
         self.System = properties.System()
         self.Status = properties.Status()
         self.Sager  = properties.Sager()
@@ -432,25 +432,25 @@ class CurrentConditions(Screen):
         self.addPanels()
 
         # Schedule Station.getDeviceStatus to be called each second
-        self.app().station = station()
-        self.app().Sched.deviceStatus = Clock.schedule_interval(self.app().station.get_device_status, 1.0)
+        self.app.station = station()
+        self.app.Sched.deviceStatus = Clock.schedule_interval(self.app.station.get_device_status, 1.0)
 
         # Initialise Sunrise, Sunset, Moonrise and Moonset times
-        self.app().astro = astro()
-        self.app().astro.sunrise_sunset()
-        self.app().astro.moonrise_moonset()
+        self.app.astro = astro()
+        self.app.astro.sunrise_sunset()
+        self.app.astro.moonrise_moonset()
 
         # Schedule sunTransit and moonPhase functions to be called each second
-        self.app().Sched.sun_transit = Clock.schedule_interval(self.app().astro.sun_transit, 1)
-        self.app().Sched.moon_phase  = Clock.schedule_interval(self.app().astro.moon_phase, 1)
+        self.app.Sched.sun_transit = Clock.schedule_interval(self.app.astro.sun_transit, 1)
+        self.app.Sched.moon_phase  = Clock.schedule_interval(self.app.astro.moon_phase, 1)
 
         # Schedule WeatherFlow weather forecast download
-        self.app().forecast = forecast()
-        self.app().Sched.metDownload = Clock.schedule_once(self.app().forecast.fetch_forecast)
+        self.app.forecast = forecast()
+        self.app.Sched.metDownload = Clock.schedule_once(self.app.forecast.fetch_forecast)
 
         # Generate Sager Weathercaster forecast
-        self.app().sager = sager_forecast()
-        self.app().Sched.sager = Clock.schedule_once(self.app().sager.fetch_forecast)
+        self.app.sager = sager_forecast()
+        self.app.Sched.sager = Clock.schedule_once(self.app.sager.fetch_forecast)
 
     # ADD USER SELECTED PANELS TO CURRENT CONDITIONS SCREEN
     # --------------------------------------------------------------------------
@@ -458,14 +458,14 @@ class CurrentConditions(Screen):
 
         # Add primary panels to CurrentConditions screen
         panel_list = ['panel_' + Num for Num in ['one', 'two', 'three', 'four', 'five', 'six']]
-        for ii, (Panel, Type) in enumerate(self.app().config['PrimaryPanels'].items()):
+        for ii, (Panel, Type) in enumerate(self.app.config['PrimaryPanels'].items()):
             self.ids[panel_list[ii]].add_widget(eval(Type + 'Panel')())
 
         # Add secondary panel buttons to CurrentConditions screen
         self.button_list = []
         button_list = ['button_' + Num for Num in ['one', 'two', 'three', 'four', 'five', 'six']]
         button_number = 0
-        for ii, (Panel, Type) in enumerate(self.app().config['SecondaryPanels'].items()):
+        for ii, (Panel, Type) in enumerate(self.app.config['SecondaryPanels'].items()):
             if Type:
                 self.ids[button_list[button_number]].add_widget(eval(Type + 'Button')())
                 self.button_list.append([button_list[button_number], panel_list[ii], Type, 'Primary'])
@@ -492,14 +492,14 @@ class CurrentConditions(Screen):
         panel_object = self.ids[button[1]].children
         panel_number = 'Panel' + button[1].split('_')[1].title()
         panel_type   = button[3] + 'Panels'
-        new_button   = self.app().config[panel_type][panel_number]
+        new_button   = self.app.config[panel_type][panel_number]
 
         # Destroy reference to old panel class attribute
-        # print('Before:', getattr(self.app(), new_button + 'Panel'))
-        if hasattr(self.app(), new_button + 'Panel'):
+        # print('Before:', getattr(self.app, new_button + 'Panel'))
+        if hasattr(self.app, new_button + 'Panel'):
             try:
-                getattr(self.app(), new_button + 'Panel').remove(panel_object[0])
-                # print('After:', getattr(self.app(), new_button + 'Panel'))
+                getattr(self.app, new_button + 'Panel').remove(panel_object[0])
+                # print('After:', getattr(self.app, new_button + 'Panel'))
             except ValueError:
                 Logger.warning('Unable to remove panel reference from wfpiconsole class')
 
@@ -508,7 +508,7 @@ class CurrentConditions(Screen):
         self.ids[button[1]].add_widget(eval(button[2] + 'Panel')())
         self.ids[button[0]].clear_widgets()
         self.ids[button[0]].add_widget(eval(new_button + 'Button')())
-        # print('Finally:', getattr(self.app(), button[2]  + 'Panel'))
+        # print('Finally:', getattr(self.app, button[2]  + 'Panel'))
 
         # Update button list
         if button[3] == 'Primary':

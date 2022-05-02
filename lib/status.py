@@ -46,7 +46,7 @@ class station(Widget):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.status_data = dict(properties.Status())
-        self.app = App.get_running_app
+        self.app = App.get_running_app()
         self.set_status_panels()
 
     def set_status_panels(self):
@@ -63,12 +63,12 @@ class station(Widget):
             Station ID
         """
 
-        URL = 'https://swd.weatherflow.com/swd/rest/stations?token=' + self.app().config['Keys']['WeatherFlow']
+        URL = 'https://swd.weatherflow.com/swd/rest/stations?token=' + self.app.config['Keys']['WeatherFlow']
         UrlRequest(URL,
                    on_success=self.parse_hub_firmware,
                    on_failure=self.fail_hub_firmware,
                    on_error=self.fail_hub_firmware,
-                   timeout=int(self.app().config['System']['Timeout']),
+                   timeout=int(self.app.config['System']['Timeout']),
                    ca_file=certifi.where())
 
     def parse_hub_firmware(self, request, response):
@@ -77,7 +77,7 @@ class station(Widget):
         """
         try:
             for station in response['stations']:
-                if station['station_id'] == int(self.app().config['Station']['StationID']):
+                if station['station_id'] == int(self.app.config['Station']['StationID']):
                     for device in station['devices']:
                         if 'device_type' in device:
                             if device['device_type'] == 'HB':
@@ -107,35 +107,35 @@ class station(Widget):
         # Get device observation counts
         urlList  = []
         Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&token={}'
-        if self.app().config['Station']['TempestID']:
-            urlList.append(Template.format(self.app().config['Station']['TempestID'], startTime, endTime, self.app().config['Keys']['WeatherFlow']))
-        if self.app().config['Station']['SkyID']:
-            urlList.append(Template.format(self.app().config['Station']['SkyID'],     startTime, endTime, self.app().config['Keys']['WeatherFlow']))
-        if self.app().config['Station']['OutAirID']:
-            urlList.append(Template.format(self.app().config['Station']['OutAirID'],  startTime, endTime, self.app().config['Keys']['WeatherFlow']))
-        if self.app().config['Station']['InAirID']:
-            urlList.append(Template.format(self.app().config['Station']['InAirID'],  startTime, endTime, self.app().config['Keys']['WeatherFlow']))
+        if self.app.config['Station']['TempestID']:
+            urlList.append(Template.format(self.app.config['Station']['TempestID'], startTime, endTime, self.app.config['Keys']['WeatherFlow']))
+        if self.app.config['Station']['SkyID']:
+            urlList.append(Template.format(self.app.config['Station']['SkyID'],     startTime, endTime, self.app.config['Keys']['WeatherFlow']))
+        if self.app.config['Station']['OutAirID']:
+            urlList.append(Template.format(self.app.config['Station']['OutAirID'],  startTime, endTime, self.app.config['Keys']['WeatherFlow']))
+        if self.app.config['Station']['InAirID']:
+            urlList.append(Template.format(self.app.config['Station']['InAirID'],  startTime, endTime, self.app.config['Keys']['WeatherFlow']))
         for URL in urlList:
             UrlRequest(URL,
                        on_success=self.parse_observation_count,
                        on_failure=self.fail_observation_count,
                        on_error=self.fail_observation_count,
-                       timeout=int(self.app().config['System']['Timeout']),
+                       timeout=int(self.app.config['System']['Timeout']),
                        ca_file=certifi.where())
 
     def parse_observation_count(self, request, response):
 
         """ Parse observation count from response returned by request.url """
 
-        if 'Station' in self.app().config:
+        if 'Station' in self.app.config:
             if 'obs' in response and response['obs'] is not None:
-                if str(response['device_id']) == self.app().config['Station']['TempestID']:
+                if str(response['device_id']) == self.app.config['Station']['TempestID']:
                     self.status_data['tempest_ob_count'] = str(len(response['obs']))
-                elif str(response['device_id']) == self.app().config['Station']['SkyID']:
+                elif str(response['device_id']) == self.app.config['Station']['SkyID']:
                     self.status_data['sky_ob_count'] = str(len(response['obs']))
-                elif str(response['device_id']) == self.app().config['Station']['OutAirID']:
+                elif str(response['device_id']) == self.app.config['Station']['OutAirID']:
                     self.status_data['out_air_ob_count'] = str(len(response['obs']))
-                elif str(response['device_id']) == self.app().config['Station']['InAirID']:
+                elif str(response['device_id']) == self.app.config['Station']['InAirID']:
                     self.status_data['in_air_ob_count'] = str(len(response['obs']))
                 self.update_display()
 
@@ -146,13 +146,13 @@ class station(Widget):
         """
 
         deviceID = re.search(r'device\/(.*)\?', request.url).group(1)
-        if deviceID == self.app().config['Station']['TempestID']:
+        if deviceID == self.app.config['Station']['TempestID']:
             self.status_data['tempest_ob_count'] = '[color=d73027ff]Error[/color]'
-        elif deviceID == self.app().config['Station']['SkyID']:
+        elif deviceID == self.app.config['Station']['SkyID']:
             self.status_data['sky_ob_count'] = '[color=d73027ff]Error[/color]'
-        elif deviceID == self.app().config['Station']['OutAirID']:
+        elif deviceID == self.app.config['Station']['OutAirID']:
             self.status_data['out_air_ob_count'] = '[color=d73027ff]Error[/color]'
-        elif deviceID == self.app().config['Station']['InAirID']:
+        elif deviceID == self.app.config['Station']['InAirID']:
             self.status_data['in_air_ob_count'] = '[color=d73027ff]Error[/color]'
         self.update_display()
 
@@ -163,11 +163,11 @@ class station(Widget):
         """
 
         # Define current station timezone
-        Tz = pytz.timezone(self.app().config['Station']['Timezone'])
+        Tz = pytz.timezone(self.app.config['Station']['Timezone'])
 
         # Get TEMPEST device status
-        if 'obs_st' in self.app().CurrentConditions.Obs:
-            latestOb       = self.app().CurrentConditions.Obs['obs_st']['obs'][0]
+        if 'obs_st' in self.app.CurrentConditions.Obs:
+            latestOb       = self.app.CurrentConditions.Obs['obs_st']['obs'][0]
             sampleTimeDiff = time.time() - latestOb[0]
             deviceVoltage  = float(latestOb[16])
             if sampleTimeDiff < 300 and deviceVoltage > 2.355:
@@ -191,8 +191,8 @@ class station(Widget):
             self.status_data['tempest_status']      = deviceStatus
 
         # Get SKY device status
-        if 'obs_sky' in self.app().CurrentConditions.Obs:
-            latestOb       = self.app().CurrentConditions.Obs['obs_sky']['obs'][0]
+        if 'obs_sky' in self.app.CurrentConditions.Obs:
+            latestOb       = self.app.CurrentConditions.Obs['obs_sky']['obs'][0]
             sampleTimeDiff = time.time() - latestOb[0]
             deviceVoltage  = float(latestOb[8])
             if sampleTimeDiff < 300 and deviceVoltage > 2.0:
@@ -216,8 +216,8 @@ class station(Widget):
             self.status_data['sky_status']      = deviceStatus
 
         # Get outdoor AIR device status
-        if 'obs_out_air' in self.app().CurrentConditions.Obs:
-            latestOb       = self.app().CurrentConditions.Obs['obs_out_air']['obs'][0]
+        if 'obs_out_air' in self.app.CurrentConditions.Obs:
+            latestOb       = self.app.CurrentConditions.Obs['obs_out_air']['obs'][0]
             sampleTimeDiff = time.time() - latestOb[0]
             deviceVoltage  = float(latestOb[6])
             if sampleTimeDiff < 300 and deviceVoltage > 1.9:
@@ -241,8 +241,8 @@ class station(Widget):
             self.status_data['out_air_status']      = deviceStatus
 
         # Get indoor AIR device status
-        if 'obs_in_air' in self.app().CurrentConditions.Obs:
-            latestOb       = self.app().CurrentConditions.Obs['obs_in_air']['obs'][0]
+        if 'obs_in_air' in self.app.CurrentConditions.Obs:
+            latestOb       = self.app.CurrentConditions.Obs['obs_in_air']['obs'][0]
             sampleTimeDiff = time.time() - latestOb[0]
             deviceVoltage  = float(latestOb[6])
             if sampleTimeDiff < 300 and deviceVoltage > 1.9:
@@ -267,13 +267,13 @@ class station(Widget):
 
         # Set hub status (i.e. station_status) based on device status
         deviceStatus = []
-        if 'obs_st' in self.app().CurrentConditions.Obs:
+        if 'obs_st' in self.app.CurrentConditions.Obs:
             deviceStatus.append(self.status_data['tempest_status'])
-        if 'obs_sky' in self.app().CurrentConditions.Obs:
+        if 'obs_sky' in self.app.CurrentConditions.Obs:
             deviceStatus.append(self.status_data['sky_status'])
-        if 'obs_out_air' in self.app().CurrentConditions.Obs:
+        if 'obs_out_air' in self.app.CurrentConditions.Obs:
             deviceStatus.append(self.status_data['out_air_status'])
-        if 'obs_in_air' in self.app().CurrentConditions.Obs:
+        if 'obs_in_air' in self.app.CurrentConditions.Obs:
             deviceStatus.append(self.status_data['in_air_status'])
         if not deviceStatus or all('-' in Status for Status in deviceStatus):
             self.status_data['station_status'] = '-'
@@ -296,7 +296,7 @@ class station(Widget):
         reference_error = False
         for Key, Value in list(self.status_data.items()):
             try:
-                self.app().CurrentConditions.Status[Key] = Value
+                self.app.CurrentConditions.Status[Key] = Value
             except ReferenceError:
                 if not reference_error:
                     Logger.warning(f'status: {system.logTime()} - Reference error')

@@ -45,10 +45,10 @@ class RainfallPanel(panelTemplate):
     def animate_rain_rate(self):
 
         # If available, get current rain rate and convert to float
-        if self.app().CurrentConditions.Obs['RainRate'][0] != '-':
+        if self.app.CurrentConditions.Obs['RainRate'][0] != '-':
 
             # Get current rain rate and convert to float
-            rain_rate = float(self.app().CurrentConditions.Obs['RainRate'][3])
+            rain_rate = float(self.app.CurrentConditions.Obs['RainRate'][3])
 
             # Set RainRate level y position
             y0 = -1.00

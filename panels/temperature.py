@@ -38,7 +38,7 @@ class TemperaturePanel(panelTemplate):
 
     # Set "Feels Like" icon
     def setFeelsLikeIcon(self):
-        self.feelsLikeIcon = self.app().CurrentConditions.Obs['FeelsLike'][3]
+        self.feelsLikeIcon = self.app.CurrentConditions.Obs['FeelsLike'][3]
 
 
 class TemperatureButton(RelativeLayout):
