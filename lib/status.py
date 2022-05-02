@@ -16,8 +16,8 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 """
 
 # Import required library modules
+from lib.system              import system
 from lib                     import properties
-from lib                     import system
 
 # Import required Kivy modules
 from kivy.network.urlrequest import UrlRequest
@@ -38,14 +38,14 @@ import re
 NaN = float('NaN')
 
 
-# =============================================================================
+# ==============================================================================
 # Station STATUS CLASS
-# =============================================================================
+# ==============================================================================
 class station(Widget):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.status_data = dict(properties.Status())
+        self.status_data = properties.Status()
         self.app = App.get_running_app()
         self.set_status_panels()
 
@@ -289,7 +289,8 @@ class station(Widget):
 
     def update_display(self):
 
-        """ Update display with new status variables
+        """ Update display with new Status variables. Catch ReferenceErrors to
+        prevent console crashing
         """
 
         # Update display values with new derived observations
@@ -299,7 +300,7 @@ class station(Widget):
                 self.app.CurrentConditions.Status[Key] = Value
             except ReferenceError:
                 if not reference_error:
-                    Logger.warning(f'status: {system.logTime()} - Reference error')
+                    Logger.warning(f'status: {system().log_time()} - Reference error')
                     reference_error = True
 
 

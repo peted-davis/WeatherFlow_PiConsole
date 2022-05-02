@@ -17,8 +17,9 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 
 # Import required library modules
 from lib.requestAPI.weatherflow import verifyResponse
+from lib.system import system
 from lib import derivedVariables as derive
-from lib import system
+
 
 # Import required Python modules
 from kivy.logger  import Logger
@@ -45,10 +46,10 @@ def dewPoint(outTemp, humidity):
     # Return None if required variables are missing
     errorOutput = [None, 'c']
     if outTemp[0] is None:
-        Logger.warning(f'dewPoint: {system.logTime()} - outTemp is None')
+        Logger.warning(f'dewPoint: {system().log_time()} - outTemp is None')
         return errorOutput
     elif humidity[0] is None:
-        Logger.warning(f'dewPoint: {system.logTime()} - humidity is None')
+        Logger.warning(f'dewPoint: {system().log_time()} - humidity is None')
         return errorOutput
 
     # Calculate dew point
@@ -83,13 +84,13 @@ def feelsLike(outTemp, humidity, windSpd, config):
     # Return None if required variables are missing
     errorOutput = [None, 'c', '-', '-']
     if outTemp[0] is None:
-        Logger.warning(f'feelsLike: {system.logTime()} - outTemp is None')
+        Logger.warning(f'feelsLike: {system().log_time()} - outTemp is None')
         return errorOutput
     elif humidity[0] is None:
-        Logger.warning(f'feelsLike: {system.logTime()} - humidity is None')
+        Logger.warning(f'feelsLike: {system().log_time()} - humidity is None')
         return errorOutput
     elif windSpd[0] is None:
-        Logger.warning(f'feelsLike: {system.logTime()} - windSpd is None')
+        Logger.warning(f'feelsLike: {system().log_time()} - windSpd is None')
         return errorOutput
 
     # Convert observation units as required
@@ -157,7 +158,7 @@ def SLP(pressure, device, config):
     # Return None if required variables are missing
     errorOutput = [None, 'mb', None]
     if pressure[0] is None:
-        Logger.warning(f'SLP: {system.logTime()} - pressure is None')
+        Logger.warning(f'SLP: {system().log_time()} - pressure is None')
         return errorOutput
 
     # Extract required configuration variables
@@ -202,10 +203,10 @@ def SLPTrend(pressure, obTime, device, apiData, config):
     # Return None if required variables are missing
     errorOutput = [None, 'mb/hr', '-', '-']
     if pressure[0] is None:
-        Logger.warning(f'SLPTrend: {system.logTime()} - pressure is None')
+        Logger.warning(f'SLPTrend: {system().log_time()} - pressure is None')
         return errorOutput
     elif obTime[0] is None:
-        Logger.warning(f'SLPTrend: {system.logTime()} - obTime is None')
+        Logger.warning(f'SLPTrend: {system().log_time()} - obTime is None')
         return errorOutput
 
     # Define index of pressure in websocket packets
@@ -229,10 +230,10 @@ def SLPTrend(pressure, obTime, device, apiData, config):
                     pres0h  = pressure
                     time0h  = obTime
                 else:
-                    Logger.warning(f'SLPTrend: {system.logTime()} - no data in 3 hour window')
+                    Logger.warning(f'SLPTrend: {system().log_time()} - no data in 3 hour window')
                     return errorOutput
             except Exception as Error:
-                Logger.warning(f'SLPTrend: {system.logTime()} - {Error}')
+                Logger.warning(f'SLPTrend: {system().log_time()} - {Error}')
                 return errorOutput
         else:
             return errorOutput
@@ -245,7 +246,7 @@ def SLPTrend(pressure, obTime, device, apiData, config):
     try:
         Trend = (pres0h[0] - pres3h[0]) / ((time0h[0] - time3h[0]) / 3600)
     except Exception as Error:
-        Logger.warning(f'SLPTrend: {system.logTime()} - {Error}')
+        Logger.warning(f'SLPTrend: {system().log_time()} - {Error}')
         return errorOutput
 
     # Define pressure trend text
@@ -304,10 +305,10 @@ def SLPMax(pressure, obTime, maxPres, device, apiData, config):
     # Return None if required variables are missing
     errorOutput = [None, 'mb', '-', None, time.time()]
     if pressure[0] is None:
-        Logger.warning(f'SLPMax: {system.logTime()} - pressure is None')
+        Logger.warning(f'SLPMax: {system().log_time()} - pressure is None')
         return errorOutput
     elif obTime[0] is None:
-        Logger.warning(f'SLPMax: {system.logTime()} - obTime is None')
+        Logger.warning(f'SLPMax: {system().log_time()} - obTime is None')
         return errorOutput
 
     # Calculate sea level pressure
@@ -334,7 +335,7 @@ def SLPMax(pressure, obTime, maxPres, device, apiData, config):
             try:
                 maxPres   = [max(SLP)[0], 'mb', obTime[SLP.index(max(SLP))], 's', max(SLP)[0], obTime[SLP.index(max(SLP))]]
             except Exception as Error:
-                Logger.warning(f'SLPMax: {system.logTime()} - {Error}')
+                Logger.warning(f'SLPMax: {system().log_time()} - {Error}')
                 maxPres = errorOutput
         else:
             maxPres = errorOutput
@@ -375,10 +376,10 @@ def SLPMin(pressure, obTime, minPres, device, apiData, config):
     # Return None if required variables are missing
     errorOutput = [None, 'mb', '-', None, time.time()]
     if pressure[0] is None:
-        Logger.warning(f'SLPMin: {system.logTime()} - pressure is None')
+        Logger.warning(f'SLPMin: {system().log_time()} - pressure is None')
         return errorOutput
     elif obTime[0] is None:
-        Logger.warning(f'SLPMin: {system.logTime()} - obTime is None')
+        Logger.warning(f'SLPMin: {system().log_time()} - obTime is None')
         return errorOutput
 
     # Calculate sea level pressure
@@ -405,7 +406,7 @@ def SLPMin(pressure, obTime, minPres, device, apiData, config):
             try:
                 minPres   = [min(SLP)[0], 'mb', obTime[SLP.index(min(SLP))], 's', min(SLP)[0], obTime[SLP.index(min(SLP))]]
             except Exception as Error:
-                Logger.warning(f'SLPMin: {system.logTime()} - {Error}')
+                Logger.warning(f'SLPMin: {system().log_time()} - {Error}')
                 minPres = errorOutput
         else:
             minPres = errorOutput
@@ -445,10 +446,10 @@ def tempDiff(outTemp, obTime, device, apiData, config):
     # Return None if required variables are missing
     errorOutput = [None, 'dc', '-']
     if outTemp[0] is None:
-        Logger.warning(f'tempDiff: {system.logTime()} - outTemp is None')
+        Logger.warning(f'tempDiff: {system().log_time()} - outTemp is None')
         return errorOutput
     elif obTime[0] is None:
-        Logger.warning(f'tempDiff: {system.logTime()} - obTime is None')
+        Logger.warning(f'tempDiff: {system().log_time()} - obTime is None')
         return errorOutput
 
     # Define index of temperature in websocket packets
@@ -469,10 +470,10 @@ def tempDiff(outTemp, obTime, device, apiData, config):
                 temp24h = apiTemp[0]
                 temp0h  = outTemp[0]
             else:
-                Logger.warning(f'tempDiff: {system.logTime()} - no data in 24 hour window')
+                Logger.warning(f'tempDiff: {system().log_time()} - no data in 24 hour window')
                 return errorOutput
         except Exception as Error:
-            Logger.warning(f'tempDiff: {system.logTime()} - {Error}')
+            Logger.warning(f'tempDiff: {system().log_time()} - {Error}')
             return errorOutput
     else:
         return errorOutput
@@ -481,7 +482,7 @@ def tempDiff(outTemp, obTime, device, apiData, config):
     try:
         dTemp = temp0h - temp24h
     except Exception as Error:
-        Logger.warning(f'tempDiff: {system.logTime()} - {Error}')
+        Logger.warning(f'tempDiff: {system().log_time()} - {Error}')
         return errorOutput
 
     # Define temperature difference text
@@ -514,10 +515,10 @@ def tempTrend(outTemp, obTime, device, apiData, config):
     # Return None if required variables are missing
     errorOutput = [None, 'c/hr', 'c8c8c8ff']
     if outTemp[0] is None:
-        Logger.warning(f'tempTrend: {system.logTime()} - outTemp is None')
+        Logger.warning(f'tempTrend: {system().log_time()} - outTemp is None')
         return errorOutput
     elif obTime[0] is None:
-        Logger.warning(f'tempTrend: {system.logTime()} - obTime is None')
+        Logger.warning(f'tempTrend: {system().log_time()} - obTime is None')
         return errorOutput
 
     # Define index of temperature in websocket packets
@@ -540,10 +541,10 @@ def tempTrend(outTemp, obTime, device, apiData, config):
                 temp0h  = outTemp[0]
                 time0h  = obTime[0]
             else:
-                Logger.warning(f'tempTrend: {system.logTime()} - no data in 3 hour window')
+                Logger.warning(f'tempTrend: {system().log_time()} - no data in 3 hour window')
                 return errorOutput
         except Exception as Error:
-            Logger.warning(f'tempTrend: {system.logTime()} - {Error}')
+            Logger.warning(f'tempTrend: {system().log_time()} - {Error}')
             return errorOutput
     else:
         return errorOutput
@@ -552,7 +553,7 @@ def tempTrend(outTemp, obTime, device, apiData, config):
     try:
         Trend = (temp0h - temp3h) / ((time0h - time3h) / 3600)
     except Exception as Error:
-        Logger.warning(f'tempTrend: {system.logTime()} - {Error}')
+        Logger.warning(f'tempTrend: {system().log_time()} - {Error}')
         return errorOutput
 
     # Define temperature trend color
@@ -587,10 +588,10 @@ def tempMax(Temp, obTime, maxTemp, device, apiData, config):
     # Return None if required variables are missing
     errorOutput = [None, 'c', '-', None, time.time()]
     if Temp[0] is None:
-        Logger.warning(f'tempMax: {system.logTime()} - Temp is None')
+        Logger.warning(f'tempMax: {system().log_time()} - Temp is None')
         return errorOutput
     elif obTime[0] is None:
-        Logger.warning(f'tempMax: {system.logTime()} - obTime is None')
+        Logger.warning(f'tempMax: {system().log_time()} - obTime is None')
         return errorOutput
 
     # Define current time in station timezone
@@ -614,7 +615,7 @@ def tempMax(Temp, obTime, maxTemp, device, apiData, config):
             try:
                 maxTemp = [max(apiTemp), 'c', apiTime[apiTemp.index(max(apiTemp))], 's', max(apiTemp), apiTime[apiTemp.index(max(apiTemp))]]
             except Exception as Error:
-                Logger.warning(f'tempMax: {system.logTime()} - {Error}')
+                Logger.warning(f'tempMax: {system().log_time()} - {Error}')
                 maxTemp = errorOutput
         else:
             maxTemp = errorOutput
@@ -656,10 +657,10 @@ def tempMin(Temp, obTime, minTemp, device, apiData, config):
     # Return None if required variables are missing
     errorOutput = [None, 'c', '-', None, time.time()]
     if Temp[0] is None:
-        Logger.warning(f'tempMin: {system.logTime()} - Temp is None')
+        Logger.warning(f'tempMin: {system().log_time()} - Temp is None')
         return errorOutput
     elif obTime[0] is None:
-        Logger.warning(f'tempMin: {system.logTime()} - obTime is None')
+        Logger.warning(f'tempMin: {system().log_time()} - obTime is None')
         return errorOutput
 
     # Define current time in station timezone
@@ -683,7 +684,7 @@ def tempMin(Temp, obTime, minTemp, device, apiData, config):
             try:
                 minTemp = [min(apiTemp), 'c', apiTime[apiTemp.index(min(apiTemp))], 's', min(apiTemp), apiTime[apiTemp.index(min(apiTemp))]]
             except Exception as Error:
-                Logger.warning(f'tempMin: {system.logTime()} - {Error}')
+                Logger.warning(f'tempMin: {system().log_time()} - {Error}')
                 minTemp = errorOutput
         else:
             minTemp = errorOutput
@@ -719,7 +720,7 @@ def strikeDeltaT(strikeTime):
     # Return None if required variables are missing
     errorOutput = [None, 's', None]
     if strikeTime[0] is None:
-        Logger.warning(f'strikeDeltaT: {system.logTime()} - strikeTime is None')
+        Logger.warning(f'strikeDeltaT: {system().log_time()} - strikeTime is None')
         return errorOutput
 
     # Calculate time since last lightning strike
@@ -749,7 +750,7 @@ def strikeFrequency(obTime, device, apiData, config):
     # Return None if required variables are missing
     errorOutput = [None, '/min', None, '/min']
     if obTime[0] is None:
-        Logger.warning(f'strikeFreq: {system.logTime()} - obTime is None')
+        Logger.warning(f'strikeFreq: {system().log_time()} - obTime is None')
         return errorOutput
 
     # Define index of total lightning strike counts in websocket packets
@@ -768,10 +769,10 @@ def strikeFrequency(obTime, device, apiData, config):
             if min(dTime) < 5 * 60:
                 count3h = [ob[index_bucket_a] for ob in data24hrs[dTime.index(min(dTime)):] if ob[index_bucket_a] is not None]
             else:
-                Logger.warning(f'strikeFreq: {system.logTime()} - no data in 3 hour window')
+                Logger.warning(f'strikeFreq: {system().log_time()} - no data in 3 hour window')
                 count3h = None
         except Exception as Error:
-            Logger.warning(f'strikeFreq: {system.logTime()} - {Error}')
+            Logger.warning(f'strikeFreq: {system().log_time()} - {Error}')
             count3h = None
     else:
         count3h = None
@@ -796,10 +797,10 @@ def strikeFrequency(obTime, device, apiData, config):
             if min(dTime) < 2 * 60:
                 count10m = [ob[index_bucket_a] for ob in data24hrs[dTime.index(min(dTime)):] if ob[index_bucket_a] is not None]
             else:
-                Logger.warning(f'strikeFreq: {system.logTime()} - no data in 10 minute window')
+                Logger.warning(f'strikeFreq: {system().log_time()} - no data in 10 minute window')
                 count10m = None
         except Exception as Error:
-            Logger.warning(f'strikeFreq: {system.logTime()} - {Error}')
+            Logger.warning(f'strikeFreq: {system().log_time()} - {Error}')
             count10m = None
     else:
         count10m = None
@@ -843,7 +844,7 @@ def strikeCount(count, strikeCount, device, apiData, config):
     # Return None if required variables are missing
     errorOutput = [None, 'count', None, time.time()]
     if count[0] is None:
-        Logger.warning(f'strikeCount: {system.logTime()} - count is None')
+        Logger.warning(f'strikeCount: {system().log_time()} - count is None')
         todayStrikes = monthStrikes = yearStrikes = errorOutput
         return {'today': todayStrikes, 'month': monthStrikes, 'year': yearStrikes}
 
@@ -868,7 +869,7 @@ def strikeCount(count, strikeCount, device, apiData, config):
             try:
                 todayStrikes = [sum(x for x in apiStrikes), 'count', sum(x for x in apiStrikes), time.time()]
             except Exception as Error:
-                Logger.warning(f'strikeCount: {system.logTime()} - {Error}')
+                Logger.warning(f'strikeCount: {system().log_time()} - {Error}')
                 todayStrikes = errorOutput
         else:
             todayStrikes = errorOutput
@@ -900,7 +901,7 @@ def strikeCount(count, strikeCount, device, apiData, config):
                     monthStrikes[0] += todayStrikes[0]
                     monthStrikes[2] += todayStrikes[2]
             except Exception as Error:
-                Logger.warning(f'strikeCount: {system.logTime()} - {Error}')
+                Logger.warning(f'strikeCount: {system().log_time()} - {Error}')
                 monthStrikes = errorOutput
         else:
             monthStrikes = errorOutput
@@ -933,7 +934,7 @@ def strikeCount(count, strikeCount, device, apiData, config):
                     yearStrikes[0] += todayStrikes[0]
                     yearStrikes[2] += todayStrikes[2]
             except Exception as Error:
-                Logger.warning(f'strikeCount: {system.logTime()} - {Error}')
+                Logger.warning(f'strikeCount: {system().log_time()} - {Error}')
                 yearStrikes = errorOutput
         else:
             yearStrikes = errorOutput
@@ -968,7 +969,7 @@ def rainRate(minuteRain):
     # Return None if required variables are missing
     errorOutput = [None, 'mm/hr', '-', None]
     if minuteRain[0] is None:
-        Logger.warning(f'rainRate: {system.logTime()} - minuteRain is None')
+        Logger.warning(f'rainRate: {system().log_time()} - minuteRain is None')
         return errorOutput
 
     # Calculate instantaneous rain rate from instantaneous rain accumulation
@@ -1020,7 +1021,7 @@ def rainAccumulation(dailyRain, rainAccum, device, apiData, config):
     # Return None if required variables are missing
     errorOutput = [None, 'mm', None, time.time()]
     if dailyRain[0] is None:
-        Logger.warning(f'rainAccum: {system.logTime()} - dailyRain is None')
+        Logger.warning(f'rainAccum: {system().log_time()} - dailyRain is None')
         todayRain = yesterdayRain = monthRain = yearRain = errorOutput
         return {'today': todayRain, 'yesterday': yesterdayRain, 'month': monthRain, 'year': yearRain}
 
@@ -1048,7 +1049,7 @@ def rainAccumulation(dailyRain, rainAccum, device, apiData, config):
             try:
                 yesterdayRain = [sum(x for x in rainData), 'mm', sum(x for x in rainData), time.time()]
             except Exception as Error:
-                Logger.warning(f'rainAccum: {system.logTime()} - {Error}')
+                Logger.warning(f'rainAccum: {system().log_time()} - {Error}')
                 yesterdayRain = errorOutput
         else:
             yesterdayRain = errorOutput
@@ -1078,7 +1079,7 @@ def rainAccumulation(dailyRain, rainAccum, device, apiData, config):
                 if not math.isnan(dailyRain[0]):
                     monthRain[0] += dailyRain[0]
             except Exception as Error:
-                Logger.warning(f'rainAccum: {system.logTime()} - {Error}')
+                Logger.warning(f'rainAccum: {system().log_time()} - {Error}')
                 monthRain = errorOutput
         else:
             monthRain = errorOutput
@@ -1117,7 +1118,7 @@ def rainAccumulation(dailyRain, rainAccum, device, apiData, config):
                 if not math.isnan(dailyRain[0]):
                     yearRain[0] += dailyRain[0]
             except Exception as Error:
-                Logger.warning(f'rainAccum: {system.logTime()} - {Error}')
+                Logger.warning(f'rainAccum: {system().log_time()} - {Error}')
                 yearRain = errorOutput
         else:
             yearRain = errorOutput
@@ -1163,7 +1164,7 @@ def avgWindSpeed(windSpd, avgWind, device, apiData, config):
     # Return None if required variables are missing
     errorOutput = [None, 'mps', None, None, time.time()]
     if windSpd[0] is None:
-        Logger.warning(f'avgSpeed: {system.logTime()} - windSpd is None')
+        Logger.warning(f'avgSpeed: {system().log_time()} - windSpd is None')
         return errorOutput
 
     # Define current time in station timezone
@@ -1186,7 +1187,7 @@ def avgWindSpeed(windSpd, avgWind, device, apiData, config):
                 average = sum(x for x in windSpd) / len(windSpd)
                 windAvg = [average, 'mps', average, len(windSpd), time.time()]
             except Exception as Error:
-                Logger.warning(f'avgSpeed: {system.logTime()} - {Error}')
+                Logger.warning(f'avgSpeed: {system().log_time()} - {Error}')
                 windAvg = errorOutput
         else:
             windAvg = errorOutput
@@ -1224,7 +1225,7 @@ def maxWindGust(windGust, maxGust, device, apiData, config):
     # Return None if required variables are missing
     errorOutput = [None, 'mps', None, time.time()]
     if windGust[0] is None:
-        Logger.warning(f'maxGust: {system.logTime()} - windGust is None')
+        Logger.warning(f'maxGust: {system().log_time()} - windGust is None')
         return errorOutput
 
     # Define current time in station timezone
@@ -1246,7 +1247,7 @@ def maxWindGust(windGust, maxGust, device, apiData, config):
             try:
                 maxGust  = [max(x for x in windGust), 'mps', max(x for x in windGust), time.time()]
             except Exception as Error:
-                Logger.warning(f'maxGust: {system.logTime()} - {Error}')
+                Logger.warning(f'maxGust: {system().log_time()} - {Error}')
                 maxGust = errorOutput
         else:
             maxGust = errorOutput
@@ -1284,10 +1285,10 @@ def cardinalWindDir(windDir, windSpd=[1, 'mps']):
     # Return None if required variables are missing
     errorOutput = [windDir[0], windDir[1], '-', '-']
     if windDir[0] is None and windSpd[0] != 0.0:
-        Logger.warning(f'cardWindDir: {system.logTime()} - windDir is None')
+        Logger.warning(f'cardWindDir: {system().log_time()} - windDir is None')
         return errorOutput
     elif windSpd[0] is None:
-        Logger.warning(f'cardWindDir: {system.logTime()} - windSpd is None')
+        Logger.warning(f'cardWindDir: {system().log_time()} - windSpd is None')
         return errorOutput
 
     # Define all possible cardinal wind directions and descriptions
@@ -1326,7 +1327,7 @@ def beaufortScale(windSpd):
     # Return None if required variables are missing
     errorOutput = windSpd + ['-', '-', '-']
     if windSpd[0] is None:
-        Logger.warning(f'beaufScale: {system.logTime()} - windSpd is None')
+        Logger.warning(f'beaufScale: {system().log_time()} - windSpd is None')
         return errorOutput
 
     # Define Beaufort scale cutoffs and Force numbers
@@ -1359,7 +1360,7 @@ def UVIndex(uvLevel):
     # Return None if required variables are missing
     errorOutput = [None, 'index', '-', '#646464']
     if uvLevel[0] is None:
-        Logger.warning(f'UVIndex: {system.logTime()} - uvLevel is None')
+        Logger.warning(f'UVIndex: {system().log_time()} - uvLevel is None')
         return errorOutput
 
     # Define UV Index cutoffs and level descriptions
@@ -1404,7 +1405,7 @@ def peakSunHours(radiation, peakSun, device, apiData, config):
     # Return None if required variables are missing
     errorOutput = [None, 'hrs', '-']
     if radiation[0] is None:
-        Logger.warning(f'peakSun: {system.logTime()} - radiation is None')
+        Logger.warning(f'peakSun: {system().log_time()} - radiation is None')
         return errorOutput
 
     # Define current time in station timezone
@@ -1440,7 +1441,7 @@ def peakSunHours(radiation, peakSun, device, apiData, config):
                 watthrs = sum([item * (1 / 60) for item in radiation])
                 peakSun = [watthrs / 1000, 'hrs', watthrs, sunrise, sunset, time.time()]
             except Exception as Error:
-                Logger.warning(f'peakSun: {system.logTime()} - {Error}')
+                Logger.warning(f'peakSun: {system().log_time()} - {Error}')
                 return errorOutput
         else:
             return errorOutput

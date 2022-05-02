@@ -126,7 +126,7 @@ from lib.sager        import sager_forecast
 from lib.status       import station
 from lib              import settings     as userSettings
 from lib              import properties
-from lib              import system
+from lib.system              import system
 from lib              import config
 
 # ==============================================================================
@@ -202,13 +202,14 @@ class wfpiconsole(App):
         self.startWebsocketService()
 
         # Check for latest version
-        Clock.schedule_once(system.checkVersion)
+        self.system = system()
+        Clock.schedule_once(self.system.check_version)
 
         # Set Settings syle class
         self.settings_cls = SettingsWithSidebar
 
         # Initialise realtime clock
-        self.Sched.realtimeClock = Clock.schedule_interval(system.realtimeClock, 1.0)
+        self.Sched.realtimeClock = Clock.schedule_interval(self.system.realtimeClock, 1.0)
 
         # Return ScreenManager
         return self.screenManager
@@ -324,11 +325,9 @@ class wfpiconsole(App):
                     self.CurrentConditions.ids[panel_list[ii]].clear_widgets()
                     self.CurrentConditions.ids[panel_list[ii]].add_widget(eval(type + 'Panel')())
                     break
-            # print('Before:', getattr(self, old_panel.__class__.__name__))
             if hasattr(self, old_panel.__class__.__name__):
                 try:
                     getattr(self,  old_panel.__class__.__name__).remove(old_panel)
-                    # print('After:', getattr(self, old_panel.__class__.__name__))
                 except ValueError:
                     Logger.warning('Unable to remove panel reference from wfpiconsole class')
 
@@ -364,7 +363,7 @@ class wfpiconsole(App):
             Clock.schedule_once(self.sager.schedule_forecast)
 
         # Update derived variables to reflect configuration changes
-        self.obsParser.reformatDisplay()
+        self.obsParser.reformat_display()
 
     # START WEBSOCKET SERVICE
     # --------------------------------------------------------------------------
@@ -495,11 +494,9 @@ class CurrentConditions(Screen):
         new_button   = self.app.config[panel_type][panel_number]
 
         # Destroy reference to old panel class attribute
-        # print('Before:', getattr(self.app, new_button + 'Panel'))
         if hasattr(self.app, new_button + 'Panel'):
             try:
                 getattr(self.app, new_button + 'Panel').remove(panel_object[0])
-                # print('After:', getattr(self.app, new_button + 'Panel'))
             except ValueError:
                 Logger.warning('Unable to remove panel reference from wfpiconsole class')
 
@@ -508,7 +505,6 @@ class CurrentConditions(Screen):
         self.ids[button[1]].add_widget(eval(button[2] + 'Panel')())
         self.ids[button[0]].clear_widgets()
         self.ids[button[0]].add_widget(eval(new_button + 'Button')())
-        # print('Finally:', getattr(self.app, button[2]  + 'Panel'))
 
         # Update button list
         if button[3] == 'Primary':

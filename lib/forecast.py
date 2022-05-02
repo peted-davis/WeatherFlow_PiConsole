@@ -16,12 +16,14 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 """
 
 # Import required library modules
+from lib.system import system
 from lib import observationFormat  as observation
 from lib import derivedVariables   as derive
 from lib import properties
 
 # Import required Kivy modules
 from kivy.network.urlrequest import UrlRequest
+from kivy.logger             import Logger
 from kivy.clock              import Clock
 from kivy.app                import App
 
@@ -36,8 +38,8 @@ import pytz
 class forecast():
 
     def __init__(self):
-        self.funcCalled = []
         self.app = App.get_running_app()
+        self.met_data = properties.Met()
 
     def reset_forecast(self):
 
@@ -46,7 +48,8 @@ class forecast():
         """
 
         # Reset the forecast and schedule new forecast to be generated
-        self.app.CurrentConditions.Met =  properties.Met()
+        self.met_data = properties.Met()
+        self.update_display()
         if hasattr(self.app, 'ForecastPanel'):
             for panel in getattr(self.app, 'ForecastPanel'):
                 panel.setForecastIcon()
@@ -96,7 +99,7 @@ class forecast():
         """
 
         # Parse the latest daily and hourly weather forecast data
-        self.app.CurrentConditions.Met['Response'] = Response
+        self.met_data['Response'] = Response
         self.parse_forecast()
 
     def fail_forecast(self, *largs):
@@ -112,22 +115,25 @@ class forecast():
 
         # Set forecast variables to blank and indicate to user that forecast is
         # unavailable
-        self.app.CurrentConditions.Met['Valid']        = '--'
-        self.app.CurrentConditions.Met['Temp']         = '--'
-        self.app.CurrentConditions.Met['highTemp']     = '--'
-        self.app.CurrentConditions.Met['lowTemp']      = '--'
-        self.app.CurrentConditions.Met['WindSpd']      = '--'
-        self.app.CurrentConditions.Met['WindGust']     = '--'
-        self.app.CurrentConditions.Met['WindDir']      = '--'
-        self.app.CurrentConditions.Met['PrecipPercnt'] = '--'
-        self.app.CurrentConditions.Met['PrecipDay']    = '--'
-        self.app.CurrentConditions.Met['PrecipAmount'] = '--'
-        self.app.CurrentConditions.Met['PrecipType']   = '--'
-        self.app.CurrentConditions.Met['Conditions']   = ''
-        self.app.CurrentConditions.Met['Icon']         = '-'
-        self.app.CurrentConditions.Met['Status']       = 'Forecast currently\nunavailable...'
+        self.met_data['Valid']        = '--'
+        self.met_data['Temp']         = '--'
+        self.met_data['highTemp']     = '--'
+        self.met_data['lowTemp']      = '--'
+        self.met_data['WindSpd']      = '--'
+        self.met_data['WindGust']     = '--'
+        self.met_data['WindDir']      = '--'
+        self.met_data['PrecipPercnt'] = '--'
+        self.met_data['PrecipDay']    = '--'
+        self.met_data['PrecipAmount'] = '--'
+        self.met_data['PrecipType']   = '--'
+        self.met_data['Conditions']   = ''
+        self.met_data['Icon']         = '-'
+        self.met_data['Status']       = 'Forecast currently\nunavailable...'
 
-        # Update forecast icon in mainthread
+        # Update display
+        self.update_display()
+
+        # Update forecast icon
         if hasattr(self.app, 'ForecastPanel'):
             for panel in getattr(self.app, 'ForecastPanel'):
                 panel.setForecastIcon()
@@ -149,7 +155,7 @@ class forecast():
         """
 
         # Extract Forecast dictionary
-        Forecast = self.app.CurrentConditions.Met['Response']
+        Forecast = self.met_data['Response']
 
         # Get current time in station time zone
         Tz  = pytz.timezone(self.app.config['Station']['Timezone'])
@@ -244,20 +250,20 @@ class forecast():
             PrecipAmount = observation.Units(PrecipAmount, self.app.config['Units']['Precip'])
 
             # Define and format labels
-            self.app.CurrentConditions.Met['Valid']        = datetime.strftime(Valid,          TimeFormat)
-            self.app.CurrentConditions.Met['Temp']         = observation.Format(Temp,         'forecastTemp')
-            self.app.CurrentConditions.Met['highTemp']     = observation.Format(highTemp,     'forecastTemp')
-            self.app.CurrentConditions.Met['lowTemp']      = observation.Format(lowTemp,      'forecastTemp')
-            self.app.CurrentConditions.Met['WindSpd']      = observation.Format(WindSpd,      'forecastWind')
-            self.app.CurrentConditions.Met['WindGust']     = observation.Format(WindGust,     'forecastWind')
-            self.app.CurrentConditions.Met['WindDir']      = observation.Format(WindDir,      'Direction')
-            self.app.CurrentConditions.Met['PrecipPercnt'] = observation.Format(PrecipPercnt, 'Humidity')
-            self.app.CurrentConditions.Met['PrecipDay']    = observation.Format(precipDay,    'Humidity')
-            self.app.CurrentConditions.Met['PrecipAmount'] = observation.Format(PrecipAmount, 'Precip')
-            self.app.CurrentConditions.Met['PrecipType']   = PrecipType
-            self.app.CurrentConditions.Met['Conditions']   = Conditions
-            self.app.CurrentConditions.Met['Icon']         = Icon
-            self.app.CurrentConditions.Met['Status']       = ''
+            self.met_data['Valid']        = datetime.strftime(Valid,          TimeFormat)
+            self.met_data['Temp']         = observation.Format(Temp,         'forecastTemp')
+            self.met_data['highTemp']     = observation.Format(highTemp,     'forecastTemp')
+            self.met_data['lowTemp']      = observation.Format(lowTemp,      'forecastTemp')
+            self.met_data['WindSpd']      = observation.Format(WindSpd,      'forecastWind')
+            self.met_data['WindGust']     = observation.Format(WindGust,     'forecastWind')
+            self.met_data['WindDir']      = observation.Format(WindDir,      'Direction')
+            self.met_data['PrecipPercnt'] = observation.Format(PrecipPercnt, 'Humidity')
+            self.met_data['PrecipDay']    = observation.Format(precipDay,    'Humidity')
+            self.met_data['PrecipAmount'] = observation.Format(PrecipAmount, 'Precip')
+            self.met_data['PrecipType']   = PrecipType
+            self.met_data['Conditions']   = Conditions
+            self.met_data['Icon']         = Icon
+            self.met_data['Status']       = ''
 
             # Check expected conditions icon is recognised
             if Icon in ['clear-day', 'clear-night', 'rainy', 'possibly-rainy-day',
@@ -266,11 +272,14 @@ class forecast():
                         'possibly-sleet-night', 'thunderstorm', 'possibly-thunderstorm-day',
                         'possibly-thunderstorm-night', 'windy', 'foggy', 'cloudy',
                         'partly-cloudy-day', 'partly-cloudy-night']:
-                self.app.CurrentConditions.Met['Icon'] = Icon
+                self.met_data['Icon'] = Icon
             else:
-                self.app.CurrentConditions.Met['Icon'] = '-'
+                self.met_data['Icon'] = '-'
 
-            # Update forecast icon in mainthread
+            # Update display
+            self.update_display()
+
+            # Update forecast icon
             if hasattr(self.app, 'ForecastPanel'):
                 for panel in getattr(self.app, 'ForecastPanel'):
                     panel.setForecastIcon()
@@ -282,3 +291,19 @@ class forecast():
         # variables to blank and indicate to user that forecast is unavailable
         except (IndexError, KeyError, ValueError):
             Clock.schedule_once(self.fail_forecast)
+
+    def update_display(self):
+
+        """ Update display with new forecast variables. Catch ReferenceErrors to
+        prevent console crashing
+        """
+
+        # Update display values with new derived observations
+        reference_error = False
+        for Key, Value in list(self.met_data.items()):
+            try:
+                self.app.CurrentConditions.Met[Key] = Value
+            except ReferenceError:
+                if not reference_error:
+                    Logger.warning(f'astro: {system().log_time()} - Reference error')
+                    reference_error = True

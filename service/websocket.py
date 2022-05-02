@@ -15,13 +15,15 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
-# ==============================================================================
-# IMPORT REQUIRED MODULES
-# ==============================================================================
+# Import required library modules
+from lib.observationParser  import obsParser
+from lib.system             import system
+
+# Import required Kivy modules
 from kivy.logger            import Logger
 from kivy.app               import App
-from lib                    import system
-from lib.observationParser  import obsParser
+
+# Import required Python modules
 import websockets
 import threading
 import asyncio
@@ -44,6 +46,9 @@ class websocketClient():
 
         # Load configuration file
         self.config = self.app.config
+
+        # Load system class
+        self.system = system()
 
         # Initialise websocketClient class variables
         self._keep_running  = True
@@ -68,7 +73,7 @@ class websocketClient():
     async def __async__connect(self):
         while not self.connected:
             try:
-                Logger.info(f'Websocket: {system.logTime()} - Opening connection')
+                Logger.info(f'Websocket: {self.system.log_time()} - Opening connection')
                 self.connection = await websockets.connect(self.url, ssl=ssl.SSLContext())
                 self.message    = await asyncio.wait_for(self.connection.recv(), timeout=self.reply_timeout)
                 self.message    = json.loads(self.message)
@@ -78,37 +83,37 @@ class websocketClient():
                         await self.__async__listen_devices('listen_start')
                         self.app.obsParser.flagAPI = [1, 1, 1, 1]
                         self.connected = True
-                        Logger.info(f'Websocket: {system.logTime()} - Connection open')
+                        Logger.info(f'Websocket: {self.system.log_time()} - Connection open')
                     else:
-                        Logger.error(f'Websocket: {system.logTime()} - Connection message error')
+                        Logger.error(f'Websocket: {self.system.log_time()} - Connection message error')
                         await self.connection.close()
                         await asyncio.sleep(self.sleep_time)
                 except Exception as error:
-                    Logger.error(f'Websocket: {system.logTime()} - Connection error: {error}')
+                    Logger.error(f'Websocket: {self.system.log_time()} - Connection error: {error}')
                     await self.connection.close()
                     await asyncio.sleep(self.sleep_time)
             except (socket.gaierror, ConnectionRefusedError, websockets.exceptions.InvalidStatusCode) as error:
-                Logger.error(f'Websocket: {system.logTime()} - Connection error: {error}')
+                Logger.error(f'Websocket: {self.system.log_time()} - Connection error: {error}')
                 await asyncio.sleep(self.sleep_time)
             except Exception as error:
-                Logger.error(f'Websocket: {system.logTime()} - General error: {error}')
+                Logger.error(f'Websocket: {self.system.log_time()} - General error: {error}')
                 await asyncio.sleep(self.sleep_time)
 
     async def __async__disconnect(self):
-        Logger.info(f'Websocket: {system.logTime()} - Closing connection')
+        Logger.info(f'Websocket: {self.system.log_time()} - Closing connection')
         try:
             await asyncio.wait_for(self.connection.close(), timeout=5)
             self.connected = False
-            Logger.info(f'Websocket: {system.logTime()} - Connection closed')
+            Logger.info(f'Websocket: {self.system.log_time()} - Connection closed')
         except Exception:
-            Logger.info(f'Websocket: {system.logTime()} - Unable to close connection')
+            Logger.info(f'Websocket: {self.system.log_time()} - Unable to close connection')
 
     async def __async__verify(self):
         try:
             pong = await self.connection.ping()
             await asyncio.wait_for(pong, timeout=self.ping_timeout)
         except Exception:
-            Logger.warning(f'Websocket: {system.logTime()} - Ping failed')
+            Logger.warning(f'Websocket: {self.system.log_time()} - Ping failed')
             await self.__async__disconnect()
             await asyncio.sleep(self.sleep_time)
             await self.__async__connect()
@@ -151,7 +156,7 @@ class websocketClient():
             try:
                 return json.loads(message)
             except Exception:
-                Logger.error(f'Websocket: {system.logTime()} - Parsing error: {message}')
+                Logger.error(f'Websocket: {self.system.log_time()} - Parsing error: {message}')
                 return {}
         except asyncio.CancelledError:
             raise
@@ -206,11 +211,11 @@ class websocketClient():
                             elif self.message['type'] == 'evt_strike':
                                 self.app.obsParser.parse_evt_strike(self.message, self.config)
                             else:
-                                Logger.warning(f'Websocket: {system.logTime()} - Unknown message type: {json.dumps(self.message)}')
+                                Logger.warning(f'Websocket: {self.system.log_time()} - Unknown message type: {json.dumps(self.message)}')
                         else:
-                            Logger.warning(f'Websocket: {system.logTime()} - Missing device ID: {json.dumps(self.message)}')
+                            Logger.warning(f'Websocket: {self.system.log_time()} - Missing device ID: {json.dumps(self.message)}')
                 else:
-                    Logger.warning(f'Websocket: {system.logTime()} - Missing message type: {json.dumps(self.message)}')
+                    Logger.warning(f'Websocket: {self.system.log_time()} - Missing message type: {json.dumps(self.message)}')
         except asyncio.CancelledError:
             raise
 
@@ -249,7 +254,7 @@ async def main():
                 await websocket._websocketClient__async__listen_devices('listen_stop')
                 await websocket._websocketClient__async__get_devices()
                 await websocket._websocketClient__async__listen_devices('listen_start')
-                Logger.info(f'Websocket: {system.logTime()} - Switching devices and/or station')
+                Logger.info(f'Websocket: {system().log_time()} - Switching devices and/or station')
                 websocket._switch_device = False
 
 
