@@ -15,15 +15,19 @@ You should have received a copy of the GNU General Public License along with
 this program. If not, see <http://www.gnu.org/licenses/>.
 """
 
-# Import required modules
+# Import required libray modules
+from lib.system  import system
+
+# Import required Kivy modules
 from kivy.logger import Logger
+
+# Import required system modules
 from datetime    import datetime, timedelta
-from lib         import system
 import requests
 import pytz
 
 
-def verifyResponse(Response, Field):
+def verify_response(Response, Field):
 
     """ Verifies the validity of the API response response
 
@@ -54,7 +58,7 @@ def verifyResponse(Response, Field):
             return False
 
 
-def Last6h(Device, endTime, Config):
+def last_6h(Device, endTime, Config):
 
     """ API Request for last six hours of data from a WeatherFlow Smart Home
     Weather Station device
@@ -78,16 +82,16 @@ def Last6h(Device, endTime, Config):
         apiData = requests.get(URL, timeout=int(Config['System']['Timeout']))
     except Exception:
         apiData = None
-
+    apiData = None
     # Verify response
-    if apiData is None or not verifyResponse(apiData, 'obs'):
-        Logger.warning(f'requestAPI: {system.logTime()} - Last6h call failed')
+    if apiData is None or not verify_response(apiData, 'obs'):
+        Logger.warning(f'request_api: {system().log_time()} - last_6h call failed')
 
     # Return observations from the last six hours
     return apiData
 
 
-def Last24h(Device, endTime, Config):
+def last_24h(Device, endTime, Config):
 
     """ API Request for last twenty fouts hours of data from a WeatherFlow Smart
     Home Weather Station device
@@ -113,14 +117,14 @@ def Last24h(Device, endTime, Config):
         apiData = None
 
     # Verify response
-    if apiData is None or not verifyResponse(apiData, 'obs'):
-        Logger.warning(f'requestAPI: {system.logTime()} - Last24h call failed')
+    if apiData is None or not verify_response(apiData, 'obs'):
+        Logger.warning(f'request_api: {system().log_time()} - last_24h call failed')
 
     # Return observations from the last twenty-four hours
     return apiData
 
 
-def Today(Device, Config):
+def today(Device, Config):
 
     """ API Request for data from the current calendar day in the station
         timezone from a WeatherFlow Smart Home Weather Station device
@@ -154,14 +158,14 @@ def Today(Device, Config):
         apiData = None
 
     # Verify response
-    if apiData is None or not verifyResponse(apiData, 'obs'):
-        Logger.warning(f'requestAPI: {system.logTime()} - Today call failed')
+    if apiData is None or not verify_response(apiData, 'obs'):
+        Logger.warning(f'request_api: {system().log_time()} - Today call failed')
 
     # Return observations from today
     return apiData
 
 
-def Yesterday(Device, Config):
+def yesterday(Device, Config):
 
     """ API Request for data from yesterday in the station timezone from a
     WeatherFlow Smart Home Weather Station device
@@ -197,14 +201,14 @@ def Yesterday(Device, Config):
         apiData = None
 
     # Verify response
-    if apiData is None or not verifyResponse(apiData, 'obs'):
-        Logger.warning(f'requestAPI: {system.logTime()} - Yesterday call failed')
+    if apiData is None or not verify_response(apiData, 'obs'):
+        Logger.warning(f'request_api: {system().log_time()} - Yesterday call failed')
 
     # Return observations from yesterday
     return apiData
 
 
-def Month(Device, Config):
+def month(Device, Config):
 
     """ API Request for data from the last month in the station timezone from a
         WeatherFlow Smart Home Weather Station device
@@ -247,14 +251,14 @@ def Month(Device, Config):
         apiData = None
 
     # Verify response
-    if apiData is None or not verifyResponse(apiData, 'obs'):
-        Logger.warning(f'requestAPI: {system.logTime()} - Month call failed')
+    if apiData is None or not verify_response(apiData, 'obs'):
+        Logger.warning(f'request_api: {system().log_time()} - Month call failed')
 
     # Return observations from the last month
     return apiData
 
 
-def Year(Device, Config):
+def year(Device, Config):
 
     """ API Request for data from the last year in the station timezone from a
         WeatherFlow Smart Home Weather Station device
@@ -297,14 +301,14 @@ def Year(Device, Config):
         apiData = None
 
     # Verify response
-    if apiData is None or not verifyResponse(apiData, 'obs'):
-        Logger.warning(f'requestAPI: {system.logTime()} - Year call failed')
+    if apiData is None or not verify_response(apiData, 'obs'):
+        Logger.warning(f'request_api: {system().log_time()} - Year call failed')
 
     # Return observations from the last year
     return apiData
 
 
-def stationMetaData(Station, Config):
+def station_meta_data(Station, Config):
 
     """ API Request for station meta data from a WeatherFlow Smart Home Weather
     Station
@@ -326,14 +330,14 @@ def stationMetaData(Station, Config):
         apiData = None
 
     # Verify response
-    if apiData is None or not verifyResponse(apiData, 'obs'):
-        Logger.warning(f'requestAPI: {system.logTime()} - stationMetaData call failed')
+    if apiData is None or not verify_response(apiData, 'obs'):
+        Logger.warning(f'request_api: {system().log_time()} - stationMetaData call failed')
 
     # Return station meta data
     return apiData
 
 
-def Forecast(Config):
+def forecast(Config):
 
     """ API Request for a weather forecast from WeatherFlow's BetterForecast API
 
@@ -354,8 +358,8 @@ def Forecast(Config):
         apiData = None
 
     # Verify response
-    if apiData is None or not verifyResponse(apiData, 'forecast'):
-        Logger.warning(f'requestAPI: {system.logTime()} - Forecast call failed')
+    if apiData is None or not verify_response(apiData, 'forecast'):
+        Logger.warning(f'request_api: {system().log_time()} - Forecast call failed')
 
     # Return WeatherFlow forecast data
     return apiData

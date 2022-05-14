@@ -120,13 +120,13 @@ from kivy.app                import App
 # ==============================================================================
 # IMPORT REQUIRED LIBRARY MODULES
 # ==============================================================================
+from lib.system       import system
 from lib.astronomical import astro
 from lib.forecast     import forecast
 from lib.sager        import sager_forecast
 from lib.status       import station
 from lib              import settings     as userSettings
 from lib              import properties
-from lib.system              import system
 from lib              import config
 
 # ==============================================================================

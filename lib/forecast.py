@@ -17,9 +17,9 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 
 # Import required library modules
 from lib.system import system
-from lib import observationFormat  as observation
-from lib import derivedVariables   as derive
-from lib import properties
+from lib        import observationFormat  as observation
+from lib        import derivedVariables   as derive
+from lib        import properties
 
 # Import required Kivy modules
 from kivy.network.urlrequest import UrlRequest

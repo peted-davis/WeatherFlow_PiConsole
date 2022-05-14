@@ -16,8 +16,8 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 """
 
 # Import required library modules
-from lib import requestAPI
-from lib import properties
+from lib.request_api import github_api
+from lib             import properties
 
 # Import required panels
 from panels.update  import updateNotification
@@ -87,10 +87,10 @@ class system():
         Now = datetime.now(pytz.utc).astimezone(Tz)
 
         # Get version information from Github API
-        Data = requestAPI.github.version(self.app.config)
+        Data = github_api.version(self.app.config)
 
         # Extract version number from API response
-        if requestAPI.github.verifyResponse(Data, 'tag_name'):
+        if github_api.verify_response(Data, 'tag_name'):
             latest_ver = Data.json()['tag_name']
         else:
             Next = Tz.localize(datetime(Now.year, Now.month, Now.day) + timedelta(days=1))

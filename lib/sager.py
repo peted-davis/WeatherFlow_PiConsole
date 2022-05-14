@@ -21,10 +21,10 @@ http://www.freewebs.com/btjustice/bt-forecasters.html
 '''
 
 # Import required library modules
-from lib.system import system
-from lib import derivedVariables as derive
-from lib import requestAPI
-from lib import properties
+from lib.request_api import weatherflow_api, checkwx_api
+from lib.system      import system
+from lib             import derivedVariables as derive
+from lib             import properties
 
 # Import required Kivy modules
 from kivy.logger import Logger
@@ -261,8 +261,8 @@ class sager_forecast():
             self.sager_data['Temp'] = np.nanmean(Temp)
 
         # Download closet METAR report to station location
-        Data = requestAPI.checkWX.METAR(self.app.config)
-        if requestAPI.checkWX.verifyResponse(Data, 'data'):
+        Data = checkwx_api.METAR(self.app.config)
+        if checkwx_api.verify_response(Data, 'data'):
             self.sager_data['METAR'] = Data.json()['data'][0]
         else:
             self.sager_data['Forecast'] = '[color=f05e40ff]ERROR:[/color] Missing METAR information. Forecast will be regenerated in 60 minutes'
@@ -312,12 +312,12 @@ class sager_forecast():
         '''
 
         # Download TEMPEST data from last 6 hours
-        Data = requestAPI.weatherflow.Last6h(self.app.config['Station']['TempestID'], Now, self.app.config)
+        Data = weatherflow_api.last_6h(self.app.config['Station']['TempestID'], Now, self.app.config)
 
         # Extract observation times, wind speed, wind direction, and rainfall if API
         # call has not failed
         self.device_obs = {}
-        if requestAPI.weatherflow.verifyResponse(Data, 'obs'):
+        if weatherflow_api.verify_response(Data, 'obs'):
             self.device_obs['Time']    = [item[0] if item[0]   is not None else NaN for item in Data.json()['obs']]
             self.device_obs['WindSpd'] = [item[2] if item[2]   is not None else NaN for item in Data.json()['obs']]
             self.device_obs['WindDir'] = [item[4] if item[4]   is not None else NaN for item in Data.json()['obs']]
@@ -337,12 +337,12 @@ class sager_forecast():
         '''
 
         # Download SKY data from last 6 hours
-        Data = requestAPI.weatherflow.Last6h(self.app.config['Station']['SkyID'], Now, self.app.config)
+        Data = weatherflow_api.last_6h(self.app.config['Station']['SkyID'], Now, self.app.config)
 
         # Extract observation times, wind speed, wind direction, and rainfall if API
         # call has not failed
         self.device_obs = {}
-        if requestAPI.weatherflow.verifyResponse(Data, 'obs'):
+        if weatherflow_api.verify_response(Data, 'obs'):
             self.device_obs['Time']    = [item[0] if item[0] is not None else NaN for item in Data.json()['obs']]
             self.device_obs['WindSpd'] = [item[5] if item[5] is not None else NaN for item in Data.json()['obs']]
             self.device_obs['WindDir'] = [item[7] if item[7] is not None else NaN for item in Data.json()['obs']]
@@ -360,12 +360,12 @@ class sager_forecast():
         '''
 
         # Download AIR data from last 6 hours and define AIR dictionary
-        Data = requestAPI.weatherflow.Last6h(self.app.config['Station']['OutAirID'], Now, self.app.config)
+        Data = weatherflow_api.last_6h(self.app.config['Station']['OutAirID'], Now, self.app.config)
 
         # Extract observation times, pressure and temperature if API # call has not
         # failed
         self.device_obs = {}
-        if requestAPI.weatherflow.verifyResponse(Data, 'obs'):
+        if weatherflow_api.verify_response(Data, 'obs'):
             self.device_obs['Time'] = [item[0] if item[0] is not None else NaN for item in Data.json()['obs']]
             self.device_obs['Pres'] = [item[1] if item[1] is not None else NaN for item in Data.json()['obs']]
             self.device_obs['Temp'] = [item[2] if item[2] is not None else NaN for item in Data.json()['obs']]

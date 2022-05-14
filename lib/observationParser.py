@@ -16,11 +16,11 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 """
 
 # Import required library modules
-from lib.system import system
-from lib import derivedVariables   as derive
-from lib import observationFormat  as observation
-from lib import requestAPI
-from lib import properties
+from lib.request_api import weatherflow_api
+from lib.system      import system
+from lib             import derivedVariables  as derive
+from lib             import observationFormat as observation
+from lib             import properties
 
 # Import required Kivy modules
 from kivy.logger  import Logger
@@ -123,7 +123,7 @@ class obsParser():
         self.device_obs['strike3hr']  = [message['summary']['strike_count_3h']   if 'strike_count_3h'   in message['summary'] else None, 'count']
 
         # Request required TEMPEST data from the WeatherFlow API
-        self.api_data[device_id]['24Hrs'] = requestAPI.weatherflow.Last24h(device_id, latestOb[0], config)
+        self.api_data[device_id]['24Hrs'] = weatherflow_api.last_24h(device_id, latestOb[0], config)
         if (self.api_data[device_id]['flagAPI']
                 or self.derive_obs['SLPMin'][0] is None
                 or self.derive_obs['SLPMax'][0] is None
@@ -133,18 +133,18 @@ class obsParser():
                 or self.derive_obs['gustMax'][0] is None
                 or self.derive_obs['peakSun'][0] is None
                 or self.derive_obs['strikeCount']['today'][0] is None):
-            self.api_data[device_id]['today'] = requestAPI.weatherflow.Today(device_id, config)
+            self.api_data[device_id]['today'] = weatherflow_api.today(device_id, config)
         if (self.api_data[device_id]['flagAPI']
                 or self.derive_obs['rainAccum']['yesterday'][0] is None):
-            self.api_data[device_id]['yesterday'] = requestAPI.weatherflow.Yesterday(device_id, config)
+            self.api_data[device_id]['yesterday'] = weatherflow_api.yesterday(device_id, config)
         if (self.api_data[device_id]['flagAPI']
                 or self.derive_obs['rainAccum']['month'][0] is None
                 or self.derive_obs['strikeCount']['month'][0] is None):
-            self.api_data[device_id]['month'] = requestAPI.weatherflow.Month(device_id, config)
+            self.api_data[device_id]['month'] = weatherflow_api.month(device_id, config)
         if (self.api_data[device_id]['flagAPI']
                 or self.derive_obs['rainAccum']['year'][0] is None
                 or self.derive_obs['strikeCount']['year'][0] is None):
-            self.api_data[device_id]['year']  = requestAPI.weatherflow.Year(device_id, config)
+            self.api_data[device_id]['year']  = weatherflow_api.year(device_id, config)
         self.flag_api[0] = 0
 
         # Store latest TEMPEST JSON message
@@ -191,16 +191,16 @@ class obsParser():
                 or self.derive_obs['windAvg'][0] is None
                 or self.derive_obs['gustMax'][0] is None
                 or self.derive_obs['peakSun'][0] is None):
-            self.api_data[device_id]['today'] = requestAPI.weatherflow.Today(device_id, config)
+            self.api_data[device_id]['today'] = weatherflow_api.today(device_id, config)
         if (self.api_data[device_id]['flagAPI']
                 or self.derive_obs['rainAccum']['yesterday'][0] is None):
-            self.api_data[device_id]['yesterday'] = requestAPI.weatherflow.Yesterday(device_id, config)
+            self.api_data[device_id]['yesterday'] = weatherflow_api.yesterday(device_id, config)
         if (self.api_data[device_id]['flagAPI']
                 or self.derive_obs['rainAccum']['month'][0] is None):
-            self.api_data[device_id]['month'] = requestAPI.weatherflow.Month(device_id, config)
+            self.api_data[device_id]['month'] = weatherflow_api.month(device_id, config)
         if (self.api_data[device_id]['flagAPI']
                 or self.derive_obs['rainAccum']['year'][0] is None):
-            self.api_data[device_id]['year'] = requestAPI.weatherflow.Year(device_id, config)
+            self.api_data[device_id]['year'] = weatherflow_api.year(device_id, config)
         self.flag_api[1] = 0
 
         # Store latest SKY JSON message
@@ -247,20 +247,20 @@ class obsParser():
         self.device_obs['strike3hr']  = [message['summary']['strike_count_3h']   if 'strike_count_3h'   in message['summary'] else None, 'count']
 
         # Request required outdoor AIR data from the WeatherFlow API
-        self.api_data[device_id]['24Hrs'] = requestAPI.weatherflow.Last24h(device_id, latestOb[0], config)
+        self.api_data[device_id]['24Hrs'] = weatherflow_api.last_24h(device_id, latestOb[0], config)
         if (self.api_data[device_id]['flagAPI']
                 or self.derive_obs['SLPMin'][0] is None
                 or self.derive_obs['SLPMax'][0] is None
                 or self.derive_obs['outTempMin'][0] is None
                 or self.derive_obs['outTempMax'][0] is None
                 or self.derive_obs['strikeCount']['today'][0] is None):
-            self.api_data[device_id]['today'] = requestAPI.weatherflow.Today(device_id, config)
+            self.api_data[device_id]['today'] = weatherflow_api.today(device_id, config)
         if (self.api_data[device_id]['flagAPI']
                 or self.derive_obs['strikeCount']['month'][0] is None):
-            self.api_data[device_id]['month'] = requestAPI.weatherflow.Month(device_id, config)
+            self.api_data[device_id]['month'] = weatherflow_api.month(device_id, config)
         if (self.api_data[device_id]['flagAPI']
                 or self.derive_obs['strikeCount']['year'][0] is None):
-            self.api_data[device_id]['year']  = requestAPI.weatherflow.Year(device_id, config)
+            self.api_data[device_id]['year']  = weatherflow_api.year(device_id, config)
         self.flag_api[2] = 0
 
         # Store latest outdoor AIR JSON message
@@ -301,7 +301,7 @@ class obsParser():
         if (self.api_data[device_id]['flagAPI']
                 or self.derive_obs['inTempMin'][0] is None
                 or self.derive_obs['inTempMax'][0] is None):
-            self.api_data[device_id]['today'] = requestAPI.weatherflow.Today(device_id, config)
+            self.api_data[device_id]['today'] = weatherflow_api.today(device_id, config)
         self.flag_api[3] = 0
 
         # Store latest indoor AIR JSON message

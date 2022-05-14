@@ -19,7 +19,7 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 import requests
 
 
-def verifyResponse(Response, Field):
+def verify_response(Response, Field):
 
     """ Verifies the validity of the API response response
 
