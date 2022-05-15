@@ -82,7 +82,7 @@ def last_6h(Device, endTime, Config):
         apiData = requests.get(URL, timeout=int(Config['System']['Timeout']))
     except Exception:
         apiData = None
-    apiData = None
+
     # Verify response
     if apiData is None or not verify_response(apiData, 'obs'):
         Logger.warning(f'request_api: {system().log_time()} - last_6h call failed')
