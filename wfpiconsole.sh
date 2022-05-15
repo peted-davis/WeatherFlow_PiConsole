@@ -663,8 +663,10 @@ createRepo() {
 # ------------------------------------------------------------------------------
 updateRepoLatestTag() {
 
-    # Clear all changes from local git repository
+    # Clear all changes from local git repository and remove Python bytecode to
+    # ensure directory contents always matches the Git repository
     local directory=${1}
+    find ${directory} -type d -name __pycache__ -exec rm -rv {} +
     git -C ${directory} checkout . &> errorLog || return $?
     git -C ${directory} clean --force -d &> errorLog || true
 
@@ -681,8 +683,10 @@ updateRepoLatestTag() {
 # ------------------------------------------------------------------------------
 switchRepoStable() {
 
-    # Clear all changes from local git repository
+    # Clear all changes from local git repository and remove Python bytecode to
+    # ensure directory contents always matches the Git repository
     local directory=${1}
+    find ${directory} -type d -name __pycache__ -exec rm -rv {} +
     git -C ${directory} checkout . &> errorLog || return $?
     git -C ${directory} clean --force -d &> errorLog || true
 
@@ -698,8 +702,10 @@ switchRepoStable() {
 # ------------------------------------------------------------------------------
 switchRepoBeta() {
 
-    # Clear all changes from local git repository
+    # Clear all changes from local git repository and remove Python bytecode to
+    # ensure directory contents always matches the Git repository
     local directory=${1}
+    find ${directory} -type d -name __pycache__ -exec rm -rv {} +
     git -C ${directory} checkout . &> errorLog || return $?
     git -C ${directory} clean --force -d &> errorLog || true
 
@@ -726,7 +732,7 @@ processStarting() {
             printf "  ================================ \\n\\n"
             ;;
     # Display update starting dialogue
-        runUpdate)
+        run_update)
             printf "\\n"
             printf "  ============================== \\n"
             printf "  Updating WeatherFlow PiConsole \\n"
@@ -740,7 +746,7 @@ processStarting() {
             printf "  ============================== \\n\\n"
             ;;
     # Display update starting dialogue
-        runBeta)
+        run_beta)
             printf "\\n"
             printf "  ============================ \\n"
             printf "  Switching to the beta branch \\n"
@@ -776,7 +782,7 @@ processComplete() {
             printf "  ============================================ \\n\\n"
             ;;
     # Display update complete dialogue
-        runUpdate)
+        run_update)
             printf "  \\n"
             printf "  ============================================= \\n"
             printf "  WeatherFlow PiConsole update complete!        \\n"
@@ -794,7 +800,7 @@ processComplete() {
             printf "  ============================================= \\n\\n"
             ;;
     # Display beta complete dialogue
-        runBeta)
+        run_beta)
             printf "  \\n"
             printf "  ============================================= \\n"
             printf "  Switch to beta branch complete!               \\n"
@@ -867,10 +873,10 @@ update() {
 
     # Fetch the latest update code directly from the main Github branch. This
     # ensures that changes in dependencies are addressed during this update
-    curl -sSL $WFPICONSOLE_MAIN_UPDATE | bash -s runUpdate
+    curl -sSL $WFPICONSOLE_MAIN_UPDATE | bash -s run_update
 }
 
-runUpdate() {
+run_update() {
 
     # Display installation starting dialogue
     processStarting ${FUNCNAME[0]}
@@ -912,10 +918,10 @@ beta() {
 
     # Fetch the latest beta update code directly from the develop Github branch.
     # This ensures that changes in dependencies are addressed during this update
-    curl -sSL $WFPICONSOLE_BETA_UPDATE | bash -s runBeta
+    curl -sSL $WFPICONSOLE_BETA_UPDATE | bash -s run_beta
 }
 
-runBeta() {
+run_beta() {
 
     # Display installation starting dialogue
     processStarting ${FUNCNAME[0]}
@@ -969,7 +975,7 @@ autostart-disable () {
 
 # SCRIPT USAGE
 # ------------------------------------------------------------------------------
-helpFunc() {
+help_func() {
   echo "Usage: wfpiconsole [options]
 Example: 'wfpiconsole update'
 
@@ -989,7 +995,7 @@ Options:
 # ------------------------------------------------------------------------------
 if [ $# -eq 0 ]; then
     printf "Unrecognised usage\\n"
-    helpFunc
+    help_func
 fi
 
 # ENSURE ROOT ACCESS IS AVAILABLE
@@ -1019,7 +1025,7 @@ fi
 
 # CHECK OS/HARDWARE AND ADD REQUIRED REPOSITORIES WHEN INSTALL OR UPDATING
 # ------------------------------------------------------------------------------
-if [[ "${1}" == "install" ]] || [[ "${1}" == "runUpdate" ]] || [[ "${1}" == "runBeta" ]] || [[ "${1}" == "stable" ]] ; then
+if [[ "${1}" == "install" ]] || [[ "${1}" == "run_update" ]] || [[ "${1}" == "run_beta" ]] || [[ "${1}" == "stable" ]] ; then
 
     # Check compatability of hardware/OS
     PROCESSOR=$(uname -m)
@@ -1066,9 +1072,9 @@ case "${1}" in
     "update"              ) update;;
     "stable"              ) stable;;
     "beta"                ) beta;;
-    "runUpdate"           ) runUpdate;;
-    "runBeta"             ) runBeta;;
+    "run_update"          ) run_update;;
+    "run_beta"            ) run_beta;;
     "autostart-enable"    ) autostart-enable;;
     "autostart-disable"   ) autostart-disable;;
-    *                     ) printf "Unrecognised usage\\n" && helpFunc;;
+    *                     ) printf "Unrecognised usage\\n" && help_func;;
 esac
