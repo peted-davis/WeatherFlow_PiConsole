@@ -18,7 +18,6 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 # Load required Kivy modules
 from kivy.uix.relativelayout import RelativeLayout
 from kivy.properties         import StringProperty
-from kivy.app                import App
 
 # Load required panel modules
 from panels.template         import panelTemplate
@@ -39,7 +38,7 @@ class SunriseSunsetPanel(panelTemplate):
 
     # Set current UV index backgroud
     def setUVBackground(self):
-        self.uvBackground = App.get_running_app().CurrentConditions.Obs['UVIndex'][3]
+        self.uvBackground = self.app.CurrentConditions.Obs['UVIndex'][3]
 
 
 class SunriseSunsetButton(RelativeLayout):

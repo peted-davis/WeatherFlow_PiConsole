@@ -16,12 +16,14 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 """
 
 # Import required library modules
-from lib import requestAPI
+from lib.request_api import github_api
+from lib             import properties
 
 # Import required panels
 from panels.update  import updateNotification
 
 # Import required Kivy modules
+from kivy.logger    import Logger
 from kivy.clock     import Clock
 from kivy.app       import App
 
@@ -32,86 +34,107 @@ import time
 import pytz
 
 
-def realtimeClock(dt):
+# ==============================================================================
+# system CLASS
+# ==============================================================================
+class system():
 
-    """ Format Realtime clock and date in station timezone
-    """
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.system_data = properties.System()
+        self.app = App.get_running_app()
 
-    # Extract app config and System dictionary
-    Config = App.get_running_app().config
-    System = App.get_running_app().CurrentConditions.System
+    def realtimeClock(self, dt):
 
-    # Define time and date format based on user settings
-    if 'Display' in Config:
-        if 'TimeFormat' in Config['Display'] and 'DateFormat' in Config['Display']:
-            if Config['Display']['TimeFormat'] == '12 hr':
-                if Config['System']['Hardware'] == 'Other':
-                    TimeFormat = '%#I:%M:%S %p'
+        """ Format Realtime clock and date in station timezone
+        """
+
+        # Define time and date format based on user settings
+        if 'Display' in self.app.config:
+            if 'TimeFormat' in self.app.config['Display'] and 'DateFormat' in self.app.config['Display']:
+                if self.app.config['Display']['TimeFormat'] == '12 hr':
+                    if self.app.config['System']['Hardware'] == 'Other':
+                        TimeFormat = '%#I:%M:%S %p'
+                    else:
+                        TimeFormat = '%-I:%M:%S %p'
                 else:
-                    TimeFormat = '%-I:%M:%S %p'
-            else:
-                TimeFormat = '%H:%M:%S'
-            if Config['Display']['DateFormat']  == 'Mon, Jan 01 0000':
-                DateFormat = '%a, %b %d %Y'
-            elif Config['Display']['DateFormat'] == 'Monday, 01 Jan 0000':
-                DateFormat = '%A, %d %b %Y'
-            elif Config['Display']['DateFormat'] == 'Monday, Jan 01 0000':
-                DateFormat = '%A, %b %d %Y'
-            else:
-                DateFormat = '%a, %d %b %Y'
+                    TimeFormat = '%H:%M:%S'
+                if self.app.config['Display']['DateFormat']  == 'Mon, Jan 01 0000':
+                    DateFormat = '%a, %b %d %Y'
+                elif self.app.config['Display']['DateFormat'] == 'Monday, 01 Jan 0000':
+                    DateFormat = '%A, %d %b %Y'
+                elif self.app.config['Display']['DateFormat'] == 'Monday, Jan 01 0000':
+                    DateFormat = '%A, %b %d %Y'
+                else:
+                    DateFormat = '%a, %d %b %Y'
 
-            # Get station time zone
-            Tz = pytz.timezone(Config['Station']['Timezone'])
+                # Get station time zone
+                Tz = pytz.timezone(self.app.config['Station']['Timezone'])
 
-            # Format realtime Clock
-            System['Time'] = datetime.fromtimestamp(time.time(), Tz).strftime(TimeFormat)
-            System['Date'] = datetime.fromtimestamp(time.time(), Tz).strftime(DateFormat)
+                # Format realtime Clock
+                self.system_data['Time'] = datetime.fromtimestamp(time.time(), Tz).strftime(TimeFormat)
+                self.system_data['Date'] = datetime.fromtimestamp(time.time(), Tz).strftime(DateFormat)
+                self.update_display()
 
+    def check_version(self, dt):
 
-def checkVersion(dt):
+        """ Checks current version of the PiConsole against the latest available
+        version on Github
+        """
 
-    """ Checks current version of the PiConsole against the latest available
-    version on Github
-    """
+        # Get current time in station time zone
+        Tz = pytz.timezone(self.app.config['Station']['Timezone'])
+        Now = datetime.now(pytz.utc).astimezone(Tz)
 
-    # Get current time in station time zone
-    config = App.get_running_app().config
-    Tz = pytz.timezone(config['Station']['Timezone'])
-    Now = datetime.now(pytz.utc).astimezone(Tz)
+        # Get version information from Github API
+        Data = github_api.version(self.app.config)
 
-    # Get version information from Github API
-    Data = requestAPI.github.version(config)
+        # Extract version number from API response
+        if github_api.verify_response(Data, 'tag_name'):
+            latest_ver = Data.json()['tag_name']
+        else:
+            Next = Tz.localize(datetime(Now.year, Now.month, Now.day) + timedelta(days=1))
+            Clock.schedule_once(self.check_version, (Next - Now).total_seconds())
+            return
 
-    # Extract version number from API response
-    if requestAPI.github.verifyResponse(Data, 'tag_name'):
-        latest_ver = Data.json()['tag_name']
-    else:
+        # If current and latest version numbers do not match, open update
+        # notification
+        if version.parse(self.app.config['System']['Version']) < version.parse(latest_ver):
+
+            # Check if update notification is already open. Close if required
+            try:
+                App.get_running_self.app.updateNotification.dismiss()
+            except AttributeError:
+                pass
+
+            # Open update notification
+            updateNotification(latest_ver).open()
+
+        # Schedule next Version Check
         Next = Tz.localize(datetime(Now.year, Now.month, Now.day) + timedelta(days=1))
-        Clock.schedule_once(checkVersion, (Next - Now).total_seconds())
-        return
+        Clock.schedule_once(self.check_version, (Next - Now).total_seconds())
 
-    # If current and latest version numbers do not match, open update
-    # notification
-    if version.parse(config['System']['Version']) < version.parse(latest_ver):
+    def log_time(self):
 
-        # Check if update notification is already open. Close if required
-        try:
-            App.get_running_app().updateNotification.dismiss()
-        except AttributeError:
-            pass
+        """ Return current time in station timezone in correct format for console
+            log file
+        """
 
-        # Open update notification
-        updateNotification(latest_ver).open()
+        Tz = pytz.timezone(self.app.config['Station']['Timezone'])
+        return datetime.fromtimestamp(time.time(), Tz).strftime('%Y-%m-%d %H:%M:%S')
 
-    # Schedule next Version Check
-    Next = Tz.localize(datetime(Now.year, Now.month, Now.day) + timedelta(days=1))
-    Clock.schedule_once(checkVersion, (Next - Now).total_seconds())
+    def update_display(self):
 
+        """ Update display with new System variables. Catch ReferenceErrors to
+        prevent console crashing
+        """
 
-def logTime():
-
-    """ Return current time in station timezone in correct format for console
-        log file
-    """
-
-    return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        # Update display values with new derived observations
+        reference_error = False
+        for Key, Value in list(self.system_data.items()):
+            try:
+                self.app.CurrentConditions.System[Key] = Value
+            except ReferenceError:
+                if not reference_error:
+                    Logger.warning(f'system: {self.logTime()} - Reference error')
+                    reference_error = True

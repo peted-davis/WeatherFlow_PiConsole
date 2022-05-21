@@ -96,7 +96,7 @@ if int(config['Display']['Cursor']):
     if config['System']['Hardware'] == 'Pi4':
         kivyconfig.set('input', 'mouse', 'mouse')
         kivyconfig.remove_option('input', 'mtdev_%(name)s')
-        kivyconfig.remove_option('input', 'hid_%(name)s')
+        # kivyconfig.remove_option('input', 'hid_%(name)s')
 else:
     kivyconfig.set('graphics', 'show_cursor', '0')
     if config['System']['Hardware'] == 'Pi4':
@@ -112,6 +112,7 @@ from kivy.properties         import ConfigParserProperty, StringProperty
 from kivy.properties         import DictProperty, NumericProperty
 from kivy.core.window        import Window
 from kivy.factory            import Factory
+from kivy.logger             import Logger
 from kivy.clock              import Clock
 from kivy.lang               import Builder
 from kivy.app                import App
@@ -119,13 +120,13 @@ from kivy.app                import App
 # ==============================================================================
 # IMPORT REQUIRED LIBRARY MODULES
 # ==============================================================================
+from lib.system       import system
 from lib.astronomical import astro
 from lib.forecast     import forecast
 from lib.sager        import sager_forecast
 from lib.status       import station
 from lib              import settings     as userSettings
 from lib              import properties
-from lib              import system
 from lib              import config
 
 # ==============================================================================
@@ -168,8 +169,7 @@ from kivy.uix.settings       import SettingsWithSidebar
 class wfpiconsole(App):
 
     # Define App class dictionary properties
-    # System  = DictProperty([('Time', '-'), ('Date', '-')])
-    Sched   = DictProperty([])
+    Sched = DictProperty([])
 
     # Define App class configParser properties
     BarometerMax = ConfigParserProperty('-', 'System',  'BarometerMax', 'app')
@@ -202,13 +202,14 @@ class wfpiconsole(App):
         self.startWebsocketService()
 
         # Check for latest version
-        Clock.schedule_once(system.checkVersion)
+        self.system = system()
+        Clock.schedule_once(self.system.check_version)
 
         # Set Settings syle class
         self.settings_cls = SettingsWithSidebar
 
         # Initialise realtime clock
-        self.Sched.realtimeClock = Clock.schedule_interval(system.realtimeClock, 1.0)
+        self.Sched.realtimeClock = Clock.schedule_interval(self.system.realtimeClock, 1.0)
 
         # Return ScreenManager
         return self.screenManager
@@ -317,24 +318,31 @@ class wfpiconsole(App):
         # Update primary and secondary panels displayed on CurrentConditions
         # screen
         if section in ['PrimaryPanels', 'SecondaryPanels']:
-            for Panel, Type in App.get_running_app().config['PrimaryPanels'].items():
-                if Panel == key:
-                    self.CurrentConditions.ids[Panel].clear_widgets()
-                    self.CurrentConditions.ids[Panel].add_widget(eval(Type + 'Panel')())
+            panel_list = ['panel_' + Num for Num in ['one', 'two', 'three', 'four', 'five', 'six']]
+            for ii, (panel, type) in enumerate(self.config['PrimaryPanels'].items()):
+                if panel == key:
+                    old_panel = self.CurrentConditions.ids[panel_list[ii]].children[0]
+                    self.CurrentConditions.ids[panel_list[ii]].clear_widgets()
+                    self.CurrentConditions.ids[panel_list[ii]].add_widget(eval(type + 'Panel')())
                     break
+            if hasattr(self, old_panel.__class__.__name__):
+                try:
+                    getattr(self,  old_panel.__class__.__name__).remove(old_panel)
+                except ValueError:
+                    Logger.warning('Unable to remove panel reference from wfpiconsole class')
 
         # Update button layout displayed on CurrentConditions screen
         if section == 'SecondaryPanels':
-            ii = 0
-            self.CurrentConditions.buttonList = []
-            buttonList = ['Button' + Num for Num in ['One', 'Two', 'Three', 'Four', 'Five', 'Six']]
-            for button in buttonList:
+            self.CurrentConditions.button_list = []
+            button_list = ['button_' + Num for Num in ['one', 'two', 'three', 'four', 'five', 'six']]
+            button_number = 0
+            for button in button_list:
                 self.CurrentConditions.ids[button].clear_widgets()
-            for Panel, Type in App.get_running_app().config['SecondaryPanels'].items():
-                if Type and Type != 'None':
-                    self.CurrentConditions.ids[buttonList[ii]].add_widget(eval(Type + 'Button')())
-                    self.CurrentConditions.buttonList.append([buttonList[ii], Panel, Type, 'Primary'])
-                    ii += 1
+            for ii, (panel, type) in enumerate(self.config['SecondaryPanels'].items()):
+                if type and type != 'None':
+                    self.CurrentConditions.ids[button_list[button_number]].add_widget(eval(type + 'Button')())
+                    self.CurrentConditions.button_list.append([button_list[button_number], panel_list[ii], type, 'Primary'])
+                    button_number += 1
 
             # Change 'None' for secondary panel selection to blank in config
             # file
@@ -355,7 +363,7 @@ class wfpiconsole(App):
             Clock.schedule_once(self.sager.schedule_forecast)
 
         # Update derived variables to reflect configuration changes
-        self.obsParser.reformatDisplay()
+        self.obsParser.reformat_display()
 
     # START WEBSOCKET SERVICE
     # --------------------------------------------------------------------------
@@ -379,14 +387,14 @@ class wfpiconsole(App):
     def shutdown_system(self):
         global SHUTDOWN
         SHUTDOWN = 1
-        App.get_running_app().stop()
+        self.stop()
 
     # EXIT CONSOLE AND REBOOT SYSTEM
     # --------------------------------------------------------------------------
     def reboot_system(self):
         global REBOOT
         REBOOT = 1
-        App.get_running_app().stop()
+        self.stop()
 
 
 # ==============================================================================
@@ -448,64 +456,61 @@ class CurrentConditions(Screen):
     def addPanels(self):
 
         # Add primary panels to CurrentConditions screen
-        for Panel, Type in App.get_running_app().config['PrimaryPanels'].items():
-            self.ids[Panel].add_widget(eval(Type + 'Panel')())
+        panel_list = ['panel_' + Num for Num in ['one', 'two', 'three', 'four', 'five', 'six']]
+        for ii, (Panel, Type) in enumerate(self.app.config['PrimaryPanels'].items()):
+            self.ids[panel_list[ii]].add_widget(eval(Type + 'Panel')())
 
         # Add secondary panel buttons to CurrentConditions screen
-        self.buttonList = []
-        ii = 0
-        buttonList = ['Button' + Num for Num in ['One', 'Two', 'Three', 'Four', 'Five', 'Six']]
-        for Panel, Type in App.get_running_app().config['SecondaryPanels'].items():
+        self.button_list = []
+        button_list = ['button_' + Num for Num in ['one', 'two', 'three', 'four', 'five', 'six']]
+        button_number = 0
+        for ii, (Panel, Type) in enumerate(self.app.config['SecondaryPanels'].items()):
             if Type:
-                self.ids[buttonList[ii]].add_widget(eval(Type + 'Button')())
-                self.buttonList.append([buttonList[ii], Panel, Type, 'Primary'])
-                ii += 1
+                self.ids[button_list[button_number]].add_widget(eval(Type + 'Button')())
+                self.button_list.append([button_list[button_number], panel_list[ii], Type, 'Primary'])
+                button_number += 1
 
     # SWITCH BETWEEN PRIMARY AND SECONDARY PANELS ON CURRENT CONDITIONS SCREEN
     # --------------------------------------------------------------------------
-    def switchPanel(self, Instance, overideButton=None):
+    def switchPanel(self, button_pressed, button_overide=None):
 
-        # Determine ID of button that has been pressed
-        for id, Object in self.ids.items():
-            if Instance:
-                if Object == Instance.parent.parent:
+        # Determine ID of button that has been pressed and extract corresponding
+        # entry in buttonList
+        if button_pressed:
+            for id, Object in self.ids.items():
+                if Object == button_pressed.parent.parent:
                     break
-            else:
-                if Object == overideButton:
-                    break
-
-        # Extract entry in buttonList that correponds to the button that has
-        # been pressed
-        for ii, button in enumerate(self.buttonList):
+        else:
+            id = button_overide[0]
+        for ii, button in enumerate(self.button_list):
             if button[0] == id:
                 break
 
         # Extract panel object that corresponds to the button that has been
         # pressed and determine new button type required
-        Panel = self.ids[button[1]].children
-        newButton = App.get_running_app().config[button[3] + 'Panels'][button[1]]
+        panel_object = self.ids[button[1]].children
+        panel_number = 'Panel' + button[1].split('_')[1].title()
+        panel_type   = button[3] + 'Panels'
+        new_button   = self.app.config[panel_type][panel_number]
 
         # Destroy reference to old panel class attribute
-        if hasattr(App.get_running_app(), newButton + 'Panel'):
-            if len(getattr(App.get_running_app(), newButton + 'Panel')) > 1:
-                try:
-                    getattr(App.get_running_app(), newButton + 'Panel').remove(Panel[0])
-                except ValueError:
-                    print('Unable to remove panel reference from wfpiconsole class')
-            else:
-                delattr(App.get_running_app(), newButton + 'Panel')
+        if hasattr(self.app, new_button + 'Panel'):
+            try:
+                getattr(self.app, new_button + 'Panel').remove(panel_object[0])
+            except ValueError:
+                Logger.warning('Unable to remove panel reference from wfpiconsole class')
 
         # Switch panel
         self.ids[button[1]].clear_widgets()
         self.ids[button[1]].add_widget(eval(button[2] + 'Panel')())
         self.ids[button[0]].clear_widgets()
-        self.ids[button[0]].add_widget(eval(newButton + 'Button')())
+        self.ids[button[0]].add_widget(eval(new_button + 'Button')())
 
         # Update button list
         if button[3] == 'Primary':
-            self.buttonList[ii] = [button[0], button[1], newButton, 'Secondary']
+            self.button_list[ii] = [button[0], button[1], new_button, 'Secondary']
         elif button[3] == 'Secondary':
-            self.buttonList[ii] = [button[0], button[1], newButton, 'Primary']
+            self.button_list[ii] = [button[0], button[1], new_button, 'Primary']
 
 
 # ==============================================================================

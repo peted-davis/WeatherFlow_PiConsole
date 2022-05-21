@@ -21,11 +21,13 @@ http://www.freewebs.com/btjustice/bt-forecasters.html
 '''
 
 # Import required library modules
-from lib import derivedVariables  as derive
-from lib import requestAPI
-from lib import properties
+from lib.request_api import weatherflow_api, checkwx_api
+from lib.system      import system
+from lib             import derivedVariables as derive
+from lib             import properties
 
 # Import required Kivy modules
+from kivy.logger import Logger
 from kivy.clock  import Clock
 from kivy.app    import App
 
@@ -52,8 +54,8 @@ class sager_forecast():
 
     def __init__(self):
         self.app = App.get_running_app()
+        self.sager_data = properties.Sager()
         self.device_obs = {}
-        self.data = self.app.CurrentConditions.Sager
 
     def reset_forecast(self):
 
@@ -61,8 +63,8 @@ class sager_forecast():
         '''
 
         # Reset the Sager forecast and schedule new forecast to be generated
-        self.app.CurrentConditions.Sager = properties.Sager()
-        self.data = self.app.CurrentConditions.Sager
+        self.sager_data = properties.Sager()
+        self.update_display()
         Clock.schedule_once(self.fetch_forecast, 2)
 
     def fetch_forecast(self, dt):
@@ -133,7 +135,7 @@ class sager_forecast():
         sched_time = getattr(self, 'sched_time', datetime.now(pytz.utc).astimezone(Tz))
 
         # Define required station variables for the Sager Weathercaster Forecast
-        self.data['Lat']   = float(self.app.config['Station']['Latitude'])
+        self.sager_data['Lat']   = float(self.app.config['Station']['Latitude'])
 
         # Set time format based on user configuration
         if self.app.config['Display']['TimeFormat'] == '12 hr':
@@ -148,23 +150,21 @@ class sager_forecast():
         # cannot be generated
         if (not self.app.config['Station']['TempestID']
                 and not (self.app.config['Station']['SkyID'] and self.app.config['Station']['OutAirID'])):
-            self.data['Forecast'] = '[color=f05e40ff]ERROR:[/color] No devices available to generate forecast'
-            self.data['Issued']   = '-'
+            self.sager_data['Forecast'] = '[color=f05e40ff]ERROR:[/color] No devices available to generate forecast'
+            self.sager_data['Issued']   = '-'
             return
 
         # Get device ID of pressure sensor
         pres_device = self.app.config['Station']['TempestID'] or self.app.config['Station']['OutAirID']
 
-        # DOWNLOAD WIND AND RAIN DATA FROM EITHER TEMPEST OR SKY MODULE
-        # --------------------------------------------------------------------------
-        # If applicable, download wind and rain data from last 6 hours from TEMPEST
-        # module. If API call fails, return missing data error message
+        # If applicable, download wind and rain data from last 6 hours from
+        # TEMPEST module. If API call fails, return missing data error message
         if self.app.config['Station']['TempestID']:
             self.device_obs = {}
             self.get_tempest_data(int(UNIX.time()))
             if not self.device_obs:
-                self.data['Forecast'] = '[color=f05e40ff]ERROR:[/color] Missing TEMPEST data. Forecast will be regenerated in 60 minutes'
-                self.data['Issued']   = sched_time.strftime(time_format)
+                self.sager_data['Forecast'] = '[color=f05e40ff]ERROR:[/color] Missing TEMPEST data. Forecast will be regenerated in 60 minutes'
+                self.sager_data['Issued']   = sched_time.strftime(time_format)
                 Clock.schedule_once(self.fail_forecast)
                 return
 
@@ -173,13 +173,11 @@ class sager_forecast():
         elif self.app.config['Station']['SkyID']:
             self.get_sky_data(int(UNIX.time()))
             if not self.device_obs:
-                self.data['Forecast'] = '[color=f05e40ff]ERROR:[/color] Missing SKY data. Forecast will be regenerated in 60 minutes'
-                self.data['Issued']   = sched_time.strftime(time_format)
+                self.sager_data['Forecast'] = '[color=f05e40ff]ERROR:[/color] Missing SKY data. Forecast will be regenerated in 60 minutes'
+                self.sager_data['Issued']   = sched_time.strftime(time_format)
                 Clock.schedule_once(self.fail_forecast)
                 return
 
-        # DERIVE REQUIRED WIND AND RAINFALL VARIABLES FROM TEMPEST OR SKY DATA
-        # --------------------------------------------------------------------------
         # Convert wind and rain data to Numpy arrays, and convert wind speed to
         # miles per hour
         self.device_obs['Time']    = np.array(self.device_obs['Time'],   dtype=np.int64)
@@ -192,102 +190,115 @@ class sager_forecast():
         WindDir6 = self.device_obs['WindDir'][:15]
         WindDir  = self.device_obs['WindDir'][-15:]
         if np.all(np.isnan(WindDir6)) or np.all(np.isnan(WindDir)):
-            self.data['Forecast'] = '[color=f05e40ff]ERROR:[/color] Missing wind direction data. Forecast will be regenerated in 60 minutes'
-            self.data['Issued']   = sched_time.strftime(time_format)
+            self.sager_data['Forecast'] = '[color=f05e40ff]ERROR:[/color] Missing wind direction data. Forecast will be regenerated in 60 minutes'
+            self.sager_data['Issued']   = sched_time.strftime(time_format)
             Clock.schedule_once(self.fail_forecast)
             return
         else:
-            self.data['WindDir6'] = CircularMean(WindDir6)
-            self.data['WindDir']  = CircularMean(WindDir)
+            self.sager_data['WindDir6'] = CircularMean(WindDir6)
+            self.sager_data['WindDir']  = CircularMean(WindDir)
 
         # Define required wind speed variables for the Sager Weathercaster
         # Forecast
         WindSpd6 = self.device_obs['WindSpd'][:15]
         WindSpd  = self.device_obs['WindSpd'][-15:]
         if np.all(np.isnan(WindSpd6)) or np.all(np.isnan(WindSpd)):
-            self.data['Forecast'] = '[color=f05e40ff]ERROR:[/color] Missing wind speed data. Forecast will be regenerated in 60 minutes'
-            self.data['Issued']   = sched_time.strftime(time_format)
+            self.sager_data['Forecast'] = '[color=f05e40ff]ERROR:[/color] Missing wind speed data. Forecast will be regenerated in 60 minutes'
+            self.sager_data['Issued']   = sched_time.strftime(time_format)
             Clock.schedule_once(self.fail_forecast)
             return
         else:
-            self.data['WindSpd6'] = np.nanmean(WindSpd6)
-            self.data['WindSpd']  = np.nanmean(WindSpd)
+            self.sager_data['WindSpd6'] = np.nanmean(WindSpd6)
+            self.sager_data['WindSpd']  = np.nanmean(WindSpd)
 
         # Define required rainfall variables for the Sager Weathercaster Forecast
         LastRain = np.where(self.device_obs['Rain'] > 0)[0]
         if LastRain.size == 0:
-            self.data['LastRain'] = math.inf
+            self.sager_data['LastRain'] = math.inf
         else:
             LastRain = self.device_obs['Time'][LastRain.max()]
             LastRain = datetime.fromtimestamp(LastRain, Tz)
             LastRain = datetime.now(pytz.utc).astimezone(Tz) - LastRain
-            self.data['LastRain'] = LastRain.total_seconds() / 60
+            self.sager_data['LastRain'] = LastRain.total_seconds() / 60
 
-        # DOWNLOAD TEMPERATURE AND PRESSURE DATA FROM AIR MODULE
-        # --------------------------------------------------------------------------
-        # If applicable, download temperature and pressure from last 6 hours from
-        # AIR module. If API call fails, return missing data error message
+        # If applicable, download temperature and pressure from last 6 hours
+        # from AIR module. If API call fails, return missing data error message
         if self.app.config['Station']['OutAirID']:
             self.get_air_data(int(UNIX.time()))
             if not self.device_obs:
-                self.data['Forecast'] = '[color=f05e40ff]ERROR:[/color] Missing AIR data. Forecast will be regenerated in 60 minutes'
-                self.data['Issued']   = sched_time.strftime(time_format)
+                self.sager_data['Forecast'] = '[color=f05e40ff]ERROR:[/color] Missing AIR data. Forecast will be regenerated in 60 minutes'
+                self.sager_data['Issued']   = sched_time.strftime(time_format)
                 Clock.schedule_once(self.fail_forecast)
                 return
 
-        # DERIVE REQUIRED TEMPERATURE AND PRESSURE VARIABLES FROM TEMPEST OR AIR
-        # DATA
-        # --------------------------------------------------------------------------
         # Convert temperature and pressure data to Numpy arrays
         self.device_obs['Time'] = np.array(self.device_obs['Time'], dtype=np.int64)
         self.device_obs['Pres'] = np.array(self.device_obs['Pres'], dtype=np.float64)
         self.device_obs['Temp'] = np.array(self.device_obs['Temp'], dtype=np.float64)
 
-        # Define required pressure variables for the Sager Weathercaster Forecast
+        # Define required pressure variables for the Sager Weathercaster
+        # Forecast
         Pres6 = self.device_obs['Pres'][:15]
         Pres  = self.device_obs['Pres'][-15:]
         if np.all(np.isnan(Pres6)) or np.all(np.isnan(Pres)):
-            self.data['Forecast'] = '[color=f05e40ff]ERROR:[/color] Missing pressure data. Forecast will be regenerated in 60 minutes'
-            self.data['Issued']   = sched_time.strftime(time_format)
+            self.sager_data['Forecast'] = '[color=f05e40ff]ERROR:[/color] Missing pressure data. Forecast will be regenerated in 60 minutes'
+            self.sager_data['Issued']   = sched_time.strftime(time_format)
             Clock.schedule_once(self.fail_forecast)
             return
         else:
-            self.data['Pres6'] = derive.SLP([np.nanmean(Pres6).tolist(), 'mb'], pres_device, self.app.config)[0]
-            self.data['Pres']  = derive.SLP([np.nanmean(Pres).tolist(), 'mb'],  pres_device, self.app.config)[0]
+            self.sager_data['Pres6'] = derive.SLP([np.nanmean(Pres6).tolist(), 'mb'], pres_device, self.app.config)[0]
+            self.sager_data['Pres']  = derive.SLP([np.nanmean(Pres).tolist(), 'mb'],  pres_device, self.app.config)[0]
 
         # Define required temperature variables for the Sager Weathercaster
         # Forecast
         Temp = self.device_obs['Temp'][-15:]
         if np.all(np.isnan(Temp)):
-            self.data['Forecast'] = '[color=f05e40ff]ERROR:[/color] Missing temperature data. Forecast will be regenerated in 60 minutes'
-            self.data['Issued']   = sched_time.strftime(time_format)
+            self.sager_data['Forecast'] = '[color=f05e40ff]ERROR:[/color] Missing temperature data. Forecast will be regenerated in 60 minutes'
+            self.sager_data['Issued']   = sched_time.strftime(time_format)
             Clock.schedule_once(self.fail_forecast)
             return
         else:
-            self.data['Temp'] = np.nanmean(Temp)
+            self.sager_data['Temp'] = np.nanmean(Temp)
 
-        # DOWNLOAD CLOSET METAR REPORT TO STATION LOCATION
-        # --------------------------------------------------------------------------
-        Data = requestAPI.checkWX.METAR(self.app.config)
-        if requestAPI.checkWX.verifyResponse(Data, 'data'):
-            self.data['METAR'] = Data.json()['data'][0]
+        # Download closet METAR report to station location
+        Data = checkwx_api.METAR(self.app.config)
+        if checkwx_api.verify_response(Data, 'data'):
+            self.sager_data['METAR'] = Data.json()['data'][0]
         else:
-            self.data['Forecast'] = '[color=f05e40ff]ERROR:[/color] Missing METAR information. Forecast will be regenerated in 60 minutes'
-            self.data['Issued']   = sched_time.strftime(time_format)
+            self.sager_data['Forecast'] = '[color=f05e40ff]ERROR:[/color] Missing METAR information. Forecast will be regenerated in 60 minutes'
+            self.sager_data['Issued']   = sched_time.strftime(time_format)
             Clock.schedule_once(self.fail_forecast)
             return
 
-        # DERIVE SAGER WEATHERCASTER FORECAST
-        # --------------------------------------------------------------------------
+        # Derive Sager Weathercaster forecast
         self.get_dial_setting()
-        if self.data['Dial'] is not None:
+        if self.sager_data['Dial'] is not None:
             self.get_forecast_text()
-            self.data['Issued']   = sched_time.strftime(time_format)
+            self.sager_data['Issued']   = sched_time.strftime(time_format)
             Clock.schedule_once(self.schedule_forecast)
         else:
-            self.data['Forecast'] = '[color=f05e40ff]ERROR:[/color] Forecast will be regenerated in 60 minutes'
-            self.data['Issued']   = sched_time.strftime(time_format)
+            self.sager_data['Forecast'] = '[color=f05e40ff]ERROR:[/color] Forecast will be regenerated in 60 minutes'
+            self.sager_data['Issued']   = sched_time.strftime(time_format)
             Clock.schedule_once(self.fail_forecast)
+
+        # Update display
+        self.update_display()
+
+    def update_display(self):
+
+        """ Update display with new Sager Forecast variables. Catch
+        ReferenceErrors to prevent console crashing
+        """
+
+        # Update display values with new derived observations
+        reference_error = False
+        for Key, Value in list(self.sager_data.items()):
+            try:
+                self.app.CurrentConditions.Sager[Key] = Value
+            except ReferenceError:
+                if not reference_error:
+                    Logger.warning(f'sager: {system().log_time()} - Reference error')
+                    reference_error = True
 
     def get_tempest_data(self, Now):
 
@@ -301,12 +312,12 @@ class sager_forecast():
         '''
 
         # Download TEMPEST data from last 6 hours
-        Data = requestAPI.weatherflow.Last6h(self.app.config['Station']['TempestID'], Now, self.app.config)
+        Data = weatherflow_api.last_6h(self.app.config['Station']['TempestID'], Now, self.app.config)
 
         # Extract observation times, wind speed, wind direction, and rainfall if API
         # call has not failed
         self.device_obs = {}
-        if requestAPI.weatherflow.verifyResponse(Data, 'obs'):
+        if weatherflow_api.verify_response(Data, 'obs'):
             self.device_obs['Time']    = [item[0] if item[0]   is not None else NaN for item in Data.json()['obs']]
             self.device_obs['WindSpd'] = [item[2] if item[2]   is not None else NaN for item in Data.json()['obs']]
             self.device_obs['WindDir'] = [item[4] if item[4]   is not None else NaN for item in Data.json()['obs']]
@@ -326,12 +337,12 @@ class sager_forecast():
         '''
 
         # Download SKY data from last 6 hours
-        Data = requestAPI.weatherflow.Last6h(self.app.config['Station']['SkyID'], Now, self.app.config)
+        Data = weatherflow_api.last_6h(self.app.config['Station']['SkyID'], Now, self.app.config)
 
         # Extract observation times, wind speed, wind direction, and rainfall if API
         # call has not failed
         self.device_obs = {}
-        if requestAPI.weatherflow.verifyResponse(Data, 'obs'):
+        if weatherflow_api.verify_response(Data, 'obs'):
             self.device_obs['Time']    = [item[0] if item[0] is not None else NaN for item in Data.json()['obs']]
             self.device_obs['WindSpd'] = [item[5] if item[5] is not None else NaN for item in Data.json()['obs']]
             self.device_obs['WindDir'] = [item[7] if item[7] is not None else NaN for item in Data.json()['obs']]
@@ -349,12 +360,12 @@ class sager_forecast():
         '''
 
         # Download AIR data from last 6 hours and define AIR dictionary
-        Data = requestAPI.weatherflow.Last6h(self.app.config['Station']['OutAirID'], Now, self.app.config)
+        Data = weatherflow_api.last_6h(self.app.config['Station']['OutAirID'], Now, self.app.config)
 
         # Extract observation times, pressure and temperature if API # call has not
         # failed
         self.device_obs = {}
-        if requestAPI.weatherflow.verifyResponse(Data, 'obs'):
+        if weatherflow_api.verify_response(Data, 'obs'):
             self.device_obs['Time'] = [item[0] if item[0] is not None else NaN for item in Data.json()['obs']]
             self.device_obs['Pres'] = [item[1] if item[1] is not None else NaN for item in Data.json()['obs']]
             self.device_obs['Temp'] = [item[2] if item[2] is not None else NaN for item in Data.json()['obs']]
@@ -385,15 +396,15 @@ class sager_forecast():
         '''
 
         # Extract input location/meteorological variables
-        Lat   = self.data['Lat']                       # Weather station latitude
-        wd6   = self.data['WindDir6']                  # Average wind direction 6 hours ago in degrees
-        wd    = self.data['WindDir']                   # Current average wind direction in degrees
-        ws6   = self.data['WindSpd6']                  # Average wind speed 6 hours ago in mph
-        ws    = self.data['WindSpd']                   # Current average wind speed in mph
-        p     = self.data['Pres']                      # Current atmospheric pressure in hPa
-        p6    = self.data['Pres6']                     # Atmospheric pressure 6 hours ago in hPa
-        lr    = self.data['LastRain']                  # Minutes since last rain
-        METAR = self.data['METAR']                     # Closet METAR information to station location
+        Lat   = self.sager_data['Lat']                       # Weather station latitude
+        wd6   = self.sager_data['WindDir6']                  # Average wind direction 6 hours ago in degrees
+        wd    = self.sager_data['WindDir']                   # Current average wind direction in degrees
+        ws6   = self.sager_data['WindSpd6']                  # Average wind speed 6 hours ago in mph
+        ws    = self.sager_data['WindSpd']                   # Current average wind speed in mph
+        p     = self.sager_data['Pres']                      # Current atmospheric pressure in hPa
+        p6    = self.sager_data['Pres6']                     # Atmospheric pressure 6 hours ago in hPa
+        lr    = self.sager_data['LastRain']                  # Minutes since last rain
+        METAR = self.sager_data['METAR']                     # Closet METAR information to station location
 
         # Define required variables
         ccode  = {}
@@ -853,7 +864,7 @@ class sager_forecast():
 
         # Return SagerWeathercaster dial setting as function output
         try:
-            self.data['Dial'] = d1 + d2 + d3 + d4
+            self.sager_data['Dial'] = d1 + d2 + d3 + d4
         except Exception:
             return None
 
@@ -876,9 +887,9 @@ class sager_forecast():
         # temperature
         try:
             Units = self.app.config['Units']['Wind']
-            Dial = self.data['Dial']
-            Lat  = self.data['Lat']
-            t    = self.data['Temp']
+            Dial = self.sager_data['Dial']
+            Lat  = self.sager_data['Lat']
+            t    = self.sager_data['Temp']
         except KeyError:
             return
 
@@ -6401,4 +6412,4 @@ class sager_forecast():
                                 'Z855': PW97}
 
         # Return SagerWeathercaster forecast text as function output
-        self.data['Forecast'] = WeatherPredictionKey.get(Dial, 'Forecast Unavailable')
+        self.sager_data['Forecast'] = WeatherPredictionKey.get(Dial, 'Forecast Unavailable')

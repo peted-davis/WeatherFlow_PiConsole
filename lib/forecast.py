@@ -16,12 +16,14 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 """
 
 # Import required library modules
-from lib import observationFormat  as observation
-from lib import derivedVariables   as derive
-from lib import properties
+from lib.system import system
+from lib        import observationFormat  as observation
+from lib        import derivedVariables   as derive
+from lib        import properties
 
 # Import required Kivy modules
 from kivy.network.urlrequest import UrlRequest
+from kivy.logger             import Logger
 from kivy.clock              import Clock
 from kivy.app                import App
 
@@ -36,9 +38,8 @@ import pytz
 class forecast():
 
     def __init__(self):
-        self.funcCalled = []
         self.app = App.get_running_app()
-        self.data = self.app.CurrentConditions.Met
+        self.met_data = properties.Met()
 
     def reset_forecast(self):
 
@@ -47,8 +48,8 @@ class forecast():
         """
 
         # Reset the forecast and schedule new forecast to be generated
-        self.app.CurrentConditions.Met =  properties.Met()
-        self.data = self.app.CurrentConditions.Met
+        self.met_data = properties.Met()
+        self.update_display()
         if hasattr(self.app, 'ForecastPanel'):
             for panel in getattr(self.app, 'ForecastPanel'):
                 panel.setForecastIcon()
@@ -62,12 +63,44 @@ class forecast():
 
         # Fetch latest hourly and daily forecast
         URL = 'https://swd.weatherflow.com/swd/rest/better_forecast?token={}&station_id={}'
-        URL = URL.format(self.app.config['Keys']['WeatherFlow'], self.app.config['Station']['StationID'])
+        URL = URL.format(self.app.config['Keys']['WeatherFlow'],
+                         self.app.config['Station']['StationID'])
         UrlRequest(URL,
                    on_success=self.success_forecast,
                    on_failure=self.fail_forecast,
                    on_error=self.fail_forecast,
                    ca_file=certifi.where())
+
+    def schedule_forecast(self, dt):
+
+        """ Schedule new Forecast to be fetched from the WeatherFlow
+        BetterForecast API at the top of the next hour
+        """
+
+        # Calculate next forecast time for the top of the next hour
+        Tz  = pytz.timezone(self.app.config['Station']['Timezone'])
+        Now = datetime.now(pytz.utc).astimezone(Tz)
+        sched_time = Tz.localize(datetime.combine(Now.date(), time(Now.hour, 0, 0)) + timedelta(hours=1))
+
+        # Schedule next forecast
+        seconds_sched = (sched_time - Now).total_seconds()
+        self.app.Sched.metDownload.cancel()
+        self.app.Sched.metDownload = Clock.schedule_once(self.fetch_forecast, seconds_sched)
+
+    def success_forecast(self, Request, Response):
+
+        """ Sucessfully fetched forecast from the WeatherFlow BetterForecast
+        API. Parse forecast response
+
+        INPUTS:
+            Request             UrlRequest object
+            Response            UrlRequest response
+
+        """
+
+        # Parse the latest daily and hourly weather forecast data
+        self.met_data['Response'] = Response
+        self.parse_forecast()
 
     def fail_forecast(self, *largs):
 
@@ -82,22 +115,25 @@ class forecast():
 
         # Set forecast variables to blank and indicate to user that forecast is
         # unavailable
-        self.data['Valid']        = '--'
-        self.data['Temp']         = '--'
-        self.data['highTemp']     = '--'
-        self.data['lowTemp']      = '--'
-        self.data['WindSpd']      = '--'
-        self.data['WindGust']     = '--'
-        self.data['WindDir']      = '--'
-        self.data['PrecipPercnt'] = '--'
-        self.data['PrecipDay']    = '--'
-        self.data['PrecipAmount'] = '--'
-        self.data['PrecipType']   = '--'
-        self.data['Conditions']   = ''
-        self.data['Icon']         = '-'
-        self.data['Status']       = 'Forecast currently\nunavailable...'
+        self.met_data['Valid']        = '--'
+        self.met_data['Temp']         = '--'
+        self.met_data['highTemp']     = '--'
+        self.met_data['lowTemp']      = '--'
+        self.met_data['WindSpd']      = '--'
+        self.met_data['WindGust']     = '--'
+        self.met_data['WindDir']      = '--'
+        self.met_data['PrecipPercnt'] = '--'
+        self.met_data['PrecipDay']    = '--'
+        self.met_data['PrecipAmount'] = '--'
+        self.met_data['PrecipType']   = '--'
+        self.met_data['Conditions']   = ''
+        self.met_data['Icon']         = '-'
+        self.met_data['Status']       = 'Forecast currently\nunavailable...'
 
-        # Update forecast icon in mainthread
+        # Update display
+        self.update_display()
+
+        # Update forecast icon
         if hasattr(self.app, 'ForecastPanel'):
             for panel in getattr(self.app, 'ForecastPanel'):
                 panel.setForecastIcon()
@@ -111,38 +147,6 @@ class forecast():
         self.app.Sched.metDownload.cancel()
         self.app.Sched.metDownload = Clock.schedule_once(self.fetch_forecast, secondsSched)
 
-    def success_forecast(self, Request, Response):
-
-        """ Sucessfully fetched forecast from the WeatherFlow BetterForecast API.
-        Schedule fetch_forecast for the top of the next hour and parse forecast
-        response
-
-        INPUTS:
-            Request             UrlRequest object
-            Response            UrlRequest response
-
-        """
-
-        # Parse the latest daily and hourly weather forecast data
-        self.data['Response'] = Response
-        self.parse_forecast()
-
-    def schedule_forecast(self, dt):
-
-        """ Schedule new Forecast to be fetched from the WeatherFlow BetterForecast
-        API at the top of the next hour
-        """
-
-        # Calculate next forecast time for the top of the next hour
-        Tz  = pytz.timezone(self.app.config['Station']['Timezone'])
-        Now = datetime.now(pytz.utc).astimezone(Tz)
-        sched_time = Tz.localize(datetime.combine(Now.date(), time(Now.hour, 0, 0)) + timedelta(hours=1))
-
-        # Schedule next forecast
-        seconds_sched = (sched_time - Now).total_seconds()
-        self.app.Sched.metDownload.cancel()
-        self.app.Sched.metDownload = Clock.schedule_once(self.fetch_forecast, seconds_sched)
-
     def parse_forecast(self):
 
         """ Parse the latest daily and hourly weather forecast from the
@@ -150,18 +154,16 @@ class forecast():
         specified units
         """
 
-        # Extract metData dictionary and configuration from self.app object
-        metData = self.data
-        config  = self.app.config
+        # Extract Forecast dictionary
+        Forecast = self.met_data['Response']
 
         # Get current time in station time zone
-        Tz  = pytz.timezone(config['Station']['Timezone'])
+        Tz  = pytz.timezone(self.app.config['Station']['Timezone'])
         Now = datetime.now(pytz.utc).astimezone(Tz)
-        funcError  = 0
 
         # Set time format based on user configuration
-        if config['Display']['TimeFormat'] == '12 hr':
-            if config['System']['Hardware'] == 'Other':
+        if self.app.config['Display']['TimeFormat'] == '12 hr':
+            if self.app.config['System']['Hardware'] == 'Other':
                 TimeFormat = '%#I %p'
             else:
                 TimeFormat = '%-I %p'
@@ -171,8 +173,8 @@ class forecast():
         # Extract all forecast data from WeatherFlow JSON object
         try:
             # Extract all hourly and daily forecasts
-            hourlyForecasts  = (metData['Response']['forecast']['hourly'])
-            dailyForecasts   = (metData['Response']['forecast']['daily'])
+            hourlyForecasts  = (Forecast['forecast']['hourly'])
+            dailyForecasts   = (Forecast['forecast']['daily'])
 
             # Extract 'valid from' time of all available hourly forecasts and
             # retrieve forecast for the current hour
@@ -239,29 +241,29 @@ class forecast():
             WindDir = derive.cardinalWindDir(WindDir, WindSpd)
 
             # Convert forecast units as required
-            Temp         = observation.Units(Temp,         config['Units']['Temp'])
-            highTemp     = observation.Units(highTemp,     config['Units']['Temp'])
-            lowTemp      = observation.Units(lowTemp,      config['Units']['Temp'])
-            WindSpd      = observation.Units(WindSpd,      config['Units']['Wind'])
-            WindGust     = observation.Units(WindGust,     config['Units']['Wind'])
-            WindDir      = observation.Units(WindDir,      config['Units']['Direction'])
-            PrecipAmount = observation.Units(PrecipAmount, config['Units']['Precip'])
+            Temp         = observation.Units(Temp,         self.app.config['Units']['Temp'])
+            highTemp     = observation.Units(highTemp,     self.app.config['Units']['Temp'])
+            lowTemp      = observation.Units(lowTemp,      self.app.config['Units']['Temp'])
+            WindSpd      = observation.Units(WindSpd,      self.app.config['Units']['Wind'])
+            WindGust     = observation.Units(WindGust,     self.app.config['Units']['Wind'])
+            WindDir      = observation.Units(WindDir,      self.app.config['Units']['Direction'])
+            PrecipAmount = observation.Units(PrecipAmount, self.app.config['Units']['Precip'])
 
             # Define and format labels
-            metData['Valid']        = datetime.strftime(Valid,          TimeFormat)
-            metData['Temp']         = observation.Format(Temp,         'forecastTemp')
-            metData['highTemp']     = observation.Format(highTemp,     'forecastTemp')
-            metData['lowTemp']      = observation.Format(lowTemp,      'forecastTemp')
-            metData['WindSpd']      = observation.Format(WindSpd,      'forecastWind')
-            metData['WindGust']     = observation.Format(WindGust,     'forecastWind')
-            metData['WindDir']      = observation.Format(WindDir,      'Direction')
-            metData['PrecipPercnt'] = observation.Format(PrecipPercnt, 'Humidity')
-            metData['PrecipDay']    = observation.Format(precipDay,    'Humidity')
-            metData['PrecipAmount'] = observation.Format(PrecipAmount, 'Precip')
-            metData['PrecipType']   = PrecipType
-            metData['Conditions']   = Conditions
-            metData['Icon']         = Icon
-            metData['Status']       = ''
+            self.met_data['Valid']        = datetime.strftime(Valid,          TimeFormat)
+            self.met_data['Temp']         = observation.Format(Temp,         'forecastTemp')
+            self.met_data['highTemp']     = observation.Format(highTemp,     'forecastTemp')
+            self.met_data['lowTemp']      = observation.Format(lowTemp,      'forecastTemp')
+            self.met_data['WindSpd']      = observation.Format(WindSpd,      'forecastWind')
+            self.met_data['WindGust']     = observation.Format(WindGust,     'forecastWind')
+            self.met_data['WindDir']      = observation.Format(WindDir,      'Direction')
+            self.met_data['PrecipPercnt'] = observation.Format(PrecipPercnt, 'Humidity')
+            self.met_data['PrecipDay']    = observation.Format(precipDay,    'Humidity')
+            self.met_data['PrecipAmount'] = observation.Format(PrecipAmount, 'Precip')
+            self.met_data['PrecipType']   = PrecipType
+            self.met_data['Conditions']   = Conditions
+            self.met_data['Icon']         = Icon
+            self.met_data['Status']       = ''
 
             # Check expected conditions icon is recognised
             if Icon in ['clear-day', 'clear-night', 'rainy', 'possibly-rainy-day',
@@ -270,37 +272,38 @@ class forecast():
                         'possibly-sleet-night', 'thunderstorm', 'possibly-thunderstorm-day',
                         'possibly-thunderstorm-night', 'windy', 'foggy', 'cloudy',
                         'partly-cloudy-day', 'partly-cloudy-night']:
-                metData['Icon'] = Icon
+                self.met_data['Icon'] = Icon
             else:
-                metData['Icon'] = '-'
+                self.met_data['Icon'] = '-'
+
+            # Update display
+            self.update_display()
+
+            # Update forecast icon
+            if hasattr(self.app, 'ForecastPanel'):
+                for panel in getattr(self.app, 'ForecastPanel'):
+                    panel.setForecastIcon()
+
+            # Schedule new forecast
+            Clock.schedule_once(self.schedule_forecast)
 
         # Unable to extract forecast data from JSON object. Set forecast
         # variables to blank and indicate to user that forecast is unavailable
         except (IndexError, KeyError, ValueError):
-            metData['Valid']        = '--'
-            metData['Temp']         = '--'
-            metData['highTemp']     = '--'
-            metData['lowTemp']      = '--'
-            metData['WindSpd']      = '--'
-            metData['WindGust']     = '--'
-            metData['WindDir']      = '--'
-            metData['PrecipPercnt'] = '--'
-            metData['PrecipDay']    = '--'
-            metData['PrecipAmount'] = '--'
-            metData['PrecipType']   = '--'
-            metData['Conditions']   = ''
-            metData['Icon']         = '-'
-            metData['Status']       = 'Forecast currently\nunavailable...'
-            funcError               = 1
-
-        # Update forecast icon in mainthread
-        if hasattr(self.app, 'ForecastPanel'):
-            for panel in getattr(self.app, 'ForecastPanel'):
-                panel.setForecastIcon()
-
-        # Schedule new forecast or if error is detected, scehdule forecast again in
-        # 5 minutes
-        if not funcError:
-            Clock.schedule_once(self.schedule_forecast)
-        else:
             Clock.schedule_once(self.fail_forecast)
+
+    def update_display(self):
+
+        """ Update display with new forecast variables. Catch ReferenceErrors to
+        prevent console crashing
+        """
+
+        # Update display values with new derived observations
+        reference_error = False
+        for Key, Value in list(self.met_data.items()):
+            try:
+                self.app.CurrentConditions.Met[Key] = Value
+            except ReferenceError:
+                if not reference_error:
+                    Logger.warning(f'astro: {system().log_time()} - Reference error')
+                    reference_error = True

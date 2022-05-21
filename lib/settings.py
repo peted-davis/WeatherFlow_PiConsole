@@ -138,7 +138,6 @@ class SettingToggle(SettingString):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.config = App.get_running_app().config
 
     def _create_popup(self, instance):
 
@@ -205,7 +204,7 @@ class ToggleTemperature(SettingToggle):
     """ Define the ToggleTemperature settings type """
 
     def _set_unit(self):
-        self.units = '[sup]o[/sup]' + self.config['Units']['Temp'].upper()
+        self.units = '[sup]o[/sup]' + App.get_running_app().config['Units']['Temp'].upper()
 
 
 class ToggleHours(SettingToggle):
