@@ -6,7 +6,8 @@ via the internet, including the 3-second rapid wind updates.
 
 The console is compatible with Raspberry Pi 3 and 4 running 32 bit Raspberry Pi
 OS with the Official 7 inch touchscreen or equivalent. It can also be run on a
-PC with Ubuntu 20.04 LTS or Raspberry Pi OS.
+PC with Ubuntu 20.04 LTS or Raspberry Pi OS. For full system compatibility
+details, see below.
 
 For a list of supported features and screenshots of the console in action,
 please checkout the WeatherFlow community forums: https://community.weatherflow.com/t/weatherflow-piconsole/1933
@@ -28,11 +29,26 @@ https://community.weatherflow.com/
 ### Raspberry Pi
 
 The console is fully supported for Raspberry Pi 3 and Raspberry Pi 4 running the
-the 32 bit version of Raspberry Pi OS. It will run on earlier models, but no
-direct support is provided. It is not compatible with Raspberry Pi Zero or Zero
-W.
+the 32 bit version of Raspberry Pi OS. It can be run on earlier models, or the
+64 bit version of Raspberry Pi OS, but no direct support is provided for these
+environments. It is not compatible with Raspberry Pi Zero or Zero W.
 
+For Raspberry Pi 3, the 'Legacy' (Debian Buster) version of Raspberry Pi OS with
+desktop must be used. On a Pi 3, the console will not run on the most recent
+version of Raspberry Pi OS (Debian Bullseye). For Raspberry Pi 4, either the
+Legacy (Buster) or most recent (Bullseye) version of Raspberry Pi OS may be
+used.
 
+The console is compatible with the Raspberry Pi Official 7 inch Touchscreen or
+other HDMI equivalents. Note, screens that attach solely to the GPIO pins (SPI)
+are not compatible and the console will not start
+
+### PC / Laptop
+
+The console is fully supported on laptops and PCs running Ubuntu 20.04 LTS or
+the desktop version of Raspberry Pi OS. It will run on other debian-based
+operating systems with Python version 3.7 or above, but no direct support is
+provided for these environments.
 
 ## Installation Instructions
 
