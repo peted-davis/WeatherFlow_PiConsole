@@ -115,33 +115,33 @@ c=$(( c < 70 ? 70 : c ))
 
 # CHECK IF INPUT IS VALID COMMAND
 # ------------------------------------------------------------------------------
-isCommand() {
+is_command() {
     command -v "$1" >/dev/null 2>&1
 }
 
 # CLEAN UP AFTER COMPLETED OR FAILED INSTALLATION
 # ------------------------------------------------------------------------------
-cleanUp() {
-    rm -f pythonCommand errorLog moduleList
+clean_up() {
+    rm -f python_command error_log module_list
 }
 
 # UPDATE LOCAL PACKAGES USING apt-get update
 # ------------------------------------------------------------------------------
-updatePackages() {
+update_packages() {
 
     # Update local package cache. Return error if cache cannot be updated
     local str="Checking for updated packages"
     printf "  %b %s..." "${INFO}" "${str}"
-    if (sudo ${PKG_UPDATE_CACHE} &> errorLog); then
+    if (sudo ${PKG_UPDATE_CACHE} &> error_log); then
 
         # Alert user if there are updates to install
-        updatesToInstall=$(eval ${PKG_UPDATE_COUNT})
-        if [[ "$updatesToInstall" -gt "0" ]]; then
+        updates_to_install=$(eval ${PKG_UPDATE_COUNT})
+        if [[ "$updates_to_install" -gt "0" ]]; then
             printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
-            if [[ "$updatesToInstall" -eq "1" ]]; then
-                local str="$updatesToInstall updated package available. Use 'sudo apt upgrade' to install"
+            if [[ "$updates_to_install" -eq "1" ]]; then
+                local str="$updates_to_install updated package available. Use 'sudo apt upgrade' to install"
             else
-                local str="$updatesToInstall updated packages available. Use 'sudo apt upgrade' to install"
+                local str="$updates_to_install updated packages available. Use 'sudo apt upgrade' to install"
             fi
             printf "  %b %s\\n" "${INFO}" "${str}"
         else
@@ -152,38 +152,38 @@ updatePackages() {
     else
         printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
         printf "  %bError: Unable to update local package cache. Please check your internet connection\\n\\n %b" "${COL_LIGHT_RED}" "${COL_NC}"
-        printf "%s\\n\\n" "$(<errorLog)"
-        cleanUp
+        printf "%s\\n\\n" "$(<error_log)"
+        clean_up
         exit 1
     fi
 }
 
 # INSTALL PACKAGES REQUIRED BY THE WeatherFlow PiConsole
 # ------------------------------------------------------------------------------
-installPackages() {
+install_packages() {
 
     # Parse function input and print progress to screen
     printf "\\n  %b WeatherFlow PiConsole dependency checks...\\n" "${INFO}"
-    declare -a argArray=("${WFPICONSOLE_DEPENDENCIES[@]}")
-    declare -a installArray
+    declare -a arg_array=("${WFPICONSOLE_DEPENDENCIES[@]}")
+    declare -a install_array
 
     # Check if any of the dependent packages are already installed.
-    for i in "${argArray[@]}"; do
+    for i in "${arg_array[@]}"; do
         printf "  %b Checking for %s..." "${INFO}" "${i}"
         if dpkg-query -W -f='${Status}' "${i}" 2>/dev/null | grep "ok installed" &> /dev/null; then
             printf "%b  %b Checking for %s\\n" "${OVER}" "${TICK}" "${i}"
         else
             echo -e "${OVER}  ${INFO} Checking for $i (will be installed)"
-            installArray+=("${i}")
+            install_array+=("${i}")
         fi
     done
     # Only install dependent packages that are missing from the system to avoid
     # unecessary downloading
-    if [[ "${#installArray[@]}" -gt 0 ]]; then
-        if ! (sudo debconf-apt-progress --logfile errorLog -- "${PKG_NEW_INSTALL[@]}" "${installArray[@]}"); then
+    if [[ "${#install_array[@]}" -gt 0 ]]; then
+        if ! (sudo debconf-apt-progress --logfile error_log -- "${PKG_NEW_INSTALL[@]}" "${install_array[@]}"); then
             printf "  %b\\nError: Unable to install dependent packages\\n\\n %b" "${COL_LIGHT_RED}" "${COL_NC}"
-            printf "%s\\n\\n" "$(<errorLog)"
-            cleanUp
+            printf "%s\\n\\n" "$(<error_log)"
+            clean_up
             exit 1
         fi
     fi
@@ -191,44 +191,44 @@ installPackages() {
 
 # UPDATE PYTHON PACKAGE MANAGER: PIP
 # ------------------------------------------------------------------------------
-updatePip() {
+update_pip() {
     local str="Updating Python package manager"
     printf "\\n  %b %s..." "${INFO}" "${str}"
-    if (${PIP_UPDATE} pip setuptools &> errorLog); then
+    if (${PIP_UPDATE} pip setuptools &> error_log); then
         printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
     else
         printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
         printf "  %bError: Unable to update Python package manager: pip\\n\\n %b" "${COL_LIGHT_RED}" "${COL_NC}"
-        printf "%s\\n\\n" "$(<errorLog)"
-        cleanUp
+        printf "%s\\n\\n" "$(<error_log)"
+        clean_up
         exit 1
     fi
 }
 
 # INSTALL PYTHON MODULES FOR THE WeatherFlow PiConsole
 # ------------------------------------------------------------------------------
-installPythonModules() {
+install_python_modules() {
 
     # Parse function input and print progress to screen.
     printf "\\n  %b Installing WeatherFlow PiConsole Python modules..." "${INFO}"
-    declare -a argArray=("${PYTHON_MODULES[@]}")
-    declare -a installArray
+    declare -a arg_array=("${PYTHON_MODULES[@]}")
+    declare -a install_array
 
     # Update Python package manager: pip
-    updatePip
+    update_pip
 
     # Install required Python modules
-    for i in "${argArray[@]}"; do
-        Module=$(echo $i | cut -d"[" -f 1 | cut -d"=" -f 1)
+    for i in "${arg_array[@]}"; do
+        module=$(echo $i | cut -d"[" -f 1 | cut -d"=" -f 1)
         local str="Installing Python module"
-        printf "  %b %s %s..." "${INFO}" "${str}" "${Module}"
-        if (${PIP_INSTALL} "$i" &> errorLog); then
-            printf "%b  %b %s %s\\n" "${OVER}" "${TICK}" "${str}" "${Module}"
+        printf "  %b %s %s..." "${INFO}" "${str}" "${module}"
+        if (${PIP_INSTALL} "$i" &> error_log); then
+            printf "%b  %b %s %s\\n" "${OVER}" "${TICK}" "${str}" "${module}"
         else
             printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
-            printf "  %bError: Unable to install Python module: $Module\\n\\n %b" "${COL_LIGHT_RED}" "${COL_NC}"
-            printf "%s\\n\\n" "$(<errorLog)"
-            cleanUp
+            printf "  %bError: Unable to install Python module: $module\\n\\n %b" "${COL_LIGHT_RED}" "${COL_NC}"
+            printf "%s\\n\\n" "$(<error_log)"
+            clean_up
             exit 1
         fi
     done
@@ -236,47 +236,47 @@ installPythonModules() {
 
 # UPDATE PYTHON MODULES FOR THE WeatherFlow PiConsole
 # ------------------------------------------------------------------------------
-updatePythonModules() {
+update_python_modules() {
 
     # Parse function input and print progress to screen.
     printf "\\n  %b Updating WeatherFlow PiConsole Python modules..." "${INFO}"
-    declare -a argArray=("${PYTHON_MODULES[@]}")
+    declare -a arg_array=("${PYTHON_MODULES[@]}")
 
     # Update Python package manager: pip
-    updatePip
+    update_pip
 
     # Get list of installed packages and versions
-    python3 -m pip freeze > moduleList
+    python3 -m pip freeze > module_list
 
     # Update required Python modules
-    for i in "${argArray[@]}"; do
-        Module=$(echo $i | cut -d"[" -f 1 | cut -d"=" -f 1)
-        reqVer=$(echo $i | cut -d"=" -f 3)
-        if grep -iF $Module moduleList &> /dev/null; then
-            curVer=$(grep -iF $Module moduleList | cut -d"=" -f 3)
-            if [[ "$curVer" != "$reqVer" ]]; then
+    for i in "${arg_array[@]}"; do
+        module=$(echo $i | cut -d"[" -f 1 | cut -d"=" -f 1)
+        required_version=$(echo $i | cut -d"=" -f 3)
+        if grep -iF $module module_list &> /dev/null; then
+            current_version=$(grep -iF $module module_list | cut -d"=" -f 3)
+            if [[ "$current_version" != "$required_version" ]]; then
                 local str="Updating Python module"
-                printf "  %b %s %s..." "${INFO}" "${str}" "${Module}"
-                if (${PIP_INSTALL} "$i" &> errorLog); then
-                    printf "%b  %b %s %s\\n" "${OVER}" "${TICK}" "${str}" "${Module}"
+                printf "  %b %s %s..." "${INFO}" "${str}" "${module}"
+                if (${PIP_INSTALL} "$i" &> error_log); then
+                    printf "%b  %b %s %s\\n" "${OVER}" "${TICK}" "${str}" "${module}"
                 else
                     printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
-                    printf "  %bError: Unable to update Python module: $Module\\n\\n %b" "${COL_LIGHT_RED}" "${COL_NC}"
-                    printf "%s\\n\\n" "$(<errorLog)"
-                    cleanUp
+                    printf "  %bError: Unable to update Python module: $module\\n\\n %b" "${COL_LIGHT_RED}" "${COL_NC}"
+                    printf "%s\\n\\n" "$(<error_log)"
+                    clean_up
                     exit 1
                 fi
             fi
         else
             local str="Installing new Python module"
-            printf "  %b %s %s..." "${INFO}" "${str}" "${Module}"
-            if (${PIP_INSTALL} "$i" &> errorLog); then
-                printf "%b  %b %s %s\\n" "${OVER}" "${TICK}" "${str}" "${Module}"
+            printf "  %b %s %s..." "${INFO}" "${str}" "${module}"
+            if (${PIP_INSTALL} "$i" &> error_log); then
+                printf "%b  %b %s %s\\n" "${OVER}" "${TICK}" "${str}" "${module}"
             else
                 printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
-                printf "  %bError: Unable to install Python module: $Module\\n\\n %b" "${COL_LIGHT_RED}" "${COL_NC}"
-                printf "%s\\n\\n" "$(<errorLog)"
-                cleanUp
+                printf "  %bError: Unable to install Python module: $module\\n\\n %b" "${COL_LIGHT_RED}" "${COL_NC}"
+                printf "%s\\n\\n" "$(<error_log)"
+                clean_up
                 exit 1
             fi
         fi
@@ -285,35 +285,35 @@ updatePythonModules() {
 
 # INSTALL PACKAGES REQUIRED BY KIVY PYTHON LIBRARY ON ARM MACHINES
 # ------------------------------------------------------------------------------
-installKivyPackages() {
+install_kivy_packages() {
 
     # Define required packages and print progress to screen
     printf "\\n  %b Kivy Python library dependency checks...\\n" "${INFO}"
     if [[ "$PROCESSOR" = "arm"* ]]; then
-        declare -a argArray=("${KIVY_DEPENDENCIES_ARM[@]}")
+        declare -a arg_array=("${KIVY_DEPENDENCIES_ARM[@]}")
     else
-        declare -a argArray=("${KIVY_DEPENDENCIES[@]}")
+        declare -a arg_array=("${KIVY_DEPENDENCIES[@]}")
     fi
-    declare -a installArray
+    declare -a install_array
 
     # Check if any of the required packages are already installed.
-    for i in "${argArray[@]}"; do
+    for i in "${arg_array[@]}"; do
         printf "  %b Checking for %s..." "${INFO}" "${i}"
         if dpkg-query -W -f='${Status}' "${i}" 2>/dev/null | grep "ok installed" &> /dev/null; then
             printf "%b  %b Checking for %s\\n" "${OVER}" "${TICK}" "${i}"
         else
             echo -e "${OVER}  ${INFO} Checking for $i (will be installed)"
-            installArray+=("${i}")
+            install_array+=("${i}")
         fi
     done
 
     # Only install required packages that are missing from the system to avoid
     # unecessary downloading
-    if [[ "${#installArray[@]}" -gt 0 ]]; then
-        if ! (sudo debconf-apt-progress --logfile errorLog -- "${PKG_NEW_INSTALL[@]}" "${installArray[@]}"); then
+    if [[ "${#install_array[@]}" -gt 0 ]]; then
+        if ! (sudo debconf-apt-progress --logfile error_log -- "${PKG_NEW_INSTALL[@]}" "${install_array[@]}"); then
             printf "  %b\\nError: Unable to install dependent packages\\n\\n %b" "${COL_LIGHT_RED}" "${COL_NC}"
-            printf "%s\\n\\n" "$(<errorLog)"
-            cleanUp
+            printf "%s\\n\\n" "$(<error_log)"
+            clean_up
             exit 1
         fi
     fi
@@ -321,61 +321,61 @@ installKivyPackages() {
 
 # INSTALL KIVY PYTHON LIBRARY
 # ------------------------------------------------------------------------------
-installKivy() {
+install_kivy() {
 
     # Check if required Kivy version is installed
     local str="Kivy Python library installation check"
     printf "\\n  %b %s..." "${INFO}" "${str}"
     if python3 -c "import kivy" &> /dev/null; then
-        kivyVersion=$(python3 -m pip show kivy | grep Version | cut -d" " -f2)
-        if [[ "$KIVY_VERSION" == "$kivyVersion" ]]; then
+        kivy_version=$(python3 -m pip show kivy | grep Version | cut -d" " -f2)
+        if [[ "$KIVY_VERSION" == "$kivy_version" ]]; then
             printf "%b  %b %s \\n" "${OVER}" "${TICK}" "${str}"
         else
             printf "%b  %b %s (will be updated)" "${OVER}" "${INFO}" "${str}"
-            local updateKivy=true
+            local update_kivy=true
         fi
     else
         printf "%b  %b %s (will be installed)" "${OVER}" "${INFO}" "${str}"
-        local installKivy=true
+        local install_kivy=true
     fi
 
     # Install Kivy Python library
-    if [[ "$updateKivy" = true ]] || [[ "$installKivy" = true ]]; then
-        if [[ "$updateKivy" = true ]]; then
+    if [[ "$update_kivy" = true ]] || [[ "$install_kivy" = true ]]; then
+        if [[ "$update_kivy" = true ]]; then
             local str="Updating Kivy Python library"
         else
             local str="Installing Kivy Python library"
         fi
         printf "\\n  %b %s..." "${INFO}" "${str}"
-        if ($PIP_INSTALL $KIVY_REPO &> errorLog); then
+        if ($PIP_INSTALL $KIVY_REPO &> error_log); then
             printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
         else
             printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
             printf "  %bError: Unable to install Kivy Python library\\n\\n %b" "${COL_LIGHT_RED}" "${COL_NC}"
-            printf "%s\\n\\n" "$(<errorLog)"
-            cleanUp
+            printf "%s\\n\\n" "$(<error_log)"
+            clean_up
             exit 1
         fi
 
         # Update Kivy configuration
-        updateKivyConfig
+        update_kivy_config
     fi
 }
 
 # UPDATE KIVY CONFIGURATION
 # ------------------------------------------------------------------------------
-updateKivyConfig() {
+update_kivy_config() {
 
     # Create Kivy config file for user that called function
     local str="Updating Kivy configuration for touch screen"
     printf "  %b %s..." "${INFO}" "${str}"
-    if python3 -c "import kivy" &> errorLog; then
+    if python3 -c "import kivy" &> error_log; then
         :
     else
         printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
         printf "  %bError: Unable to update Kivy configuration for touch screen\\n\\n %b" "${COL_LIGHT_RED}" "${COL_NC}"
-        printf "%s\\n\\n" "$(<errorLog)"
-        cleanUp
+        printf "%s\\n\\n" "$(<error_log)"
+        clean_up
         exit 1
     fi
 
@@ -384,77 +384,77 @@ updateKivyConfig() {
 
     # Echo Python commands to file required to modify the Kivy config for the
     # Raspberry Pi touchscreen
-    configFile=$(eval echo "~$USER/.kivy/config.ini")
-    echo "import configparser" >> pythonCommand
-    echo "Config = configparser.ConfigParser()" >> pythonCommand
-    echo "Config.read('$configFile')" >> pythonCommand
-    echo "Config.remove_section('input')" >> pythonCommand
-    echo "Config.add_section('input')" >> pythonCommand
-    echo "Config.set('input','mouse','mouse')" >> pythonCommand
-    echo "Config.set('input','mtdev_%(name)s','probesysfs,provider=mtdev')" >> pythonCommand
-    echo "Config.set('input','hid_%(name)s','probesysfs,provider=hidinput')" >> pythonCommand
-    echo "with open('$configFile','w') as configfile:" >> pythonCommand
-    echo "    Config.write(configfile)" >> pythonCommand
-    echo "configfile.close()" >> pythonCommand
+    config_file=$(eval echo "~$USER/.kivy/config.ini")
+    echo "import configparser" >> python_command
+    echo "Config = configparser.ConfigParser()" >> python_command
+    echo "Config.read('$config_file')" >> python_command
+    echo "Config.remove_section('input')" >> python_command
+    echo "Config.add_section('input')" >> python_command
+    echo "Config.set('input','mouse','mouse')" >> python_command
+    echo "Config.set('input','mtdev_%(name)s','probesysfs,provider=mtdev')" >> python_command
+    echo "Config.set('input','hid_%(name)s','probesysfs,provider=hidinput')" >> python_command
+    echo "with open('$config_file','w') as configfile:" >> python_command
+    echo "    Config.write(configfile)" >> python_command
+    echo "configfile.close()" >> python_command
 
     # Run Python command to modify Kivy config for the Raspberry Pi touchscreen
-    if (python3 pythonCommand &> errorLog); then
+    if (python3 python_command &> error_log); then
         printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
     else
         printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
         printf "  %bError: Unable to update Kivy configuration for touch screen\\n\\n %b" "${COL_LIGHT_RED}" "${COL_NC}"
-        printf "%s\\n\\n" "$(<errorLog)"
-        cleanUp
+        printf "%s\\n\\n" "$(<error_log)"
+        clean_up
         exit 1
     fi
 }
 
 # GET THE LATEST VERSION OF THE WeatherFlow PiConsole FROM GITHUB
 # ------------------------------------------------------------------------------
-getLatestVersion() {
+get_latest_version() {
 
     # Get info on latest version from Github API
-    local tagInfo=$(curl -s $WFPICONSOLE_TAGS -H 'Accept: application/vnd.github.v3+json')
-    local latestVer=$(echo $tagInfo | jq -r '.[0].name')
+    local tag_info=$(curl -s $WFPICONSOLE_TAGS -H 'Accept: application/vnd.github.v3+json')
+    local latest_version=$(echo $tag_info | jq -r '.[0].name')
     local status=0
 
     # If the WeatherFlow PiConsole is already installed, get the current
     # installed version from wfpiconsole.ini file.
     if [[ -f $CONSOLEDIR/wfpiconsole.ini ]]; then
-        currentVer=$(python3 -c "import configparser; c=configparser.ConfigParser(); c.read('$CONSOLEDIR/wfpiconsole.ini'); print(c['System']['Version'])")
-        printf "\\n  %b Latest version of WeatherFlow PiConsole: %s" ${INFO} ${latestVer}
-        printf "\\n  %b Installed version of WeatherFlow PiConsole: %s" ${INFO} ${currentVer}
+        current_version=$(python3 -c "import configparser; c=configparser.ConfigParser(); c.read('$CONSOLEDIR/wfpiconsole.ini'); print(c['System']['Version'])")
+        printf "\\n  %b Latest version of WeatherFlow PiConsole: %s" ${INFO} ${latest_version}
+        printf "\\n  %b Installed version of WeatherFlow PiConsole: %s" ${INFO} ${current_version}
 
         # Compare current version with latest version. If versions match, there
         # is no need to get the latest version, but make sure we are on the main
         # branch
-        if [[ "$currentVer" == "$latestVer" ]]; then
+        if [[ "$current_version" == "$latest_version" ]]; then
             printf "\\n  %b Versions match: %bNo update required%b\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-            if (isRepo ${CONSOLEDIR}); then
-                local curBranch=$(git -C ${CONSOLEDIR} rev-parse --abbrev-ref HEAD)
-                if [[ "${curBranch}" != "main" ]]; then
-                    git -C ${CONSOLEDIR} checkout main &> errorLog || return $?
+            if (is_repo ${CONSOLEDIR}); then
+                local current_branch=$(git -C ${CONSOLEDIR} rev-parse --abbrev-ref HEAD)
+                if [[ "${current_branch}" != "main" ]]; then
+                    git -C ${CONSOLEDIR} checkout main &> error_log || return $?
                 fi
-                git -C ${CONSOLEDIR} reset --hard "$(git -C ${CONSOLEDIR} describe --abbrev=0 --tags)" &> errorLog || return $?
+                git -C ${CONSOLEDIR} reset --hard "$(git -C ${CONSOLEDIR} describe --abbrev=0 --tags)" &> error_log || return $?
             fi
             return
 
         # Else, get the latest version of the WeatherFlow PiConsole
         else
-            local str="Updating WeatherFlow PiConsole to ${COL_LIGHT_GREEN}${latestVer}${COL_NC}"
+            local str="Updating WeatherFlow PiConsole to ${COL_LIGHT_GREEN}${latest_version}${COL_NC}"
             printf "\\n\\n  %b %b..." "${INFO}" "${str}"
-            if (isRepo ${CONSOLEDIR}); then
-                if (updateRepoLatestTag ${CONSOLEDIR} &> errorLog); then status=1; fi
+            if (is_repo ${CONSOLEDIR}); then
+                if (update_repo_latest_tag ${CONSOLEDIR} &> error_log); then status=1; fi
             else
-                if (createRepo ${CONSOLEDIR} ${WFPICONSOLE_REPO} &> errorLog); then status=1; fi
+                if (create_repo ${CONSOLEDIR} ${WFPICONSOLE_REPO} &> error_log); then status=1; fi
             fi
             if [[ $status -eq 1 ]]; then
                 printf "%b  %b %b\\n" "${OVER}" "${TICK}" "${str}"
             else
               printf "%b  %b %b\\n" "${OVER}" "${CROSS}" "${str}"
               printf "  %bError: Unable to update WeatherFlow PiConsole\\n\\n %b" "${COL_LIGHT_RED}" "${COL_NC}"
-              printf "%s\\n\\n" "$(<errorLog)"
-              cleanUp
+              printf "%s\\n\\n" "$(<error_log)"
+              clean_up
               exit 1
           fi
         fi
@@ -462,27 +462,27 @@ getLatestVersion() {
     # Else, the WeatherFlow PiConsole is not installed so get the latest stable
     # version
     else
-        local str="Installing latest version of WeatherFlow PiConsole: ${COL_LIGHT_GREEN}${latestVer}${COL_NC}"
+        local str="Installing latest version of WeatherFlow PiConsole: ${COL_LIGHT_GREEN}${latest_version}${COL_NC}"
         printf "\\n  %b %b..." "${INFO}" "${str}"
-        if (isRepo ${CONSOLEDIR} &> errorLog); then
-            if (updateRepoLatestTag ${CONSOLEDIR} &> errorLog); then status=1; fi
+        if (is_repo ${CONSOLEDIR} &> error_log); then
+            if (update_repo_latest_tag ${CONSOLEDIR} &> error_log); then status=1; fi
         else
-            if (createRepo ${CONSOLEDIR} ${WFPICONSOLE_REPO} &> errorLog); then status=1; fi
+            if (create_repo ${CONSOLEDIR} ${WFPICONSOLE_REPO} &> error_log); then status=1; fi
         fi
         if [[ $status -eq 1 ]]; then
             printf "%b  %b %b\\n" "${OVER}" "${TICK}" "${str}"
         else
           printf "%b  %b %b\\n" "${OVER}" "${CROSS}" "${str}"
           printf "  %bError: Unable to install WeatherFlow PiConsole\\n\\n %b" "${COL_LIGHT_RED}" "${COL_NC}"
-          printf "%s\\n\\n" "$(<errorLog)"
-          cleanUp
+          printf "%s\\n\\n" "$(<error_log)"
+          clean_up
           exit 1
       fi
     fi
 
     # Ensure console directory is owned by the correct user
-    consoleOwner=$(stat -c "%U" $CONSOLEDIR)
-    if [[ "$consoleOwner" != "$USER" ]]; then
+    console_owner=$(stat -c "%U" $CONSOLEDIR)
+    if [[ "$console_owner" != "$USER" ]]; then
         sudo chown -fR $USER $CONSOLEDIR
         sudo chgrp -fR $USER $CONSOLEDIR
     fi
@@ -495,28 +495,28 @@ getLatestVersion() {
 
 # SWITCH TO THE WeatherFlow PiConsole STABLE BRANCH
 # ------------------------------------------------------------------------------
-switchStableBranch() {
+switch_stable_branch() {
 
     # Switch to the WeatherFlow PiConsole stable branch
     local status=0
     local str="Switching to stable branch"
     printf "  %b %b..." "${INFO}" "${str}"
-    if (isRepo ${CONSOLEDIR}); then
-        if (switchRepoStable ${CONSOLEDIR}); then status=1; fi
+    if (is_repo ${CONSOLEDIR}); then
+        if (switch_repo_stable ${CONSOLEDIR}); then status=1; fi
     fi
     if [[ $status -eq 1 ]]; then
         printf "%b  %b %b\\n" "${OVER}" "${TICK}" "${str}"
     else
         printf "%b  %b %b\\n" "${OVER}" "${CROSS}" "${str}"
         printf "  %bError: Unable to switch to WeatherFlow PiConsole stable branch\\n\\n %b" "${COL_LIGHT_RED}" "${COL_NC}"
-        printf "%s\\n\\n" "$(<errorLog)"
-        cleanUp
+        printf "%s\\n\\n" "$(<error_log)"
+        clean_up
         exit 1
     fi
 
     # Ensure console directory is owned by the correct user
-    consoleOwner=$(stat -c "%U" $CONSOLEDIR)
-    if [[ "$consoleOwner" != "$USER" ]]; then
+    console_owner=$(stat -c "%U" $CONSOLEDIR)
+    if [[ "$console_owner" != "$USER" ]]; then
         sudo chown -fR $USER $CONSOLEDIR
         sudo chgrp -fR $USER $CONSOLEDIR
     fi
@@ -524,28 +524,28 @@ switchStableBranch() {
 
 # SWITCH TO THE WeatherFlow PiConsole BETA BRANCH
 # ------------------------------------------------------------------------------
-switchBetaBranch() {
+switch_beta_branch() {
 
     # Switch to the WeatherFlow PiConsole beta branch
     local status=0
     local str="Switching to WeatherFlow PiConsole beta branch"
     printf "  %b %b..." "${INFO}" "${str}"
-    if (isRepo ${CONSOLEDIR}); then
-        if (switchRepoBeta ${CONSOLEDIR}); then status=1; fi
+    if (is_repo ${CONSOLEDIR}); then
+        if (switch_repo_beta ${CONSOLEDIR}); then status=1; fi
     fi
     if [[ $status -eq 1 ]]; then
         printf "%b  %b %b\\n" "${OVER}" "${TICK}" "${str}"
     else
         printf "%b  %b %b\\n" "${OVER}" "${CROSS}" "${str}"
         printf "  %bError: Unable to switch to WeatherFlow PiConsole beta branch\\n\\n %b" "${COL_LIGHT_RED}" "${COL_NC}"
-        printf "%s\\n\\n" "$(<errorLog)"
-        cleanUp
+        printf "%s\\n\\n" "$(<error_log)"
+        clean_up
         exit 1
     fi
 
     # Ensure console directory is owned by the correct user
-    consoleOwner=$(stat -c "%U" $CONSOLEDIR)
-    if [[ "$consoleOwner" != "$USER" ]]; then
+    console_owner=$(stat -c "%U" $CONSOLEDIR)
+    if [[ "$console_owner" != "$USER" ]]; then
         sudo chown -fR $USER $CONSOLEDIR
         sudo chgrp -fR $USER $CONSOLEDIR
     fi
@@ -553,7 +553,7 @@ switchBetaBranch() {
 
 # INSTALL THE wfpiconsole.service FILE TO /etc/systemd/system/
 # ------------------------------------------------------------------------------
-installServiceFile () {
+install_service_file () {
 
     # Write current user and install directory to wfpiconsole.service file
     sed -i "s+WorkingDirectory=.*$+WorkingDirectory=$CONSOLEDIR+" $CONSOLEDIR/wfpiconsole.service
@@ -565,69 +565,69 @@ installServiceFile () {
     local str="Copying service file to autostart directory"
     printf "  %b %s..." "${INFO}" "${str}"
     sudo cp $CONSOLEDIR/wfpiconsole.service /etc/systemd/system/
-    if (sudo systemctl daemon-reload &> errorLog); then
+    if (sudo systemctl daemon-reload &> error_log); then
         printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
     else
         printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
         printf "  %bError: Unable to install wfpiconsole.service file\\n\\n %b" "${COL_LIGHT_RED}" "${COL_NC}"
-        printf "%s\\n\\n" "$(<errorLog)"
-        cleanUp
+        printf "%s\\n\\n" "$(<error_log)"
+        clean_up
         exit 1
     fi
 }
 
 # ENABLE THE wfpiconsole.service
 # ------------------------------------------------------------------------------
-enableService () {
+enable_service () {
 
     # Enable wfpiconsole.service file
     local str="Enabling WeatherFlow PiConsole service file"
     printf "  %b %s..." "${INFO}" "${str}"
     rm -f wfpiconsole.log
-    if (sudo systemctl enable wfpiconsole &> errorLog); then
-        if (sudo systemctl start wfpiconsole &> errorLog); then
+    if (sudo systemctl enable wfpiconsole &> error_log); then
+        if (sudo systemctl start wfpiconsole &> error_log); then
             printf "%b  %b %s\\n\\n" "${OVER}" "${TICK}" "${str}"
         else
             printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
             printf "  %bError: Unable to enable WeatherFlow PiConsole service file\\n\\n %b" "${COL_LIGHT_RED}" "${COL_NC}"
-            printf "%s\\n\\n" "$(<errorLog)"
-            cleanUp
+            printf "%s\\n\\n" "$(<error_log)"
+            clean_up
             exit 1
         fi
     else
         printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
         printf "  %bError: Unable to enable WeatherFlow PiConsole service file\\n\\n %b" "${COL_LIGHT_RED}" "${COL_NC}"
-        printf "%s\\n\\n" "$(<errorLog)"
-        cleanUp
+        printf "%s\\n\\n" "$(<error_log)"
+        clean_up
         exit 1
     fi
 }
 
 # DISABLE THE wfpiconsole.service
 # ------------------------------------------------------------------------------
-disableService () {
+disable_service () {
 
     # Disable the wfpiconsole service
     local str="Disabling WeatherFlow PiConsole service file"
     printf "  %b %s..." "${INFO}" "${str}"
-    if (sudo systemctl disable wfpiconsole.service &> errorLog); then
+    if (sudo systemctl disable wfpiconsole.service &> error_log); then
         printf "%b  %b %s\\n\\n" "${OVER}" "${TICK}" "${str}"
     else
         printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
         printf "  %bError: Unable to disable WeatherFlow PiConsole service file\\n\\n %b" "${COL_LIGHT_RED}" "${COL_NC}"
-        printf "%s\\n\\n" "$(<errorLog)"
-        cleanUp
+        printf "%s\\n\\n" "$(<error_log)"
+        clean_up
         exit 1
     fi
 }
 
 # CHECK IF DIRECTORY IS A GIT REPOSITORY
 # ------------------------------------------------------------------------------
-isRepo() {
+is_repo() {
 
     local directory=${1}
     if [[ -d ${directory} ]]; then
-        git -C ${directory} status --short &> errorLog || local rc=$?
+        git -C ${directory} status --short &> error_log || local rc=$?
     else
         local rc=1
     fi
@@ -636,90 +636,90 @@ isRepo() {
 
 # CREATE NEW GIT REPOSITORY AT LATEST MAIN BRANCH RELEASE
 # ------------------------------------------------------------------------------
-createRepo() {
+create_repo() {
 
     # If the directory already exists, turn it into a git directory, otherwise
     # clone the git repository directly
     local directory=${1}
     local repository=${2}
     if [[ -d ${directory} ]]; then
-        git clone --no-checkout ${repository} ${directory}/temp &> errorLog || return $?
+        git clone --no-checkout ${repository} ${directory}/temp &> error_log || return $?
         mv ${directory}/temp/.git ${directory}/.git
         rmdir ${directory}/temp
-        git -C ${directory} reset --hard HEAD &> errorLog || return $?
+        git -C ${directory} reset --hard HEAD &> error_log || return $?
     else
-        git clone ${repository} ${directory} &> errorLog || return $?
+        git clone ${repository} ${directory} &> error_log || return $?
     fi
 
     # Checkout the main branch if required and reset code to latest tag
-    local curBranch=$(git rev-parse --abbrev-ref HEAD)
-    if [[ "${curBranch}" != "main" ]]; then
-        git -C ${directory} checkout main &> errorLog || return $?
+    local current_branch=$(git rev-parse --abbrev-ref HEAD)
+    if [[ "${current_branch}" != "main" ]]; then
+        git -C ${directory} checkout main &> error_log || return $?
     fi
-    git -C ${directory} reset --hard "$(git -C ${directory} describe --abbrev=0 --tags)" &> errorLog || return $?
+    git -C ${directory} reset --hard "$(git -C ${directory} describe --abbrev=0 --tags)" &> error_log || return $?
 }
 
 # UPDATE GIT REPOSITORY TO LATEST MAIN BRANCH RELEASE
 # ------------------------------------------------------------------------------
-updateRepoLatestTag() {
+update_repo_latest_tag() {
 
     # Clear all changes from local git repository and remove Python bytecode to
     # ensure directory contents always matches the Git repository
     local directory=${1}
-    find ${directory} -type d -name __pycache__ -exec rm -rv {} +
-    git -C ${directory} checkout . &> errorLog || return $?
-    git -C ${directory} clean --force -d &> errorLog || true
+    find ${directory} -type d -name __pycache__ -exec rm -r {} +
+    git -C ${directory} checkout . &> error_log || return $?
+    git -C ${directory} clean --force -d &> error_log || true
 
     # Checkout the main branch if required and pull latest commits. Reset code
     # to most recent release
-    local curBranch=$(git -C ${directory} rev-parse --abbrev-ref HEAD)
-    if [[ "${curBranch}" != "main" ]]; then
-        git -C ${directory} checkout main &> errorLog || return $?
+    local current_branch=$(git -C ${directory} rev-parse --abbrev-ref HEAD)
+    if [[ "${current_branch}" != "main" ]]; then
+        git -C ${directory} checkout main &> error_log || return $?
     fi
-    git -C ${directory} pull &> errorLog || return $?
+    git -C ${directory} pull &> error_log || return $?
 }
 
 # SWITCH GIT REPOSITORY TO LATEST MAIN BRANCH COMMIT
 # ------------------------------------------------------------------------------
-switchRepoStable() {
+switch_repo_stable() {
 
     # Clear all changes from local git repository and remove Python bytecode to
     # ensure directory contents always matches the Git repository
     local directory=${1}
-    find ${directory} -type d -name __pycache__ -exec rm -rv {} +
-    git -C ${directory} checkout . &> errorLog || return $?
-    git -C ${directory} clean --force -d &> errorLog || true
+    find ${directory} -type d -name __pycache__ -exec rm -r {} +
+    git -C ${directory} checkout . &> error_log || return $?
+    git -C ${directory} clean --force -d &> error_log || true
 
     # Checkout the main branch if required and pull latest commits
-    local curBranch=$(git -C ${directory} rev-parse --abbrev-ref HEAD)
-    if [[ "${curBranch}" != "main" ]]; then
-        git -C ${directory} checkout main &> errorLog || return $?
+    local current_branch=$(git -C ${directory} rev-parse --abbrev-ref HEAD)
+    if [[ "${current_branch}" != "main" ]]; then
+        git -C ${directory} checkout main &> error_log || return $?
     fi
-    git -C ${directory} pull &> errorLog || return $?
+    git -C ${directory} pull &> error_log || return $?
 }
 
 # SWITCH GIT REPOSITORY TO LATEST DEVELOP BRANCH COMMIT
 # ------------------------------------------------------------------------------
-switchRepoBeta() {
+switch_repo_beta() {
 
     # Clear all changes from local git repository and remove Python bytecode to
     # ensure directory contents always matches the Git repository
     local directory=${1}
-    find ${directory} -type d -name __pycache__ -exec rm -rv {} +
-    git -C ${directory} checkout . &> errorLog || return $?
-    git -C ${directory} clean --force -d &> errorLog || true
+    find ${directory} -type d -name __pycache__ -exec rm -r {} +
+    git -C ${directory} checkout . &> error_log || return $?
+    git -C ${directory} clean --force -d &> error_log || true
 
     # Checkout the develop branch if required and pull latest commits
-    local curBranch=$(git -C ${directory} rev-parse --abbrev-ref HEAD)
-    if [[ "${curBranch}" != "develop" ]]; then
-        git -C ${directory} checkout develop &> errorLog || return $?
+    local current_branch=$(git -C ${directory} rev-parse --abbrev-ref HEAD)
+    if [[ "${current_branch}" != "develop" ]]; then
+        git -C ${directory} checkout develop &> error_log || return $?
     fi
-    git -C ${directory} pull &> errorLog || return $?
+    git -C ${directory} pull &> error_log || return $?
 }
 
 # DISPLAY REQUIRED PROCESS STARTING DIALOGUE
 # ------------------------------------------------------------------------------
-processStarting() {
+process_starting() {
 
     # Display installation starting dialogue
     case $1 in
@@ -770,7 +770,7 @@ processStarting() {
 
 # DISPLAY REQUIRED PROCESS COMPLETE DIALOGUE
 # ------------------------------------------------------------------------------
-processComplete() {
+process_complete() {
 
     # Display installation complete dialogue
     case $1 in
@@ -835,12 +835,12 @@ start () {
 # STOP THE WeatherFlow PiConsole
 # ------------------------------------------------------------------------------
 stop () {
-    if (sudo systemctl | grep wfpiconsole.service &> errorLog); then
+    if (sudo systemctl | grep wfpiconsole.service &> error_log); then
         sudo systemctl stop wfpiconsole.service
     else
         pkill -HUP -f main.py
     fi
-    cleanUp
+    clean_up
 }
 
 # INSTALL THE WeatherFlow PiConsole
@@ -848,23 +848,23 @@ stop () {
 install() {
 
     # Display installation starting dialogue
-    processStarting ${FUNCNAME[0]}
+    process_starting ${FUNCNAME[0]}
     # Check for and ask user if they wish to install any updated local packages
-    updatePackages
+    update_packages
     # Install required packages
-    installPackages
+    install_packages
     # Install required Python modules
-    installPythonModules
+    install_python_modules
     # Install required Kivy dependencies
-    installKivyPackages
+    install_kivy_packages
     # Install Kivy Python library
-    installKivy
+    install_kivy
     # Get the latest version of the WeatherFlow PiConsole and install
-    getLatestVersion
+    get_latest_version
     # Clean up after update
-    cleanUp
+    clean_up
     # Display installation complete dialogue
-    processComplete ${FUNCNAME[0]}
+    process_complete ${FUNCNAME[0]}
 }
 
 # UPDATE THE WeatherFlow PiConsole TO THE LATEST STABLE VERSION
@@ -879,23 +879,23 @@ update() {
 run_update() {
 
     # Display installation starting dialogue
-    processStarting ${FUNCNAME[0]}
+    process_starting ${FUNCNAME[0]}
     # Check for and ask user if they wish to install any updated local packages
-    updatePackages
+    update_packages
     # Check if any new dependencies are required
-    installPackages
+    install_packages
     # Update Python modules as required
-    updatePythonModules
+    update_python_modules
     # Install required Kivy dependencies
-    installKivyPackages
+    install_kivy_packages
     # Install Kivy Python library
-    installKivy
+    install_kivy
     # Get the latest version of the WeatherFlow PiConsole and install
-    getLatestVersion
+    get_latest_version
     # Clean up after installation
-    cleanUp
+    clean_up
     # Display update complete dialogue
-    processComplete ${FUNCNAME[0]}
+    process_complete ${FUNCNAME[0]}
 }
 
 # SWITCH THE WeatherFlow PiConsole TO THE STABLE BRANCH
@@ -903,13 +903,13 @@ run_update() {
 stable() {
 
     # Display installation starting dialogue
-    processStarting ${FUNCNAME[0]}
+    process_starting ${FUNCNAME[0]}
     # Get the latest patch for the WeatherFlow PiConsole and install
-    switchStableBranch
+    switch_stable_branch
     # Clean up after installation
-    cleanUp
+    clean_up
     # Display update complete dialogue
-    processComplete ${FUNCNAME[0]}
+    process_complete ${FUNCNAME[0]}
 }
 
 # SWITCH THE WeatherFlow PiConsole TO THE BETA BRANCH
@@ -924,23 +924,23 @@ beta() {
 run_beta() {
 
     # Display installation starting dialogue
-    processStarting ${FUNCNAME[0]}
+    process_starting ${FUNCNAME[0]}
     # Check for and ask user if they wish to install any updated local packages
-    updatePackages
+    update_packages
     # Check if any new dependencies are required
-    installPackages
+    install_packages
     # Update Python modules as required
-    updatePythonModules
+    update_python_modules
     # Install required Kivy dependencies
-    installKivyPackages
+    install_kivy_packages
     # Install Kivy Python library
-    installKivy
+    install_kivy
     # Switch to the WeatherFlow PiConsole beta branch
-    switchBetaBranch
+    switch_beta_branch
     # Clean up after installation
-    cleanUp
+    clean_up
     # Display update complete dialogue
-    processComplete ${FUNCNAME[0]}
+    process_complete ${FUNCNAME[0]}
 }
 
 # SET THE WeatherFlow PiConsole TO START AUTOMATICALLY
@@ -948,15 +948,15 @@ run_beta() {
 autostart-enable () {
 
     # Display autostart-enable starting dialogue
-    processStarting ${FUNCNAME[0]}
+    process_starting ${FUNCNAME[0]}
     # Edit and install wfpiconsole.service file
-    installServiceFile
+    install_service_file
     # Enable wfpiconsole service
-    enableService
+    enable_service
     # Clean up after enabling autostart
-    cleanUp
+    clean_up
     # Display autostart-enable complete dialogue
-    processComplete ${FUNCNAME[0]}
+    process_complete ${FUNCNAME[0]}
 }
 
 # DISABLE THE WeatherFlow PiConsole FROM STARTING AUTOMATICALLY
@@ -964,13 +964,13 @@ autostart-enable () {
 autostart-disable () {
 
     # Display autostart-disable starting dialogue
-    processStarting ${FUNCNAME[0]}
+    process_starting ${FUNCNAME[0]}
     # Disable wfpiconsole service
-    disableService
+    disable_service
     # Clean up after disabling autostart
-    cleanUp
+    clean_up
     # Display autostart-disable complete dialogue
-    processComplete ${FUNCNAME[0]}
+    process_complete ${FUNCNAME[0]}
 }
 
 # SCRIPT USAGE
@@ -1006,7 +1006,7 @@ if [[ ! -x "$(command -v sudo)" ]]; then
     printf "  %bError: Unable to $1 the WeatherFlow PiConsole.\\n\\n%b" "${COL_LIGHT_RED}" "${COL_NC}"
     printf "  sudo is needed to $1 the WeatherFlow PiConsole\\n"
     printf "  Please install sudo and run this script again Pi\\n\\n"
-    cleanUp
+    clean_up
     exit 1
 fi
 if [[ "${1}" != "start" ]]; then
@@ -1018,7 +1018,7 @@ if [[ "${1}" != "start" ]]; then
         printf "\\n %b  %b Root user check failed\\n" "${OVER}" "${CROSS}"
         printf "  %bError: Unable to ${1} the WeatherFlow PiConsole \\n\\n %b" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "\\n"
-        cleanUp
+        clean_up
         exit 1
     fi
 fi
@@ -1033,15 +1033,15 @@ if [[ "${1}" == "install" ]] || [[ "${1}" == "run_update" ]] || [[ "${1}" == "ru
         printf "  %b Hardware check passed (%b)\\n" "${TICK}" "${PROCESSOR}"
     else
         printf "  %b Hardware check failed (%b)\\n\\n" "${CROSS}" "${PROCESSOR}"
-        cleanUp
+        clean_up
         exit 1
     fi
     OS=$(. /etc/os-release && echo $PRETTY_NAME)
-    if isCommand apt-get ; then
+    if is_command apt-get ; then
         printf "  %b OS check passed (%b)\\n" "${TICK}" "${OS}"
     else
         printf "  %b OS check failed (%b)\\n\\n" "${CROSS}" "${OS}"
-        cleanUp
+        clean_up
         exit 1
     fi
 
@@ -1050,13 +1050,13 @@ if [[ "${1}" == "install" ]] || [[ "${1}" == "run_update" ]] || [[ "${1}" == "ru
         if ! (find /etc/apt/ -name *.list | xargs cat | grep universe &> /dev/null); then
             str="Enabling Universe repository in Ubuntu"
             printf "  %b %s..." "${INFO}" "${str}"
-            if (sudo add-apt-repository universe &> errorLog); then
+            if (sudo add-apt-repository universe &> error_log); then
                 printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
             else
                 printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
                 printf "  %bError: Unable to enabling Universe repository.\\n\\n %b" "${COL_LIGHT_RED}" "${COL_NC}"
-                printf "%s\\n\\n" "$(<errorLog)"
-                cleanUp
+                printf "%s\\n\\n" "$(<error_log)"
+                clean_up
                 exit 1
             fi
         fi
@@ -1073,7 +1073,9 @@ case "${1}" in
     "stable"              ) stable;;
     "beta"                ) beta;;
     "run_update"          ) run_update;;
+    "runUpdate"           ) run_update;;
     "run_beta"            ) run_beta;;
+    "runBeta"             ) run_beta;;
     "autostart-enable"    ) autostart-enable;;
     "autostart-disable"   ) autostart-disable;;
     *                     ) printf "Unrecognised usage\\n" && help_func;;
