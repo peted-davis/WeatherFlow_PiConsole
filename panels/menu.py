@@ -324,6 +324,9 @@ class mainMenu(ModalView):
 
     def clear_device_list(self, device_type):
 
+        """ Remove specified device from device_list
+        """
+
         for device in list(self.device_list):
             if device_type == 'reset':
                 if not device == 'AR_in':
@@ -335,10 +338,10 @@ class mainMenu(ModalView):
                 elif device == 'SK' and 'sky' in device_type:
                     self.device_list.pop(device)
                     break
-                elif device == 'AR_out' and 'outAir' in device_type:
+                elif device == 'AR_out' and 'out_air' in device_type:
                     self.device_list.pop(device)
                     break
-                elif device == 'AR_in' and 'inAir' in device_type:
+                elif device == 'AR_in' and 'in_air' in device_type:
                     self.device_list.pop(device)
                     self.in_air_cleared = True
                     break
