@@ -1,0 +1,118 @@
+## WeatherFlow PiConsole: Raspberry Pi Python console for WeatherFlow Tempest
+## and Smart Home Weather stations.
+## Copyright (C) 2018-2022 Peter Davis
+
+## This program is free software: you can redistribute it and/or modify it under
+## the terms of the GNU General Public License as published by the Free Software
+## Foundation, either version 3 of the License, or (at your option) any later
+## version.
+
+## This program is distributed in the hope that it will be useful, but WITHOUT
+## ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+## FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+## details.
+
+## You should have received a copy of the GNU General Public License along with
+## this program. If not, see <http://www.gnu.org/licenses/>.
+
+## =============================================================================
+## RAINFALL PANEL AND BUTTON
+## =============================================================================
+<RainfallPanel>
+
+    ## Create direct reference to widget id's
+    rain_gauge: rain_gauge.__self__
+
+    ## Panel background, title, and RainGauge
+    RainfallBackground:
+        _panelTitle: 'Rainfall'
+        _panelStatus: app.CurrentConditions.Status['sky_last_sample'] if app.config['Station']['SkyID'] else app.CurrentConditions.Status['tempest_last_sample']
+    RainGauge:
+        id: rain_gauge
+        pos_hint: {'x': 198 / 262, 'y': 80 / 202}
+        size_hint: (41 / 262, 99 / 202)
+        StencilView:
+            pos_hint: {'x': 4 / rain_gauge._width, 'y': 1 / rain_gauge._height}
+            size_hint: [1 - 8 / rain_gauge._width, 1 - 1 / rain_gauge._height]
+            FloatLayout:
+                width: self.parent.width * 8
+                height: self.parent.height
+                pos: self.parent.pos
+                Image:
+                    keep_ratio: 0
+                    allow_stretch: 1
+                    source: 'icons/misc/rainIntensity' + app.scaleSuffix
+                    pos_hint: {'x': root.rain_rate_x, 'y': root.rain_rate_y}
+
+    ## Current rain rate and text
+    SmallField:
+        text: app.CurrentConditions.Obs['RainRate'][2]
+        pos_hint: {'x': 1/262, 'y': 57/202}
+        size_hint_x: (176/262)
+    SmallField:
+        text: app.CurrentConditions.Obs['RainRate'][0] + app.CurrentConditions.Obs['RainRate'][1]
+        pos_hint: {'x': 175/262, 'y': 57/202}
+        size_hint_x: (86/262)
+
+    ## Total daily rainfall
+    TitleField:
+        text: 'Today'
+        pos_hint: {'x': 1/262, 'y': 166/202}
+        size_hint_x: (88/262)
+    MediumField:
+        text: app.CurrentConditions.Obs['TodayRain'][0] + '[size=' + str(int(self.font_size*0.85)) + ']' + app.CurrentConditions.Obs['TodayRain'][1] + '[/size]'
+        pos_hint: {'x': 1/262, 'y': 138/202}
+        size_hint_x: (88/262)
+
+    ## Total yesterday rainfall
+    TitleField:
+        text: 'Yesterday'
+        pos_hint: {'x': 89/262, 'y': 166/202}
+        size_hint_x: (88/262)
+    MediumField:
+        text: app.CurrentConditions.Obs['YesterdayRain'][0] + '[size=' + str(int(self.font_size*0.85)) + ']' + app.CurrentConditions.Obs['YesterdayRain'][1] + '[/size]'
+        pos_hint: {'x': 89/262, 'y': 138/202}
+        size_hint_x: (88/262)
+
+    ## Total monthly rainfall
+    TitleField:
+        text: 'Month'
+        pos_hint: {'x': 1/262, 'y': 111/202}
+        size_hint_x: (88/262)
+    MediumField:
+        text: app.CurrentConditions.Obs['MonthRain'][0] + '[size=' + str(int(self.font_size*0.85)) + ']' + app.CurrentConditions.Obs['MonthRain'][1] + '[/size]'
+        pos_hint: {'x': 1/262, 'y': 83/202}
+        size_hint_x: (88/262)
+
+    ## Total yearly rainfall
+    TitleField:
+        text: 'Year'
+        pos_hint: {'x': 89/262, 'y': 111/202}
+        size_hint_x: (88/262)
+    MediumField:
+        text: app.CurrentConditions.Obs['YearRain'][0] + '[size=' + str(int(self.font_size*0.85)) + ']' + app.CurrentConditions.Obs['YearRain'][1] + '[/size]'
+        pos_hint: {'x': 89/262, 'y': 83/202}
+        size_hint_x: (88/262)
+
+    ## Time and date
+    TimeDateField:
+        text: app.CurrentConditions.System['Date']
+        pos_hint: {'x': 0/262, 'y': 24/202}
+        size_hint_x: (262/262)
+    TimeDateField:
+        text: app.CurrentConditions.System['Time']
+        pos_hint: {'x': 0/262, 'y': 3/202}
+        size_hint_x: (262/262)
+
+    Image:
+        source: 'icons/misc/offline' + app.scaleSuffix
+        keep_ratio: 0
+        allow_stretch: 1
+        opacity: 1 if app.CurrentConditions.Status['station_status'] == 'Offline' or app.CurrentConditions.Status['station_status'] == 'Error'  else 0
+        pos_hint: {'x': 230/262, 'y': 9/202}
+        size_hint: (30/262, 30/202)
+
+<RainfallButton>:
+    PanelButton:
+        text: 'Rainfall'
+        on_release: app.CurrentConditions.switchPanel(self)

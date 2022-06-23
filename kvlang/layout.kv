@@ -16,7 +16,316 @@
 ## this program. If not, see <http://www.gnu.org/licenses/>.
 
 ## =============================================================================
-## WIND ROSE
+## TabbedPanelItem AND MainMenuLayout
+## =============================================================================
+<MainMenuTab@TabbedPanelItem>:
+    background_normal: 'atlas://atlas/wfpiconsole/tab_btn'
+    background_down: 'atlas://atlas/wfpiconsole/tab_btn_pressed'
+    font_name: 'fonts/Inter-SemiBold.ttf'
+    font_size: dp(14.2*app.scaleFactor)
+    color: utils.rgba('#d6d6d6ff')
+    canvas.after:
+        Color:
+            rgb: [.3,.3,.3,1]
+        Rectangle:
+            pos: self.right - 1, self.y
+            size: 1, self.height,
+
+<MainMenuLayout@GridLayout>:
+    padding: '5dp'
+    cols: 1
+    canvas.after:
+        Color:
+            rgb: [.3,.3,.3,1]
+        Rectangle:
+            pos: self.x + 1, self.y + 3
+            size: self.width, 1
+
+## =============================================================================
+## PanelBackground, RainfallBackground AND UpdateNotifBackground
+## =============================================================================
+<PanelBackground@FloatLayout>:
+    _panelTitle: str()
+    _panelStatus: str()
+    pos_hint: {'x': 0/262, 'y': 0/202}
+    size_hint: [1, 1]
+    cols: 1
+    canvas.before:
+        Color:
+            rgba: utils.rgba('ffffffff')
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: (app.scaleFactor*2, app.scaleFactor*2)
+        Color:
+            rgba: utils.rgba('000000ff')
+        Rectangle:
+            pos: self.x+dp(app.scaleFactor), self.y+dp(app.scaleFactor)
+            size: self.width-dp(app.scaleFactor*2), self.height-dp(app.scaleFactor*2)
+    PanelTitle:
+        id: Title
+        text: root._panelTitle
+    PanelStatus:
+        id: Status
+        text: root._panelStatus
+
+<RainfallBackground@FloatLayout>:
+    _panelTitle: str()
+    _panelStatus: str()
+    pos_hint: {'x': 0/262, 'y': 47/202}
+    size_hint: [1, 155/202]
+    cols: 1
+    canvas.before:
+        Color:
+            rgba: utils.rgba('ffffffff')
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: (app.scaleFactor*2, app.scaleFactor*2)
+        Color:
+            rgba: utils.rgba('000000ff')
+        Rectangle:
+            pos: self.x+dp(app.scaleFactor), self.y+dp(app.scaleFactor)
+            size: self.width-dp(app.scaleFactor*2), self.height-dp(app.scaleFactor*2)
+    PanelTitle:
+        id: Title
+        size_hint: (1, 13/155)
+        pos_hint: {'x': 0, 'y': 138/155}
+        text: root._panelTitle
+    PanelStatus:
+        id: Status
+        size_hint: (0.97, 23 / 155)
+        pos_hint: {'x': 0.015, 'y': 133 / 155}
+        text: root._panelStatus
+
+<UpdateNotifBackground@BoxLayout>:
+    _panelTitle: str()
+    pos_hint: {'x': 0, 'y': 0}
+    size_hint: [1, 1]
+    cols: 1
+    canvas.before:
+        Color:
+            rgba: utils.rgba('f05e40ff')
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: (app.scaleFactor*2, app.scaleFactor*2)
+        Color:
+            rgba: utils.rgba('141414ff')
+        Rectangle:
+            pos: self.x+dp(app.scaleFactor), self.y+dp(app.scaleFactor)
+            size: self.width-dp(app.scaleFactor*2), self.height-dp(app.scaleFactor*2)
+    PanelTitle:
+        pos_hint: {'x': 0, 'y': 59/76}
+        size_hint: (1, 13/76)
+        text: root._panelTitle
+
+# ==============================================================================
+# station_status BOX LAYOUT
+# ==============================================================================
+<station_status>:
+    orientation: 'vertical'
+    BoxLayout:
+        orientation: 'vertical'
+        padding: [dp(0),dp(0),dp(0),dp(10)]
+        size_hint: (1,.44)
+        MenuField:
+            font_size: dp(16*app.scaleFactor)
+            text: app.config['Station']['Name']
+        MenuField:
+            _color: '#9aba2fff' if app.CurrentConditions.Status['station_status'] == 'Online' else '#c8c8c8ff' if app.CurrentConditions.Status['station_status'] == '-' else '#d73027ff'
+            text: 'Station status: [color=' + self._color + ']' + app.CurrentConditions.Status['station_status'] + '[/color]'
+    GridLayout:
+        cols: 2
+        padding: [dp(0),dp(0),dp(0),dp(10)]
+        size_hint: (1,.56)
+        MenuField:
+            text: 'Station time: ' + app.CurrentConditions.System['Time']
+        MenuField:
+            text: 'Station elevation: ' + '{:.2f}'.format(float(app.config['Station']['Elevation'])) + ' m'
+        MenuField:
+            text: 'Station latitude: ' + '{:.4f}'.format(float(app.config['Station']['Latitude'])) + '\u00B0'
+        MenuField:
+            text: 'Station Longitude: ' + '{:.4f}'.format(float(app.config['Station']['Longitude'])) + '\u00B0'
+        MenuField:
+            text: 'Hub firmware: ' + app.CurrentConditions.Status['hub_firmware']
+        MenuField:
+            text: 'Console version: [color=00a4b4ff]' + app.config['System']['Version'] + '[/color]'
+
+# ==============================================================================
+# station_selector BOX LAYOUT
+# ==============================================================================
+<station_selector>:
+    orientation: 'vertical'
+    Label:
+        text: 'Station & Device selection'
+        font_size: dp(16*app.scaleFactor)
+        font_name: 'fonts/Inter-Bold.ttf'
+        color: utils.rgba('#c8c8c8ff')
+        size_hint: (1, .4)
+    BoxLayout:
+        orientation: 'horizontal'
+        spacing: dp(10)
+        BoxLayout:
+            orientation: 'vertical'
+            Label:
+                text: 'Station'
+                font_size: dp(14*app.scaleFactor)
+                font_name: 'fonts/Inter-Bold.ttf'
+                color: utils.rgba('#c8c8c8ff')
+            FloatLayout:
+                StationSpinner:
+                    id: station_dropdown
+                    values: app.mainMenu.station_list
+                    on_text: app.mainMenu.get_station_devices()
+        BoxLayout:
+            orientation: 'vertical'
+            Label:
+                text: 'Tempest'
+                font_size: dp(14*app.scaleFactor)
+                font_name: 'fonts/Inter-Bold.ttf'
+                color: utils.rgba('#c8c8c8ff')
+            FloatLayout:
+                DeviceSpinner:
+                    id: tempest_dropdown
+                    values: app.mainMenu.tempest_list
+                    on_text: if self.text not in ['Please select', 'Air or Sky selected', 'No device available']: app.mainMenu.on_device_selection(self)
+    BoxLayout:
+        orientation: 'horizontal'
+        spacing: dp(10)
+        BoxLayout:
+            orientation: 'vertical'
+            Label:
+                text: 'Sky'
+                font_size: dp(14*app.scaleFactor)
+                font_name: 'fonts/Inter-Bold.ttf'
+                color: utils.rgba('#c8c8c8ff')
+            FloatLayout:
+                DeviceSpinner:
+                    id: sky_dropdown
+                    values: app.mainMenu.sky_list
+                    on_text: if self.text not in ['Please select', 'Tempest selected', 'No device available']: app.mainMenu.on_device_selection(self)
+        BoxLayout:
+            orientation: 'vertical'
+            Label:
+                text: 'Outdoor Air'
+                font_size: dp(14*app.scaleFactor)
+                font_name: 'fonts/Inter-Bold.ttf'
+                color: utils.rgba('#c8c8c8ff')
+            FloatLayout:
+                DeviceSpinner:
+                    id: out_air_dropdown
+                    values: app.mainMenu.out_air_list
+                    on_text: if self.text not in ['Please select', 'Tempest selected', 'No device available']: app.mainMenu.on_device_selection(self)
+    BoxLayout:
+        orientation: 'horizontal'
+        spacing: dp(10)
+        BoxLayout:
+            orientation: 'vertical'
+            Label:
+                text: 'Indoor Air'
+                font_size: dp(14*app.scaleFactor)
+                font_name: 'fonts/Inter-Bold.ttf'
+                color: utils.rgba('#c8c8c8ff')
+            FloatLayout:
+                DeviceSpinner:
+                    id: in_air_dropdown
+                    values: app.mainMenu.in_air_list
+                    on_text: if self.text not in ['Please select', 'Tempest selected', 'No device available']: app.mainMenu.on_device_selection(self)
+        BoxLayout:
+            orientation: 'vertical'
+            Label:
+                text: 'Switch Station/Device'
+                font_size: dp(14*app.scaleFactor)
+                font_name: 'fonts/Inter-Bold.ttf'
+                color: utils.rgba('#c8c8c8ff')
+            SwitchButton:
+                id: switch_button
+                disabled: 1
+                text: 'Fetching all available stations'
+                on_release: app.mainMenu.switchStations()
+
+# =============================================================================
+# [device]_status PANEL
+# =============================================================================
+<tempest_status>:
+    size_hint: (1,.1)
+    orientation: 'horizontal'
+    StatusField:
+        size_hint: (.15,1)
+        text: 'TEMPEST'
+    StatusField:
+        size_hint: (.12,1)
+        text: app.CurrentConditions.Status['tempest_status']
+    StatusField:
+        size_hint: (.22,1)
+        text: app.CurrentConditions.Status['tempest_sample_time']
+    StatusField:
+        size_hint: (.20,1)
+        text: app.CurrentConditions.Status['tempest_voltage']
+    StatusField:
+        size_hint: (.31,1)
+        text: app.CurrentConditions.Status['tempest_ob_count']
+
+<sky_status>:
+    size_hint: (1,.1)
+    orientation: 'horizontal'
+    StatusField:
+        size_hint: (.15,1)
+        text: 'SKY'
+    StatusField:
+        size_hint: (.12,1)
+        text: app.CurrentConditions.Status['sky_status']
+    StatusField:
+        size_hint: (.22,1)
+        text: app.CurrentConditions.Status['sky_sample_time']
+    StatusField:
+        size_hint: (.20,1)
+        text: app.CurrentConditions.Status['sky_voltage']
+    StatusField:
+        size_hint: (.31,1)
+        text: app.CurrentConditions.Status['sky_ob_count']
+
+<out_air_status>:
+    size_hint: (1,.1)
+    orientation: 'horizontal'
+    StatusField:
+        size_hint: (.15,1)
+        text: 'Outdoor AIR'
+    StatusField:
+        size_hint: (.12,1)
+        text: app.CurrentConditions.Status['out_air_status']
+    StatusField:
+        size_hint: (.22,1)
+        text: app.CurrentConditions.Status['out_air_sample_time']
+    StatusField:
+        size_hint: (.20,1)
+        text: app.CurrentConditions.Status['out_air_voltage']
+    StatusField:
+        size_hint: (.31,1)
+        text: app.CurrentConditions.Status['out_air_ob_count']
+
+<in_air_status>:
+    size_hint: (1,.1)
+    orientation: 'horizontal'
+    StatusField:
+        size_hint: (.15,1)
+        text: 'Indoor AIR'
+    StatusField:
+        size_hint: (.12,1)
+        text: app.CurrentConditions.Status['in_air_status']
+    StatusField:
+        size_hint: (.22,1)
+        text: app.CurrentConditions.Status['in_air_sample_time']
+    StatusField:
+        size_hint: (.20,1)
+        text: app.CurrentConditions.Status['in_air_voltage']
+    StatusField:
+        size_hint: (.31,1)
+        text: app.CurrentConditions.Status['in_air_ob_count']
+
+## =============================================================================
+## WIND ROSE LAYOUT
 ## =============================================================================
 <windRose@FloatLayout>:
     _width: 3.0
@@ -41,7 +350,7 @@
             ellipse: (self.x+self._width*app.scaleFactor, self.y+self._width*app.scaleFactor, self.width-(self._width*2*app.scaleFactor), self.height-(self._width*2*app.scaleFactor), 225, 315, 1000)
 
 ## =============================================================================
-## MOON ROSE
+## MOON ROSE LAYOUT
 ## =============================================================================
 <moonRose@FloatLayout>:
     _width: 3.0
@@ -55,7 +364,7 @@
             ellipse: (self.x+self._width*app.scaleFactor, self.y+self._width*app.scaleFactor, self.width-(self._width*2*app.scaleFactor), self.height-(self._width*2*app.scaleFactor), 0, 360, 4000)
 
 ## =============================================================================
-## BAROMETER DIAL
+## BAROMETER DIAL LAYOUT
 ## =============================================================================
 <barometerDial@FloatLayout>:
     _width: 3.0
@@ -69,7 +378,7 @@
             ellipse: (self.x+self._width*app.scaleFactor, self.y+self._width*app.scaleFactor, self.width-(self._width*2*app.scaleFactor), self.height-(self._width*2*app.scaleFactor), -90, 90, 2000)
 
 ## =============================================================================
-## RAIN GAUGE
+## RAIN GAUGE LAYOUT
 ## =============================================================================
 <RainGauge@FloatLayout>:
     _width: 41

@@ -1,0 +1,167 @@
+## WeatherFlow PiConsole: Raspberry Pi Python console for WeatherFlow Tempest
+## and Smart Home Weather stations.
+## Copyright (C) 2018-2022 Peter Davis
+
+## This program is free software: you can redistribute it and/or modify it under
+## the terms of the GNU General Public License as published by the Free Software
+## Foundation, either version 3 of the License, or (at your option) any later
+## version.
+
+## This program is distributed in the hope that it will be useful, but WITHOUT
+## ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+## FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+## details.
+
+## You should have received a copy of the GNU General Public License along with
+## this program. If not, see <http://www.gnu.org/licenses/>.
+
+## =============================================================================
+## LIGHTNING PANEL AND BUTTON
+## =============================================================================
+<LightningPanel>
+
+    ## Panel background and title
+    PanelBackground:
+        _panelTitle: 'Lightning'
+        _panelStatus: app.CurrentConditions.Status['out_air_last_sample'] if app.config['Station']['OutAirID'] else app.CurrentConditions.Status['tempest_last_sample']
+
+    ## Last strike time
+    TitleField:
+        text:
+            'Last Strike' if app.CurrentConditions.Obs['StrikeDeltaT'][4] in ['-', None] else \
+            'Strike Detected!' if app.CurrentConditions.Obs['StrikeDeltaT'][4] < 360 else \
+            'Last Strike'
+        pos_hint: {'x': 83/262, 'y': 168/202}
+        size_hint_x: (176/262)
+    LargeField:
+        text: app.CurrentConditions.Obs['StrikeDeltaT'][0]
+        pos_hint: {'x': 83/262, 'y': 139/202}
+        size_hint_x: (80/262 if app.CurrentConditions.Obs['StrikeDeltaT'][2] == '-' else 40/262)
+    TitleField:
+        text: app.CurrentConditions.Obs['StrikeDeltaT'][1]
+        font_size: dp(13*app.scaleFactor)
+        pos_hint: {'x': 83/262, 'y': 123/202}
+        size_hint_x: (80/262 if app.CurrentConditions.Obs['StrikeDeltaT'][2] == '-' else 40/262)
+    LargeField:
+        text: app.CurrentConditions.Obs['StrikeDeltaT'][2]
+        opacity: 0 if app.CurrentConditions.Obs['StrikeDeltaT'][2] == '-' else 1
+        pos_hint: {'x': 123/262, 'y': 139/202}
+        size_hint_x: (40/262)
+    TitleField:
+        text: app.CurrentConditions.Obs['StrikeDeltaT'][3]
+        font_size: dp(13*app.scaleFactor)
+        opacity: 0 if app.CurrentConditions.Obs['StrikeDeltaT'][2] == '-' else 1
+        pos_hint: {'x': 123/262, 'y': 123/202}
+        size_hint_x: (40/262)
+    SmallField:
+        text: '[color=f05e40ff]ago[/color]'
+        pos_hint: {'x': 83/262, 'y': 108/202}
+        size_hint_x: (80/262)
+
+    ## Last strike distance
+    LargeField:
+        text: app.CurrentConditions.Obs['StrikeDist'][0]
+        pos_hint: {'x': 169/262, 'y': 139/202}
+        size_hint_x: (90/262)
+    TitleField:
+        text: app.CurrentConditions.Obs['StrikeDist'][1]
+        font_size: dp(13*app.scaleFactor)
+        pos_hint: {'x': 169/262, 'y': 123/202}
+        size_hint_x: (90/262)
+    SmallField:
+        text: '[color=f05e40ff]away[/color]'
+        pos_hint: {'x': 169/262, 'y': 108/202}
+        size_hint_x: (90/262)
+
+    ## Last three hour lightning strikes
+    TitleField:
+        text: 'Strike Count'
+        pos_hint: {'x': 6/262, 'y': 88/202}
+        size_hint_x: (132/262)
+    TitleField:
+        text: '3 hours'
+        color: utils.rgba('ffffffff')
+        pos_hint: {'x': 6/262, 'y': 70/202}
+        size_hint_x: (60/262)
+    MediumField:
+        text: app.CurrentConditions.Obs['Strikes3hr'][0]
+        pos_hint: {'x': 6/262, 'y': 49/202}
+        size_hint_x: (60/262)
+
+    ## Total daily lightning strikes
+    TitleField:
+        text: 'Today'
+        color: utils.rgba('ffffffff')
+        pos_hint: {'x': 78/262, 'y': 70/202}
+        size_hint_x: (60/262)
+    MediumField:
+        text: app.CurrentConditions.Obs['StrikesToday'][0]
+        pos_hint: {'x': 78/262, 'y': 49/202}
+        size_hint_x: (60/262)
+
+    ## Total monthly lightning strikes
+    TitleField:
+        text: 'Month'
+        color: utils.rgba('ffffffff')
+        pos_hint: {'x': 6/262, 'y': 28/202}
+        size_hint_x: (60/262)
+    MediumField:
+        text: app.CurrentConditions.Obs['StrikesMonth'][0]
+        pos_hint: {'x': 6/262, 'y': 7/202}
+        size_hint_x: (60/262)
+
+    ## Total yearly lightning strikes
+    TitleField:
+        text: 'Year'
+        color: utils.rgba('ffffffff')
+        pos_hint: {'x': 78/262, 'y': 28/202}
+        size_hint_x: (60/262)
+    MediumField:
+        text: app.CurrentConditions.Obs['StrikesYear'][0]
+        pos_hint: {'x': 78/262, 'y': 7/202}
+        size_hint_x: (60/262)
+
+    ## Strike frequency last ten minutes
+    TitleField:
+        text: 'Strike Frequency'
+        pos_hint: {'x': 143/262, 'y': 88/202}
+        size_hint_x: (114/262)
+    TitleField:
+        text: '10 Minutes'
+        color: utils.rgba('ffffffff')
+        pos_hint: {'x': 143/262, 'y': 70/202}
+        size_hint_x: (114/262)
+    MediumField:
+        text: app.CurrentConditions.Obs['StrikeFreq'][0] + app.CurrentConditions.Obs['StrikeFreq'][1]
+        pos_hint: {'x': 143/262, 'y': 49/202}
+        size_hint_x: (114/262)
+
+    ## Strike frequency last three hours
+    TitleField:
+        text: '3 hours'
+        color: utils.rgba('ffffffff')
+        pos_hint: {'x': 143/262, 'y': 28/202}
+        size_hint_x: (114/262)
+    MediumField:
+        text: app.CurrentConditions.Obs['StrikeFreq'][2] + app.CurrentConditions.Obs['StrikeFreq'][3]
+        pos_hint: {'x': 143/262, 'y': 7/202}
+        size_hint_x: (114/262)
+
+    ## Lightning bolt icon
+    Image:
+        canvas.before:
+            PushMatrix
+            Translate:
+                x: root.lightningBoltPosX
+        canvas.after:
+            PopMatrix
+        source: 'icons/lightningBolt/' + root.lightningBoltIcon + app.scaleSuffix
+        keep_ratio: 0
+        allow_stretch: 1
+        pos_hint: {'x': 9/262, 'y': 120/202}
+        size_hint: (65/262, 68/202)
+
+<LightningButton>:
+    PanelButton:
+        text: 'Lightning'
+        on_release: app.CurrentConditions.switchPanel(self)

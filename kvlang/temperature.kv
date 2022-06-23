@@ -1,0 +1,169 @@
+## WeatherFlow PiConsole: Raspberry Pi Python console for WeatherFlow Tempest
+## and Smart Home Weather stations.
+## Copyright (C) 2018-2022 Peter Davis
+
+## This program is free software: you can redistribute it and/or modify it under
+## the terms of the GNU General Public License as published by the Free Software
+## Foundation, either version 3 of the License, or (at your option) any later
+## version.
+
+## This program is distributed in the hope that it will be useful, but WITHOUT
+## ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+## FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+## details.
+
+## You should have received a copy of the GNU General Public License along with
+## this program. If not, see <http://www.gnu.org/licenses/>.
+
+## =============================================================================
+## TEMPERATURE PANEL AND BUTTON
+## =============================================================================
+<TemperaturePanel>:
+
+    ## Panel background and title
+    PanelBackground:
+        _panelTitle: 'Temperature'
+        _panelStatus: app.CurrentConditions.Status['out_air_last_sample'] if app.config['Station']['OutAirID'] else app.CurrentConditions.Status['tempest_last_sample']
+
+    ## Indoor temperature
+    TitleField:
+        text: 'Indoor'
+        pos_hint: {'x': 0/262, 'y': 166/202}
+        size_hint_x: (131/262)
+        opacity: 1 if app.IndoorTemp == '1' else 0
+    LargeField:
+        text: app.CurrentConditions.Obs['inTemp'][0] + app.CurrentConditions.Obs['inTemp'][1]
+        pos_hint: {'x': 0/262, 'y': 132/202}
+        size_hint_x: (131/262)
+        opacity: 1 if app.IndoorTemp == '1' else 0
+
+    ## Indoor temperature minimum
+    MediumField:
+        text: '[size=' + str(int(self.font_size*0.88)) + '][color=00a4b4ff]' + app.CurrentConditions.Obs['inTempMin'][0] + '[size=' + str(int(self.font_size*0.83)) + ']' + app.CurrentConditions.Obs['inTempMin'][1] + '[/color][/size][/size]'
+        pos_hint: {'x': 0/262, 'y': 106/202}
+        size_hint_x: (65.5/262)
+        opacity: 1 if app.IndoorTemp == '1' else 0
+    SmallField:
+        text: app.CurrentConditions.Obs['inTempMin'][2]
+        pos_hint: {'x': 0/262, 'y': 86/202}
+        size_hint_x: (65.5/262)
+        opacity: 1 if app.IndoorTemp == '1' else 0
+
+    ## Indoor temperature maximum
+    MediumField:
+        text: '[size=' + str(int(self.font_size*0.88)) + '][color=f05e40ff]' + app.CurrentConditions.Obs['inTempMax'][0] + '[size=' + str(int(self.font_size*0.83)) + ']' + app.CurrentConditions.Obs['inTempMax'][1] + '[/color][/size][/size]'
+        pos_hint: {'x': 65.5/262, 'y': 106/202}
+        size_hint_x: (65.5/262)
+        opacity: 1 if app.IndoorTemp == '1' else 0
+    SmallField:
+        text: app.CurrentConditions.Obs['inTempMax'][2]
+        pos_hint: {'x': 65.5/262, 'y': 86/202}
+        size_hint_x: (65.5/262)
+        opacity: 1 if app.IndoorTemp == '1' else 0
+
+    ## Outdoor temperature
+    TitleField:
+        text: 'Outdoor'
+        pos_hint: {'x': 131/262 if app.IndoorTemp == '1' else 3/262, 'y': 166/202}
+        size_hint_x: 131/262
+    LargeField:
+        text: app.CurrentConditions.Obs['outTemp'][0] + app.CurrentConditions.Obs['outTemp'][1]
+        pos_hint: {'x': 131/262 if app.IndoorTemp == '1' else 3/262, 'y': 132/202}
+        size_hint_x: (131/262)
+
+    ## Outdoor temperature minimum
+    MediumField:
+        text: '[size=' + str(int(self.font_size*0.88)) + '][color=00a4b4ff]' + app.CurrentConditions.Obs['outTempMin'][0] + '[size=' + str(int(self.font_size*0.83)) + ']' + app.CurrentConditions.Obs['outTempMin'][1] + '[/color][/size][/size]'
+        pos_hint: {'x': 131/262 if app.IndoorTemp == '1' else 3/262, 'y': 106/202}
+        size_hint_x: (65.5/262)
+    SmallField:
+        text: app.CurrentConditions.Obs['outTempMin'][2]
+        pos_hint: {'x': 131/262 if app.IndoorTemp == '1' else 3/262, 'y': 86/202}
+        size_hint_x: (65.5/262)
+
+    ## Outdoor temperature maximum
+    MediumField:
+        text: '[size=' + str(int(self.font_size*0.88)) + '][color=f05e40ff]' + app.CurrentConditions.Obs['outTempMax'][0] + '[size=' + str(int(self.font_size*0.83)) + ']' + app.CurrentConditions.Obs['outTempMax'][1] + '[/color][/size][/size]'
+        pos_hint: {'x': 196.5/262 if app.IndoorTemp == '1' else 68.5/262, 'y': 106/202}
+        size_hint_x: (65.5/262)
+    SmallField:
+        text: app.CurrentConditions.Obs['outTempMax'][2]
+        pos_hint: {'x': 196.5/262 if app.IndoorTemp == '1' else 68.5/262, 'y': 86/202}
+        size_hint_x: (65.5/262)
+
+    ## 24 hour temperature difference
+    TitleField:
+        text: '24 hr Difference'
+        pos_hint: {'x': 128 / 262, 'y': 166 / 202}
+        size_hint_x: (128 / 262)
+        opacity: 0 if app.IndoorTemp == '1' else 1
+    MediumField:
+        _font_size: str(14*app.scaleFactor)
+        _tempString: app.CurrentConditions.Obs['outTempDiff'][0] + app.CurrentConditions.Obs['outTempDiff'][1]
+        _descString: '[size=' + self._font_size + 'sp][font=fonts/Inter-Regular.ttf]' + app.CurrentConditions.Obs['outTempDiff'][2] + '[/font]''[/size]'
+        text: self._tempString + self._descString
+        pos_hint: {'x': 128 / 262, 'y': 137.5 / 202}
+        size_hint_x: (128 / 262)
+        opacity: 0 if app.IndoorTemp == '1' else 1
+
+    ## 3 hour temperature trend
+    TitleField:
+        text: 'Trend'
+        pos_hint: {'x': 128 / 262, 'y': 114.5 / 202}
+        size_hint_x: (128 / 262)
+        opacity: 0 if app.IndoorTemp == '1' else 1
+    MediumField:
+        _color: 'c8c8c8ff' if app.CurrentConditions.Obs['outTempTrend'][2] == '-' else app.CurrentConditions.Obs['outTempTrend'][2]
+        text: '[color=' + self._color + ']' + app.CurrentConditions.Obs['outTempTrend'][0] + '[/color]' + app.CurrentConditions.Obs['outTempTrend'][1]
+        pos_hint: {'x': 128 / 262, 'y': 86 / 202}
+        size_hint_x: (128 / 262)
+        opacity: 0 if app.IndoorTemp == '1' else 1
+
+    ## 'Feels like' temperature
+    TitleField:
+        text: 'Feels Like'
+        pos_hint: {'x': 0/262, 'y': 65/202}
+        size_hint_x: (87.330/262)
+    MediumField:
+        text: app.CurrentConditions.Obs['FeelsLike'][0] + app.CurrentConditions.Obs['FeelsLike'][1]
+        pos_hint: {'x': 0/262, 'y': 43/202}
+        size_hint_x: (87.330/262)
+
+    ## Outdoor humidity
+    TitleField:
+        text: 'Humidity'
+        pos_hint: {'x': 87.330/262, 'y': 65/202}
+        size_hint_x: (87.330/262)
+    MediumField:
+        text: app.CurrentConditions.Obs['Humidity'][0] + app.CurrentConditions.Obs['Humidity'][1]
+        pos_hint: {'x': 87.330/262, 'y': 43/202}
+        size_hint_x: (87.330/262)
+
+    ## Dew point
+    TitleField:
+        text: 'Dew Point'
+        pos_hint: {'x': 174.660/262, 'y': 65/202}
+        size_hint_x: (87.330/262)
+    MediumField:
+        text: app.CurrentConditions.Obs['DewPoint'][0] + app.CurrentConditions.Obs['DewPoint'][1]
+        pos_hint: {'x': 174.660/262, 'y': 43/202}
+        size_hint_x: (87.330/262)
+
+    ## 'Feels like' icon and text
+    Image:
+        source: 'icons/feelsLike/' + root.feelsLikeIcon + app.scaleSuffix
+        pos_hint: {'x': 7/262, 'y': 7/202}
+        size_hint: (36/262, 31/202)
+        keep_ratio: 0
+        allow_stretch: 1
+    SmallField:
+        text: app.CurrentConditions.Obs['FeelsLike'][2]
+        pos_hint: {'x': 49/262, 'y': 10/202}
+        size_hint: (200/262, 17/202)
+        text_size: self.size
+        halign: 'left'
+
+<TemperatureButton>:
+    PanelButton:
+        text: 'Temperature'
+        on_release: app.CurrentConditions.switchPanel(self)

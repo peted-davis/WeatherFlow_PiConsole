@@ -1,0 +1,126 @@
+## WeatherFlow PiConsole: Raspberry Pi Python console for WeatherFlow Tempest
+## and Smart Home Weather stations.
+## Copyright (C) 2018-2022 Peter Davis
+
+## This program is free software: you can redistribute it and/or modify it under
+## the terms of the GNU General Public License as published by the Free Software
+## Foundation, either version 3 of the License, or (at your option) any later
+## version.
+
+## This program is distributed in the hope that it will be useful, but WITHOUT
+## ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+## FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+## details.
+
+## You should have received a copy of the GNU General Public License along with
+## this program. If not, see <http://www.gnu.org/licenses/>.
+
+## =============================================================================
+## WIND SPEED AND DIRECTION PANEL AND BUTTON
+## =============================================================================
+<WindSpeedPanel>:
+
+    ## Panel background and title
+    PanelBackground:
+        _panelTitle: 'Wind Speed'
+        _panelStatus: app.CurrentConditions.Status['sky_last_sample'] if app.config['Station']['SkyID'] else app.CurrentConditions.Status['tempest_last_sample']
+
+    ## Rapid Wind wind speed and direction
+    windRose:
+        Image:
+            source: 'icons/windRose/icons/' + str(round(root.rapidWindDir)) + app.scaleSuffix
+            pos_hint: {'x': 0, 'y': 0}
+            size_hint: (1, 1)
+            keep_ratio: 0
+            allow_stretch: 1
+
+    ## Current average wind speed
+    LargeField:
+        text: app.CurrentConditions.Obs['WindSpd'][0]
+        pos_hint: {'x': 3/262, 'y': 95/202}
+        size_hint_x: (60/262)
+    MediumField:
+        text: app.CurrentConditions.Obs['WindSpd'][1]
+        pos_hint: {'x': 3/262, 'y': 78/202}
+        size_hint_x: (60/262)
+
+    ## Daily averaged wind speed
+    SmallField:
+        text: 'Avg [color=ff8837ff]' + app.CurrentConditions.Obs['AvgWind'][0] + '[/color] ' + app.CurrentConditions.Obs['AvgWind'][1]
+        pos_hint: {'x': 3/262, 'y': 164/202}
+        size_hint_x: (101/262)
+    SmallField:
+        text: 'Wind'
+        pos_hint: {'x': 3/262, 'y': 147/202}
+        size_hint_x: (101/262)
+
+    ## Current wind gust
+    LargeField:
+        text: app.CurrentConditions.Obs['WindGust'][0]
+        pos_hint: {'x': 201/262, 'y': 95/202}
+        size_hint_x: (60/262)
+    MediumField:
+        text: app.CurrentConditions.Obs['WindGust'][1]
+        pos_hint: {'x': 201/262, 'y': 78/202}
+        size_hint_x: (60/262)
+
+    ## Maximum wind gust
+    SmallField:
+        text: 'Max [color=ff8837ff]' + app.CurrentConditions.Obs['MaxGust'][0] + '[/color] ' + app.CurrentConditions.Obs['MaxGust'][1]
+        pos_hint: {'x': 159/262, 'y': 164/202}
+        size_hint_x: (101/262)
+    SmallField:
+        text: 'Gust'
+        pos_hint: {'x': 159/262, 'y': 147/202}
+        size_hint_x: (101/262)
+
+    ## Current Beaufort scale text and icon
+    Image:
+        source: 'icons/windSpd/' + root.windSpdIcon + app.scaleSuffix
+        pos_hint: {'x': 18/262, 'y': 28/202}
+        size_hint: (30/262, 30/202)
+        keep_ratio: 0
+        allow_stretch: 1
+    SmallField:
+        text: app.CurrentConditions.Obs['WindSpd'][4]
+        pos_hint: {'x': 6/262, 'y': 6/202}
+        size_hint: (126/262, 17/202)
+        text_size: self.size
+        halign: 'left'
+
+    ## Current average wind direction
+    Image:
+        source: 'icons/windDir/' + root.windDirIcon + app.scaleSuffix
+        pos_hint: {'x': 216/262, 'y': 28/202}
+        size_hint: (30/262, 30/202)
+        keep_ratio: 0
+        allow_stretch: 1
+    SmallField:
+        text: 'Direction: [color=9aba2fff]' + app.CurrentConditions.Obs['WindDir'][0] + app.CurrentConditions.Obs['WindDir'][1] + '[/color]'
+        pos_hint: {'x': 119/262, 'y': 6/202}
+        size_hint: (135/262, 17/202)
+        text_size: self.size
+        halign: 'right'
+
+    ## Rapid wind direction in degrees
+    MediumField:
+        text: app.CurrentConditions.Obs['rapidDir'][0] + app.CurrentConditions.Obs['rapidDir'][1]
+        pos_hint: {'x': 102/262, 'y': 116/202}
+        size_hint_x: (60/262)
+
+    ## Rapid wind speed
+    MediumField:
+        text: app.CurrentConditions.Obs['rapidSpd'][0] + ' [size=' + str(int(self.font_size*0.8)) + ']' + app.CurrentConditions.Obs['rapidSpd'][1] + '[/size]'
+        pos_hint: {'x': 92/262, 'y': 89/202}
+        size_hint_x: (80/262)
+
+    ## Rapid wind direction text
+    SmallField:
+        text: app.CurrentConditions.Obs['rapidDir'][3]
+        pos_hint: {'x': 92/262, 'y': 65.5/202}
+        size_hint_x: (80/262)
+
+<WindSpeedButton>:
+    PanelButton:
+        text: 'Wind Speed'
+        on_release: app.CurrentConditions.switchPanel(self)

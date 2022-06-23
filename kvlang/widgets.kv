@@ -16,7 +16,7 @@
 ## this program. If not, see <http://www.gnu.org/licenses/>.
 
 ## =============================================================================
-## CUSTOM DisplayField LABELS
+## DisplayField LABELS
 ## =============================================================================
 <DisplayField@Label>
     color: utils.rgba('#c8c8c8ff')
@@ -55,7 +55,7 @@
     size_hint_y: (18/202)
 
 ## =============================================================================
-## CUSTOM MenuField, StatusField, AND StatusColumn LABELS
+## MenuField, StatusField, AND StatusColumn LABELS
 ## =============================================================================
 <MenuField@DisplayField>
     font_name: 'fonts/Inter-Bold.ttf'
@@ -78,7 +78,7 @@
             size: self.width-10, self.height
 
 ## =============================================================================
-## CUSTOM PanelTitle LABELS
+## PanelTitle LABELS
 ## =============================================================================
 <PanelTitle@DisplayField>:
     font_name: 'fonts/Inter-Bold.ttf'
@@ -98,7 +98,7 @@
     valign: 'center'
 
 ## =============================================================================
-## CUSTOM MultilineField LABELS
+## MultilineField LABELS
 ## =============================================================================
 <MediumMultilineField@Label>
     font_name: 'fonts/Inter-Light.ttf'
@@ -135,3 +135,110 @@
     markup: 1
     halign: 'center'
     valign: 'center'
+
+## =============================================================================
+## PanelButton AND MenuButton
+## =============================================================================
+<PanelButton@Button>:
+    font_size: dp(15.5*app.scaleFactor)
+    font_name: 'fonts/Inter-SemiBold.ttf'
+    color: utils.rgba('#d6d6d6ff')
+    background_color: (0,0,0,0)
+    canvas.before:
+        Color:
+            rgba: utils.rgba('#1e1e1eff') if self.state=='normal' else utils.rgba('#00525aff')
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [14*app.scaleFactor]
+
+<MenuButton@Button>:
+    font_size: dp(15.5*app.scaleFactor)
+    font_name: 'fonts/Inter-SemiBold.ttf'
+    color: utils.rgba('#d6d6d6ff')
+    background_color: (0,0,0,0)
+    canvas.before:
+        Color:
+            rgba: utils.rgba('#1e1e1eff') if self.state=='normal' else utils.rgba('#00525aff')
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [14*app.scaleFactor]
+
+## =============================================================================
+## CUSTOM DeviceSpinner, StationSpinner and SwitchButton
+## =============================================================================
+<SwitchButton@Button>
+    canvas.before:
+        Color:
+            rgba: utils.rgba('#1e1e1eff') if self.state=='normal' else utils.rgba('#00525aff')
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [14*app.scaleFactor]
+    background_normal: ''
+    background_color: 0, 0, 0, 0
+    font_size: dp(14*app.scaleFactor)
+    font_name: 'fonts/Inter-SemiBold.ttf'
+    color: utils.rgba('#d6d6d6ff')
+
+<DeviceSpinner@Spinner>:
+    canvas.before:
+        Color:
+            rgba: utils.rgba('#1e1e1eff') if self.state=='normal' else utils.rgba('#00525aff')
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [14*app.scaleFactor]
+    font_size: dp(14*app.scaleFactor)
+    font_name: 'fonts/Inter-SemiBold.ttf'
+    color: utils.rgba('#d6d6d6ff')
+    background_normal: ''
+    background_color: 0, 0, 0, 0
+    sync_height: True
+    disabled: 1
+    selected: 1 if self.text != 'Please select' and not self.disabled else 0
+    pos_hint: {'center': (.5, .5)}
+    option_cls: Factory.selectOption
+    dropdown_cls: Factory.CustomDropdown
+
+<StationSpinner@Spinner>:
+    canvas.before:
+        Color:
+            rgba: utils.rgba('#1e1e1eff') if self.state=='normal' else utils.rgba('#00525aff')
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [14*app.scaleFactor]
+    font_size: dp(14*app.scaleFactor)
+    font_name: 'fonts/Inter-SemiBold.ttf'
+    color: utils.rgba('#d6d6d6ff')
+    background_normal: ''
+    background_color: 0, 0, 0, 0
+    sync_height: True
+    pos_hint: {'center': (.5, .5)}
+    option_cls: Factory.selectOption
+    dropdown_cls: Factory.CustomDropdown
+
+<selectOption@SpinnerOption>
+    canvas.before:
+        Color:
+            rgba: utils.rgba('#404040ff') if self.state=='normal' else utils.rgba('#00525aff')
+        RoundedRectangle:
+            pos: [self.x+2, self.y+2]
+            size: [self.width-4, self.height-4]
+            radius: [14*app.scaleFactor]
+    background_color: (0,0,1,0)
+    font_size: dp(14*app.scaleFactor)
+    font_name: 'fonts/Inter-SemiBold.ttf'
+    color: utils.rgba('#c8c8c8ff')
+
+<CustomDropdown@DropDown>:
+    canvas.before:
+        Color:
+            rgba: utils.rgba('#101010ff')
+        RoundedRectangle:
+            pos: [self.x, self.y+1]
+            size: [self.width, self.height-2]
+            radius: [14*app.scaleFactor]
+

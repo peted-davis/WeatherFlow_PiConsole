@@ -1,0 +1,112 @@
+## WeatherFlow PiConsole: Raspberry Pi Python console for WeatherFlow Tempest
+## and Smart Home Weather stations.
+## Copyright (C) 2018-2022 Peter Davis
+
+## This program is free software: you can redistribute it and/or modify it under
+## the terms of the GNU General Public License as published by the Free Software
+## Foundation, either version 3 of the License, or (at your option) any later
+## version.
+
+## This program is distributed in the hope that it will be useful, but WITHOUT
+## ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+## FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+## details.
+
+## You should have received a copy of the GNU General Public License along with
+## this program. If not, see <http://www.gnu.org/licenses/>.
+
+## =============================================================================
+## BAROMETER PANEL AND BUTTON
+## =============================================================================
+<BarometerPanel>:
+
+    ## Panel background, title, and Barometer dial
+    PanelBackground:
+        _panelTitle: 'Barometer'
+        _panelStatus: app.CurrentConditions.Status['out_air_last_sample'] if app.config['Station']['OutAirID'] else app.CurrentConditions.Status['tempest_last_sample']
+    barometerDial:
+
+    ## Current pressure arrow
+    Image:
+        source: 'icons/barometer/' + root.barometerArrow + app.scaleSuffix
+        keep_ratio: 0
+        allow_stretch: 1
+        pos_hint: {'x': 46/262, 'y': 18/202}
+        size_hint: (168/262, 84/202)
+
+    ## Maximum and minimum pressure on pressure dial
+    TitleField:
+        text: app.BarometerMin
+        pos_hint: {'x': 29/262, 'y': 4/202}
+        size_hint_x: (40/262)
+    TitleField:
+        text: app.BarometerMax
+        pos_hint: {'x': 191/262, 'y': 4/202}
+        size_hint_x: (40/262)
+
+    ## Current pressure
+    TitleField:
+        text: 'SLP'
+        pos_hint: {'x': 80/262, 'y': 64/202}
+        size_hint_x: (100/262)
+    LargeField:
+        text: app.CurrentConditions.Obs['SLP'][0]
+        pos_hint: {'x': 80/262, 'y': 35/202}
+        size_hint_x: (100/262)
+    SmallField:
+        text: app.CurrentConditions.Obs['SLP'][1]
+        pos_hint: {'x': 80/262, 'y': 17/202}
+        size_hint_x: (100/262)
+
+    ## Current pressure trend
+    TitleField:
+        text: 'Trend'
+        pos_hint: {'x': 155/262, 'y': 166/202}
+        size_hint_x: (96/262)
+    SmallField:
+        text: app.CurrentConditions.Obs['SLPTrend'][2]
+        pos_hint: {'x': 155/262, 'y': 148/202}
+        size_hint_x: (96/262)
+    SmallField:
+        text: app.CurrentConditions.Obs['SLPTrend'][0] + app.CurrentConditions.Obs['SLPTrend'][1]
+        pos_hint: {'x': 155/262, 'y': 129/202}
+        size_hint_x: (96/262)
+
+    ## 24 Hour pressure low
+    TitleField:
+        text: 'Low'
+        pos_hint: {'x': 3/262, 'y': 166/202}
+        size_hint_x: (70/262)
+    SmallField:
+        text: '[color=00a4b4ff]' + app.CurrentConditions.Obs['SLPMin'][0] + '[/color]'
+        pos_hint: {'x': 3/262, 'y': 148/202}
+        size_hint_x: (70/262)
+    SmallField:
+        text: app.CurrentConditions.Obs['SLPMin'][2]
+        pos_hint: {'x': 3/262, 'y': 129/202}
+        size_hint_x: (70/262)
+
+    ## 24 Hour pressure high
+    TitleField:
+        text: 'High'
+        pos_hint: {'x': 73/262, 'y': 166/202}
+        size_hint_x: (70/262)
+    SmallField:
+        text: '[color=f05e40ff]' + app.CurrentConditions.Obs['SLPMax'][0] + '[/color]'
+        pos_hint: {'x': 73/262, 'y': 148/202}
+        size_hint_x: (70/262)
+    SmallField:
+        text: app.CurrentConditions.Obs['SLPMax'][2]
+        pos_hint: {'x': 73/262, 'y': 129/202}
+        size_hint_x: (70/262)
+
+    ## Weather tendency
+    SmallField:
+        text: app.CurrentConditions.Obs['SLPTrend'][3]
+        pos_hint: {'x': 21/262, 'y': 109/202}
+        size_hint_x: (220/262)
+
+<BarometerButton>:
+    PanelButton:
+        text: 'Barometer'
+        on_release: app.CurrentConditions.switchPanel(self)
