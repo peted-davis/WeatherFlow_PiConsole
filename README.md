@@ -176,7 +176,7 @@ wfpiconsole stop
 Although not officially supported, use the following step-by-step instructions
 to install and run the WeatherFlow PiConsole on Windows.
 
-1. Download and install the Python 3.7 version of Miniconda for Windows (a
+1. Download and install the Python 3.9 version of Miniconda for Windows (a
 lightweight Python interpreter): https://conda.io/miniconda.html
 
 2. Once Miniconda is installed open the ‘Anaconda Prompt’ program.
@@ -188,11 +188,13 @@ python -m pip install --upgrade pip
 
 4. Once that process has finished, run:
 ```
-python -m pip install autobahn[twisted] pytz pyasn1-modules service_identity geopy ephem Cython numpy packaging
+python -m pip install cython websockets numpy pytz ephem packaging pyOpenSSL certifi
 ```
 
-5. Once that has finished, follow steps 2 and 3 under “Installing the kivy
-stable release” to install Kivy: https://kivy.org/doc/stable/installation/installation-windows.html
+5. Once that has finished, install Kivy using
+```
+python -m pip install kivy[base]
+```
 This is the GUI library that drives the console.
 
 6. Once Kivy is installed, run the following commands in order in the Anaconda

@@ -42,7 +42,7 @@ def verify_response(Response, Field):
     else:
         Response = Response.json()
         if isinstance(Response, dict):
-            if Field in Response and Response[Field] is not None:
+            if Field in Response and Response[Field] and Response[Field] is not None:
                 return True
             else:
                 return False

@@ -1,0 +1,275 @@
+## WeatherFlow PiConsole: Raspberry Pi Python console for WeatherFlow Tempest
+## and Smart Home Weather stations.
+## Copyright (C) 2018-2022 Peter Davis
+
+## This program is free software: you can redistribute it and/or modify it under
+## the terms of the GNU General Public License as published by the Free Software
+## Foundation, either version 3 of the License, or (at your option) any later
+## version.
+
+## This program is distributed in the hope that it will be useful, but WITHOUT
+## ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+## FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+## details.
+
+## You should have received a copy of the GNU General Public License along with
+## this program. If not, see <http://www.gnu.org/licenses/>.
+
+## =============================================================================
+## SUNRISE/SUNSET PANEL AND BUTTON
+## =============================================================================
+<SunriseSunsetPanel>:
+
+    ## Panel background and title
+    PanelBackground:
+        _panelTitle: 'Solar  [size=' + str(int(self.ids.Title.font_size*0.8)) + ']|[/size]  UV'
+        _panelStatus: app.CurrentConditions.Status['sky_last_sample'] if app.config['Station']['SkyID'] else app.CurrentConditions.Status['tempest_last_sample']
+
+    ## Night bar
+    BoxLayout:
+        pos_hint: {'x': 13/262, 'y': 96/202}
+        size_hint: [236/262, 10/202]
+        canvas.after:
+            Color:
+                rgba: [100/255,100/255,100/255,1]
+            Rectangle:
+                pos: self.pos
+                size: self.size
+
+    ## Dawn/Dusk bar
+    BoxLayout:
+        pos_hint: {'x': (13+app.CurrentConditions.Astro['Dawn'][2]*236)/262, 'y': 96/202}
+        size_hint: [(app.CurrentConditions.Astro['Dusk'][2]*236)/262, 10/202]
+        canvas.after:
+            Color:
+                rgba: [29/255,74/255,87/255,1]
+            Rectangle:
+                pos: self.pos
+                size: self.size
+
+    ## Sunrise/sunset bar
+    BoxLayout:
+        pos_hint: {'x': (13+app.CurrentConditions.Astro['Sunrise'][2]*236)/262, 'y': 96/202}
+        size_hint: [(app.CurrentConditions.Astro['Sunset'][2]*236)/262, 10/202]
+        canvas.after:
+            Color:
+                rgba: [0/255,113/255,123/255,1]
+            Rectangle:
+                pos: self.pos
+                size: self.size
+
+    ## Sun bar and icon position
+    BoxLayout:
+        pos_hint: {'x': 13/262, 'y': 94/202}
+        size_hint: [236/262, 14/202]
+        canvas.after:
+            Color:
+                rgba: [230/255,75/255,36/255,app.CurrentConditions.Astro['sunIcon'][1]]
+            Line:
+                width: 1.2 * app.scaleFactor
+                rectangle: [self.x + app.CurrentConditions.Astro['sunIcon'][2]*self.width, self.y, 1, self.height]
+    Image:
+        source: 'icons/misc/' + app.CurrentConditions.Astro['sunIcon'][0] + app.scaleSuffix
+        pos_hint: {'x': (4+app.CurrentConditions.Astro['sunIcon'][2]*236)/262, 'y': 92/202}
+        size_hint: (18/262, 18/202)
+        keep_ratio: 0
+        allow_stretch: 1
+
+    ## Solar radiation
+    TitleField:
+        text: 'Radiation'
+        pos_hint: {'x': 3/262, 'y': 166/202}
+        size_hint_x: (105/262)
+    MediumField:
+        text: app.CurrentConditions.Obs['Radiation'][0] + app.CurrentConditions.Obs['Radiation'][1]
+        pos_hint: {'x': 3/262, 'y': 138/202}
+        size_hint_x: (105/262)
+
+    ## UV Index
+    TitleField:
+        text: 'UV Index'
+        pos_hint: {'x': 125/262, 'y': 166/202}
+        size_hint_x: (120/262)
+    MediumField:
+        text: app.CurrentConditions.Obs['UVIndex'][0]
+        pos_hint: {'x': 125/262, 'y': 138/202}
+        size_hint_x: (40/262)
+    TitleField:
+        text: app.CurrentConditions.Obs['UVIndex'][2]
+        pos_hint: {'x': 170/262, 'y': 140/202}
+        size_hint_x: (75/262)
+        color: utils.rgba('#000000ff')
+        canvas.before:
+            Color:
+                rgba: utils.rgba(root.uvBackground) if root.uvBackground != '-' else utils.rgba('000000ff')
+            RoundedRectangle:
+                pos: [self.pos[0],self.pos[1]-4*app.scaleFactor]
+                size: (self.width,self.height+8*app.scaleFactor)
+                radius: [5,]
+
+    ## Sunrise time
+    TitleField:
+        text: 'Sunrise'
+        pos_hint: {'x': 13/262, 'y': 113/202}
+        size_hint: (55/262, 17/202)
+        text_size: self.size
+        halign: 'left'
+    SmallField:
+        text: app.CurrentConditions.Astro['Sunrise'][1]
+        pos_hint: {'x': 13/262, 'y': 73/202}
+        size_hint: (160/262, 17/202)
+        text_size: self.size
+        halign: 'left'
+
+    ## Sunset time
+    TitleField:
+        text: 'Sunset'
+        pos_hint: {'x': 194/262, 'y': 113/202}
+        size_hint: (55/262, 17/202)
+        text_size: self.size
+        halign: 'right'
+    SmallField:
+        text: app.CurrentConditions.Astro['Sunset'][1]
+        pos_hint: {'x': 89/262, 'y': 73/202}
+        size_hint: (160/262, 17/202)
+        text_size: self.size
+        halign: 'right'
+
+    ## Time remaining until sunrise or sunset
+    TitleField:
+        text: app.CurrentConditions.Astro['sunEvent'][3]
+        pos_hint: {'x': 24/262, 'y': 50/202}
+        size_hint_x: (80/262)
+    MediumField:
+        text: app.CurrentConditions.Astro['sunEvent'][1]
+        pos_hint: {'x': 10/262, 'y': 27/202}
+        size_hint_x: (30/262)
+    TitleField:
+        text: 'hrs'
+        font_size: dp(10.9*app.scaleFactor)
+        pos_hint: {'x': 40/262, 'y': 25/202}
+        size_hint_x: (20/262)
+        color: utils.rgba('ffffffff')
+    MediumField:
+        text: app.CurrentConditions.Astro['sunEvent'][2]
+        pos_hint: {'x': 60/262, 'y': 27/202}
+        size_hint_x: (30/262)
+    TitleField:
+        text:  'mins'
+        font_size: dp(10.9*app.scaleFactor)
+        pos_hint: {'x': 90/262, 'y': 25/202}
+        size_hint_x: (28/262)
+        color: utils.rgba('ffffffff')
+    SmallField:
+        text: 'Till ' + app.CurrentConditions.Astro['sunEvent'][0]
+        pos_hint: {'x': 24/262, 'y': 5/202}
+        size_hint_x: (80/262)
+
+    ## Peak Sun Hours
+    TitleField:
+        text: 'Peak Sun Hours'
+        pos_hint: {'x': 132/262, 'y': 50/202}
+        size_hint_x: (120/262)
+    MediumField:
+        text: app.CurrentConditions.Obs['peakSun'][0]
+        pos_hint: {'x': 152/262, 'y': 26/202}
+        size_hint_x: (80/262)
+    SmallField:
+        text: 'Solar: ' + app.CurrentConditions.Obs['peakSun'][2]
+        pos_hint: {'x': 132/262, 'y': 5/202}
+        size_hint_x: (120/262)
+
+<SunriseSunsetButton>:
+    PanelButton:
+        text: 'Solar'
+        on_release: app.CurrentConditions.switchPanel(self)
+
+## =============================================================================
+## MOON PHASE PANEL AND BUTTON
+## =============================================================================
+<MoonPhasePanel>
+
+    ## Panel background, title, and MoonRose
+    PanelBackground:
+        _panelTitle: 'Moon'
+    moonRose:
+
+    ## Moonrise time
+    TitleField:
+        text: 'Moonrise'
+        pos_hint: {'x': 5/262, 'y': 23/202}
+        size_hint_x: (80/262)
+    SmallField:
+        text: app.CurrentConditions.Astro['Moonrise'][1]
+        pos_hint: {'x': 5/262, 'y': 5/202}
+        size_hint_x: (80/262)
+
+    ## Moonset time
+    TitleField:
+        text: 'Moonset'
+        pos_hint: {'x': 177/262, 'y': 23/202}
+        size_hint_x: (80/262)
+    SmallField:
+        text: app.CurrentConditions.Astro['Moonset'][1]
+        pos_hint: {'x': 177/262, 'y': 5/202}
+        size_hint_x: (80/262)
+
+    ## Next new moon
+    TitleField:
+        text: 'Next'
+        pos_hint: {'x': 6/262, 'y': 170/202}
+        size_hint_x: (70/262)
+    TitleField:
+        text: '[color=00a4b4ff]New[/color] Moon'
+        pos_hint: {'x': 6/262, 'y': 156/202}
+        size_hint_x: (70/262)
+    SmallField:
+        text: app.CurrentConditions.Astro['NewMoon'][0]
+        pos_hint: {'x': 6/262, 'y': 138/202}
+        size_hint_x: (70/262)
+
+    ## Next full moon
+    TitleField:
+        text: 'Next'
+        pos_hint: {'x': 186/262, 'y': 170/202}
+        size_hint_x: (70/262)
+    TitleField:
+        text: '[color=f05e40ff]Full[/color] Moon'
+        pos_hint: {'x': 186/262, 'y': 156/202}
+        size_hint_x: (70/262)
+    SmallField:
+        text: app.CurrentConditions.Astro['FullMoon'][0]
+        pos_hint: {'x': 186/262, 'y': 138/202}
+        size_hint_x: (70/262)
+
+    ## Moon phase icon
+    Image:
+        source: 'icons/moonPhase/' + app.CurrentConditions.Astro['Phase'][0] + app.scaleSuffix
+        pos_hint: {'x': 108/262, 'y': 93/202}
+        size_hint: (46/262, 46/202)
+        keep_ratio: 0
+        allow_stretch: 1
+        canvas.before:
+            PushMatrix
+            Rotate:
+                angle: app.CurrentConditions.Astro['Phase'][3]
+                origin: self.center
+        canvas.after:
+            PopMatrix
+
+    ## Moon phase text
+    SmallField:
+        text: app.CurrentConditions.Astro['Phase'][1]
+        pos_hint: {'x': 75/262, 'y': 72/202}
+        size_hint_x: (112/262)
+
+    ## Moon illuminance text
+    SmallField:
+        text: app.CurrentConditions.Astro['Phase'][2] + '% Illumin.'
+        pos_hint: {'x': 86/262, 'y': 52/202}
+        size_hint_x: (90/262)
+
+<MoonPhaseButton>:
+    PanelButton:
+        text: 'Moon'
+        on_release: app.CurrentConditions.switchPanel(self)
