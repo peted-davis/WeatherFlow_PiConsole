@@ -80,13 +80,16 @@ class sager_forecast():
 
         """ Failed to generate the the Sager Weathercaster forecast using the
         current weather conditions and the trend in conditions over the previous
-        6 hours. Reschedule fetch_forecast in 5 minutes
+        6 hours. Reschedule fetch_forecast in 60 minutes
         """
 
-        # Schedule new Sager forecast to be generated in 5 minutes.
+        # Update display
+        self.update_display()
+
+        # Schedule new Sager forecast to be generated in 60 minutes.
         Tz  = pytz.timezone(self.app.config['Station']['Timezone'])
         Now = datetime.now(pytz.utc).astimezone(Tz)
-        self.sched_time = Now + timedelta(minutes=5)
+        self.sched_time = Now + timedelta(minutes=60)
 
         # Schedule next Sager forecast
         seconds_sched = (self.sched_time - Now).total_seconds()
@@ -98,6 +101,9 @@ class sager_forecast():
         ''' Schedules the Sager Weathercaster forecast based on the specified
         SagerInterval
         '''
+
+        # Update display
+        self.update_display()
 
         # Get current time in station timezone
         Tz  = pytz.timezone(self.app.config['Station']['Timezone'])
@@ -280,9 +286,6 @@ class sager_forecast():
             self.sager_data['Forecast'] = '[color=f05e40ff]ERROR:[/color] Forecast will be regenerated in 60 minutes'
             self.sager_data['Issued']   = sched_time.strftime(time_format)
             Clock.schedule_once(self.fail_forecast)
-
-        # Update display
-        self.update_display()
 
     def update_display(self):
 
