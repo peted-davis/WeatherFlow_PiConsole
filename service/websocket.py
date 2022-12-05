@@ -29,6 +29,7 @@ import threading
 import asyncio
 import socket
 import json
+import time
 import ssl
 
 
@@ -51,17 +52,19 @@ class websocketClient():
         self.system = system()
 
         # Initialise websocketClient class variables
-        self._keep_running  = True
-        self._switch_device = False
-        self.reply_timeout  = 60
-        self.ping_timeout   = 60
-        self.sleep_time     = 10
-        self.thread_list    = {}
-        self.task_list      = {}
-        self.connected      = False
-        self.connection     = None
-        self.station        = int(self.config['Station']['StationID'])
-        self.url            = 'wss://ws.weatherflow.com/swd/data?token=' + self.config['Keys']['WeatherFlow']
+        self._keep_running    = True
+        self._switch_device   = False
+        self.watchdog_timeout = 300
+        self.reply_timeout    = 60
+        self.ping_timeout     = 60
+        self.sleep_time       = 10
+        self.thread_list      = {}
+        self.task_list        = {}
+        self.watchdog_list    = {}
+        self.connected        = False
+        self.connection       = None
+        self.station          = int(self.config['Station']['StationID'])
+        self.url              = 'wss://swd.weatherflow.com/swd/data?token=' + self.config['Keys']['WeatherFlow']
 
         # Initialise Observation Parser
         self.app.obsParser = obsParser()
@@ -122,13 +125,17 @@ class websocketClient():
         self.device_list = {'tempest': None, 'sky': None, 'out_air': None, 'in_air': None}
         if self.config['Station']['TempestID']:
             self.device_list['tempest'] = self.config['Station']['TempestID']
+            self.watchdog_list['obs_st'], self.watchdog_list['rapid_wind']  = time.time(), time.time()
         else:
             if self.config['Station']['SkyID']:
                 self.device_list['sky'] = self.config['Station']['SkyID']
+                self.watchdog_list['obs_sky'], self.watchdog_list['rapid_wind']  = time.time(), time.time()
             if self.config['Station']['OutAirID']:
                 self.device_list['out_air'] = self.config['Station']['OutAirID']
+                self.watchdog_list['obs_out_air']  = time.time()
         if self.config['Station']['InAirID']:
             self.device_list['in_air'] = self.config['Station']['InAirID']
+            self.watchdog_list['obs_in_air']  = time.time()
 
     async def __async__listen_devices(self, action):
         devices = []
@@ -165,11 +172,23 @@ class websocketClient():
             await self.task_list['verify']
             return {}
 
+    async def __async__watchdog(self):
+        now = time.time()
+        watchdog_triggered = False
+        for ob in self.watchdog_list:
+            if self.watchdog_list[ob] < (now - self.watchdog_timeout):
+                watchdog_triggered = True
+                break
+        if watchdog_triggered:
+            Logger.warning(f'Websocket: {self.system.log_time()} - Watchdog triggered {ob}')
+            await self.__async__disconnect()
+            await self.__async__connect()
+
     async def __async__decodeMessage(self):
         try:
             if self.message:
                 if 'type' in self.message:
-                    if self.message['type'] in ['ack', 'evt_precip']:
+                    if self.message['type'] in ['connection_opened', 'ack', 'evt_precip']:
                         pass
                     else:
                         if 'device_id' in self.message:
@@ -177,6 +196,7 @@ class websocketClient():
                                 if 'obs_st' in self.thread_list:
                                     while self.thread_list['obs_st'].is_alive():
                                         await asyncio.sleep(0.1)
+                                self.watchdog_list['obs_st'] = time.time()
                                 self.thread_list['obs_st'] = threading.Thread(target=self.app.obsParser.parse_obs_st,
                                                                               args=(self.message, self.config, ),
                                                                               name="obs_st")
@@ -185,6 +205,7 @@ class websocketClient():
                                 if 'obs_sky' in self.thread_list:
                                     while self.thread_list['obs_sky'].is_alive():
                                         await asyncio.sleep(0.1)
+                                self.watchdog_list['obs_sky'] = time.time()
                                 self.thread_list['obs_sky'] = threading.Thread(target=self.app.obsParser.parse_obs_sky,
                                                                                args=(self.message, self.config, ),
                                                                                name='obs_sky')
@@ -194,6 +215,7 @@ class websocketClient():
                                     if 'obs_out_air' in self.thread_list:
                                         while self.thread_list['obs_out_air'].is_alive():
                                             await asyncio.sleep(0.1)
+                                    self.watchdog_list['obs_out_air'] = time.time()
                                     self.thread_list['obs_out_air'] = threading.Thread(target=self.app.obsParser.parse_obs_out_air,
                                                                                        args=(self.message, self.config, ),
                                                                                        name='obs_out_air')
@@ -202,11 +224,13 @@ class websocketClient():
                                     if 'obs_in_air' in self.thread_list:
                                         while self.thread_list['obs_in_air'].is_alive():
                                             await asyncio.sleep(0.1)
+                                    self.watchdog_list['obs_in_air'] = time.time()
                                     self.thread_list['obs_in_air'] = threading.Thread(target=self.app.obsParser.parse_obs_in_air,
                                                                                       args=(self.message, self.config, ),
                                                                                       name='obs_in_air')
                                     self.thread_list['obs_in_air'].start()
                             elif self.message['type'] == 'rapid_wind':
+                                self.watchdog_list['rapid_wind'] = time.time()
                                 self.app.obsParser.parse_rapid_wind(self.message, self.config)
                             elif self.message['type'] == 'evt_strike':
                                 self.app.obsParser.parse_evt_strike(self.message, self.config)
@@ -223,6 +247,7 @@ class websocketClient():
         try:
             while self._keep_running:
                 self.message = await self.__async__getMessage()
+                await self.__async__watchdog()
                 await self.__async__decodeMessage()
         except asyncio.CancelledError:
             raise
