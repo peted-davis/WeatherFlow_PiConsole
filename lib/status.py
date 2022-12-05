@@ -46,6 +46,7 @@ class station(Widget):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.status_data = properties.Status()
+        self.offline_timeout = 600
         self.app = App.get_running_app()
         self.set_status_panels()
 
@@ -101,21 +102,21 @@ class station(Widget):
         """
 
         # Calculate timestamp 24 hours past
-        endTime   = int(time.time())
-        startTime = endTime - int(3600 * 24)
+        end_time   = int(time.time())
+        start_time = end_time - int(3600 * 24)
 
         # Get device observation counts
-        urlList  = []
-        Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&token={}'
+        url_list  = []
+        template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?time_start={}&time_end={}&token={}'
         if self.app.config['Station']['TempestID']:
-            urlList.append(Template.format(self.app.config['Station']['TempestID'], startTime, endTime, self.app.config['Keys']['WeatherFlow']))
+            url_list.append(template.format(self.app.config['Station']['TempestID'], start_time, end_time, self.app.config['Keys']['WeatherFlow']))
         if self.app.config['Station']['SkyID']:
-            urlList.append(Template.format(self.app.config['Station']['SkyID'],     startTime, endTime, self.app.config['Keys']['WeatherFlow']))
+            url_list.append(template.format(self.app.config['Station']['SkyID'],     start_time, end_time, self.app.config['Keys']['WeatherFlow']))
         if self.app.config['Station']['OutAirID']:
-            urlList.append(Template.format(self.app.config['Station']['OutAirID'],  startTime, endTime, self.app.config['Keys']['WeatherFlow']))
+            url_list.append(template.format(self.app.config['Station']['OutAirID'],  start_time, end_time, self.app.config['Keys']['WeatherFlow']))
         if self.app.config['Station']['InAirID']:
-            urlList.append(Template.format(self.app.config['Station']['InAirID'],  startTime, endTime, self.app.config['Keys']['WeatherFlow']))
-        for URL in urlList:
+            url_list.append(template.format(self.app.config['Station']['InAirID'],  start_time, end_time, self.app.config['Keys']['WeatherFlow']))
+        for URL in url_list:
             UrlRequest(URL,
                        on_success=self.parse_observation_count,
                        on_failure=self.fail_observation_count,
@@ -145,14 +146,14 @@ class station(Widget):
             request.url
         """
 
-        deviceID = re.search(r'device\/(.*)\?', request.url).group(1)
-        if deviceID == self.app.config['Station']['TempestID']:
+        device_id = re.search(r'device\/(.*)\?', request.url).group(1)
+        if device_id == self.app.config['Station']['TempestID']:
             self.status_data['tempest_ob_count'] = '[color=d73027ff]Error[/color]'
-        elif deviceID == self.app.config['Station']['SkyID']:
+        elif device_id == self.app.config['Station']['SkyID']:
             self.status_data['sky_ob_count'] = '[color=d73027ff]Error[/color]'
-        elif deviceID == self.app.config['Station']['OutAirID']:
+        elif device_id == self.app.config['Station']['OutAirID']:
             self.status_data['out_air_ob_count'] = '[color=d73027ff]Error[/color]'
-        elif deviceID == self.app.config['Station']['InAirID']:
+        elif device_id == self.app.config['Station']['InAirID']:
             self.status_data['in_air_ob_count'] = '[color=d73027ff]Error[/color]'
         self.update_display()
 
@@ -167,102 +168,110 @@ class station(Widget):
 
         # Get TEMPEST device status
         if self.app.config['Station']['TempestID'] and 'obs_st' in self.app.CurrentConditions.Obs:
-            latestOb       = self.app.CurrentConditions.Obs['obs_st']['obs'][0]
-            sampleTimeDiff = time.time() - latestOb[0]
-            deviceVoltage  = float(latestOb[16])
-            if sampleTimeDiff < 300 and deviceVoltage > 2.355:
-                device_status = '[color=9aba2fff]OK[/color]'
-                sampleDelay  = ''
+            latest_ob        = self.app.CurrentConditions.Obs['obs_st']['obs'][0]
+            sample_time_diff = time.time() - latest_ob[0]
+            device_voltage   = float(latest_ob[16])
+            wind_interval    = float(latest_ob[5])
+            if wind_interval == 3:
+                device_status = '[color=9aba2fff]Mode 1[/color]'
+            elif wind_interval == 6:
+                device_status = '[color=f9a825ff]Mode 2[/color]'
+            elif wind_interval == 60:
+                device_status = '[color=ef6c00ff]Mode 3[/color]'
+            elif wind_interval == 300:
+                device_status = '[color=b71c1cff]Mode 4[/color]'
+            if sample_time_diff < self.offline_timeout:
+                sample_delay  = ''
             else:
-                if sampleTimeDiff < 3600:
-                    sampleDelay = str(math.floor(sampleTimeDiff / 60)) + ' mins ago'
-                elif sampleTimeDiff < 7200:
-                    sampleDelay = str(math.floor(sampleTimeDiff / 3600)) + ' hour ago'
-                elif sampleTimeDiff < 86400:
-                    sampleDelay = str(math.floor(sampleTimeDiff / 3600)) + ' hours ago'
+                if sample_time_diff < 3600:
+                    sample_delay = str(math.floor(sample_time_diff / 60)) + ' mins ago'
+                elif sample_time_diff < 7200:
+                    sample_delay = str(math.floor(sample_time_diff / 3600)) + ' hour ago'
+                elif sample_time_diff < 86400:
+                    sample_delay = str(math.floor(sample_time_diff / 3600)) + ' hours ago'
                 else:
-                    sampleDelay = str(math.floor(sampleTimeDiff / 86400)) + ' days ago'
+                    sample_delay = str(math.floor(sample_time_diff / 86400)) + ' days ago'
                 device_status = '[color=d73027ff]Error[/color]'
 
             # Store TEMPEST device status variables
-            self.status_data['tempest_sample_time'] = datetime.fromtimestamp(latestOb[0], Tz).strftime('%H:%M:%S')
-            self.status_data['tempest_last_sample'] = sampleDelay
-            self.status_data['tempest_voltage']     = '{:.2f}'.format(deviceVoltage)
+            self.status_data['tempest_sample_time'] = datetime.fromtimestamp(latest_ob[0], Tz).strftime('%H:%M:%S')
+            self.status_data['tempest_last_sample'] = sample_delay
+            self.status_data['tempest_voltage']     = '{:.2f}'.format(device_voltage)
             self.status_data['tempest_status']      = device_status
 
         # Get SKY device status
         if self.app.config['Station']['SkyID'] and 'obs_sky' in self.app.CurrentConditions.Obs:
-            latestOb       = self.app.CurrentConditions.Obs['obs_sky']['obs'][0]
-            sampleTimeDiff = time.time() - latestOb[0]
-            deviceVoltage  = float(latestOb[8])
-            if sampleTimeDiff < 300 and deviceVoltage > 2.0:
+            latest_ob        = self.app.CurrentConditions.Obs['obs_sky']['obs'][0]
+            sample_time_diff = time.time() - latest_ob[0]
+            device_voltage   = float(latest_ob[8])
+            if sample_time_diff < self.offline_timeout and device_voltage > 2.0:
                 device_status = '[color=9aba2fff]OK[/color]'
-                sampleDelay  = ''
+                sample_delay  = ''
             else:
-                if sampleTimeDiff < 3600:
-                    sampleDelay = str(math.floor(sampleTimeDiff / 60)) + ' mins ago'
-                elif sampleTimeDiff < 7200:
-                    sampleDelay = str(math.floor(sampleTimeDiff / 3600)) + ' hour ago'
-                elif sampleTimeDiff < 86400:
-                    sampleDelay = str(math.floor(sampleTimeDiff / 3600)) + ' hours ago'
+                if sample_time_diff < 3600:
+                    sample_delay = str(math.floor(sample_time_diff / 60)) + ' mins ago'
+                elif sample_time_diff < 7200:
+                    sample_delay = str(math.floor(sample_time_diff / 3600)) + ' hour ago'
+                elif sample_time_diff < 86400:
+                    sample_delay = str(math.floor(sample_time_diff / 3600)) + ' hours ago'
                 else:
-                    sampleDelay = str(math.floor(sampleTimeDiff / 86400)) + ' days ago'
+                    sample_delay = str(math.floor(sample_time_diff / 86400)) + ' days ago'
                 device_status = '[color=d73027ff]Error[/color]'
 
             # Store SKY device status variables
-            self.status_data['sky_sample_time'] = datetime.fromtimestamp(latestOb[0], Tz).strftime('%H:%M:%S')
-            self.status_data['sky_last_sample'] = sampleDelay
-            self.status_data['sky_voltage']     = '{:.2f}'.format(deviceVoltage)
+            self.status_data['sky_sample_time'] = datetime.fromtimestamp(latest_ob[0], Tz).strftime('%H:%M:%S')
+            self.status_data['sky_last_sample'] = sample_delay
+            self.status_data['sky_voltage']     = '{:.2f}'.format(device_voltage)
             self.status_data['sky_status']      = device_status
 
         # Get outdoor AIR device status
         if self.app.config['Station']['OutAirID'] and 'obs_out_air' in self.app.CurrentConditions.Obs:
-            latestOb       = self.app.CurrentConditions.Obs['obs_out_air']['obs'][0]
-            sampleTimeDiff = time.time() - latestOb[0]
-            deviceVoltage  = float(latestOb[6])
-            if sampleTimeDiff < 300 and deviceVoltage > 1.9:
+            latest_ob        = self.app.CurrentConditions.Obs['obs_out_air']['obs'][0]
+            sample_time_diff = time.time() - latest_ob[0]
+            device_voltage   = float(latest_ob[6])
+            if sample_time_diff < self.offline_timeout and device_voltage > 1.9:
                 device_status = '[color=9aba2fff]OK[/color]'
-                sampleDelay  = ''
+                sample_delay  = ''
             else:
-                if sampleTimeDiff < 3600:
-                    sampleDelay = str(math.floor(sampleTimeDiff / 60)) + ' mins ago'
-                elif sampleTimeDiff < 7200:
-                    sampleDelay = str(math.floor(sampleTimeDiff / 3600)) + ' hour ago'
-                elif sampleTimeDiff < 86400:
-                    sampleDelay = str(math.floor(sampleTimeDiff / 3600)) + ' hours ago'
+                if sample_time_diff < 3600:
+                    sample_delay = str(math.floor(sample_time_diff / 60)) + ' mins ago'
+                elif sample_time_diff < 7200:
+                    sample_delay = str(math.floor(sample_time_diff / 3600)) + ' hour ago'
+                elif sample_time_diff < 86400:
+                    sample_delay = str(math.floor(sample_time_diff / 3600)) + ' hours ago'
                 else:
-                    sampleDelay = str(math.floor(sampleTimeDiff / 86400)) + ' days ago'
+                    sample_delay = str(math.floor(sample_time_diff / 86400)) + ' days ago'
                 device_status = '[color=d73027ff]Error[/color]'
 
             # Store outdoor AIR device status variables
-            self.status_data['out_air_sample_time'] = datetime.fromtimestamp(latestOb[0], Tz).strftime('%H:%M:%S')
-            self.status_data['out_air_last_sample'] = sampleDelay
-            self.status_data['out_air_voltage']     = '{:.2f}'.format(deviceVoltage)
+            self.status_data['out_air_sample_time'] = datetime.fromtimestamp(latest_ob[0], Tz).strftime('%H:%M:%S')
+            self.status_data['out_air_last_sample'] = sample_delay
+            self.status_data['out_air_voltage']     = '{:.2f}'.format(device_voltage)
             self.status_data['out_air_status']      = device_status
 
         # Get indoor AIR device status
         if self.app.config['Station']['InAirID'] and 'obs_in_air' in self.app.CurrentConditions.Obs:
-            latestOb       = self.app.CurrentConditions.Obs['obs_in_air']['obs'][0]
-            sampleTimeDiff = time.time() - latestOb[0]
-            deviceVoltage  = float(latestOb[6])
-            if sampleTimeDiff < 300 and deviceVoltage > 1.9:
+            latest_ob        = self.app.CurrentConditions.Obs['obs_in_air']['obs'][0]
+            sample_time_diff = time.time() - latest_ob[0]
+            device_voltage   = float(latest_ob[6])
+            if sample_time_diff < self.offline_timeout and device_voltage > 1.9:
                 device_status = '[color=9aba2fff]OK[/color]'
-                sampleDelay  = ''
+                sample_delay  = ''
             else:
-                if sampleTimeDiff < 3600:
-                    sampleDelay = str(math.floor(sampleTimeDiff / 60)) + ' mins ago'
-                elif sampleTimeDiff < 7200:
-                    sampleDelay = str(math.floor(sampleTimeDiff / 3600)) + ' hour ago'
-                elif sampleTimeDiff < 86400:
-                    sampleDelay = str(math.floor(sampleTimeDiff / 3600)) + ' hours ago'
+                if sample_time_diff < 3600:
+                    sample_delay = str(math.floor(sample_time_diff / 60)) + ' mins ago'
+                elif sample_time_diff < 7200:
+                    sample_delay = str(math.floor(sample_time_diff / 3600)) + ' hour ago'
+                elif sample_time_diff < 86400:
+                    sample_delay = str(math.floor(sample_time_diff / 3600)) + ' hours ago'
                 else:
-                    sampleDelay = str(math.floor(sampleTimeDiff / 86400)) + ' days ago'
+                    sample_delay = str(math.floor(sample_time_diff / 86400)) + ' days ago'
                 device_status = '[color=d73027ff]Error[/color]'
 
             # Store AIR device status variables
-            self.status_data['in_air_sample_time'] = datetime.fromtimestamp(latestOb[0], Tz).strftime('%H:%M:%S')
-            self.status_data['in_air_last_sample'] = sampleDelay
-            self.status_data['in_air_voltage']     = '{:.2f}'.format(deviceVoltage)
+            self.status_data['in_air_sample_time'] = datetime.fromtimestamp(latest_ob[0], Tz).strftime('%H:%M:%S')
+            self.status_data['in_air_last_sample'] = sample_delay
+            self.status_data['in_air_voltage']     = '{:.2f}'.format(device_voltage)
             self.status_data['in_air_status']      = device_status
 
         # Set hub status (i.e. station_status) based on device status
@@ -275,11 +284,11 @@ class station(Widget):
             device_status_list.append(self.status_data['out_air_status'])
         if self.app.config['Station']['InAirID'] and 'obs_in_air' in self.app.CurrentConditions.Obs:
             device_status_list.append(self.status_data['in_air_status'])
-        if not device_status_list or all('-' in Status for Status in device_status_list):
+        if not device_status_list or all('-' in status for status in device_status_list):
             self.status_data['station_status'] = '-'
-        elif all('Error' in Status for Status in device_status_list):
+        elif all('Error' in status for status in device_status_list):
             self.status_data['station_status'] = 'Offline'
-        elif all('OK' in Status for Status in device_status_list):
+        elif all('OK' in status or 'Mode' in status for status in device_status_list):
             self.status_data['station_status'] = 'Online'
         else:
             self.status_data['station_status'] = 'Error'
@@ -304,16 +313,16 @@ class station(Widget):
                     reference_error = True
 
 
-# =============================================================================
+# ==============================================================================
 # station_status STATUS PANEL CLASS
-# =============================================================================
+# ==============================================================================
 class station_status(BoxLayout):
     pass
 
 
-# =============================================================================
+# ==============================================================================
 # [device]_status STATUS PANEL CLASSES
-# =============================================================================
+# ==============================================================================
 class tempest_status(BoxLayout):
     pass
 
