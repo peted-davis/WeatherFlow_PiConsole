@@ -18,6 +18,7 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 # Load required Kivy modules
 from kivy.uix.modalview      import ModalView
 from kivy.properties         import StringProperty
+from kivy.app                import App
 
 
 # ==============================================================================
@@ -29,5 +30,6 @@ class updateNotification(ModalView):
 
     def __init__(self, latest_ver, **kwargs):
         super().__init__(**kwargs)
+        self.app = App.get_running_app()
         setattr(self.app, self.__class__.__name__, self)
         self.latest_ver = latest_ver
