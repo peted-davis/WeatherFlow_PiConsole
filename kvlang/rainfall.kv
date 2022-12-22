@@ -108,7 +108,7 @@
         source: 'icons/misc/offline' + app.scaleSuffix
         keep_ratio: 0
         allow_stretch: 1
-        opacity: 1 if app.CurrentConditions.Status['station_status'] == 'Offline' or app.CurrentConditions.Status['station_status'] == 'Error'  else 0
+        opacity: 1 if 'Offline' in app.CurrentConditions.Status['station_status'] else 0
         pos_hint: {'x': 230/262, 'y': 9/202}
         size_hint: (30/262, 30/202)
 

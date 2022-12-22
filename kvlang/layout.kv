@@ -133,8 +133,7 @@
             font_size: dp(16*app.scaleFactor)
             text: app.config['Station']['Name']
         MenuField:
-            _color: '#9aba2fff' if app.CurrentConditions.Status['station_status'] == 'Online' else '#c8c8c8ff' if app.CurrentConditions.Status['station_status'] == '-' else '#d73027ff'
-            text: 'Station status: [color=' + self._color + ']' + app.CurrentConditions.Status['station_status'] + '[/color]'
+            text: 'Station status: ' + app.CurrentConditions.Status['station_status']
     GridLayout:
         cols: 2
         padding: [dp(0),dp(0),dp(0),dp(10)]
