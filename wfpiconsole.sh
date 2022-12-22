@@ -61,7 +61,6 @@ PYTHON_MODULES=(cython==0.29.26
                 pytz==2021.3
                 ephem==4.1.3
                 packaging==21.3
-                cryptography==37.0.4
                 pyOpenSSL==21.0.0
                 certifi==2021.10.8)
 
