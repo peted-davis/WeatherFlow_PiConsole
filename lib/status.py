@@ -173,13 +173,17 @@ class station(Widget):
             device_voltage   = float(latest_ob[16])
             wind_interval    = float(latest_ob[5])
             if wind_interval == 3:
-                device_status = '[color=9aba2fff]Mode 1[/color]'
+                device_status = '[color=9aba2fff]Mode 0[/color]'
+            elif wind_interval == 20:
+                device_status = '[color=9aba2fff]Mode 0*[/color]'
             elif wind_interval == 6:
-                device_status = '[color=f9a825ff]Mode 2[/color]'
+                device_status = '[color=f9a825ff]Mode 1[/color]'
             elif wind_interval == 60:
-                device_status = '[color=ef6c00ff]Mode 3[/color]'
+                device_status = '[color=ef6c00ff]Mode 2[/color]'
             elif wind_interval == 300:
-                device_status = '[color=b71c1cff]Mode 4[/color]'
+                device_status = '[color=b71c1cff]Mode 3[/color]'
+            else:
+                device_status = '[color=ef6c00ff]Unknown[/color]'
             if sample_time_diff < self.offline_timeout:
                 sample_delay  = ''
             else:
@@ -290,6 +294,8 @@ class station(Widget):
             self.status_data['station_status'] = '[color=b71c1cff]Offline[/color]'
         elif all('Online' in status or 'Mode' in status for status in device_status_list):
             self.status_data['station_status'] = '[color=9aba2fff]Online[/color]'
+        elif any('Unknown' in status for status in device_status_list):
+            self.status_data['station_status'] = '[color=ef6c00ff]Unknown[/color]'
         else:
             self.status_data['station_status'] = '[color=ef6c00ff]Partly Offline[/color]'
 
