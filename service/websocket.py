@@ -63,17 +63,27 @@ class websocketClient():
         self.watchdog_list    = {}
         self.connected        = False
         self.connection       = None
-        self.station          = int(self.config['Station']['StationID'])
+        if self.config['Station']['StationID'] != "UNCONFIGURED":
+            self.station          = int(self.config['Station']['StationID'])
         self.url              = 'wss://swd.weatherflow.com/swd/data?token=' + self.config['Keys']['WeatherFlow']
 
         # Initialise Observation Parser
         self.app.obsParser = obsParser()
 
         # Connect to specified Websocket URL and return websocketClient
+
         await self.__async__connect()
         return self
 
     async def __async__connect(self):
+
+        # make sure WF token and StationID are known here
+        self.config = self.app.config
+        if self.config['Keys']['WeatherFlow'] == "UNCONFIGURED":
+            return
+        if self.config['Station']['StationID'] == "UNCONFIGURED":
+            return
+
         while not self.connected:
             try:
                 Logger.info(f'Websocket: {self.system.log_time()} - Opening connection')
@@ -268,19 +278,28 @@ class websocketClient():
 
 
 async def main():
+
     websocket = await websocketClient.create()
-    while websocket._keep_running:
-        try:
-            websocket.task_list['listen'] = asyncio.create_task(websocket._websocketClient__async__listen())
-            websocket.task_list['switch'] = asyncio.create_task(websocket._websocketClient__async__switch())
-            await asyncio.gather(*list(websocket.task_list.values()))
-        except asyncio.CancelledError:
-            if websocket._switch_device:
-                await websocket._websocketClient__async__listen_devices('listen_stop')
-                await websocket._websocketClient__async__get_devices()
-                await websocket._websocketClient__async__listen_devices('listen_start')
-                Logger.info(f'Websocket: {system().log_time()} - Switching devices and/or station')
-                websocket._switch_device = False
+
+    # ensure WF key and StationID are present
+    if websocket.config['Keys']['WeatherFlow'] == "UNCONFIGURED":
+        Logger.warning(f'skipping websockets: WeatherFlow token not configured')
+    elif websocket.config['Station']['StationID'] == "UNCONFIGURED":
+        Logger.warning(f'skipping websockets: StationID not configured')
+    else:
+
+        while websocket._keep_running:
+            try:
+                websocket.task_list['listen'] = asyncio.create_task(websocket._websocketClient__async__listen())
+                websocket.task_list['switch'] = asyncio.create_task(websocket._websocketClient__async__switch())
+                await asyncio.gather(*list(websocket.task_list.values()))
+            except asyncio.CancelledError:
+                if websocket._switch_device:
+                    await websocket._websocketClient__async__listen_devices('listen_stop')
+                    await websocket._websocketClient__async__get_devices()
+                    await websocket._websocketClient__async__listen_devices('listen_start')
+                    Logger.info(f'Websocket: {system().log_time()} - Switching devices and/or station')
+                    websocket._switch_device = False
 
 
 if __name__ == '__main__':

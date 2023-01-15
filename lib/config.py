@@ -78,6 +78,31 @@ def create():
     print('  Required fields are marked with an asterix (*)     ')
     print('')
 
+    # give the user the opportunity to install an example 'no data'
+    # .ini file that will at least bring up the dashboard
+
+    if queryUser('Ready to configure?', None):
+        pass
+    else:
+        if queryUser('Install example no-data demo config?', None):
+            print('    installing example .ini file')
+            import shutil
+            try:
+                shutil.copy('wfpiconsole.ini.example','wfpiconsole.ini')
+                print('Copied')
+            except Exception as e:
+                print('    EXITING - error',e)
+                print('')
+                sys.exit(1)
+            return
+        else:
+            print('')
+            print('  Exiting - must either configure or use example config...')
+            print('')
+            sys.exit(1)
+
+    print('')
+
     # Open new user configuration file
     Config = configparser.ConfigParser(allow_no_value=True)
     Config.optionxform = str
@@ -180,6 +205,12 @@ def update():
 
 
 def verify_station(config):
+
+    # skip if running example config
+    if config['Station']['StationID'] == "UNCONFIGURED":
+        return config
+    if config['Keys']['WeatherFlow'] == "UNCONFIGURED":
+        return config
 
     # Fetch latest station metadata
     Logger.info('Config: Verifying station details')
@@ -525,7 +556,13 @@ def validateAPIKeys(Config):
     RETRIES = 0
     if 'Keys' in Config:
         if 'CheckWX' in Config['Keys'] and CHECKWX is None:
+
             while True:
+
+                # skip if running example.ini
+                if config['Keys']['CheckWX'] == "UNCONFIGURED":
+                    break
+
                 header = {'X-API-Key': Config['Keys']['CheckWX']}
                 URL = 'https://api.checkwx.com/station/EGLL'
                 CHECKWX = requests.get(URL, headers=header).json()
@@ -553,7 +590,15 @@ def validateAPIKeys(Config):
     RETRIES = 0
     if 'Keys' in Config and 'Station' in Config:
         if 'WeatherFlow' in Config['Keys'] and 'StationID' in Config['Station'] and STATION is None:
+
             while True:
+
+                # skip if running example.ini
+                if config['Keys']['WeatherFlow'] == "UNCONFIGURED":
+                    break
+                if config['Station']['StationID'] == "UNCONFIGURED":
+                    break
+
                 Template = 'https://swd.weatherflow.com/swd/rest/stations/{}?api_key={}'
                 URL = Template.format(Config['Station']['StationID'], Config['Keys']['WeatherFlow'])
                 STATION = requests.get(URL).json()

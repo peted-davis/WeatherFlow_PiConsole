@@ -1,0 +1,72 @@
+[Keys]
+WeatherFlow = UNCONFIGURED
+CheckWX = UNCONFIGURED
+
+[Station]
+StationID = UNCONFIGURED
+TempestID = UNCONFIGURED
+SkyID = 
+OutAirID = 
+InAirID = 
+TempestHeight = 0.0
+SkyHeight = 
+OutAirHeight = 
+Latitude = 47
+Longitude = -122
+Elevation = 0.0
+Timezone = America/Los_Angeles
+Name = UNCONFIGURED EXAMPLE STATION
+
+[Units]
+Temp = f
+Pressure = mb
+Wind = mph
+Direction = cardinal
+Precip = in
+Distance = mi
+Other = imperial
+
+[Display]
+TimeFormat = 24 hr
+DateFormat = Mon, 01 Jan 0000
+LightningPanel = 1
+IndoorTemp = 0
+Cursor = 1
+Border = 1
+Fullscreen = 1
+Width = 800
+Height = 480
+
+[FeelsLike]
+ExtremelyCold = 23
+FreezingCold = 32
+VeryCold = 41
+Cold = 50
+Mild = 59
+Warm = 68
+Hot = 77
+VeryHot = 86
+
+[PrimaryPanels]
+PanelOne = Forecast
+PanelThree = WindSpeed
+PanelFour = SunriseSunset
+PanelFive = Rainfall
+PanelSix = Barometer
+
+[SecondaryPanels]
+PanelOne = Sager
+PanelTwo = 
+PanelThree = 
+PanelFour = MoonPhase
+PanelFive = 
+PanelSix = Lightning
+
+[System]
+BarometerMax = 1050
+BarometerMin = 950
+SagerInterval = 6
+Timeout = 20
+Hardware = Pi4
+Version = v22.12.3
+
