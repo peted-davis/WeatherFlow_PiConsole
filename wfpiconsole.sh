@@ -56,7 +56,7 @@ KIVY_DEPENDENCIES=(ffmpeg libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl
 # Cryptography version
 MODEL_FILE=/proc/device-tree/model
 if [ -f "$MODEL_FILE" ]; then
-  HARDWARE=$(tr -d '\0' < $FILE)
+  HARDWARE=$(tr -d '\0' < $MODEL_FILE)
   if [[ "$HARDWARE" == *"Raspberry Pi 3"* ]] || [[ "$HARDWARE" == *"Raspberry Pi Model B"* ]]; then
     CRYPTOGRAPHY_VERSION="37.0.4"
   elif [[ "$HARDWARE" == *"Raspberry Pi 4"* ]]; then
