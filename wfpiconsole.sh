@@ -53,6 +53,21 @@ KIVY_DEPENDENCIES=(ffmpeg libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl
                    libportmidi-dev libswscale-dev libavformat-dev libavcodec-dev zlib1g-dev
                    libgstreamer1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good)
 
+# Cryptography version
+MODEL_FILE=/proc/device-tree/model
+if [ -f "$MODEL_FILE" ]; then
+  HARDWARE=$(tr -d '\0' < $FILE)
+  if [[ "$HARDWARE" == *"Raspberry Pi 3"* ]] || [[ "$HARDWARE" == *"Raspberry Pi Model B"* ]]; then
+    CRYPTOGRAPHY_VERSION="37.0.4"
+  elif [[ "$HARDWARE" == *"Raspberry Pi 4"* ]]; then
+    CRYPTOGRAPHY_VERSION="38.0.1"
+  else
+    CRYPTOGRAPHY_VERSION="38.0.1"
+  fi
+else
+  CRYPTOGRAPHY_VERSION="39.0.0"
+fi
+
 # Python modules and versions
 KIVY_VERSION="2.0.0"
 PYTHON_MODULES=(cython==0.29.26
@@ -61,6 +76,7 @@ PYTHON_MODULES=(cython==0.29.26
                 pytz==2021.3
                 ephem==4.1.3
                 packaging==21.3
+                cryptography==$CRYPTOGRAPHY_VERSION
                 pyOpenSSL==21.0.0
                 certifi==2021.10.8)
 
