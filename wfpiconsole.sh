@@ -17,6 +17,48 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
+# DEFINE INSTALLER PREAMBLE
+# ------------------------------------------------------------------------------
+# -e option instructs bash to immediately exit if any command [1] has a non-zero
+# exit status.
+set -e
+
+# Define installer colors
+if [[ -f "${coltable}" ]]; then
+    source ${coltable}
+else
+    COL_NC='\e[0m'
+    COL_LIGHT_GREEN='\e[1;32m'
+    COL_LIGHT_RED='\e[1;31m'
+    TICK="[${COL_LIGHT_GREEN}✓${COL_NC}]"
+    CROSS="[${COL_LIGHT_RED}✗${COL_NC}]"
+    INFO="[i]"
+    DONE="${COL_LIGHT_GREEN} done!${COL_NC}"
+    OVER="\\r\\033[K"
+fi
+
+# Find the number of  rows and columns in terminal. Will default to 80x24 if it
+# can not be detected.
+if (tput lines &> /dev/null); then
+    rows=$(tput lines)
+else
+    rows=$(printf '%d' 80)
+fi
+if (tput cols &> /dev/null); then
+    columns=$(tput cols)
+else
+    columns=$(printf '%d' 24)
+fi
+
+# Divide the number of rows and columns by two so
+# the dialogs take up half of the screen.
+r=$(( rows / 2 ))
+c=$(( columns / 2 ))
+
+# Unless the screen is tiny
+r=$(( r < 20 ? 20 : r ))
+c=$(( c < 70 ? 70 : c ))
+
 # GET INVOKING USER
 # ------------------------------------------------------------------------------
 if [[ "${EUID}" -eq 0 ]]; then
@@ -62,7 +104,9 @@ if [ -f "$MODEL_FILE" ]; then
   elif [[ "$HARDWARE" == *"Raspberry Pi 4"* ]]; then
     CRYPTOGRAPHY_VERSION="38.0.1"
   else
-    CRYPTOGRAPHY_VERSION="38.0.1"
+    printf "  %b Unrecognised Raspberry Pi (%b)\\n\\n" "${CROSS}" "${HARDWARE}"
+    clean_up
+    exit 1
   fi
 else
   CRYPTOGRAPHY_VERSION="39.0.0"
@@ -80,54 +124,24 @@ PYTHON_MODULES=(cython==0.29.26
                 pyOpenSSL==21.0.0
                 certifi==2021.10.8)
 
+# Kivy pip source
+if [ -f "$MODEL_FILE" ]; then
+  HARDWARE=$(tr -d '\0' < $MODEL_FILE)
+  if [[ "$HARDWARE" == *"Raspberry Pi 3"* ]] || [[ "$HARDWARE" == *"Raspberry Pi Model B"* ]]; then
+    KIVY_SOURCE="https://github.com/kivy/kivy/archive/"$KIVY_VERSION".zip"
+  elif [[ "$HARDWARE" == *"Raspberry Pi 4"* ]]; then
+    KIVY_SOURCE="kivy=="$KIVY_VERSION
+  fi
+else
+  KIVY_SOURCE="kivy=="$KIVY_VERSION
+fi
+
 # Github repositories
-KIVY_REPO="https://github.com/kivy/kivy/archive/"$KIVY_VERSION".zip"
 WFPICONSOLE_REPO="https://github.com/peted-davis/WeatherFlow_PiConsole.git"
 WFPICONSOLE_TAGS="https://api.github.com/repos/peted-davis/WeatherFlow_PiConsole/tags"
 WFPICONSOLE_RAW="https://raw.githubusercontent.com/peted-davis/WeatherFlow_PiConsole"
 WFPICONSOLE_MAIN_UPDATE=$WFPICONSOLE_RAW"/main/wfpiconsole.sh"
 WFPICONSOLE_BETA_UPDATE=$WFPICONSOLE_RAW"/develop/wfpiconsole.sh"
-
-# DEFINE INSTALLER PREAMBLE
-# ------------------------------------------------------------------------------
-# -e option instructs bash to immediately exit if any command [1] has a non-zero
-# exit status.
-set -e
-
-# Define installer colors
-if [[ -f "${coltable}" ]]; then
-    source ${coltable}
-else
-    COL_NC='\e[0m'
-    COL_LIGHT_GREEN='\e[1;32m'
-    COL_LIGHT_RED='\e[1;31m'
-    TICK="[${COL_LIGHT_GREEN}✓${COL_NC}]"
-    CROSS="[${COL_LIGHT_RED}✗${COL_NC}]"
-    INFO="[i]"
-    DONE="${COL_LIGHT_GREEN} done!${COL_NC}"
-    OVER="\\r\\033[K"
-fi
-
-# Find the number of  rows and columns in terminal. Will default to 80x24 if it
-# can not be detected.
-if (tput lines &> /dev/null); then
-    rows=$(tput lines)
-else
-    rows=$(printf '%d' 80)
-fi
-if (tput cols &> /dev/null); then
-    columns=$(tput cols)
-else
-    columns=$(printf '%d' 24)
-fi
-
-# Divide the number of rows and columns by two so
-# the dialogs take up half of the screen.
-r=$(( rows / 2 ))
-c=$(( columns / 2 ))
-# Unless the screen is tiny
-r=$(( r < 20 ? 20 : r ))
-c=$(( c < 70 ? 70 : c ))
 
 # CHECK IF INPUT IS VALID COMMAND
 # ------------------------------------------------------------------------------
@@ -363,7 +377,7 @@ install_kivy() {
             local str="Installing Kivy Python library"
         fi
         printf "\\n  %b %s..." "${INFO}" "${str}"
-        if ($PIP_INSTALL $KIVY_REPO &> error_log); then
+        if ($PIP_INSTALL $KIVY_SOURCE &> error_log); then
             printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
         else
             printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
