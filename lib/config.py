@@ -85,6 +85,8 @@ def create():
         pass
     else:
         if queryUser('Install example no-data demo config?', None):
+
+            # step one - copy the example ini into place
             print('    installing example .ini file')
             import shutil
             try:
@@ -94,6 +96,24 @@ def create():
                 print('    EXITING - error',e)
                 print('')
                 sys.exit(1)
+
+            # step two - supersede example values with ones matching
+            #            the running version and hardware
+            currentConfig = configparser.ConfigParser(allow_no_value=True)
+            currentConfig.optionxform = str
+            currentConfig.read('wfpiconsole.ini')
+
+            currentConfig['System']['Version'] = Version
+            currentConfig['System']['Hardware'] = Hardware
+
+            # lastly - write the updated configuration file to disk
+            try:
+                currentConfig.write()
+            except TypeError:
+                with open('wfpiconsole.ini', 'w') as configfile:
+                    currentConfig.write(configfile)
+
+            # note we return here to avoid further checks
             return
         else:
             print('')
@@ -238,7 +258,6 @@ def verify_station(config):
 
     # Return verified configuration
     return config
-
 
 def switch(stationMetaData, deviceList, config):
 
