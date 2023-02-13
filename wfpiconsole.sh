@@ -113,7 +113,7 @@ else
 fi
 
 # Python modules and versions
-KIVY_VERSION="2.0.0"
+KIVY_VERSION="2.1.0"
 PYTHON_MODULES=(cython==0.29.26
                 websockets==10.1
                 numpy==1.21.4
