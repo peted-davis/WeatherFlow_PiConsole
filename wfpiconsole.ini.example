@@ -69,4 +69,5 @@ SagerInterval = 6
 Timeout = 20
 Hardware = Pi4
 Version = v22.12.3
+SkipRestObservations = True
 

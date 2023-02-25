@@ -63,8 +63,7 @@ class websocketClient():
         self.watchdog_list    = {}
         self.connected        = False
         self.connection       = None
-        if self.config['Station']['StationID'] != "UNCONFIGURED":
-            self.station          = int(self.config['Station']['StationID'])
+        self.station          = int(self.config['Station']['StationID'])
         self.url              = 'wss://swd.weatherflow.com/swd/data?token=' + self.config['Keys']['WeatherFlow']
 
         # Initialise Observation Parser
@@ -77,11 +76,9 @@ class websocketClient():
 
     async def __async__connect(self):
 
-        # make sure WF token and StationID are known here
+        # skip connecting if we're not using websockets for observations
         self.config = self.app.config
-        if self.config['Keys']['WeatherFlow'] == "UNCONFIGURED":
-            return
-        if self.config['Station']['StationID'] == "UNCONFIGURED":
+        if self.config['System']['SkipRestObservations']:
             return
 
         while not self.connected:
@@ -190,6 +187,9 @@ class websocketClient():
                 watchdog_triggered = True
                 break
         if watchdog_triggered:
+            # no need to disconnect/connect if we're not using websockets for observations
+            if self.config['System']['SkipRestObservations']:
+                return
             Logger.warning(f'Websocket: {self.system.log_time()} - Watchdog triggered {ob}')
             await self.__async__disconnect()
             await self.__async__connect()
@@ -281,11 +281,9 @@ async def main():
 
     websocket = await websocketClient.create()
 
-    # ensure WF key and StationID are present
-    if websocket.config['Keys']['WeatherFlow'] == "UNCONFIGURED":
-        Logger.warning(f'skipping websockets: WeatherFlow token not configured')
-    elif websocket.config['Station']['StationID'] == "UNCONFIGURED":
-        Logger.warning(f'skipping websockets: StationID not configured')
+    # log that we're skipping using websockets for observations
+    if websocket.config['System']['SkipRestObservations']:
+        Logger.warning(f'skipping websockets: SkipRestObservations set')
     else:
 
         while websocket._keep_running:
