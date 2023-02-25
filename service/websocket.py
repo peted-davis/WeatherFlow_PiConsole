@@ -63,7 +63,10 @@ class websocketClient():
         self.watchdog_list    = {}
         self.connected        = False
         self.connection       = None
-        self.station          = int(self.config['Station']['StationID'])
+        if self.config['System']['SkipRestObservations']:
+            self.station          = 1
+        else:
+            self.station          = int(self.config['Station']['StationID'])
         self.url              = 'wss://swd.weatherflow.com/swd/data?token=' + self.config['Keys']['WeatherFlow']
 
         # Initialise Observation Parser
