@@ -17,61 +17,6 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
-# GET INVOKING USER
-# ------------------------------------------------------------------------------
-if [[ "${EUID}" -eq 0 ]]; then
-    USER=$SUDO_USER
-else
-    USER=$USER
-fi
-
-# DEFINE INSTALLER VARIABLES
-# ------------------------------------------------------------------------------
-# Download and install directories
-CONSOLEDIR=/home/${USER}/wfpiconsole/
-DLDIR=${CONSOLEDIR}/temp/
-
-# Package manager commands
-PKG_MANAGER="apt-get"
-PKG_UPDATE_CACHE="${PKG_MANAGER} update"
-PKG_UPDATE_INSTALL="${PKG_MANAGER} dist-upgrade -y"
-PKG_UPDATE_COUNT="${PKG_MANAGER} -s -o Debug::NoLocking=true upgrade | grep -c ^Inst || true"
-PKG_NEW_INSTALL=(${PKG_MANAGER} --yes install)
-
-# Python PIP commands
-PIP_INSTALL="python3 -m pip install --user"
-PIP_UPDATE="python3 -m pip install --user --upgrade"
-
-# wfpiconsole and Kivy dependencies
-WFPICONSOLE_DEPENDENCIES=(git curl rng-tools build-essential python3-dev python3-pip python3-setuptools
-                          libssl-dev libffi-dev libatlas-base-dev jq)
-KIVY_DEPENDENCIES_ARM=(pkg-config libgl1-mesa-dev libgles2-mesa-dev libgstreamer1.0-dev
-                       gstreamer1.0-plugins-{bad,base,good,ugly} gstreamer1.0-{omx,alsa}
-                       libmtdev-dev xclip xsel libjpeg-dev libsdl2-dev libsdl2-image-dev
-                       libsdl2-mixer-dev libsdl2-ttf-dev)
-KIVY_DEPENDENCIES=(ffmpeg libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev
-                   libportmidi-dev libswscale-dev libavformat-dev libavcodec-dev zlib1g-dev
-                   libgstreamer1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good)
-
-# Python modules and versions
-KIVY_VERSION="2.0.0"
-PYTHON_MODULES=(cython==0.29.26
-                websockets==10.1
-                numpy==1.21.4
-                pytz==2021.3
-                ephem==4.1.3
-                packaging==21.3
-                pyOpenSSL==21.0.0
-                certifi==2021.10.8)
-
-# Github repositories
-KIVY_REPO="https://github.com/kivy/kivy/archive/"$KIVY_VERSION".zip"
-WFPICONSOLE_REPO="https://github.com/peted-davis/WeatherFlow_PiConsole.git"
-WFPICONSOLE_TAGS="https://api.github.com/repos/peted-davis/WeatherFlow_PiConsole/tags"
-WFPICONSOLE_RAW="https://raw.githubusercontent.com/peted-davis/WeatherFlow_PiConsole"
-WFPICONSOLE_MAIN_UPDATE=$WFPICONSOLE_RAW"/main/wfpiconsole.sh"
-WFPICONSOLE_BETA_UPDATE=$WFPICONSOLE_RAW"/develop/wfpiconsole.sh"
-
 # DEFINE INSTALLER PREAMBLE
 # ------------------------------------------------------------------------------
 # -e option instructs bash to immediately exit if any command [1] has a non-zero
@@ -109,9 +54,94 @@ fi
 # the dialogs take up half of the screen.
 r=$(( rows / 2 ))
 c=$(( columns / 2 ))
+
 # Unless the screen is tiny
 r=$(( r < 20 ? 20 : r ))
 c=$(( c < 70 ? 70 : c ))
+
+# GET INVOKING USER
+# ------------------------------------------------------------------------------
+if [[ "${EUID}" -eq 0 ]]; then
+    USER=$SUDO_USER
+else
+    USER=$USER
+fi
+
+# DEFINE INSTALLER VARIABLES
+# ------------------------------------------------------------------------------
+# Download and install directories
+CONSOLEDIR=/home/${USER}/wfpiconsole/
+DLDIR=${CONSOLEDIR}/temp/
+
+# Package manager commands
+PKG_MANAGER="apt-get"
+PKG_UPDATE_CACHE="${PKG_MANAGER} update"
+PKG_UPDATE_INSTALL="${PKG_MANAGER} dist-upgrade -y"
+PKG_UPDATE_COUNT="${PKG_MANAGER} -s -o Debug::NoLocking=true upgrade | grep -c ^Inst || true"
+PKG_NEW_INSTALL=(${PKG_MANAGER} --yes install)
+
+# Python PIP commands
+PIP_INSTALL="python3 -m pip install --user"
+PIP_UPDATE="python3 -m pip install --user --upgrade"
+
+# wfpiconsole and Kivy dependencies
+WFPICONSOLE_DEPENDENCIES=(git curl rng-tools build-essential python3-dev python3-pip python3-setuptools
+                          libssl-dev libffi-dev libatlas-base-dev jq)
+KIVY_DEPENDENCIES_ARM=(pkg-config libgl1-mesa-dev libgles2-mesa-dev libgstreamer1.0-dev
+                       gstreamer1.0-plugins-{bad,base,good,ugly} gstreamer1.0-{omx,alsa}
+                       libmtdev-dev xclip xsel libjpeg-dev libsdl2-dev libsdl2-image-dev
+                       libsdl2-mixer-dev libsdl2-ttf-dev)
+KIVY_DEPENDENCIES=(ffmpeg libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev
+                   libportmidi-dev libswscale-dev libavformat-dev libavcodec-dev zlib1g-dev
+                   libgstreamer1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good)
+
+# Cryptography version
+MODEL_FILE=/proc/device-tree/model
+if [ -f "$MODEL_FILE" ]; then
+  HARDWARE=$(tr -d '\0' < $MODEL_FILE)
+  if [[ "$HARDWARE" == *"Raspberry Pi 3"* ]] || [[ "$HARDWARE" == *"Raspberry Pi Model B"* ]]; then
+    CRYPTOGRAPHY_VERSION="37.0.4"
+  elif [[ "$HARDWARE" == *"Raspberry Pi 4"* ]]; then
+    CRYPTOGRAPHY_VERSION="38.0.1"
+  else
+    printf "  %b Unrecognised Raspberry Pi (%b)\\n\\n" "${CROSS}" "${HARDWARE}"
+    clean_up
+    exit 1
+  fi
+else
+  CRYPTOGRAPHY_VERSION="39.0.0"
+fi
+
+# Python modules and versions
+KIVY_VERSION="2.0.0"
+PYTHON_MODULES=(cython==0.29.26
+                websockets==10.1
+                numpy==1.21.4
+                pytz==2021.3
+                ephem==4.1.3
+                packaging==21.3
+                cryptography==$CRYPTOGRAPHY_VERSION
+                pyOpenSSL==21.0.0
+                certifi==2021.10.8)
+
+# Kivy pip source
+if [ -f "$MODEL_FILE" ]; then
+  HARDWARE=$(tr -d '\0' < $MODEL_FILE)
+  if [[ "$HARDWARE" == *"Raspberry Pi 3"* ]] || [[ "$HARDWARE" == *"Raspberry Pi Model B"* ]]; then
+    KIVY_SOURCE="https://github.com/kivy/kivy/archive/"$KIVY_VERSION".zip"
+  elif [[ "$HARDWARE" == *"Raspberry Pi 4"* ]]; then
+    KIVY_SOURCE="kivy=="$KIVY_VERSION
+  fi
+else
+  KIVY_SOURCE="kivy=="$KIVY_VERSION
+fi
+
+# Github repositories
+WFPICONSOLE_REPO="https://github.com/peted-davis/WeatherFlow_PiConsole.git"
+WFPICONSOLE_TAGS="https://api.github.com/repos/peted-davis/WeatherFlow_PiConsole/tags"
+WFPICONSOLE_RAW="https://raw.githubusercontent.com/peted-davis/WeatherFlow_PiConsole"
+WFPICONSOLE_MAIN_UPDATE=$WFPICONSOLE_RAW"/main/wfpiconsole.sh"
+WFPICONSOLE_BETA_UPDATE=$WFPICONSOLE_RAW"/develop/wfpiconsole.sh"
 
 # CHECK IF INPUT IS VALID COMMAND
 # ------------------------------------------------------------------------------
@@ -347,7 +377,7 @@ install_kivy() {
             local str="Installing Kivy Python library"
         fi
         printf "\\n  %b %s..." "${INFO}" "${str}"
-        if ($PIP_INSTALL $KIVY_REPO &> error_log); then
+        if ($PIP_INSTALL $KIVY_SOURCE &> error_log); then
             printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
         else
             printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
