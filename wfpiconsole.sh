@@ -113,7 +113,7 @@ else
 fi
 
 # Python modules and versions
-KIVY_VERSION="2.0.0"
+KIVY_VERSION="2.1.0"
 PYTHON_MODULES=(cython==0.29.26
                 websockets==10.1
                 numpy==1.21.4
@@ -1059,7 +1059,7 @@ if [[ "${1}" == "install" ]] || [[ "${1}" == "run_update" ]] || [[ "${1}" == "ru
 
     # Check compatability of hardware/OS
     PROCESSOR=$(uname -m)
-    if [[ $PROCESSOR = arm* ]] || [[ $PROCESSOR = x86_64 ]] || [[ $PROCESSOR = i*86 ]] || [[ $PROCESSOR = aarch64 ]]; then
+    if [[ $PROCESSOR = arm* ]] || [[ $PROCESSOR = x86_64 ]] || [[ $PROCESSOR = i*86 ]]; then
         printf "  %b Hardware check passed (%b)\\n" "${TICK}" "${PROCESSOR}"
     else
         printf "  %b Hardware check failed (%b)\\n\\n" "${CROSS}" "${PROCESSOR}"
