@@ -1,6 +1,6 @@
 """ Formats and sets the required units of observations displayed on the
 Raspberry Pi Python console for Weather Flow Smart Home Weather Stations.
-Copyright (C) 2018-2022  Peter Davis
+Copyright (C) 2018-2023  Peter Davis
 
 This program is free software: you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
