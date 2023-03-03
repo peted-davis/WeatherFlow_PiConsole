@@ -185,7 +185,7 @@ def verify_station(config):
     Logger.info('Config: Verifying station details')
     RETRIES = 0
     while True:
-        Template = 'https://swd.weatherflow.com/swd/rest/observations/station/{}?api_key={}'
+        Template = 'https://swd.weatherflow.com/swd/rest/observations/station/{}?token={}'
         URL = Template.format(config['Station']['StationID'], config['Keys']['WeatherFlow'])
         try:
             STATION = requests.get(URL).json()
@@ -398,7 +398,7 @@ def writeConfigKey(Config, Section, Key, keyDetails):
         RETRIES = 0
         if keyDetails['Source'] == 'observation' and OBSERVATION is None:
             while True:
-                Template = 'https://swd.weatherflow.com/swd/rest/observations/station/{}?api_key={}'
+                Template = 'https://swd.weatherflow.com/swd/rest/observations/station/{}?token={}'
                 URL = Template.format(Config['Station']['StationID'], Config['Keys']['WeatherFlow'])
                 OBSERVATION = requests.get(URL).json()
                 if 'status' in STATION:
@@ -554,7 +554,7 @@ def validateAPIKeys(Config):
     if 'Keys' in Config and 'Station' in Config:
         if 'WeatherFlow' in Config['Keys'] and 'StationID' in Config['Station'] and STATION is None:
             while True:
-                Template = 'https://swd.weatherflow.com/swd/rest/stations/{}?api_key={}'
+                Template = 'https://swd.weatherflow.com/swd/rest/stations/{}?token={}'
                 URL = Template.format(Config['Station']['StationID'], Config['Keys']['WeatherFlow'])
                 STATION = requests.get(URL).json()
                 if 'status' in STATION:
