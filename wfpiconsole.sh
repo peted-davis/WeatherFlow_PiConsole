@@ -319,7 +319,7 @@ install_kivy_packages() {
 
     # Define required packages and print progress to screen
     printf "\\n  %b Kivy Python library dependency checks...\\n" "${INFO}"
-    if [[ "$PROCESSOR" = "arm"* ]]; then
+    if [[ "$PROCESSOR" = "arm"* ]] || [[ $PROCESSOR = aarch64 ]]; then
         declare -a arg_array=("${KIVY_DEPENDENCIES_ARM[@]}")
     else
         declare -a arg_array=("${KIVY_DEPENDENCIES[@]}")
@@ -1059,7 +1059,7 @@ if [[ "${1}" == "install" ]] || [[ "${1}" == "run_update" ]] || [[ "${1}" == "ru
 
     # Check compatability of hardware/OS
     PROCESSOR=$(uname -m)
-    if [[ $PROCESSOR = arm* ]] || [[ $PROCESSOR = x86_64 ]] || [[ $PROCESSOR = i*86 ]]; then
+    if [[ $PROCESSOR = arm* ]] || [[ $PROCESSOR = aarch64 ]] || [[ $PROCESSOR = x86_64 ]] || [[ $PROCESSOR = i*86 ]]; then
         printf "  %b Hardware check passed (%b)\\n" "${TICK}" "${PROCESSOR}"
     else
         printf "  %b Hardware check failed (%b)\\n\\n" "${CROSS}" "${PROCESSOR}"
