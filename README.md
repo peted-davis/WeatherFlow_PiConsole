@@ -30,15 +30,13 @@ https://community.weatherflow.com/
 
 The console is fully supported for Raspberry Pi 3 Model B/B+ and Raspberry Pi 4
 running the the 32 bit version of Raspberry Pi OS. It can be run on earlier
-models, but no direct support is provided for these environments. It is **_not_** 
-compatible with Raspberry Pi Zero or Zero W, or the 64 bit version of Raspberry 
-Pi OS.
+models or the 64 bit version of Raspberry Pi OS, but no direct support is 
+provided for these environments. It is not compatible with Raspberry Pi Zero 
+or Zero W.
 
 For Raspberry Pi 3, the 'Legacy' (Debian Buster) version of Raspberry Pi OS with
-desktop must be used. On a Pi 3, the console will not run on the most recent
-version of Raspberry Pi OS (Debian Bullseye). For Raspberry Pi 4, either the
-Legacy (Buster) or most recent (Bullseye) version of Raspberry Pi OS may be
-used.
+desktop must be used. For Raspberry Pi 4, the most recent (Bullseye) version of 
+Raspberry Pi OS must be used.
 
 The console is compatible with the Raspberry Pi Official 7 inch Touchscreen or
 other HDMI equivalents. Note, screens that attach solely to the GPIO pins (SPI)
@@ -59,7 +57,7 @@ should take ~1 hour.
 
 The automated installer assumes you have already sucesfully setup your Raspberry
 Pi and have installed Raspberry Pi OS with Desktop, or you ar running on a PC
-with Ubuntu 18.04 or Raspberry Pi OS installed. For a Raspberry Pi you should
+with Ubuntu 20.04 or Raspberry Pi OS installed. For a Raspberry Pi you should
 have also attached the touch screen, and have either a keyboard and mouse attached
 directly to the Pi, or have accessesd the Pi remotely through SSH/VNC. If you
 are starting from scratch with a Raspberry Pi, the documentation should help
