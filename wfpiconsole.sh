@@ -1071,21 +1071,29 @@ if [[ "${1}" == "install" ]] || [[ "${1}" == "run_update" ]] || [[ "${1}" == "ru
         exit 1
     fi
     OS=$(. /etc/os-release && echo $PRETTY_NAME)
-    if is_command apt-get ; then
+    if ([[ "$HARDWARE" == *"Raspberry Pi 2"* ]] || [[ "$HARDWARE" == *"Raspberry Pi 3"* ]]) && [[ "$OS" == *"bullseye"* ]]; then
+        printf "  %b OS check failed (%b)\\n\\n" "${CROSS}" "${OS}"
+        clean_up
+        exit 1
+    elif [[ "$HARDWARE" == *"Raspberry Pi 4"* ]] && [[ "$OS" == *"buster"* ]]; then
+        printf "  %b OS check failed (%b)\\n\\n" "${CROSS}" "${OS}"
+        clean_up
+        exit 1
+    elif is_command apt-get ; then
         printf "  %b OS check passed (%b)\\n" "${TICK}" "${OS}"
     else
         printf "  %b OS check failed (%b)\\n\\n" "${CROSS}" "${OS}"
         clean_up
         exit 1
     fi
-    if [[ "${SUPPORTED_RASPBERRY_PI}" == "true" ]]; then
+    if [[ $SUPPORTED_RASPBERRY_PI == "true" ]]; then
         printf "  %b Raspberry Pi check passed (%b)\\n" "${TICK}" "${HARDWARE}"
-    elif [[ "${SUPPORTED_RASPBERRY_PI}" == "false" ]]; then
+    elif [[ $SUPPORTED_RASPBERRY_PI == "false" ]]; then
         printf "  %b Raspberry Pi check warning (%b)\\n" "${EXCLAMATION}" "${HARDWARE}"
     fi
 
     # Print warning if unsupported architecture/Raspberry Pi detected
-    if [[ $ARCHITECTURE = aarch64 ]] || [[ "${SUPPORTED_RASPBERRY_PI}" == "false" ]]; then
+    if [[ $ARCHITECTURE = aarch64 ]] || [[ $SUPPORTED_RASPBERRY_PI == "false" ]]; then
         printf "\n  %b WARNING: unsupported architecture or Raspberry Pi detected\n" "${EXCLAMATION}"
         printf "      No support is available for errors encountered while running\n"
         printf "      the PiConsole\n"
