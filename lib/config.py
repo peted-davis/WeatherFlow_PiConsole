@@ -411,15 +411,19 @@ def writeConfigKey(Config, Section, Key, keyDetails):
                 if RETRIES >= MAXRETRIES:
                     sys.exit('\n    Error: unable to fetch observation metadata')
 
-        # Validate TEMPEST device ID and get height above ground of TEMPEST
+        # Validate TEMPEST device ID and get height above ground or serial
+        # number of TEMPEST
         if Section == 'Station':
-            if Key == 'TempestHeight' and Config['Station']['TempestID']:
+            if (Key == 'TempestHeight' or Key == 'TempestSN') and Config['Station']['TempestID']:
                 while True:
                     for Device in STATION['stations'][0]['devices']:
                         if 'device_type' in Device:
                             if str(Device['device_id']) == Config['Station']['TempestID']:
                                 if Device['device_type'] == 'ST':
-                                    Value = Device['device_meta']['agl']
+                                    if Key == 'TempestHeight':
+                                        Value = Device['device_meta']['agl']
+                                    elif Key == 'TempestSN':
+                                        Value = Device['serial_number']
                     if not Value and Value != 0:
                         inputStr = '    TEMPEST not found. Please re-enter your TEMPEST device ID*: '
                         while True:
@@ -436,7 +440,7 @@ def writeConfigKey(Config, Section, Key, keyDetails):
                     else:
                         break
 
-        # Validate AIR device ID and get height above ground of AIR
+        # Validate outdoor AIR device ID and get height above ground of AIR
         if Section == 'Station':
             if Key == 'OutAirHeight' and Config['Station']['OutAirID']:
                 while True:
@@ -461,15 +465,19 @@ def writeConfigKey(Config, Section, Key, keyDetails):
                     else:
                         break
 
-        # Validate SKY device ID and get height above ground of SKY
+        # Validate SKY device ID and get height above ground or serial number of
+        # SKY
         if Section == 'Station':
-            if Key == 'SkyHeight' and Config['Station']['SkyID']:
+            if (Key == 'SkyHeight' or 'SkySN') and Config['Station']['SkyID']:
                 while True:
                     for Device in STATION['stations'][0]['devices']:
                         if 'device_type' in Device:
                             if str(Device['device_id']) == Config['Station']['SkyID']:
                                 if Device['device_type'] == 'SK':
-                                    Value = Device['device_meta']['agl']
+                                    if Key == 'SkyHeight':
+                                        Value = Device['device_meta']['agl']
+                                    elif Key == 'SkySN':
+                                        Value = Device['serial_number']
                     if not Value and Value != 0:
                         inputStr = '    SKY not found. Please re-enter your SKY device ID*: '
                         while True:
@@ -557,6 +565,7 @@ def validateAPIKeys(Config):
                 Template = 'https://swd.weatherflow.com/swd/rest/stations/{}?token={}'
                 URL = Template.format(Config['Station']['StationID'], Config['Keys']['WeatherFlow'])
                 STATION = requests.get(URL).json()
+                print(STATION)
                 if 'status' in STATION:
                     if 'NOT FOUND' in STATION['status']['status_message']:
                         inputStr = '    Station not found. Please re-enter your Station ID*: '
@@ -648,9 +657,13 @@ def defaultConfig():
     Default['Station'] =         collections.OrderedDict([('Description',    '  Station and device IDs'),
                                                           ('StationID',      {'Type': 'userInput', 'State': 'required', 'Format': int, 'Desc': 'Station ID'}),
                                                           ('TempestID',      {'Type': 'userInput', 'State': 'required', 'Format': int, 'Desc': 'TEMPEST device ID'}),
+                                                          ('TempestSN',      {'Type': 'request',   'Source': 'station', 'Desc': 'TEMPEST serial number'}),
                                                           ('SkyID',          {'Type': 'userInput', 'State': 'required', 'Format': int, 'Desc': 'SKY device ID'}),
+                                                          ('SkySN',          {'Type': 'request',   'Source': 'station', 'Desc': 'SKY serial number'}),
                                                           ('OutAirID',       {'Type': 'userInput', 'State': 'required', 'Format': int, 'Desc': 'outdoor AIR device ID'}),
+                                                          ('OutAirSN',       {'Type': 'request',   'Source': 'station', 'Desc': 'outdoor AIR serial number'}),
                                                           ('InAirID',        {'Type': 'userInput', 'State': 'required', 'Format': int, 'Desc': 'indoor AIR device ID'}),
+                                                          ('InAirSN',        {'Type': 'request',   'Source': 'station', 'Desc': 'indoor AIR serial number'}),
                                                           ('TempestHeight',  {'Type': 'request', 'Source': 'station', 'Desc': 'height of TEMPEST'}),
                                                           ('SkyHeight',      {'Type': 'request', 'Source': 'station', 'Desc': 'height of SKY'}),
                                                           ('OutAirHeight',   {'Type': 'request', 'Source': 'station', 'Desc': 'height of outdoor AIR'}),

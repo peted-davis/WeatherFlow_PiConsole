@@ -369,7 +369,7 @@ class wfpiconsole(App):
     # --------------------------------------------------------------------------
     def startWebsocketService(self, *largs):
         self.websocket_thread = threading.Thread(target=run_path,
-                                                 args=['service/websocket.py'],
+                                                 args=['service/udp.py'],             # args=['service/websocket.py'],
                                                  kwargs={'run_name': '__main__'},
                                                  daemon=True,
                                                  name='Websocket')
