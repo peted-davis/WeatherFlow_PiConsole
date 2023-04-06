@@ -84,8 +84,9 @@ def last_6h(Device, endTime, Config):
         apiData = None
 
     # Verify response
-    if apiData is None or not verify_response(apiData, 'obs'):
-        Logger.warning(f'request_api: {system().log_time()} - last_6h call failed')
+    if Config['Keys']['WeatherFlow']:
+        if apiData is None or not verify_response(apiData, 'obs'):
+            Logger.warning(f'request_api: {system().log_time()} - last_6h call failed')
 
     # Return observations from the last six hours
     return apiData
@@ -117,8 +118,9 @@ def last_24h(Device, endTime, Config):
         apiData = None
 
     # Verify response
-    if apiData is None or not verify_response(apiData, 'obs'):
-        Logger.warning(f'request_api: {system().log_time()} - last_24h call failed')
+    if Config['Keys']['WeatherFlow']:
+        if apiData is None or not verify_response(apiData, 'obs'):
+            Logger.warning(f'request_api: {system().log_time()} - last_24h call failed')
 
     # Return observations from the last twenty-four hours
     return apiData
@@ -158,8 +160,9 @@ def today(Device, Config):
         apiData = None
 
     # Verify response
-    if apiData is None or not verify_response(apiData, 'obs'):
-        Logger.warning(f'request_api: {system().log_time()} - Today call failed')
+    if Config['Keys']['WeatherFlow']:
+        if apiData is None or not verify_response(apiData, 'obs'):
+            Logger.warning(f'request_api: {system().log_time()} - Today call failed')
 
     # Return observations from today
     return apiData
@@ -201,8 +204,9 @@ def yesterday(Device, Config):
         apiData = None
 
     # Verify response
-    if apiData is None or not verify_response(apiData, 'obs'):
-        Logger.warning(f'request_api: {system().log_time()} - Yesterday call failed')
+    if Config['Keys']['WeatherFlow']:
+        if apiData is None or not verify_response(apiData, 'obs'):
+            Logger.warning(f'request_api: {system().log_time()} - Yesterday call failed')
 
     # Return observations from yesterday
     return apiData
@@ -251,8 +255,9 @@ def month(Device, Config):
         apiData = None
 
     # Verify response
-    if apiData is None or not verify_response(apiData, 'obs'):
-        Logger.warning(f'request_api: {system().log_time()} - Month call failed')
+    if Config['Keys']['WeatherFlow']:
+        if apiData is None or not verify_response(apiData, 'obs'):
+            Logger.warning(f'request_api: {system().log_time()} - Month call failed')
 
     # Return observations from the last month
     return apiData
@@ -301,8 +306,9 @@ def year(Device, Config):
         apiData = None
 
     # Verify response
-    if apiData is None or not verify_response(apiData, 'obs'):
-        Logger.warning(f'request_api: {system().log_time()} - Year call failed')
+    if Config['Keys']['WeatherFlow']:
+        if apiData is None or not verify_response(apiData, 'obs'):
+            Logger.warning(f'request_api: {system().log_time()} - Year call failed')
 
     # Return observations from the last year
     return apiData

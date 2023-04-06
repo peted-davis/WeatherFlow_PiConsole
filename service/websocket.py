@@ -63,27 +63,25 @@ class websocketClient():
         self.watchdog_list    = {}
         self.connected        = False
         self.connection       = None
-        if self.config['Station']['StationID'] != "UNCONFIGURED":
-            self.station          = int(self.config['Station']['StationID'])
-        self.url              = 'wss://swd.weatherflow.com/swd/data?token=' + self.config['Keys']['WeatherFlow']
 
         # Initialise Observation Parser
         self.app.obsParser = obsParser()
 
         # Connect to specified Websocket URL and return websocketClient
-
         await self.__async__connect()
         return self
 
     async def __async__connect(self):
 
-        # make sure WF token and StationID are known here
+        # Verify WeatherFlow token and StationID are specified in .ini file
         self.config = self.app.config
-        if self.config['Keys']['WeatherFlow'] == "UNCONFIGURED":
+        if not self.config['Station']['StationID'] or not self.config['Keys']['WeatherFlow']:
             return
-        if self.config['Station']['StationID'] == "UNCONFIGURED":
-            return
+        else:
+            self.station = int(self.config['Station']['StationID'])
+            self.url     = 'wss://swd.weatherflow.com/swd/data?token=' + self.config['Keys']['WeatherFlow']
 
+        # Connect to Websocket
         while not self.connected:
             try:
                 Logger.info(f'Websocket: {self.system.log_time()} - Opening connection')
@@ -97,6 +95,8 @@ class websocketClient():
                         self.app.obsParser.flagAPI = [1, 1, 1, 1]
                         self.connected = True
                         Logger.info(f'Websocket: {self.system.log_time()} - Connection open')
+                        if all(device == None for device in self.device_list.values()):
+                            Logger.warning(f'Websocket: {self.system.log_time()} - No device IDs configured')
                     else:
                         Logger.error(f'Websocket: {self.system.log_time()} - Connection message error')
                         await self.connection.close()
@@ -278,16 +278,10 @@ class websocketClient():
 
 
 async def main():
-
     websocket = await websocketClient.create()
-
-    # ensure WF key and StationID are present
-    if websocket.config['Keys']['WeatherFlow'] == "UNCONFIGURED":
-        Logger.warning(f'skipping websockets: WeatherFlow token not configured')
-    elif websocket.config['Station']['StationID'] == "UNCONFIGURED":
-        Logger.warning(f'skipping websockets: StationID not configured')
+    if not websocket.config['Keys']['WeatherFlow'] or not websocket.config['Station']['StationID']:
+        Logger.warning(f'Websocket: {system().log_time()} - WeatherFlow token or StationID not configured')
     else:
-
         while websocket._keep_running:
             try:
                 websocket.task_list['listen'] = asyncio.create_task(websocket._websocketClient__async__listen())

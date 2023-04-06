@@ -155,7 +155,10 @@ class forecast():
         """
 
         # Extract Forecast dictionary
-        Forecast = self.met_data['Response']
+        if 'Response' in self.met_data:
+            Forecast = self.met_data['Response']
+        else:
+            return
 
         # Get current time in station time zone
         Tz  = pytz.timezone(self.app.config['Station']['Timezone'])
