@@ -63,27 +63,39 @@ class websocketClient():
         self.watchdog_list    = {}
         self.connected        = False
         self.connection       = None
+<<<<<<< HEAD
         if self.config['System']['SkipRestObservations']:
             self.station          = 1
         else:
             self.station          = int(self.config['Station']['StationID'])
         self.url              = 'wss://swd.weatherflow.com/swd/data?token=' + self.config['Keys']['WeatherFlow']
+=======
+>>>>>>> example_config
 
         # Initialise Observation Parser
         self.app.obsParser = obsParser()
 
         # Connect to specified Websocket URL and return websocketClient
-
         await self.__async__connect()
         return self
 
     async def __async__connect(self):
 
+<<<<<<< HEAD
         # skip connecting if we're not using websockets for observations
         self.config = self.app.config
         if self.config['System']['SkipRestObservations']:
+=======
+        # Verify WeatherFlow token and StationID are specified in .ini file
+        self.config = self.app.config
+        if not self.config['Station']['StationID'] or not self.config['Keys']['WeatherFlow']:
+>>>>>>> example_config
             return
+        else:
+            self.station = int(self.config['Station']['StationID'])
+            self.url     = 'wss://swd.weatherflow.com/swd/data?token=' + self.config['Keys']['WeatherFlow']
 
+        # Connect to Websocket
         while not self.connected:
             try:
                 Logger.info(f'Websocket: {self.system.log_time()} - Opening connection')
@@ -97,6 +109,8 @@ class websocketClient():
                         self.app.obsParser.flagAPI = [1, 1, 1, 1]
                         self.connected = True
                         Logger.info(f'Websocket: {self.system.log_time()} - Connection open')
+                        if all(device == None for device in self.device_list.values()):
+                            Logger.warning(f'Websocket: {self.system.log_time()} - No device IDs configured')
                     else:
                         Logger.error(f'Websocket: {self.system.log_time()} - Connection message error')
                         await self.connection.close()
@@ -281,14 +295,10 @@ class websocketClient():
 
 
 async def main():
-
     websocket = await websocketClient.create()
-
-    # log that we're skipping using websockets for observations
-    if websocket.config['System']['SkipRestObservations']:
-        Logger.warning(f'skipping websockets: SkipRestObservations set')
+    if not websocket.config['Keys']['WeatherFlow'] or not websocket.config['Station']['StationID']:
+        Logger.warning(f'Websocket: {system().log_time()} - WeatherFlow token or StationID not configured')
     else:
-
         while websocket._keep_running:
             try:
                 websocket.task_list['listen'] = asyncio.create_task(websocket._websocketClient__async__listen())

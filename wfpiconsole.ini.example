@@ -1,30 +1,30 @@
 [Keys]
-WeatherFlow = UNCONFIGURED
-CheckWX = UNCONFIGURED
+WeatherFlow = 
+CheckWX = 
 
 [Station]
-StationID = UNCONFIGURED
-TempestID = UNCONFIGURED
+StationID = 
+TempestID =
 SkyID = 
 OutAirID = 
 InAirID = 
-TempestHeight = 0.0
+TempestHeight = 
 SkyHeight = 
 OutAirHeight = 
-Latitude = 47
-Longitude = -122
-Elevation = 0.0
-Timezone = America/Los_Angeles
-Name = UNCONFIGURED EXAMPLE STATION
+Latitude = 51.5072
+Longitude = 0.1276
+Elevation = 11
+Timezone = Europe/London
+Name = London, UK
 
 [Units]
-Temp = f
+Temp = c
 Pressure = mb
 Wind = mph
 Direction = cardinal
-Precip = in
-Distance = mi
-Other = imperial
+Precip = mm
+Distance = km
+Other = metric
 
 [Display]
 TimeFormat = 24 hr
@@ -38,17 +38,18 @@ Width = 800
 Height = 480
 
 [FeelsLike]
-ExtremelyCold = 23
-FreezingCold = 32
-VeryCold = 41
-Cold = 50
-Mild = 59
-Warm = 68
-Hot = 77
-VeryHot = 86
+ExtremelyCold = -5
+FreezingCold = 0
+VeryCold = 5
+Cold = 10
+Mild = 15
+Warm = 20
+Hot = 25
+VeryHot = 30
 
 [PrimaryPanels]
 PanelOne = Forecast
+PanelTwo = Temperature
 PanelThree = WindSpeed
 PanelFour = SunriseSunset
 PanelFive = Rainfall
