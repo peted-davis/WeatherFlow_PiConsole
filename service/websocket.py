@@ -63,14 +63,6 @@ class websocketClient():
         self.watchdog_list    = {}
         self.connected        = False
         self.connection       = None
-<<<<<<< HEAD
-        if self.config['System']['SkipRestObservations']:
-            self.station          = 1
-        else:
-            self.station          = int(self.config['Station']['StationID'])
-        self.url              = 'wss://swd.weatherflow.com/swd/data?token=' + self.config['Keys']['WeatherFlow']
-=======
->>>>>>> example_config
 
         # Initialise Observation Parser
         self.app.obsParser = obsParser()
@@ -81,15 +73,9 @@ class websocketClient():
 
     async def __async__connect(self):
 
-<<<<<<< HEAD
-        # skip connecting if we're not using websockets for observations
-        self.config = self.app.config
-        if self.config['System']['SkipRestObservations']:
-=======
         # Verify WeatherFlow token and StationID are specified in .ini file
         self.config = self.app.config
         if not self.config['Station']['StationID'] or not self.config['Keys']['WeatherFlow']:
->>>>>>> example_config
             return
         else:
             self.station = int(self.config['Station']['StationID'])
