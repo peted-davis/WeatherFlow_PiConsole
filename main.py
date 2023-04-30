@@ -198,8 +198,8 @@ class wfpiconsole(App):
         self.screenManager = screenManager(transition=NoTransition())
         self.screenManager.add_widget(CurrentConditions())
 
-        # Start Websocket service
-        self.startWebsocketService()
+        # Start Websocket or UDP service
+        self.start_connection_service()
 
         # Check for latest version
         self.system = system()
@@ -213,6 +213,11 @@ class wfpiconsole(App):
 
         # Return ScreenManager
         return self.screenManager
+
+    # DISCONNECT connection_client WHEN CLOSING APP
+    # --------------------------------------------------------------------------
+    def on_stop(self):
+        self.stop_connection_service()
 
     # SET DISPLAY SCALE FACTOR BASED ON SCREEN DIMENSIONS
     # --------------------------------------------------------------------------
@@ -365,22 +370,26 @@ class wfpiconsole(App):
         # Update derived variables to reflect configuration changes
         self.obsParser.reformat_display()
 
-    # START WEBSOCKET SERVICE
+    # START WEBSOCKET OR UDP SERVICE
     # --------------------------------------------------------------------------
-    def startWebsocketService(self, *largs):
-        self.websocket_thread = threading.Thread(target=run_path,
-                                                 args=['service/udp.py'],             # args=['service/websocket.py'],
-                                                 kwargs={'run_name': '__main__'},
-                                                 daemon=True,
-                                                 name='Websocket')
-        self.websocket_thread.start()
+    def start_connection_service(self, *largs):
+        if self.config['System']['Connection'] == 'Websocket':
+            self.connection_thread = threading.Thread(target=run_path,
+                                                      args=['service/websocket.py'],
+                                                      kwargs={'run_name': '__main__'},
+                                                      name='Websocket')
+        elif self.config['System']['Connection'] == 'UDP':
+            self.connection_thread = threading.Thread(target=run_path,
+                                                      args=['service/udp.py'],
+                                                      kwargs={'run_name': '__main__'},
+                                                      name='UDP')
+        self.connection_thread.start()
 
     # STOP WEBSOCKET SERVICE
     # --------------------------------------------------------------------------
-    def stopWebsocketService(self):
-        self.websocket_client._keep_running = False
-        self.websocket_thread.join()
-        del self.websocket_client
+    def stop_connection_service(self):
+        if hasattr(self, 'connection_client'):
+            self.connection_client._keep_running = False
 
     # EXIT CONSOLE AND SHUTDOWN SYSTEM
     # --------------------------------------------------------------------------
@@ -518,10 +527,14 @@ class CurrentConditions(Screen):
 # ==============================================================================
 if __name__ == '__main__':
     try:
-        wfpiconsole().run()
+        wfpiconsole_app = wfpiconsole()
+        wfpiconsole_app.run()
         if REBOOT:
             subprocess.call('sudo shutdown -r now', shell=True)
         elif SHUTDOWN:
             subprocess.call('sudo shutdown -h now', shell=True)
     except KeyboardInterrupt:
-        wfpiconsole().stop()
+        wfpiconsole_app.stop()
+    except Exception:
+        wfpiconsole_app.stop()
+        raise

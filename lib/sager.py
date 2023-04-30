@@ -23,7 +23,7 @@ http://www.freewebs.com/btjustice/bt-forecasters.html
 # Import required library modules
 from lib.request_api import weatherflow_api, checkwx_api
 from lib.system      import system
-from lib             import derivedVariables as derive
+from lib             import derived_variables as derive
 from lib             import properties
 
 # Import required Kivy modules

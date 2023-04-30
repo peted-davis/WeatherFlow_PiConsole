@@ -34,10 +34,10 @@ class TemperaturePanel(panelTemplate):
     # Initialise TemperaturePanel
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.setFeelsLikeIcon()
+        self.set_feels_like_icon()
 
     # Set "Feels Like" icon
-    def setFeelsLikeIcon(self):
+    def set_feels_like_icon(self):
         self.feelsLikeIcon = self.app.CurrentConditions.Obs['FeelsLike'][3]
 
 

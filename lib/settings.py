@@ -306,7 +306,11 @@ def JSON(Section):
                   'desc': 'Set the maximum temperature for "Feeling very hot"', 'section': 'FeelsLike', 'key': 'VeryHot'}
                  ]
     elif 'System' in Section:
-        Data =  [{'type': 'ToggleHours', 'title': 'Sager Forecast interval',
+        Data =  [{'type': 'FixedOptions', 'options': ['Websocket', 'UDP'], 'title': 'Connection',
+                  'desc': 'Set the console connection type', 'section': 'System', 'key': 'Connection'},
+                 {'type': 'bool', 'desc': 'Use the WeatherFlow REST API to fetch historical data & forecast',
+                  'title': 'REST API', 'section': 'System', 'key': 'rest_api'},
+                 {'type': 'ToggleHours', 'title': 'Sager Forecast interval',
                   'desc': 'Set the interval in hours between Sager Forecasts', 'section': 'System', 'key': 'SagerInterval'},
                  ]
 

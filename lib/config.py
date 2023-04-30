@@ -37,6 +37,7 @@ OBSERVATION   = None
 CHECKWX       = None
 MAXRETRIES    = 3
 NaN           = float('NaN')
+idx           = None
 
 # Determine current system
 if os.path.exists('/proc/device-tree/model'):
@@ -111,17 +112,17 @@ def update():
     """
 
     # Fetch latest version number
-    latestVersion = defaultConfig()['System']['Version']['Value']
+    latest_version = defaultConfig()['System']['Version']['Value']
 
     # Load current user configuration file
-    currentConfig = configparser.ConfigParser(allow_no_value=True)
-    currentConfig.optionxform = str
-    currentConfig.read('wfpiconsole.ini')
-    currentVersion = currentConfig['System']['Version']
+    current_config = configparser.ConfigParser(allow_no_value=True)
+    current_config.optionxform = str
+    current_config.read('wfpiconsole.ini')
+    current_version = current_config['System']['Version']
 
     # NEW VERSION DETECTED. GENERATE UPDATED CONFIGURATION FILE
     # --------------------------------------------------------------------------
-    if version.parse(currentVersion) < version.parse(latestVersion):
+    if version.parse(current_version) < version.parse(latest_version):
 
         # Print progress dialogue to screen
         print('')
@@ -147,19 +148,19 @@ def update():
                     print(defaultConfig()[Section][Key])
                     print('  ---------------------------------')
                 else:
-                    if currentConfig.has_option(Section, Key):
-                        if updateRequired(Key, currentVersion):
+                    if current_config.has_option(Section, Key):
+                        if updateRequired(Key, current_version):
                             Changes = True
                             writeConfigKey(newConfig, Section, Key, defaultConfig()[Section][Key])
                         else:
-                            copyConfigKey(newConfig, currentConfig, Section, Key, defaultConfig()[Section][Key])
-                    if not currentConfig.has_option(Section, Key):
+                            copyConfigKey(newConfig, current_config, Section, Key, defaultConfig()[Section][Key])
+                    if not current_config.has_option(Section, Key):
                         Changes = True
                         writeConfigKey(newConfig, Section, Key, defaultConfig()[Section][Key])
                     elif Key == 'Version':
                         Changes = True
-                        newConfig.set(Section, Key, latestVersion)
-                        print('  Updating version number to: ' + latestVersion)
+                        newConfig.set(Section, Key, latest_version)
+                        print('  Updating version number to: ' + latest_version)
             if not Changes:
                 print('  No changes required')
             print('')
@@ -173,10 +174,12 @@ def update():
 
     #  VERSION UNCHANGED. VERIFY STATION DETAILS FOR EXISTING CONFIGURATION
     # --------------------------------------------------------------------------
-    elif version.parse(currentVersion) == version.parse(latestVersion):
-        currentConfig = verify_station(currentConfig)
+    elif version.parse(current_version) == version.parse(latest_version):
+        if int(current_config['System']['rest_api']):
+            print(bool(current_config['System']['rest_api']))
+            current_config = verify_station(current_config)
         with open('wfpiconsole.ini', 'w') as configfile:
-            currentConfig.write(configfile)
+            current_config.write(configfile)
 
 
 def verify_station(config):
@@ -200,6 +203,8 @@ def verify_station(config):
             RETRIES += 1
         if RETRIES >= MAXRETRIES:
             Logger.error('Config: Unable to fetch station metadata')
+            if config['System']['Connection'] == 'UDP':
+                Logger.warning('Config: Disable REST API services when using UDP without an internet connection')
             sys.exit()
 
     # Confirm existing station name
@@ -209,32 +214,42 @@ def verify_station(config):
     return config
 
 
-def switch(stationMetaData, deviceList, config):
-
+def switch(station_meta_data, device_list, config):
+    print(device_list)
     # Update Station section in configuration file to match new station details
     for key in config['Station']:
-        Value = ''
+        value = ''
         if key == 'StationID':
-            Value = stationMetaData['station_id']
-        elif key in ['Latitude', 'Longitude', 'Timezone', 'Elevation']:
-            Value = stationMetaData[key.lower()]
+            value = station_meta_data['station_id']
+        elif key in ['Latitude', 'Longitude', 'Timezone']:
+            value = station_meta_data[key.lower()]
+        elif key == 'Elevation':
+            value = station_meta_data['station_meta'][key.lower()]
         elif key == 'Name':
-            Value = stationMetaData['station_name']
-        elif key == 'TempestID' and 'ST' in deviceList:
-            Value = deviceList['ST']['device_id']
-        elif key == 'SkyID' and 'SK' in deviceList:
-            Value = deviceList['SK']['device_id']
-        elif key == 'OutAirID' and 'AR_out' in deviceList:
-            Value = deviceList['AR_out']['device_id']
-        elif key == 'InAirID' and 'AR_in' in deviceList:
-            Value = deviceList['AR_in']['device_id']
-        elif key == 'TempestHeight' and 'ST' in deviceList:
-            Value = deviceList['ST']['device_meta']['agl']
-        elif key == 'SkyHeight' and 'SK' in deviceList:
-            Value = deviceList['SK']['device_meta']['agl']
-        elif key == 'OutAirHeight' and 'AR_out' in deviceList:
-            Value = deviceList['AR_out']['device_meta']['agl']
-        config.set('Station', key, str(Value))
+            value = station_meta_data['name']
+        elif key == 'TempestID' and 'ST' in device_list:
+            value = device_list['ST']['device_id']
+        elif key == 'TempestSN' and 'ST' in device_list:
+            value = device_list['ST']['serial_number']
+        elif key == 'SkyID' and 'SK' in device_list:
+            value = device_list['SK']['device_id']
+        elif key == 'SkySN' and 'SK' in device_list:
+            value = device_list['SK']['serial_number']
+        elif key == 'OutAirID' and 'AR_out' in device_list:
+            value = device_list['AR_out']['device_id']
+        elif key == 'OutAirSN' and 'AR_out' in device_list:
+            value = device_list['AR_out']['serial_number']
+        elif key == 'InAirID' and 'AR_in' in device_list:
+            value = device_list['AR_in']['device_id']
+        elif key == 'InAirSN' and 'AR_in' in device_list:
+            value = device_list['AR_in']['serial_number']
+        elif key == 'TempestHeight' and 'ST' in device_list:
+            value = device_list['ST']['device_meta']['agl']
+        elif key == 'SkyHeight' and 'SK' in device_list:
+            value = device_list['SK']['device_meta']['agl']
+        elif key == 'OutAirHeight' and 'AR_out' in device_list:
+            value = device_list['AR_out']['device_meta']['agl']
+        config.set('Station', key, str(value))
 
     # Write updated configuration file to disk
     try:
@@ -256,9 +271,9 @@ def copyConfigKey(newConfig, currentConfig, Section, Key, keyDetails):
     # Copy key value from existing configuration. Ignore AIR/SKY device IDs if
     # switching to TEMPEST
     else:
-        if (Key == 'SkyID' or Key == 'SkyHeight') and TEMPEST:
+        if (Key == 'SkyID' or Key == 'SkyHeight' or Key == 'SkySN') and TEMPEST:
             Value = ''
-        elif (Key == 'OutAirID' or Key == 'OutAirHeight') and TEMPEST:
+        elif (Key == 'OutAirID' or Key == 'OutAirHeight' or Key == 'OutAirSN') and TEMPEST:
             Value = ''
         else:
             Value = currentConfig[Section][Key]
@@ -313,10 +328,10 @@ def writeConfigKey(Config, Section, Key, keyDetails):
                 keyRequired = False
 
         # Skip device ID keys for devices that are not present
-        if Key == 'SkyID' and TEMPEST:
+        if (Key == 'SkyID' or Key == 'SkySN') and TEMPEST:
             Value = ''
             keyRequired = False
-        elif Key == 'OutAirID' and TEMPEST:
+        elif (Key == 'OutAirID' or Key == 'OutAirSN') and TEMPEST:
             Value = ''
             keyRequired = False
 
@@ -414,16 +429,17 @@ def writeConfigKey(Config, Section, Key, keyDetails):
         # Validate TEMPEST device ID and get height above ground or serial
         # number of TEMPEST
         if Section == 'Station':
-            if (Key == 'TempestHeight' or Key == 'TempestSN') and Config['Station']['TempestID']:
+            if Key in ['TempestHeight', 'TempestSN'] and TEMPEST:
                 while True:
-                    for Device in STATION['stations'][0]['devices']:
-                        if 'device_type' in Device:
-                            if str(Device['device_id']) == Config['Station']['TempestID']:
-                                if Device['device_type'] == 'ST':
-                                    if Key == 'TempestHeight':
-                                        Value = Device['device_meta']['agl']
-                                    elif Key == 'TempestSN':
-                                        Value = Device['serial_number']
+                    for station in STATION['stations']:
+                        for device in station['devices']:
+                            if 'device_type' in device:
+                                if str(device['device_id']) == Config['Station']['TempestID']:
+                                    if device['device_type'] == 'ST':
+                                        if Key == 'TempestHeight':
+                                            Value = device['device_meta']['agl']
+                                        elif Key == 'TempestSN':
+                                            Value = device['serial_number']
                     if not Value and Value != 0:
                         inputStr = '    TEMPEST not found. Please re-enter your TEMPEST device ID*: '
                         while True:
@@ -440,15 +456,17 @@ def writeConfigKey(Config, Section, Key, keyDetails):
                     else:
                         break
 
-        # Validate outdoor AIR device ID and get height above ground of AIR
+        # Validate outdoor AIR device ID and get height above ground of serial
+        # number of outdoor AIR
         if Section == 'Station':
-            if Key == 'OutAirHeight' and Config['Station']['OutAirID']:
+            if Key in ['OutAirHeight', 'OutAirSN'] and not TEMPEST:
                 while True:
-                    for Device in STATION['stations'][0]['devices']:
-                        if 'device_type' in Device:
-                            if str(Device['device_id']) == Config['Station']['OutAirID']:
-                                if Device['device_type'] == 'AR':
-                                    Value = Device['device_meta']['agl']
+                    for station in STATION['stations']:
+                        for device in station['devices']:
+                            if 'device_type' in device:
+                                if str(device['device_id']) == Config['Station']['OutAirID']:
+                                    if device['device_type'] == 'AR':
+                                        Value = device['device_meta']['agl']
                     if not Value and Value != 0:
                         inputStr = '    Outdoor AIR not found. Please re-enter your Outdoor AIR device ID*: '
                         while True:
@@ -468,16 +486,17 @@ def writeConfigKey(Config, Section, Key, keyDetails):
         # Validate SKY device ID and get height above ground or serial number of
         # SKY
         if Section == 'Station':
-            if (Key == 'SkyHeight' or 'SkySN') and Config['Station']['SkyID']:
+            if Key in ['SkyHeight',  'SkySN'] and not TEMPEST:
                 while True:
-                    for Device in STATION['stations'][0]['devices']:
-                        if 'device_type' in Device:
-                            if str(Device['device_id']) == Config['Station']['SkyID']:
-                                if Device['device_type'] == 'SK':
-                                    if Key == 'SkyHeight':
-                                        Value = Device['device_meta']['agl']
-                                    elif Key == 'SkySN':
-                                        Value = Device['serial_number']
+                    for station in STATION['stations']:
+                        for device in station['devices']:
+                            if 'device_type' in device:
+                                if str(device['device_id']) == Config['Station']['SkyID']:
+                                    if device['device_type'] == 'SK':
+                                        if Key == 'SkyHeight':
+                                            Value = device['device_meta']['agl']
+                                        elif Key == 'SkySN':
+                                            Value = device['serial_number']
                     if not Value and Value != 0:
                         inputStr = '    SKY not found. Please re-enter your SKY device ID*: '
                         while True:
@@ -494,22 +513,50 @@ def writeConfigKey(Config, Section, Key, keyDetails):
                     else:
                         break
 
+        # Validate outdoor AIR device ID and get height above ground of serial
+        # number of outdoor AIR
+        if Section == 'Station':
+            if Key in 'InAirSN' and Config['Station']['InAirID']:
+                while True:
+                    for station in STATION['stations']:
+                        for device in station['devices']:
+                            if 'device_type' in device:
+                                if str(device['device_id']) == Config['Station']['InAirID']:
+                                    if device['device_type'] == 'AR':
+                                        Value = device['serial_number']
+                    if not Value and Value != 0:
+                        inputStr = '    Indoor AIR not found. Please re-enter your Indoor AIR device ID*: '
+                        while True:
+                            ID = input(inputStr)
+                            if not ID:
+                                print('    Indoor AIR device ID cannot be empty. Please try again')
+                                continue
+                            try:
+                                ID = int(ID)
+                                break
+                            except ValueError:
+                                inputStr = '    Indoor AIR device ID not valid. Please re-enter your Indoor AIR device ID*: '
+                        Config.set('Station', 'InAirID', str(ID))
+                    else:
+                        break
+
         # Get station latitude/longitude, timezone, or name
         if Section == 'Station':
             if Key in ['Latitude', 'Longitude', 'Timezone', 'Name']:
-                Value = STATION['stations'][0][Key.lower()]
+                Value = STATION['stations'][idx][Key.lower()]
 
         # Get station elevation
         if Section == 'Station':
             if Key == 'Elevation':
-                Value = STATION['stations'][0]['station_meta']['elevation']
+                Value = STATION['stations'][idx]['station_meta']['elevation']
 
         # Get station units
         if Section in ['Units']:
             Value = OBSERVATION['station_units']['units_' + Key.lower()]
 
         # Write request Key value pair to configuration file
-        print('  Adding ' + keyDetails['Desc'] + ': ' + str(Value))
+        if Value:
+            print('  Adding ' + keyDetails['Desc'] + ': ' + str(Value))
         Config.set(Section, Key, str(Value))
 
     # Validate API keys
@@ -528,6 +575,7 @@ def validateAPIKeys(Config):
     # Define global variables
     global STATION
     global CHECKWX
+    global idx
 
     # Validate CheckWX API key
     RETRIES = 0
@@ -562,10 +610,9 @@ def validateAPIKeys(Config):
     if 'Keys' in Config and 'Station' in Config:
         if 'WeatherFlow' in Config['Keys'] and 'StationID' in Config['Station'] and STATION is None:
             while True:
-                Template = 'https://swd.weatherflow.com/swd/rest/stations/{}?token={}'
-                URL = Template.format(Config['Station']['StationID'], Config['Keys']['WeatherFlow'])
+                Template = 'https://swd.weatherflow.com/swd/rest/stations/?token={}'
+                URL = Template.format(Config['Keys']['WeatherFlow'])
                 STATION = requests.get(URL).json()
-                print(STATION)
                 if 'status' in STATION:
                     if 'NOT FOUND' in STATION['status']['status_message']:
                         inputStr = '    Station not found. Please re-enter your Station ID*: '
@@ -599,6 +646,10 @@ def validateAPIKeys(Config):
                     RETRIES += 1
                 if RETRIES >= MAXRETRIES:
                     sys.exit('\n    Error: unable to fetch station metadata')
+    if STATION is not None and idx is None:
+        for ii, station in enumerate(STATION['stations']):
+            if station['station_id'] == int(Config['Station']['StationID']):
+                idx = ii
 
 
 def queryUser(Question, Default=None):
@@ -716,10 +767,11 @@ def defaultConfig():
     Default['System'] =          collections.OrderedDict([('Description',    '  System settings'),
                                                           ('BarometerMax',   {'Type': 'dependent', 'Desc': 'maximum barometer pressure'}),
                                                           ('BarometerMin',   {'Type': 'dependent', 'Desc': 'minimum barometer pressure'}),
-                                                          ('SagerInterval',  {'Type': 'default',   'Value': '6',     'Desc': 'Interval in hours between Sager Forecasts'}),
-                                                          ('Timeout',        {'Type': 'default',   'Value': '20',    'Desc': 'Timeout in seconds for API requests'}),
-                                                          ('Hardware',       {'Type': 'default',   'Value': Hardware, 'Desc': 'Hardware type'}),
-                                                          ('Version',        {'Type': 'default',   'Value': Version, 'Desc': 'Version number'})])
+                                                          ('Connection',     {'Type': 'default',   'Value': 'Websocket', 'Desc': 'Connection type'}),
+                                                          ('SagerInterval',  {'Type': 'default',   'Value': '6',         'Desc': 'Interval in hours between Sager Forecasts'}),
+                                                          ('Timeout',        {'Type': 'default',   'Value': '20',        'Desc': 'Timeout in seconds for API requests'}),
+                                                          ('Hardware',       {'Type': 'default',   'Value': Hardware,    'Desc': 'Hardware type'}),
+                                                          ('Version',        {'Type': 'default',   'Value': Version,     'Desc': 'Version number'})])
 
     # Return default configuration
     return Default
