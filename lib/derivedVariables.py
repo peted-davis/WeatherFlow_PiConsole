@@ -1412,14 +1412,27 @@ def peakSunHours(radiation, peakSun, device, apiData, config):
     Now = datetime.now(pytz.utc).astimezone(Tz)
 
     # Calculate time of sunrise and sunset or use existing values
+    UTC = datetime.now(pytz.utc)
+    AlwaysUpRise = datetime(UTC.year, UTC.month, UTC.day, 0, 0, 0)
+    AlwaysUpSet  = datetime(UTC.year, UTC.month, UTC.day, 23, 59, 59)
+    NeverUpRise  = datetime(UTC.year, UTC.month, UTC.day, 23, 59, 49)
+    NeverUpSet   = datetime(UTC.year, UTC.month, UTC.day, 23, 59, 59)
+
     if peakSun[0] is None or Now > datetime.fromtimestamp(peakSun[5], Tz):
         Observer          = ephem.Observer()
         Observer.pressure = 0
         Observer.lat      = str(config['Station']['Latitude'])
         Observer.lon      = str(config['Station']['Longitude'])
         Observer.horizon  = '-0:34'
-        sunrise           = Observer.next_rising(ephem.Sun()).datetime().timestamp()
-        sunset            = Observer.next_setting(ephem.Sun()).datetime().timestamp()
+        try:
+            sunrise           = Observer.next_rising(ephem.Sun()).datetime().timestamp()
+            sunset            = Observer.next_setting(ephem.Sun()).datetime().timestamp()
+        except (ephem.AlwaysUpError, ephem.NeverUpError) as e:
+            sunrise           = AlwaysUpRise.timestamp()
+            sunset            = AlwaysUpSet.timestamp()
+        except ephem.NeverUpError as e:
+            sunrise           = NeverUpRise.timestamp()
+            sunset            = NeverUpSet.timestamp()
     else:
         sunrise           = peakSun[4]
         sunset            = peakSun[5]
