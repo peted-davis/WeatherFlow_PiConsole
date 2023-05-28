@@ -1427,12 +1427,9 @@ def peakSunHours(radiation, peakSun, device, apiData, config):
         try:
             sunrise           = Observer.next_rising(ephem.Sun()).datetime().timestamp()
             sunset            = Observer.next_setting(ephem.Sun()).datetime().timestamp()
-        except (ephem.AlwaysUpError, ephem.NeverUpError) as e:
+        except (ephem.AlwaysUpError, ephem.NeverUpError):
             sunrise           = AlwaysUpRise.timestamp()
             sunset            = AlwaysUpSet.timestamp()
-        except ephem.NeverUpError as e:
-            sunrise           = NeverUpRise.timestamp()
-            sunset            = NeverUpSet.timestamp()
     else:
         sunrise           = peakSun[4]
         sunset            = peakSun[5]
