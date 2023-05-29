@@ -108,7 +108,7 @@ kivyconfig.write()
 # ==============================================================================
 # IMPORT REQUIRED CORE KIVY MODULES
 # ==============================================================================
-from kivy.properties         import ConfigParserProperty, StringProperty
+from kivy.properties         import StringProperty
 from kivy.properties         import DictProperty, NumericProperty
 from kivy.core.window        import Window
 from kivy.factory            import Factory
@@ -171,9 +171,6 @@ class wfpiconsole(App):
 
     # Define App class dictionary properties
     Sched = DictProperty([])
-
-    # Define App class configParser properties
-    IndoorTemp   = ConfigParserProperty('-', 'Display', 'IndoorTemp',   'app')
 
     # Define display properties
     scaleFactor = NumericProperty(1)
@@ -286,10 +283,16 @@ class wfpiconsole(App):
 
         # Update current weather forecast, sunrise/sunset and moonrise/moonset
         # times when time format changed
-        if section == 'Display' and key in 'TimeFormat':
+        if section == 'Display' and key == 'TimeFormat':
             self.forecast.parse_forecast()
             self.astro.format_labels('Sun')
             self.astro.format_labels('Moon')
+
+        # Show or hide indoor temperature when setting is changed
+        if section == 'Display' and key == 'IndoorTemp':
+            if hasattr(self, 'TemperaturePanel'):
+                for panel in getattr(self, 'TemperaturePanel'):
+                    panel.set_indoor_temp_display()
 
         # Update "Feels Like" temperature cutoffs in wfpiconsole.ini and the
         # settings screen when temperature units are changed
