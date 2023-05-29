@@ -47,6 +47,7 @@ class BarometerPanel(panelTemplate):
         else:
             self.barometer_arrow = '{:.1f}'.format(max(min(1050, SLP), 950))
 
+    # Set maximum and minimum barometer limits based on selected units
     def set_barometer_max_min(self):
         value = self.app.config['Units']['Pressure']
         units = ['mb', 'hpa', 'inhg', 'mmhg']
