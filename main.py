@@ -160,7 +160,8 @@ import threading
 # IMPORT REQUIRED KIVY GRAPHICAL AND SETTINGS MODULES
 # ==============================================================================
 from kivy.uix.screenmanager  import ScreenManager, Screen, NoTransition
-from kivy.uix.settings       import SettingsWithSidebar
+from kivy.uix.settings       import SettingsWithSidebar, SettingBoolean
+from kivy.uix.switch         import Switch
 
 
 # ==============================================================================
@@ -366,6 +367,22 @@ class wfpiconsole(App):
         # Update Sager Forecast schedule
         if section == 'System' and key == 'SagerInterval':
             Clock.schedule_once(self.sager.schedule_forecast)
+
+        # Force rest_api services if Websocket connection is selected
+        if ((section == 'System' and key == 'Connection' and value == 'Websocket')
+                or (section == 'System' and key == 'rest_api' and self.config['System']['Connection'] == 'Websocket')):
+            if self.config['System']['rest_api'] == '0':
+                self.config.set('System', 'rest_api', '1')
+                self.config.write()
+                panels = self._app_settings.children[0].content.panels
+                for panel in panels.values():
+                    if panel.title == 'System':
+                        for item in panel.children:
+                            if isinstance(item, SettingBoolean) and item.title == 'REST API':
+                                for child in item.children[0].children:
+                                    for child in child.children:
+                                        if isinstance(child, Switch):
+                                            child.active = True
 
         # Update derived variables to reflect configuration changes
         self.obsParser.reformat_display()

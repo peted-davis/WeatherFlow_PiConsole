@@ -36,27 +36,26 @@ STATION       = None
 OBSERVATION   = None
 CHECKWX       = None
 MAXRETRIES    = 3
-NaN           = float('NaN')
 idx           = None
 
 # Determine current system
 if os.path.exists('/proc/device-tree/model'):
     proc = subprocess.Popen(['cat', '/proc/device-tree/model'], stdout=subprocess.PIPE)
-    Hardware = proc.stdout.read().decode('utf-8')
+    hardware = proc.stdout.read().decode('utf-8')
     proc.kill()
-    if 'Raspberry Pi 4' in Hardware:
-        Hardware = 'Pi4'
-    elif 'Raspberry Pi 3' in Hardware:
-        Hardware = 'Pi3'
-    elif 'Raspberry Pi Model B' in Hardware:
-        Hardware = 'PiB'
+    if 'Raspberry Pi 4' in hardware:
+        hardware = 'Pi4'
+    elif 'Raspberry Pi 3' in hardware:
+        hardware = 'Pi3'
+    elif 'Raspberry Pi Model B' in hardware:
+        hardware = 'PiB'
     else:
-        Hardware = 'Other'
+        hardware = 'Other'
 else:
     if platform.system() == 'Linux':
-        Hardware = 'Linux'
+        hardware = 'Linux'
     else:
-        Hardware = 'Other'
+        hardware = 'Other'
 
 
 def create():
@@ -66,7 +65,7 @@ def create():
     """
 
     # Load default configuration dictionary
-    default = defaultConfig()
+    default = default_config()
 
     # CONVERT DEFAULT CONFIGURATION DICTIONARY INTO .ini FILE
     # --------------------------------------------------------------------------
@@ -80,28 +79,28 @@ def create():
     print('')
 
     # Open new user configuration file
-    Config = configparser.ConfigParser(allow_no_value=True)
-    Config.optionxform = str
+    config = configparser.ConfigParser(allow_no_value=True)
+    config.optionxform = str
 
     # Loop through all sections in default configuration dictionary
-    for Section in default:
+    for section in default:
 
         # Add section to user configuration file
-        Config.add_section(Section)
+        config.add_section(section)
 
         # Add remaining sections to user configuration file
-        for Key in default[Section]:
-            if Key == 'Description':
-                print(default[Section][Key])
+        for key in default[section]:
+            if key == 'Description':
+                print(default[section][key])
                 print('  ---------------------------------')
             else:
-                writeConfigKey(Config, Section, Key, default[Section][Key])
+                write_config_key(config, section, key, default[section][key])
         print('')
 
     # WRITES USER CONFIGURATION FILE TO wfpiconsole.ini
     # --------------------------------------------------------------------------
-    with open('wfpiconsole.ini', 'w') as configfile:
-        Config.write(configfile)
+    with open('wfpiconsole.ini', 'w') as config_file:
+        config.write(config_file)
 
 
 def update():
@@ -112,7 +111,7 @@ def update():
     """
 
     # Fetch latest version number
-    latest_version = defaultConfig()['System']['Version']['Value']
+    latest_version = default_config()['System']['Version']['Value']
 
     # Load current user configuration file
     current_config = configparser.ConfigParser(allow_no_value=True)
@@ -135,51 +134,50 @@ def update():
         print('')
 
         # Create new config parser object to hold updated user configuration file
-        newConfig = configparser.ConfigParser(allow_no_value=True)
-        newConfig.optionxform = str
+        new_config = configparser.ConfigParser(allow_no_value=True)
+        new_config.optionxform = str
 
         # Loop through all sections in default configuration dictionary. Take
         # existing key values from current configuration file
-        for Section in defaultConfig():
-            Changes = False
-            newConfig.add_section(Section)
-            for Key in defaultConfig()[Section]:
-                if Key == 'Description':
-                    print(defaultConfig()[Section][Key])
+        for section in default_config():
+            changes = False
+            new_config.add_section(section)
+            for key in default_config()[section]:
+                if key == 'Description':
+                    print(default_config()[section][key])
                     print('  ---------------------------------')
                 else:
-                    if current_config.has_option(Section, Key):
-                        if updateRequired(Key, current_version):
-                            Changes = True
-                            writeConfigKey(newConfig, Section, Key, defaultConfig()[Section][Key])
+                    if current_config.has_option(section, key):
+                        if update_required(key, current_version):
+                            changes = True
+                            write_config_key(new_config, section, key, default_config()[section][key])
                         else:
-                            copyConfigKey(newConfig, current_config, Section, Key, defaultConfig()[Section][Key])
-                    if not current_config.has_option(Section, Key):
-                        Changes = True
-                        writeConfigKey(newConfig, Section, Key, defaultConfig()[Section][Key])
-                    elif Key == 'Version':
-                        Changes = True
-                        newConfig.set(Section, Key, latest_version)
+                            copy_config_key(new_config, current_config, section, key, default_config()[section][key])
+                    if not current_config.has_option(section, key):
+                        changes = True
+                        write_config_key(new_config, section, key, default_config()[section][key])
+                    elif key == 'Version':
+                        changes = True
+                        new_config.set(section, key, latest_version)
                         print('  Updating version number to: ' + latest_version)
-            if not Changes:
+            if not changes:
                 print('  No changes required')
             print('')
 
         # Verify station details for updated configuration
-        newConfig = verify_station(newConfig)
+        new_config = verify_station(new_config)
 
         # Write updated configuration file to disk
-        with open('wfpiconsole.ini', 'w') as configfile:
-            newConfig.write(configfile)
+        with open('wfpiconsole.ini', 'w') as config_file:
+            new_config.write(config_file)
 
     #  VERSION UNCHANGED. VERIFY STATION DETAILS FOR EXISTING CONFIGURATION
     # --------------------------------------------------------------------------
     elif version.parse(current_version) == version.parse(latest_version):
         if int(current_config['System']['rest_api']):
-            print(bool(current_config['System']['rest_api']))
             current_config = verify_station(current_config)
-        with open('wfpiconsole.ini', 'w') as configfile:
-            current_config.write(configfile)
+        with open('wfpiconsole.ini', 'w') as config_file:
+            current_config.write(config_file)
 
 
 def verify_station(config):
@@ -215,7 +213,7 @@ def verify_station(config):
 
 
 def switch(station_meta_data, device_list, config):
-    print(device_list)
+
     # Update Station section in configuration file to match new station details
     for key in config['Station']:
         value = ''
@@ -259,43 +257,43 @@ def switch(station_meta_data, device_list, config):
             config.write(configfile)
 
 
-def copyConfigKey(newConfig, currentConfig, Section, Key, keyDetails):
+def copy_config_key(new_config, current_config, section, key, details):
 
     # Define global variables
     global TEMPEST, INDOORAIR
 
     # Copy fixed key from default configuration
-    if keyDetails['Type'] == 'fixed':
-        Value = keyDetails['Value']
+    if details['Type'] == 'fixed':
+        value = details['Value']
 
     # Copy key value from existing configuration. Ignore AIR/SKY device IDs if
     # switching to TEMPEST
     else:
-        if (Key == 'SkyID' or Key == 'SkyHeight' or Key == 'SkySN') and TEMPEST:
-            Value = ''
-        elif (Key == 'OutAirID' or Key == 'OutAirHeight' or Key == 'OutAirSN') and TEMPEST:
-            Value = ''
+        if (key == 'SkyID' or key == 'SkyHeight' or key == 'SkySN') and TEMPEST:
+            value = ''
+        elif (key == 'OutAirID' or key == 'OutAirHeight' or key == 'OutAirSN') and TEMPEST:
+            value = ''
         else:
-            Value = currentConfig[Section][Key]
+            value = current_config[section][key]
 
     # Write key value to new configuration
-    newConfig.set(Section, Key, str(Value))
+    new_config.set(section, key, str(value))
 
     # Validate API keys
-    validateAPIKeys(newConfig)
+    validate_API_keys(new_config)
 
 
-def writeConfigKey(Config, Section, Key, keyDetails):
+def write_config_key(config, section, key, details):
 
     """ Gets and writes the key value pair to the specified section of the
         station configuration file
 
     INPUTS
-        Config              Station configuration
-        Section             Section of station configuration containing key
+        config              Station configuration
+        section             Section of station configuration containing key
                             value pair
-        Key                 Name of key value pair
-        keyDetails          Details (type/description) of key value pair
+        key                 Name of key value pair
+        details             Details (type/description) of key value pair
 
     """
 
@@ -307,114 +305,114 @@ def writeConfigKey(Config, Section, Key, keyDetails):
     global CHECKWX
 
     # Define required variables
-    keyRequired = True
+    key_required = True
 
     # GET VALUE OF userInput KEY TYPE
     # --------------------------------------------------------------------------
-    if keyDetails['Type'] in ['userInput']:
+    if details['Type'] in ['userInput']:
 
         # Request user input to determine which devices are present
-        if Key == 'TempestID':
-            if queryUser('Do you own a TEMPEST?*', None):
+        if key == 'TempestID':
+            if query_user('Do you own a TEMPEST?*', None):
                 TEMPEST = True
             else:
-                Value = ''
-                keyRequired = False
-        elif Key == 'InAirID':
-            if queryUser('Do you own an Indoor AIR?*', None):
+                value = ''
+                key_required = False
+        elif key == 'InAirID':
+            if query_user('Do you own an Indoor AIR?*', None):
                 INDOORAIR = True
             else:
-                Value = ''
-                keyRequired = False
+                value = ''
+                key_required = False
 
         # Skip device ID keys for devices that are not present
-        if (Key == 'SkyID' or Key == 'SkySN') and TEMPEST:
-            Value = ''
-            keyRequired = False
-        elif (Key == 'OutAirID' or Key == 'OutAirSN') and TEMPEST:
-            Value = ''
-            keyRequired = False
+        if (key == 'SkyID' or key == 'SkySN') and TEMPEST:
+            value = ''
+            key_required = False
+        elif (key == 'OutAirID' or key == 'OutAirSN') and TEMPEST:
+            value = ''
+            key_required = False
 
         # userInput key required. Get value from user
-        if keyRequired:
+        if key_required:
             while True:
-                if keyDetails['State'] == 'required':
-                    String = '  Please enter your ' + keyDetails['Desc'] + '*: '
+                if details['State'] == 'required':
+                    string = '  Please enter your ' + details['Desc'] + '*: '
                 else:
-                    String = '  Please enter your ' + keyDetails['Desc'] + ': '
-                Value = input(String)
+                    string = '  Please enter your ' + details['Desc'] + ': '
+                value = input(string)
 
                 # userInput key value is empty. Check if userInput key is
                 # required
-                if not Value and keyDetails['State'] == 'required':
-                    print('    ' + keyDetails['Desc'] + ' cannot be empty. Please try again')
+                if not value and details['State'] == 'required':
+                    print('    ' + details['Desc'] + ' cannot be empty. Please try again')
                     continue
-                elif not Value and keyDetails['State'] == 'optional':
+                elif not value and details['State'] == 'optional':
                     break
 
                 # Check if userInput key value matches required format
                 try:
-                    Value = keyDetails['Format'](Value)
+                    value = details['Format'](value)
                     break
                 except ValueError:
-                    print('    ' + keyDetails['Desc'] + ' format is not valid. Please try again')
+                    print('    ' + details['Desc'] + ' format is not valid. Please try again')
 
         # Write userInput Key value pair to configuration file
-        Config.set(Section, Key, str(Value))
+        config.set(section, key, str(value))
 
     # GET VALUE OF dependent KEY TYPE
     # --------------------------------------------------------------------------
-    elif keyDetails['Type'] in ['dependent']:
+    elif details['Type'] in ['dependent']:
 
         # Get dependent Key value
-        if Key == 'IndoorTemp':
-            if Config['Station']['InAirID']:
-                Value = '1'
+        if key == 'IndoorTemp':
+            if config['Station']['InAirID']:
+                value = '1'
             else:
-                Value = '0'
-        elif Key == 'BarometerMax':
+                value = '0'
+        elif key == 'BarometerMax':
             Units = ['mb', 'hpa', 'inhg', 'mmhg']
             Max = ['1050', '1050', '31.0', '788']
-            Value = Max[Units.index(Config['Units']['Pressure'])]
-        elif Key == 'BarometerMin':
+            value = Max[Units.index(config['Units']['Pressure'])]
+        elif key == 'BarometerMin':
             Units = ['mb', 'hpa', 'inhg', 'mmhg']
             Min = ['950', '950', '28.0', '713']
-            Value = Min[Units.index(Config['Units']['Pressure'])]
-        print('  Adding ' + keyDetails['Desc'] + ': ' + Value)
+            value = Min[Units.index(config['Units']['Pressure'])]
+        print('  Adding ' + details['Desc'] + ': ' + value)
 
         # Write dependent Key value pair to configuration file
-        Config.set(Section, Key, str(Value))
+        config.set(section, key, str(value))
 
     # GET VALUE OF default OR fixed KEY TYPE
     # --------------------------------------------------------------------------
-    elif keyDetails['Type'] in ['default', 'fixed']:
+    elif details['Type'] in ['default', 'fixed']:
 
         # Get default or fixed Key value
-        if Key in ['ExtremelyCold', 'FreezingCold', 'VeryCold', 'Cold', 'Mild', 'Warm', 'Hot', 'VeryHot']:
-            if 'c' in Config['Units']['Temp']:
-                Value = keyDetails['Value']
-            elif 'f' in Config['Units']['Temp']:
-                Value = str(int(float(keyDetails['Value']) * 9 / 5 + 32))
+        if key in ['ExtremelyCold', 'FreezingCold', 'VeryCold', 'Cold', 'Mild', 'Warm', 'Hot', 'VeryHot']:
+            if 'c' in config['Units']['Temp']:
+                value = details['Value']
+            elif 'f' in config['Units']['Temp']:
+                value = str(int(float(details['Value']) * 9 / 5 + 32))
         else:
-            Value = keyDetails['Value']
+            value = details['Value']
 
         # Write default or fixed Key value pair to configuration file
-        print('  Adding ' + keyDetails['Desc'] + ': ' + Value)
-        Config.set(Section, Key, str(Value))
+        print('  Adding ' + details['Desc'] + ': ' + value)
+        config.set(section, key, str(value))
 
     # GET VALUE OF request KEY TYPE
     # --------------------------------------------------------------------------
-    elif keyDetails['Type'] in ['request']:
+    elif details['Type'] in ['request']:
 
         # Define local variables
-        Value = ''
+        value = ''
 
         # Get Observation metadata from WeatherFlow API
         RETRIES = 0
-        if keyDetails['Source'] == 'observation' and OBSERVATION is None:
+        if details['Source'] == 'observation' and OBSERVATION is None:
             while True:
                 Template = 'https://swd.weatherflow.com/swd/rest/observations/station/{}?token={}'
-                URL = Template.format(Config['Station']['StationID'], Config['Keys']['WeatherFlow'])
+                URL = Template.format(config['Station']['StationID'], config['Keys']['WeatherFlow'])
                 OBSERVATION = requests.get(URL).json()
                 if 'status' in STATION:
                     if 'SUCCESS' in STATION['status']['status_message']:
@@ -428,19 +426,19 @@ def writeConfigKey(Config, Section, Key, keyDetails):
 
         # Validate TEMPEST device ID and get height above ground or serial
         # number of TEMPEST
-        if Section == 'Station':
-            if Key in ['TempestHeight', 'TempestSN'] and TEMPEST:
+        if section == 'Station':
+            if key in ['TempestHeight', 'TempestSN'] and TEMPEST:
                 while True:
                     for station in STATION['stations']:
                         for device in station['devices']:
                             if 'device_type' in device:
-                                if str(device['device_id']) == Config['Station']['TempestID']:
+                                if str(device['device_id']) == config['Station']['TempestID']:
                                     if device['device_type'] == 'ST':
-                                        if Key == 'TempestHeight':
-                                            Value = device['device_meta']['agl']
-                                        elif Key == 'TempestSN':
-                                            Value = device['serial_number']
-                    if not Value and Value != 0:
+                                        if key == 'TempestHeight':
+                                            value = device['device_meta']['agl']
+                                        elif key == 'TempestSN':
+                                            value = device['serial_number']
+                    if not value and value != 0:
                         inputStr = '    TEMPEST not found. Please re-enter your TEMPEST device ID*: '
                         while True:
                             ID = input(inputStr)
@@ -452,22 +450,22 @@ def writeConfigKey(Config, Section, Key, keyDetails):
                                 break
                             except ValueError:
                                 inputStr = '    TEMPEST device ID not valid. Please re-enter your TEMPEST device ID*: '
-                        Config.set('Station', 'TempestID', str(ID))
+                        config.set('Station', 'TempestID', str(ID))
                     else:
                         break
 
         # Validate outdoor AIR device ID and get height above ground of serial
         # number of outdoor AIR
-        if Section == 'Station':
-            if Key in ['OutAirHeight', 'OutAirSN'] and not TEMPEST:
+        if section == 'Station':
+            if key in ['OutAirHeight', 'OutAirSN'] and not TEMPEST:
                 while True:
                     for station in STATION['stations']:
                         for device in station['devices']:
                             if 'device_type' in device:
-                                if str(device['device_id']) == Config['Station']['OutAirID']:
+                                if str(device['device_id']) == config['Station']['OutAirID']:
                                     if device['device_type'] == 'AR':
-                                        Value = device['device_meta']['agl']
-                    if not Value and Value != 0:
+                                        value = device['device_meta']['agl']
+                    if not value and value != 0:
                         inputStr = '    Outdoor AIR not found. Please re-enter your Outdoor AIR device ID*: '
                         while True:
                             ID = input(inputStr)
@@ -479,25 +477,25 @@ def writeConfigKey(Config, Section, Key, keyDetails):
                                 break
                             except ValueError:
                                 inputStr = '    Outdoor AIR device ID not valid. Please re-enter your Outdoor AIR device ID*: '
-                        Config.set('Station', 'OutAirID', str(ID))
+                        config.set('Station', 'OutAirID', str(ID))
                     else:
                         break
 
         # Validate SKY device ID and get height above ground or serial number of
         # SKY
-        if Section == 'Station':
-            if Key in ['SkyHeight',  'SkySN'] and not TEMPEST:
+        if section == 'Station':
+            if key in ['SkyHeight',  'SkySN'] and not TEMPEST:
                 while True:
                     for station in STATION['stations']:
                         for device in station['devices']:
                             if 'device_type' in device:
-                                if str(device['device_id']) == Config['Station']['SkyID']:
+                                if str(device['device_id']) == config['Station']['SkyID']:
                                     if device['device_type'] == 'SK':
-                                        if Key == 'SkyHeight':
-                                            Value = device['device_meta']['agl']
-                                        elif Key == 'SkySN':
-                                            Value = device['serial_number']
-                    if not Value and Value != 0:
+                                        if key == 'SkyHeight':
+                                            value = device['device_meta']['agl']
+                                        elif key == 'SkySN':
+                                            value = device['serial_number']
+                    if not value and value != 0:
                         inputStr = '    SKY not found. Please re-enter your SKY device ID*: '
                         while True:
                             ID = input(inputStr)
@@ -509,22 +507,22 @@ def writeConfigKey(Config, Section, Key, keyDetails):
                                 break
                             except ValueError:
                                 inputStr = '    SKY device ID not valid. Please re-enter your SKY device ID*: '
-                        Config.set('Station', 'SkyID', str(ID))
+                        config.set('Station', 'SkyID', str(ID))
                     else:
                         break
 
         # Validate outdoor AIR device ID and get height above ground of serial
         # number of outdoor AIR
-        if Section == 'Station':
-            if Key in 'InAirSN' and Config['Station']['InAirID']:
+        if section == 'Station':
+            if key in 'InAirSN' and config['Station']['InAirID']:
                 while True:
                     for station in STATION['stations']:
                         for device in station['devices']:
                             if 'device_type' in device:
-                                if str(device['device_id']) == Config['Station']['InAirID']:
+                                if str(device['device_id']) == config['Station']['InAirID']:
                                     if device['device_type'] == 'AR':
-                                        Value = device['serial_number']
-                    if not Value and Value != 0:
+                                        value = device['serial_number']
+                    if not value and value != 0:
                         inputStr = '    Indoor AIR not found. Please re-enter your Indoor AIR device ID*: '
                         while True:
                             ID = input(inputStr)
@@ -536,34 +534,34 @@ def writeConfigKey(Config, Section, Key, keyDetails):
                                 break
                             except ValueError:
                                 inputStr = '    Indoor AIR device ID not valid. Please re-enter your Indoor AIR device ID*: '
-                        Config.set('Station', 'InAirID', str(ID))
+                        config.set('Station', 'InAirID', str(ID))
                     else:
                         break
 
         # Get station latitude/longitude, timezone, or name
-        if Section == 'Station':
-            if Key in ['Latitude', 'Longitude', 'Timezone', 'Name']:
-                Value = STATION['stations'][idx][Key.lower()]
+        if section == 'Station':
+            if key in ['Latitude', 'Longitude', 'Timezone', 'Name']:
+                value = STATION['stations'][idx][key.lower()]
 
         # Get station elevation
-        if Section == 'Station':
-            if Key == 'Elevation':
-                Value = STATION['stations'][idx]['station_meta']['elevation']
+        if section == 'Station':
+            if key == 'Elevation':
+                value = STATION['stations'][idx]['station_meta']['elevation']
 
         # Get station units
-        if Section in ['Units']:
-            Value = OBSERVATION['station_units']['units_' + Key.lower()]
+        if section in ['Units']:
+            value = OBSERVATION['station_units']['units_' + key.lower()]
 
         # Write request Key value pair to configuration file
-        if Value:
-            print('  Adding ' + keyDetails['Desc'] + ': ' + str(Value))
-        Config.set(Section, Key, str(Value))
+        if value:
+            print('  Adding ' + details['Desc'] + ': ' + str(value))
+        config.set(section, key, str(value))
 
     # Validate API keys
-    validateAPIKeys(Config)
+    validate_API_keys(config)
 
 
-def validateAPIKeys(Config):
+def validate_API_keys(Config):
 
     """ Validates API keys entered in the config file
 
@@ -652,7 +650,7 @@ def validateAPIKeys(Config):
                 idx = ii
 
 
-def queryUser(Question, Default=None):
+def query_user(Question, Default=None):
 
     """ Ask a yes/no question via raw_input() and return their answer.
 
@@ -688,7 +686,7 @@ def queryUser(Question, Default=None):
             sys.stdout.write('    Please respond with "yes"/"no" or "y"/"n"\n')
 
 
-def defaultConfig():
+def default_config():
 
     """ Generates the default configuration required by the Raspberry Pi Python
         console for Weather Flow Smart Home Weather Stations.
@@ -768,16 +766,17 @@ def defaultConfig():
                                                           ('BarometerMax',   {'Type': 'dependent', 'Desc': 'maximum barometer pressure'}),
                                                           ('BarometerMin',   {'Type': 'dependent', 'Desc': 'minimum barometer pressure'}),
                                                           ('Connection',     {'Type': 'default',   'Value': 'Websocket', 'Desc': 'Connection type'}),
+                                                          ('rest_api',       {'Type': 'default',   'Value': '1',         'Desc': 'REST API services'}),
                                                           ('SagerInterval',  {'Type': 'default',   'Value': '6',         'Desc': 'Interval in hours between Sager Forecasts'}),
                                                           ('Timeout',        {'Type': 'default',   'Value': '20',        'Desc': 'Timeout in seconds for API requests'}),
-                                                          ('Hardware',       {'Type': 'default',   'Value': Hardware,    'Desc': 'Hardware type'}),
+                                                          ('Hardware',       {'Type': 'default',   'Value': hardware,    'Desc': 'Hardware type'}),
                                                           ('Version',        {'Type': 'default',   'Value': Version,     'Desc': 'Version number'})])
 
     # Return default configuration
     return Default
 
 
-def updateRequired(Key, currentVersion):
+def update_required(Key, current_version):
 
     """ List configuration keys that require updating along with the version
     number when the update must be triggered
@@ -788,15 +787,15 @@ def updateRequired(Key, currentVersion):
     """
 
     # Dictionary holding configuration keys and version numbers
-    updatesRequired = {
+    updates_required = {
         'WeatherFlow': '3.7',
         'Hardware': '4',
     }
 
     # Determine if current configuration key passed to function requires
     # updating
-    if Key in updatesRequired:
-        if version.parse(currentVersion) < version.parse(updatesRequired[Key]):
+    if Key in updates_required:
+        if version.parse(current_version) < version.parse(updates_required[Key]):
             return 1
         else:
             return 0
