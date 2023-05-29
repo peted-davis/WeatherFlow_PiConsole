@@ -173,8 +173,6 @@ class wfpiconsole(App):
     Sched = DictProperty([])
 
     # Define App class configParser properties
-    BarometerMax = ConfigParserProperty('-', 'System',  'BarometerMax', 'app')
-    BarometerMin = ConfigParserProperty('-', 'System',  'BarometerMin', 'app')
     IndoorTemp   = ConfigParserProperty('-', 'Display', 'IndoorTemp',   'app')
 
     # Define display properties
@@ -315,11 +313,9 @@ class wfpiconsole(App):
 
         # Update barometer limits when pressure units are changed
         if section == 'Units' and key == 'Pressure':
-            Units = ['mb', 'hpa', 'inhg', 'mmhg']
-            Max   = ['1050', '1050', '31.0', '788']
-            Min   = ['950', '950', '28.0', '713']
-            self.config.set('System', 'BarometerMax', Max[Units.index(value)])
-            self.config.set('System', 'BarometerMin', Min[Units.index(value)])
+            if hasattr(self, 'BarometerPanel'):
+                for panel in getattr(self, 'BarometerPanel'):
+                    panel.set_barometer_max_min()
 
         # Update primary and secondary panels displayed on CurrentConditions
         # screen
