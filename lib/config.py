@@ -27,7 +27,7 @@ import sys
 import os
 
 # Define wfpiconsole version number
-Version = 'v23.3.1'
+Version = 'v23.3.2'
 
 # Define required variables
 TEMPEST       = False
@@ -763,8 +763,6 @@ def default_config():
                                                           ('PanelFive',      {'Type': 'default', 'Value': '',              'Desc': 'Secondary display for Panel Five'}),
                                                           ('PanelSix',       {'Type': 'default', 'Value': 'Lightning',     'Desc': 'Secondary display for Panel Six'})])
     Default['System'] =          collections.OrderedDict([('Description',    '  System settings'),
-                                                          ('BarometerMax',   {'Type': 'dependent', 'Desc': 'maximum barometer pressure'}),
-                                                          ('BarometerMin',   {'Type': 'dependent', 'Desc': 'minimum barometer pressure'}),
                                                           ('Connection',     {'Type': 'default',   'Value': 'Websocket', 'Desc': 'Connection type'}),
                                                           ('rest_api',       {'Type': 'default',   'Value': '1',         'Desc': 'REST API services'}),
                                                           ('SagerInterval',  {'Type': 'default',   'Value': '6',         'Desc': 'Interval in hours between Sager Forecasts'}),
