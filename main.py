@@ -383,6 +383,11 @@ class wfpiconsole(App):
                                         if isinstance(child, Switch):
                                             child.active = True
 
+        # Switch connection type
+        if section == 'System' and key == 'Connection':
+            self.stop_connection_service()
+            self.start_connection_service()
+
         # Update derived variables to reflect configuration changes
         self.obsParser.reformat_display()
 
