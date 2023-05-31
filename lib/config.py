@@ -276,6 +276,10 @@ def copy_config_key(new_config, current_config, section, key, details):
         else:
             value = current_config[section][key]
 
+    # Set TEMPEST flag if required
+    if key == 'TempestID' and value:
+        TEMPEST = True
+
     # Write key value to new configuration
     new_config.set(section, key, str(value))
 
@@ -485,6 +489,7 @@ def write_config_key(config, section, key, details):
         # SKY
         if section == 'Station':
             if key in ['SkyHeight',  'SkySN'] and not TEMPEST:
+                print(TEMPEST)
                 while True:
                     for station in STATION['stations']:
                         for device in station['devices']:
