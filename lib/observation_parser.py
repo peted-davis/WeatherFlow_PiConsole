@@ -396,21 +396,27 @@ class obs_parser():
 
         # Extract latest evt_strike Websocket JSON
         if 'evt' in message:
-            latestEvt = message['evt']
+            latest_evt = message['evt']
         else:
             return
 
         # Extract device ID
-        device_id = message['device_id']
+        if 'device_id' in message:
+            device_id = message['device_id']
+        elif 'serial_number' in message:
+            if 'ST' in message['serial_number']:
+                device_id = config['Station']['TempestID']
+            elif 'AR' in message['serial_number']:
+                device_id = config['Station']['OutAirID']
 
         # Discard duplicate evt_strike Websocket messages
         if 'evt_strike' in self.display_obs:
-            if self.display_obs['evt_strike']['evt'][0] == latestEvt[0]:
+            if self.display_obs['evt_strike']['evt'][0] == latest_evt[0]:
                 return
 
         # Extract required observations from latest evt_strike Websocket JSON
-        self.device_obs['strikeTime'] = [latestEvt[0], 's']
-        self.device_obs['strikeDist'] = [latestEvt[1], 'km']
+        self.device_obs['strikeTime'] = [latest_evt[0], 's']
+        self.device_obs['strikeDist'] = [latest_evt[1], 'km']
 
         # Store latest evt_strike JSON message
         self.display_obs['evt_strike'] = message
