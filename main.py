@@ -108,7 +108,7 @@ kivyconfig.write()
 # ==============================================================================
 # IMPORT REQUIRED CORE KIVY MODULES
 # ==============================================================================
-from kivy.properties         import ConfigParserProperty, StringProperty
+from kivy.properties         import StringProperty
 from kivy.properties         import DictProperty, NumericProperty
 from kivy.core.window        import Window
 from kivy.factory            import Factory
@@ -160,7 +160,8 @@ import threading
 # IMPORT REQUIRED KIVY GRAPHICAL AND SETTINGS MODULES
 # ==============================================================================
 from kivy.uix.screenmanager  import ScreenManager, Screen, NoTransition
-from kivy.uix.settings       import SettingsWithSidebar
+from kivy.uix.settings       import SettingsWithSidebar, SettingBoolean
+from kivy.uix.switch         import Switch
 
 
 # ==============================================================================
@@ -170,11 +171,6 @@ class wfpiconsole(App):
 
     # Define App class dictionary properties
     Sched = DictProperty([])
-
-    # Define App class configParser properties
-    BarometerMax = ConfigParserProperty('-', 'System',  'BarometerMax', 'app')
-    BarometerMin = ConfigParserProperty('-', 'System',  'BarometerMin', 'app')
-    IndoorTemp   = ConfigParserProperty('-', 'Display', 'IndoorTemp',   'app')
 
     # Define display properties
     scaleFactor = NumericProperty(1)
@@ -198,8 +194,8 @@ class wfpiconsole(App):
         self.screenManager = screenManager(transition=NoTransition())
         self.screenManager.add_widget(CurrentConditions())
 
-        # Start Websocket service
-        self.startWebsocketService()
+        # Start Websocket or UDP service
+        self.start_connection_service()
 
         # Check for latest version
         self.system = system()
@@ -213,6 +209,11 @@ class wfpiconsole(App):
 
         # Return ScreenManager
         return self.screenManager
+
+    # DISCONNECT connection_client WHEN CLOSING APP
+    # --------------------------------------------------------------------------
+    def on_stop(self):
+        self.stop_connection_service()
 
     # SET DISPLAY SCALE FACTOR BASED ON SCREEN DIMENSIONS
     # --------------------------------------------------------------------------
@@ -282,10 +283,16 @@ class wfpiconsole(App):
 
         # Update current weather forecast, sunrise/sunset and moonrise/moonset
         # times when time format changed
-        if section == 'Display' and key in 'TimeFormat':
+        if section == 'Display' and key == 'TimeFormat':
             self.forecast.parse_forecast()
             self.astro.format_labels('Sun')
             self.astro.format_labels('Moon')
+
+        # Show or hide indoor temperature when setting is changed
+        if section == 'Display' and key == 'IndoorTemp':
+            if hasattr(self, 'TemperaturePanel'):
+                for panel in getattr(self, 'TemperaturePanel'):
+                    panel.set_indoor_temp_display()
 
         # Update "Feels Like" temperature cutoffs in wfpiconsole.ini and the
         # settings screen when temperature units are changed
@@ -309,11 +316,9 @@ class wfpiconsole(App):
 
         # Update barometer limits when pressure units are changed
         if section == 'Units' and key == 'Pressure':
-            Units = ['mb', 'hpa', 'inhg', 'mmhg']
-            Max   = ['1050', '1050', '31.0', '788']
-            Min   = ['950', '950', '28.0', '713']
-            self.config.set('System', 'BarometerMax', Max[Units.index(value)])
-            self.config.set('System', 'BarometerMin', Min[Units.index(value)])
+            if hasattr(self, 'BarometerPanel'):
+                for panel in getattr(self, 'BarometerPanel'):
+                    panel.set_barometer_max_min()
 
         # Update primary and secondary panels displayed on CurrentConditions
         # screen
@@ -362,25 +367,45 @@ class wfpiconsole(App):
         if section == 'System' and key == 'SagerInterval':
             Clock.schedule_once(self.sager.schedule_forecast)
 
+        # Force rest_api services if Websocket connection is selected
+        if ((section == 'System' and key == 'Connection' and value == 'Websocket')
+                or (section == 'System' and key == 'rest_api' and self.config['System']['Connection'] == 'Websocket')):
+            if self.config['System']['rest_api'] == '0':
+                self.config.set('System', 'rest_api', '1')
+                self.config.write()
+                panels = self._app_settings.children[0].content.panels
+                for panel in panels.values():
+                    if panel.title == 'System':
+                        for item in panel.children:
+                            if isinstance(item, SettingBoolean) and item.title == 'REST API':
+                                for child in item.children[0].children:
+                                    for child in child.children:
+                                        if isinstance(child, Switch):
+                                            child.active = True
+
         # Update derived variables to reflect configuration changes
         self.obsParser.reformat_display()
 
-    # START WEBSOCKET SERVICE
+    # START WEBSOCKET OR UDP SERVICE
     # --------------------------------------------------------------------------
-    def startWebsocketService(self, *largs):
-        self.websocket_thread = threading.Thread(target=run_path,
-                                                 args=['service/websocket.py'],
-                                                 kwargs={'run_name': '__main__'},
-                                                 daemon=True,
-                                                 name='Websocket')
-        self.websocket_thread.start()
+    def start_connection_service(self, *largs):
+        if self.config['System']['Connection'] == 'Websocket':
+            self.connection_thread = threading.Thread(target=run_path,
+                                                      args=['service/websocket.py'],
+                                                      kwargs={'run_name': '__main__'},
+                                                      name='Websocket')
+        elif self.config['System']['Connection'] == 'UDP':
+            self.connection_thread = threading.Thread(target=run_path,
+                                                      args=['service/udp.py'],
+                                                      kwargs={'run_name': '__main__'},
+                                                      name='UDP')
+        self.connection_thread.start()
 
     # STOP WEBSOCKET SERVICE
     # --------------------------------------------------------------------------
-    def stopWebsocketService(self):
-        self.websocket_client._keep_running = False
-        self.websocket_thread.join()
-        del self.websocket_client
+    def stop_connection_service(self):
+        if hasattr(self, 'connection_client'):
+            self.connection_client._keep_running = False
 
     # EXIT CONSOLE AND SHUTDOWN SYSTEM
     # --------------------------------------------------------------------------
@@ -518,10 +543,14 @@ class CurrentConditions(Screen):
 # ==============================================================================
 if __name__ == '__main__':
     try:
-        wfpiconsole().run()
+        wfpiconsole_app = wfpiconsole()
+        wfpiconsole_app.run()
         if REBOOT:
             subprocess.call('sudo shutdown -r now', shell=True)
         elif SHUTDOWN:
             subprocess.call('sudo shutdown -h now', shell=True)
     except KeyboardInterrupt:
-        wfpiconsole().stop()
+        wfpiconsole_app.stop()
+    except Exception:
+        wfpiconsole_app.stop()
+        raise

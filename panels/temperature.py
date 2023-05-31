@@ -30,15 +30,21 @@ class TemperaturePanel(panelTemplate):
 
     # Define TemperaturePanel class properties
     feelsLikeIcon = StringProperty('-')
+    indoor_temperature = StringProperty('-')
 
     # Initialise TemperaturePanel
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.setFeelsLikeIcon()
+        self.set_feels_like_icon()
+        self.set_indoor_temp_display()
 
     # Set "Feels Like" icon
-    def setFeelsLikeIcon(self):
+    def set_feels_like_icon(self):
         self.feelsLikeIcon = self.app.CurrentConditions.Obs['FeelsLike'][3]
+
+    # Set whether to display indoor temperature
+    def set_indoor_temp_display(self):
+        self.indoor_temperature = self.app.config['Display']['IndoorTemp']
 
 
 class TemperatureButton(RelativeLayout):

@@ -79,16 +79,16 @@ def last_6h(Device, endTime, Config):
     Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?bucket=a&time_start={}&time_end={}&token={}'
     URL = Template.format(Device, startTime, endTime, Config['Keys']['WeatherFlow'])
     try:
-        apiData = requests.get(URL, timeout=int(Config['System']['Timeout']))
+        api_data = requests.get(URL, timeout=int(Config['System']['Timeout']))
     except Exception:
-        apiData = None
+        api_data = None
 
     # Verify response
-    if apiData is None or not verify_response(apiData, 'obs'):
+    if api_data is None or not verify_response(api_data, 'obs'):
         Logger.warning(f'request_api: {system().log_time()} - last_6h call failed')
 
     # Return observations from the last six hours
-    return apiData
+    return api_data
 
 
 def last_24h(Device, endTime, Config):
