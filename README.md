@@ -30,9 +30,9 @@ https://community.weatherflow.com/
 
 The console is fully supported for Raspberry Pi 3 Model B/B+ and Raspberry Pi 4
 running the the 32 bit version of Raspberry Pi OS. It can be run on earlier
-models, or the 64 bit version of Raspberry Pi OS, but no direct support is
-provided for these environments. It is not compatible with Raspberry Pi Zero or
-Zero W.
+models, but no direct support is provided for these environments. It is **_not_** 
+compatible with Raspberry Pi Zero or Zero W, or the 64 bit version of Raspberry 
+Pi OS.
 
 For Raspberry Pi 3, the 'Legacy' (Debian Buster) version of Raspberry Pi OS with
 desktop must be used. On a Pi 3, the console will not run on the most recent

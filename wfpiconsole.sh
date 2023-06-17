@@ -2,7 +2,7 @@
 
 # Automated installer and updater for the WeatherFlow PiConsole. Modified
 # heavily from the PiHole and PiVPN installers.
-# Copyright (C) 2018-2022 Peter Davis
+# Copyright (C) 2018-2023 Peter Davis
 
 # This program is free software: you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
@@ -16,6 +16,50 @@
 
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <http://www.gnu.org/licenses/>.
+
+# DEFINE INSTALLER PREAMBLE
+# ------------------------------------------------------------------------------
+# -e option instructs bash to immediately exit if any command [1] has a non-zero
+# exit status.
+set -e
+
+# Define installer colors
+if [[ -f "${coltable}" ]]; then
+    source ${coltable}
+else
+    COL_NC='\e[0m'
+    COL_LIGHT_GREEN='\e[1;32m'
+    COL_LIGHT_RED='\e[1;31m'
+    COL_LIGHT_YELLOW='\e[1;33m'
+    TICK="[${COL_LIGHT_GREEN}✓${COL_NC}]"
+    CROSS="[${COL_LIGHT_RED}✗${COL_NC}]"
+    EXCLAMATION="[${COL_LIGHT_YELLOW}!${COL_NC}]"
+    INFO="[i]"
+    DONE="${COL_LIGHT_GREEN} done!${COL_NC}"
+    OVER="\\r\\033[K"
+fi
+
+# Find the number of  rows and columns in terminal. Will default to 80x24 if it
+# can not be detected.
+if (tput lines &> /dev/null); then
+    rows=$(tput lines)
+else
+    rows=$(printf '%d' 80)
+fi
+if (tput cols &> /dev/null); then
+    columns=$(tput cols)
+else
+    columns=$(printf '%d' 24)
+fi
+
+# Divide the number of rows and columns by two so
+# the dialogs take up half of the screen.
+r=$(( rows / 2 ))
+c=$(( columns / 2 ))
+
+# Unless the screen is tiny
+r=$(( r < 20 ? 20 : r ))
+c=$(( c < 70 ? 70 : c ))
 
 # GET INVOKING USER
 # ------------------------------------------------------------------------------
@@ -53,65 +97,53 @@ KIVY_DEPENDENCIES=(ffmpeg libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl
                    libportmidi-dev libswscale-dev libavformat-dev libavcodec-dev zlib1g-dev
                    libgstreamer1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good)
 
+# Cryptography version
+MODEL_FILE=/proc/device-tree/model
+if [ -f "$MODEL_FILE" ]; then
+  SUPPORTED_RASPBERRY_PI="true"
+  HARDWARE=$(tr -d '\0' < $MODEL_FILE)
+  if [[ "$HARDWARE" == *"Raspberry Pi 4"* ]]; then
+    CRYPTOGRAPHY_VERSION="38.0.1"
+  elif [[ "$HARDWARE" == *"Raspberry Pi 3"* ]]; then
+    CRYPTOGRAPHY_VERSION="37.0.4"
+  else
+    CRYPTOGRAPHY_VERSION="37.0.4"
+    SUPPORTED_RASPBERRY_PI="false"
+  fi
+else
+  CRYPTOGRAPHY_VERSION="39.0.0"
+fi
+
 # Python modules and versions
-KIVY_VERSION="2.0.0"
+KIVY_VERSION="2.1.0"
 PYTHON_MODULES=(cython==0.29.26
                 websockets==10.1
                 numpy==1.21.4
                 pytz==2021.3
                 ephem==4.1.3
                 packaging==21.3
+                cryptography==$CRYPTOGRAPHY_VERSION
                 pyOpenSSL==21.0.0
                 certifi==2021.10.8)
 
+# Kivy pip source
+if [ -f "$MODEL_FILE" ]; then
+  HARDWARE=$(tr -d '\0' < $MODEL_FILE)
+  if [[ "$HARDWARE" == *"Raspberry Pi 3"* ]] || [[ "$HARDWARE" == *"Raspberry Pi 2"* ]]; then
+    KIVY_SOURCE="https://github.com/kivy/kivy/archive/"$KIVY_VERSION".zip"
+  elif [[ "$HARDWARE" == *"Raspberry Pi 4"* ]]; then
+    KIVY_SOURCE="kivy=="$KIVY_VERSION
+  fi
+else
+  KIVY_SOURCE="https://github.com/kivy/kivy/archive/"$KIVY_VERSION".zip"
+fi
+
 # Github repositories
-KIVY_REPO="https://github.com/kivy/kivy/archive/"$KIVY_VERSION".zip"
 WFPICONSOLE_REPO="https://github.com/peted-davis/WeatherFlow_PiConsole.git"
 WFPICONSOLE_TAGS="https://api.github.com/repos/peted-davis/WeatherFlow_PiConsole/tags"
 WFPICONSOLE_RAW="https://raw.githubusercontent.com/peted-davis/WeatherFlow_PiConsole"
 WFPICONSOLE_MAIN_UPDATE=$WFPICONSOLE_RAW"/main/wfpiconsole.sh"
 WFPICONSOLE_BETA_UPDATE=$WFPICONSOLE_RAW"/develop/wfpiconsole.sh"
-
-# DEFINE INSTALLER PREAMBLE
-# ------------------------------------------------------------------------------
-# -e option instructs bash to immediately exit if any command [1] has a non-zero
-# exit status.
-set -e
-
-# Define installer colors
-if [[ -f "${coltable}" ]]; then
-    source ${coltable}
-else
-    COL_NC='\e[0m'
-    COL_LIGHT_GREEN='\e[1;32m'
-    COL_LIGHT_RED='\e[1;31m'
-    TICK="[${COL_LIGHT_GREEN}✓${COL_NC}]"
-    CROSS="[${COL_LIGHT_RED}✗${COL_NC}]"
-    INFO="[i]"
-    DONE="${COL_LIGHT_GREEN} done!${COL_NC}"
-    OVER="\\r\\033[K"
-fi
-
-# Find the number of  rows and columns in terminal. Will default to 80x24 if it
-# can not be detected.
-if (tput lines &> /dev/null); then
-    rows=$(tput lines)
-else
-    rows=$(printf '%d' 80)
-fi
-if (tput cols &> /dev/null); then
-    columns=$(tput cols)
-else
-    columns=$(printf '%d' 24)
-fi
-
-# Divide the number of rows and columns by two so
-# the dialogs take up half of the screen.
-r=$(( rows / 2 ))
-c=$(( columns / 2 ))
-# Unless the screen is tiny
-r=$(( r < 20 ? 20 : r ))
-c=$(( c < 70 ? 70 : c ))
 
 # CHECK IF INPUT IS VALID COMMAND
 # ------------------------------------------------------------------------------
@@ -289,7 +321,7 @@ install_kivy_packages() {
 
     # Define required packages and print progress to screen
     printf "\\n  %b Kivy Python library dependency checks...\\n" "${INFO}"
-    if [[ "$PROCESSOR" = "arm"* ]]; then
+    if [[ "$ARCHITECTURE" = "arm"* ]] || [[ $ARCHITECTURE = aarch64 ]]; then
         declare -a arg_array=("${KIVY_DEPENDENCIES_ARM[@]}")
     else
         declare -a arg_array=("${KIVY_DEPENDENCIES[@]}")
@@ -347,7 +379,7 @@ install_kivy() {
             local str="Installing Kivy Python library"
         fi
         printf "\\n  %b %s..." "${INFO}" "${str}"
-        if ($PIP_INSTALL $KIVY_REPO &> error_log); then
+        if ($PIP_INSTALL $KIVY_SOURCE &> error_log); then
             printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
         else
             printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
@@ -1027,22 +1059,44 @@ fi
 # ------------------------------------------------------------------------------
 if [[ "${1}" == "install" ]] || [[ "${1}" == "run_update" ]] || [[ "${1}" == "run_beta" ]] || [[ "${1}" == "stable" ]] ; then
 
-    # Check compatability of hardware/OS
-    PROCESSOR=$(uname -m)
-    if [[ $PROCESSOR = arm* ]] || [[ $PROCESSOR = x86_64 ]] || [[ $PROCESSOR = i*86 ]] || [[ $PROCESSOR = aarch64 ]]; then
-        printf "  %b Hardware check passed (%b)\\n" "${TICK}" "${PROCESSOR}"
+    # Check compatability of architecture/OS/Raspberry Pi
+    ARCHITECTURE=$(uname -m)
+    if [[ $ARCHITECTURE = arm* ]] || [[ $ARCHITECTURE = x86_64 ]] || [[ $ARCHITECTURE = i*86 ]]; then
+        printf "  %b Architecture check passed (%b)\\n" "${TICK}" "${ARCHITECTURE}"
+    elif [[ $ARCHITECTURE = aarch64 ]]; then
+        printf "  %b Architecture check warning (%b)\\n\\n" "${EXCLAMATION}" "${ARCHITECTURE}"
     else
-        printf "  %b Hardware check failed (%b)\\n\\n" "${CROSS}" "${PROCESSOR}"
+        printf "  %b Architecture check failed (%b)\\n\\n" "${CROSS}" "${ARCHITECTURE}"
         clean_up
         exit 1
     fi
     OS=$(. /etc/os-release && echo $PRETTY_NAME)
-    if is_command apt-get ; then
+    if ([[ "$HARDWARE" == *"Raspberry Pi 2"* ]] || [[ "$HARDWARE" == *"Raspberry Pi 3"* ]]) && [[ "$OS" == *"bullseye"* ]]; then
+        printf "  %b OS check failed (%b)\\n\\n" "${CROSS}" "${OS}"
+        clean_up
+        exit 1
+    elif [[ "$HARDWARE" == *"Raspberry Pi 4"* ]] && [[ "$OS" == *"buster"* ]]; then
+        printf "  %b OS check failed (%b)\\n\\n" "${CROSS}" "${OS}"
+        clean_up
+        exit 1
+    elif is_command apt-get ; then
         printf "  %b OS check passed (%b)\\n" "${TICK}" "${OS}"
     else
         printf "  %b OS check failed (%b)\\n\\n" "${CROSS}" "${OS}"
         clean_up
         exit 1
+    fi
+    if [[ $SUPPORTED_RASPBERRY_PI == "true" ]]; then
+        printf "  %b Raspberry Pi check passed (%b)\\n" "${TICK}" "${HARDWARE}"
+    elif [[ $SUPPORTED_RASPBERRY_PI == "false" ]]; then
+        printf "  %b Raspberry Pi check warning (%b)\\n" "${EXCLAMATION}" "${HARDWARE}"
+    fi
+
+    # Print warning if unsupported architecture/Raspberry Pi detected
+    if [[ $ARCHITECTURE = aarch64 ]] || [[ $SUPPORTED_RASPBERRY_PI == "false" ]]; then
+        printf "\n  %b WARNING: unsupported architecture or Raspberry Pi detected\n" "${EXCLAMATION}"
+        printf "      No support is available for errors encountered while running\n"
+        printf "      the PiConsole\n"
     fi
 
     # Add "universe" repository when running Ubtuntu if required

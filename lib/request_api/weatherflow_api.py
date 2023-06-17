@@ -1,6 +1,6 @@
 """ Returns WeatherFlow API requests required by the Raspberry Pi Python console
 for WeatherFlow Tempest and Smart Home Weather stations.
-Copyright (C) 2018-2022 Peter Davis
+Copyright (C) 2018-2023 Peter Davis
 
 This program is free software: you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
@@ -79,17 +79,17 @@ def last_6h(Device, endTime, Config):
     Template = 'https://swd.weatherflow.com/swd/rest/observations/device/{}?bucket=a&time_start={}&time_end={}&token={}'
     URL = Template.format(Device, startTime, endTime, Config['Keys']['WeatherFlow'])
     try:
-        apiData = requests.get(URL, timeout=int(Config['System']['Timeout']))
+        api_data = requests.get(URL, timeout=int(Config['System']['Timeout']))
     except Exception:
-        apiData = None
+        api_data = None
 
     # Verify response
     if Config['Keys']['WeatherFlow']:
-        if apiData is None or not verify_response(apiData, 'obs'):
-            Logger.warning(f'request_api: {system().log_time()} - last_6h call failed')
+      if api_data is None or not verify_response(api_data, 'obs'):
+          Logger.warning(f'request_api: {system().log_time()} - last_6h call failed')
 
     # Return observations from the last six hours
-    return apiData
+    return api_data
 
 
 def last_24h(Device, endTime, Config):

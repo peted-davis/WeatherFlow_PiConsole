@@ -1,6 +1,6 @@
 ## WeatherFlow PiConsole: Raspberry Pi Python console for WeatherFlow Tempest
 ## and Smart Home Weather stations.
-## Copyright (C) 2018-2022 Peter Davis
+## Copyright (C) 2018-2023 Peter Davis
 
 ## This program is free software: you can redistribute it and/or modify it under
 ## the terms of the GNU General Public License as published by the Free Software
@@ -28,7 +28,7 @@
 
     ## Current pressure arrow
     Image:
-        source: 'icons/barometer/' + root.barometerArrow + app.scaleSuffix
+        source: 'icons/barometer/' + root.barometer_arrow + app.scaleSuffix
         keep_ratio: 0
         allow_stretch: 1
         pos_hint: {'x': 46/262, 'y': 18/202}
@@ -36,11 +36,11 @@
 
     ## Maximum and minimum pressure on pressure dial
     TitleField:
-        text: app.BarometerMin
+        text: root.barometer_min
         pos_hint: {'x': 29/262, 'y': 4/202}
         size_hint_x: (40/262)
     TitleField:
-        text: app.BarometerMax
+        text: root.barometer_max
         pos_hint: {'x': 191/262, 'y': 4/202}
         size_hint_x: (40/262)
 

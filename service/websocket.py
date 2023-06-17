@@ -1,6 +1,6 @@
 # WeatherFlow PiConsole: Raspberry Pi Python console for WeatherFlow Tempest and
 # Smart Home Weather stations.
-# Copyright (C) 2018-2022 Peter Davis
+# Copyright (C) 2018-2023 Peter Davis
 
 # This program is free software: you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
@@ -16,7 +16,7 @@
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
 # Import required library modules
-from lib.observationParser  import obsParser
+from lib.observation_parser import obs_parser
 from lib.system             import system
 
 # Import required Kivy modules
@@ -42,7 +42,7 @@ class websocketClient():
     async def create(cls):
 
         # Initialise websocketClient
-        self = App.get_running_app().websocket_client = websocketClient()
+        self = App.get_running_app().connection_client = websocketClient()
         self.app = App.get_running_app()
 
         # Load configuration file
@@ -52,20 +52,22 @@ class websocketClient():
         self.system = system()
 
         # Initialise websocketClient class variables
-        self._keep_running    = True
-        self._switch_device   = False
-        self.watchdog_timeout = 300
-        self.reply_timeout    = 60
-        self.ping_timeout     = 60
-        self.sleep_time       = 10
-        self.thread_list      = {}
-        self.task_list        = {}
-        self.watchdog_list    = {}
-        self.connected        = False
-        self.connection       = None
+        self._keep_running     = True
+        self._switch_device    = False
+        self.watchdog_timeout  = 300
+        self.reply_timeout     = 60
+        self.ping_timeout      = 60
+        self.sleep_time        = 10
+        self.thread_list       = {}
+        self.task_list         = {}
+        self.watchdog_list     = {}
+        self.connected         = False
+        self.connection        = None
+        self.station           = int(self.config['Station']['StationID'])
+        self.url               = 'wss://swd.weatherflow.com/swd/data?token=' + self.config['Keys']['WeatherFlow']
 
         # Initialise Observation Parser
-        self.app.obsParser = obsParser()
+        self.app.obsParser = obs_parser()
 
         # Connect to specified Websocket URL and return websocketClient
         await self.__async__connect()
@@ -266,7 +268,7 @@ class websocketClient():
             raise
 
     async def __async__switch(self):
-        while not self._switch_device:
+        while not self._switch_device and self._keep_running:
             await asyncio.sleep(0.1)
         if 'verify' in self.task_list:
             while not self.task_list['verify'].done():
@@ -285,18 +287,21 @@ async def main():
     if not websocket.config['Keys']['WeatherFlow'] or not websocket.config['Station']['StationID']:
         Logger.warning(f'Websocket: {system().log_time()} - WeatherFlow token or StationID not configured')
     else:
-        while websocket._keep_running:
-            try:
-                websocket.task_list['listen'] = asyncio.create_task(websocket._websocketClient__async__listen())
-                websocket.task_list['switch'] = asyncio.create_task(websocket._websocketClient__async__switch())
-                await asyncio.gather(*list(websocket.task_list.values()))
-            except asyncio.CancelledError:
-                if websocket._switch_device:
-                    await websocket._websocketClient__async__listen_devices('listen_stop')
-                    await websocket._websocketClient__async__get_devices()
-                    await websocket._websocketClient__async__listen_devices('listen_start')
-                    Logger.info(f'Websocket: {system().log_time()} - Switching devices and/or station')
-                    websocket._switch_device = False
+      while websocket._keep_running:
+          try:
+              websocket.task_list['listen'] = asyncio.create_task(websocket._websocketClient__async__listen())
+              websocket.task_list['switch'] = asyncio.create_task(websocket._websocketClient__async__switch())
+              await asyncio.gather(*list(websocket.task_list.values()))
+          except asyncio.CancelledError:
+              if not websocket._keep_running:
+                  await websocket._websocketClient__async__disconnect()
+                  break
+              if websocket._switch_device:
+                  await websocket._websocketClient__async__listen_devices('listen_stop')
+                  await websocket._websocketClient__async__get_devices()
+                  await websocket._websocketClient__async__listen_devices('listen_start')
+                  Logger.info(f'Websocket: {system().log_time()} - Switching devices and/or station')
+                  websocket._switch_device = False
 
 
 if __name__ == '__main__':

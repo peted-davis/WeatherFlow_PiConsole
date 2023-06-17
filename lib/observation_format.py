@@ -1,6 +1,6 @@
 """ Formats and sets the required units of observations displayed on the
 Raspberry Pi Python console for Weather Flow Smart Home Weather Stations.
-Copyright (C) 2018-2022  Peter Davis
+Copyright (C) 2018-2023  Peter Davis
 
 This program is free software: you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
@@ -16,12 +16,12 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 """
 
 # Import required modules
-from lib      import derivedVariables as derive
+from lib      import derived_variables as derive
 from datetime import datetime
 import pytz
 
 
-def Units(Obs, Unit):
+def units(Obs, Unit):
 
     """ Sets the required observation units
 
@@ -110,7 +110,7 @@ def Units(Obs, Unit):
                     cObs[ii] = 'km/h'
                 elif Unit == 'bft':
                     if Obs[ii - 1] is not None:
-                        cObs[ii - 1] = derive.beaufortScale(Obs[ii - 1:ii + 1])[2]
+                        cObs[ii - 1] = derive.beaufort_scale(Obs[ii - 1:ii + 1])[2]
                     cObs[ii] = 'bft'
                 else:
                     cObs[ii - 1] = Obs[ii - 1]
@@ -127,7 +127,7 @@ def Units(Obs, Unit):
                     cObs[ii - 1] = 'Calm'
                     cObs[ii] = ''
                 elif Unit == 'cardinal':
-                    cObs[ii - 1] = derive.cardinalWindDir(Obs[ii - 1:ii + 1])[2]
+                    cObs[ii - 1] = derive.cardinal_wind_dir(Obs[ii - 1:ii + 1])[2]
                     cObs[ii] = ''
                 else:
                     cObs[ii - 1] = Obs[ii - 1]
@@ -190,7 +190,7 @@ def Units(Obs, Unit):
     return cObs
 
 
-def Format(Obs, obType, config=[]):
+def format(Obs, obType, config=[]):
 
     """ Formats the observation for display on the console
 

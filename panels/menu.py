@@ -1,6 +1,6 @@
 """ Defines the mainMenu Panel required by the Raspberry Pi Python console for
 WeatherFlow Tempest and Smart Home Weather stations.
-Copyright (C) 2018-2022 Peter Davis
+Copyright (C) 2018-2023 Peter Davis
 
 This program is free software: you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
@@ -357,22 +357,8 @@ class mainMenu(ModalView):
 
         """ Get the metadata associated with the selected station
         """
-
-        self.selector_panel.ids.switch_button.text = 'Fetching Station information'
-        self.selector_panel.ids.switch_button.disabled = 1
-        if hasattr(self, 'pendingRequest'):
-            self.pendingRequest.cancel()
-        if hasattr(self, 'activeRequest'):
-            self.activeRequest.cancel()
-        if self.station_details:
-            station = self.selector_panel.ids.station_dropdown.text
-            URL = 'https://swd.weatherflow.com/swd/rest/observations/station/{}?token={}'
-            URL = URL.format(self.station_details[station]['station_id'], App.get_running_app().config['Keys']['WeatherFlow'])
-            self.activeRequest = UrlRequest(URL,
-                                            on_success=self.parse_station_metadata,
-                                            on_failure=self.fail_station_metadata,
-                                            on_error=self.fail_station_metadata,
-                                            ca_file=certifi.where())
+        self.station_meta_data = self.station_details[self.selector_panel.ids.station_dropdown.text]
+        self.set_switch_button()
 
     def parse_station_metadata(self, Request, Response):
 
@@ -450,16 +436,17 @@ class mainMenu(ModalView):
                 self.selector_panel.ids.switch_button.disabled = 1
                 self.selector_panel.ids.switch_button.text = 'Please select devices'
 
-    def switchStations(self):
+    def switch_stations(self):
 
-        """ Switch Stations/Devices for the Websocket connection
+        """ Switch Stations/Devices on the Websocket/UDP connection
         """
 
         self.dismiss(animation=False)
-        current_station = self.app.config['Station']['StationID']
+        current_station  = self.app.config['Station']['StationID']
         config.switch(self.station_meta_data, self.device_list, self.app.config)
         self.app.obsParser.resetDisplay()
-        self.app.websocket_client._switch_device = True
+        if hasattr(self.app.connection_client, '_switch_device'):
+            self.app.connection_client._switch_device = True
         if current_station != str(self.station_meta_data['station_id']):
             self.app.forecast.reset_forecast()
             self.app.astro.reset_astro()
