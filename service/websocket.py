@@ -74,6 +74,16 @@ class websocketClient():
         return self
 
     async def __async__connect(self):
+
+        # Verify WeatherFlow token and StationID are specified in .ini file
+        self.config = self.app.config
+        if not self.config['Station']['StationID'] or not self.config['Keys']['WeatherFlow']:
+            return
+        else:
+            self.station = int(self.config['Station']['StationID'])
+            self.url     = 'wss://swd.weatherflow.com/swd/data?token=' + self.config['Keys']['WeatherFlow']
+
+        # Connect to Websocket
         while not self.connected:
             try:
                 Logger.info(f'Websocket: {self.system.log_time()} - Opening connection')
@@ -87,6 +97,8 @@ class websocketClient():
                         self.app.obsParser.flagAPI = [1, 1, 1, 1]
                         self.connected = True
                         Logger.info(f'Websocket: {self.system.log_time()} - Connection open')
+                        if all(device == None for device in self.device_list.values()):
+                            Logger.warning(f'Websocket: {self.system.log_time()} - No device IDs configured')
                     else:
                         Logger.error(f'Websocket: {self.system.log_time()} - Connection message error')
                         await self.connection.close()
@@ -180,6 +192,9 @@ class websocketClient():
                 watchdog_triggered = True
                 break
         if watchdog_triggered:
+            # no need to disconnect/connect if we're not using websockets for observations
+            if self.config['System']['SkipRestObservations']:
+                return
             Logger.warning(f'Websocket: {self.system.log_time()} - Watchdog triggered {ob}')
             await self.__async__disconnect()
             await self.__async__connect()
@@ -269,21 +284,24 @@ class websocketClient():
 
 async def main():
     websocket = await websocketClient.create()
-    while websocket._keep_running:
-        try:
-            websocket.task_list['listen'] = asyncio.create_task(websocket._websocketClient__async__listen())
-            websocket.task_list['switch'] = asyncio.create_task(websocket._websocketClient__async__switch())
-            await asyncio.gather(*list(websocket.task_list.values()))
-        except asyncio.CancelledError:
-            if not websocket._keep_running:
-                await websocket._websocketClient__async__disconnect()
-                break
-            if websocket._switch_device:
-                await websocket._websocketClient__async__listen_devices('listen_stop')
-                await websocket._websocketClient__async__get_devices()
-                await websocket._websocketClient__async__listen_devices('listen_start')
-                Logger.info(f'Websocket: {system().log_time()} - Switching devices and/or station')
-                websocket._switch_device = False
+    if not websocket.config['Keys']['WeatherFlow'] or not websocket.config['Station']['StationID']:
+        Logger.warning(f'Websocket: {system().log_time()} - WeatherFlow token or StationID not configured')
+    else:
+      while websocket._keep_running:
+          try:
+              websocket.task_list['listen'] = asyncio.create_task(websocket._websocketClient__async__listen())
+              websocket.task_list['switch'] = asyncio.create_task(websocket._websocketClient__async__switch())
+              await asyncio.gather(*list(websocket.task_list.values()))
+          except asyncio.CancelledError:
+              if not websocket._keep_running:
+                  await websocket._websocketClient__async__disconnect()
+                  break
+              if websocket._switch_device:
+                  await websocket._websocketClient__async__listen_devices('listen_stop')
+                  await websocket._websocketClient__async__get_devices()
+                  await websocket._websocketClient__async__listen_devices('listen_start')
+                  Logger.info(f'Websocket: {system().log_time()} - Switching devices and/or station')
+                  websocket._switch_device = False
 
 
 if __name__ == '__main__':

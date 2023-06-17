@@ -23,6 +23,7 @@ import collections
 import subprocess
 import requests
 import platform
+import shutil
 import sys
 import os
 
@@ -77,6 +78,46 @@ def create():
     print('')
     print('  Required fields are marked with an asterix (*)     ')
     print('')
+
+    # Give the user the opportunity to install an example .ini file that brings 
+    # up a blank dashboard
+    if queryUser('Would you like to start configuring the wfpiconsole?*', None):
+        print('')
+    else:
+        if queryUser('Would you like to install a blank example configuration?*', None):
+
+            # Copy the example configuration file into place
+            try:
+                shutil.copy('wfpiconsole.ini.example', 'wfpiconsole.ini')
+                
+                # Overwrite example values with correct version and hardware
+                # keys
+                currentConfig = configparser.ConfigParser(allow_no_value=True)
+                currentConfig.optionxform = str
+                currentConfig.read('wfpiconsole.ini')
+                currentConfig['System']['Version']   = Version
+                currentConfig['System']['Hardware']  = Hardware
+
+                # Write the updated example configuration to disk
+                try:
+                    currentConfig.write()
+                except TypeError:
+                    with open('wfpiconsole.ini', 'w') as configfile:
+                        currentConfig.write(configfile)
+                print('\n  Sucesfully installed example configuration which')
+                print('  can be manually edited to enable additional features\n')
+
+            # Unable to install example configuration
+            except Exception as error:
+                if os.path.exists("wfpiconsole.ini"):
+                    os.remove("wfpiconsole.ini")
+                sys.exit(f'\n    Error: unable to install example configuration \n    {error}')
+            return
+
+        else:
+            print('\n  Exiting: you must either start configuring or install an example configuration')
+            print('\n')
+            sys.exit(1)
 
     # Open new user configuration file
     config = configparser.ConfigParser(allow_no_value=True)
@@ -171,7 +212,8 @@ def update():
         with open('wfpiconsole.ini', 'w') as config_file:
             new_config.write(config_file)
 
-    #  VERSION UNCHANGED. VERIFY STATION DETAILS FOR EXISTING CONFIGURATION
+    #  VERSION UNCHANGED. VERIFY STATION AND DEVICE DETAILS FOR EXISTING 
+    # CONFIGURATION
     # --------------------------------------------------------------------------
     elif version.parse(current_version) == version.parse(latest_version):
         if int(current_config['System']['rest_api']):
@@ -179,8 +221,11 @@ def update():
         with open('wfpiconsole.ini', 'w') as config_file:
             current_config.write(config_file)
 
-
 def verify_station(config):
+
+    # Skip verification if running example config
+    if not  config['Keys']['WeatherFlow'] or not config['Station']['StationID']:
+        return config
 
     # Fetch latest station metadata
     Logger.info('Config: Verifying station details')
@@ -205,12 +250,16 @@ def verify_station(config):
                 Logger.warning('Config: Disable REST API services when using UDP without an internet connection')
             sys.exit()
 
-    # Confirm existing station name
-    config.set('Station', 'Name', STATION['station_name'])
+    # Verify station details
+    config_key = ['Latitude', 'Longitude', 'Elevation', 'Timezone', 'Name']
+    api_key    = ['latitude', 'longitude', 'elevation', 'timezone', 'station_name']
+    for idx, key in enumerate(config_key):
+        if config['Station'][key] != str(STATION[api_key[idx]]):
+            config.set('Station', key, str(STATION[api_key[idx]]))
+            Logger.info('Config: Updating station ' + key.lower())
 
     # Return verified configuration
     return config
-
 
 def switch(station_meta_data, device_list, config):
 
@@ -255,7 +304,6 @@ def switch(station_meta_data, device_list, config):
     except TypeError:
         with open('wfpiconsole.ini', 'w') as configfile:
             config.write(configfile)
-
 
 def copy_config_key(new_config, current_config, section, key, details):
 
@@ -653,7 +701,6 @@ def validate_API_keys(Config):
         for ii, station in enumerate(STATION['stations']):
             if station['station_id'] == int(Config['Station']['StationID']):
                 idx = ii
-
 
 def query_user(Question, Default=None):
 
