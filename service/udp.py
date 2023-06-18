@@ -30,6 +30,9 @@ import socket
 import json
 
 
+# ==============================================================================
+# DEFINE 'EchoClientProtocol' CLASS
+# ==============================================================================
 class EchoClientProtocol:
     def __init__(self, _loop, _udp_connection, udp_client):
         self._udp_connection = _udp_connection
@@ -81,7 +84,7 @@ class udp_client():
         self.task_list        = {}
         self.connected        = False
         self.socket           = None
-        self.station          = int(self.config['Station']['StationID'])
+        #self.station          = None
         self.udp_port         = 50222
         self.udp_ip           = '0.0.0.0'
 
@@ -100,12 +103,27 @@ class udp_client():
                     lambda: EchoClientProtocol(self._asyncio_loop, self._udp_connection, self),
                     local_addr=(self.udp_ip, self.udp_port),
                     flags=socket.SO_REUSEADDR)
-                self.connected = True
-                self.app.obsParser.flagAPI = [1, 1, 1, 1]
                 Logger.info(f'UDP: {self.system.log_time()} - Socket open')
+                self.connected = True
+                await self.__async__get_devices()
+                self.app.obsParser.flagAPI = [1, 1, 1, 1]           
             except Exception as error:
                 Logger.error(f'UDP: {self.system.log_time()} - Connection error: {error}')
                 await asyncio.sleep(self.sleep_time)
+
+    async def __async__get_devices(self):
+        self.device_list = {'tempest': None, 'sky': None, 'out_air': None, 'in_air': None}
+        if self.config['Station']['TempestSN']:
+            self.device_list['tempest'] = self.config['Station']['TempestSN']
+        else:
+            if self.config['Station']['SkySN']:
+                self.device_list['sky'] = self.config['Station']['SkySN']
+            if self.config['Station']['OutAirSN']:
+                self.device_list['out_air'] = self.config['Station']['OutAirSN']
+        if self.config['Station']['InAirSN']:
+            self.device_list['in_air'] = self.config['Station']['InAirSN']
+        if all(device is None for device in self.device_list.values()):
+            Logger.warning(f'UDP: {system().log_time()} - Data unavailable; no device IDs specified')
 
     async def __async__close_socket(self):
         Logger.info(f'UDP: {self.system.log_time()} - Closing socket')
@@ -138,19 +156,19 @@ class udp_client():
                                     if 'obs_sky' in self.thread_list:
                                         while self.thread_list['obs_sky'].is_alive():
                                             await asyncio.sleep(0.1)
-                                    # self.thread_list['obs_sky'] = threading.Thread(target=self.app.obsParser.parse_obs_sky,
-                                    #                                                args=(self.message, self.config, ),
-                                    #                                                name='obs_sky')
-                                    # self.thread_list['obs_sky'].start()
+                                    self.thread_list['obs_sky'] = threading.Thread(target=self.app.obsParser.parse_obs_sky,
+                                                                                   args=(self.message, self.config, ),
+                                                                                   name='obs_sky')
+                                    self.thread_list['obs_sky'].start()
                             elif self.message['type'] == 'obs_air':
                                 if self.message['serial_number'] == self.config['Station']['OutAirSN']:
                                     if 'obs_out_air' in self.thread_list:
                                         while self.thread_list['obs_out_air'].is_alive():
                                             await asyncio.sleep(0.1)
-                                    # self.thread_list['obs_out_air'] = threading.Thread(target=self.app.obsParser.parse_obs_out_air,
-                                    #                                                    args=(self.message, self.config, ),
-                                    #                                                    name='obs_out_air')
-                                    # self.thread_list['obs_out_air'].start()
+                                    self.thread_list['obs_out_air'] = threading.Thread(target=self.app.obsParser.parse_obs_out_air,
+                                                                                       args=(self.message, self.config, ),
+                                                                                       name='obs_out_air')
+                                    self.thread_list['obs_out_air'].start()
                                 elif self.message['serial_number'] == self.config['Station']['InAirSN']:
                                     if 'obs_in_air' in self.thread_list:
                                         while self.thread_list['obs_in_air'].is_alive():

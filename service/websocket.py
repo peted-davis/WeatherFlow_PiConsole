@@ -63,8 +63,8 @@ class websocketClient():
         self.watchdog_list     = {}
         self.connected         = False
         self.connection        = None
-        self.station           = int(self.config['Station']['StationID'])
-        self.url               = 'wss://swd.weatherflow.com/swd/data?token=' + self.config['Keys']['WeatherFlow']
+        #self.station           = None
+        self.url               = None
 
         # Initialise Observation Parser
         self.app.obsParser = obs_parser()
@@ -77,11 +77,10 @@ class websocketClient():
 
         # Verify WeatherFlow token and StationID are specified in .ini file
         self.config = self.app.config
-        if not self.config['Station']['StationID'] or not self.config['Keys']['WeatherFlow']:
-            return
+        if self.config['Keys']['WeatherFlow']:
+            self.url = 'wss://swd.weatherflow.com/swd/data?token=' + self.config['Keys']['WeatherFlow']
         else:
-            self.station = int(self.config['Station']['StationID'])
-            self.url     = 'wss://swd.weatherflow.com/swd/data?token=' + self.config['Keys']['WeatherFlow']
+            return
 
         # Connect to Websocket
         while not self.connected:
@@ -148,6 +147,8 @@ class websocketClient():
         if self.config['Station']['InAirID']:
             self.device_list['in_air'] = self.config['Station']['InAirID']
             self.watchdog_list['obs_in_air']  = time.time()
+        if all(device is None for device in self.device_list.values()):
+            Logger.warning(f'Websocket: {system().log_time()} - Data unavailable; no device IDs specified')
 
     async def __async__listen_devices(self, action):
         devices = []
@@ -284,8 +285,8 @@ class websocketClient():
 
 async def main():
     websocket = await websocketClient.create()
-    if not websocket.config['Keys']['WeatherFlow'] or not websocket.config['Station']['StationID']:
-        Logger.warning(f'Websocket: {system().log_time()} - WeatherFlow token or StationID not configured')
+    if not websocket.config['Keys']['WeatherFlow']:
+        Logger.warning(f'Websocket: {system().log_time()} - Conection unavailable; WeatherFlow Access Token missing')
     else:
       while websocket._keep_running:
           try:
