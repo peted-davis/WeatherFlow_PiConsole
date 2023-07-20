@@ -255,12 +255,12 @@ def format(Obs, obType, config=[]):
                         cObs[ii - 1] = '-'
                     else:
                         if P.strip() in ['inHg/hr', 'inHg']:
-                            if round(cObs[ii - 1], 1) == 0.0:
+                            if round(cObs[ii - 1], 3) == 0.0:
                                 cObs[ii - 1] = '{:.3f}'.format(abs(cObs[ii - 1]))
                             else:
                                 cObs[ii - 1] = '{:.3f}'.format(cObs[ii - 1])
                         elif P.strip() in ['mmHg/hr', 'mmHg']:
-                            if round(cObs[ii - 1], 1) == 0.0:
+                            if round(cObs[ii - 1], 2) == 0.0:
                                 cObs[ii - 1] = '{:.2f}'.format(abs(cObs[ii - 1]))
                             else:
                                 cObs[ii - 1] = '{:.2f}'.format(cObs[ii - 1])
