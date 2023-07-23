@@ -274,7 +274,7 @@ def update():
     # CONFIGURATION
     # --------------------------------------------------------------------------
     elif version.parse(current_version) == version.parse(latest_version):
-        if int(current_config['System']['rest_api']):
+        if current_config['System']['rest_api'] and int(current_config['System']['rest_api']):
             current_config = verify_station(current_config)
         with open('wfpiconsole.ini', 'w') as config_file:
             current_config.write(config_file)

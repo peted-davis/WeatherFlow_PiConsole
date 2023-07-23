@@ -394,6 +394,7 @@ class wfpiconsole(App):
     # START WEBSOCKET OR UDP SERVICE
     # --------------------------------------------------------------------------
     def start_connection_service(self, *largs):
+        self.connection_thread = None
         if self.config['System']['Connection'] == 'Websocket':
             self.connection_thread = threading.Thread(target=run_path,
                                                       args=['service/websocket.py'],
@@ -404,7 +405,8 @@ class wfpiconsole(App):
                                                       args=['service/udp.py'],
                                                       kwargs={'run_name': '__main__'},
                                                       name='UDP')
-        self.connection_thread.start()
+        if self.connection_thread is not None:
+            self.connection_thread.start()
 
     # STOP WEBSOCKET SERVICE
     # --------------------------------------------------------------------------
