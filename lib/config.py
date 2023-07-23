@@ -146,7 +146,7 @@ def create():
             break
         else:
             print('  Connection type not recognised')
-            TYPE = input('  Please select your preferred connection type: ') or 1
+            TYPE = input('  Please select your preferred connection type: ') or '1'
             print('')
 
     # Determine preferred unit convention if connection type is UDP only
@@ -190,7 +190,7 @@ def create():
                 print(default[section][key])
                 print('  ---------------------------------')
             else:
-                if section in udp_input and key in udp_input[section]:
+                if TYPE == 3 and section in udp_input and key in udp_input[section]:
                     write_config_key(config, section, key, udp_input[section][key])
                 else:
                     write_config_key(config, section, key, default[section][key])
