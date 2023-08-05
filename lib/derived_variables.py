@@ -162,9 +162,9 @@ def SLP(pressure, device, config):
 
     # Extract required configuration variables
     elevation = config['Station']['Elevation']
-    if str(device) == config['Station']['OutAirID']:
+    if str(device) in [config['Station']['OutAirID'], config['Station']['OutAirSN']]:
         height = config['Station']['OutAirHeight']
-    elif str(device) == config['Station']['TempestID']:
+    elif str(device) in [config['Station']['TempestID'], config['Station']['TempestSN']]:
         height = config['Station']['TempestHeight']
 
     # Define required constants

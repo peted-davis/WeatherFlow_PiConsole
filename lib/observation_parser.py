@@ -97,7 +97,7 @@ class obs_parser():
         if 'device_id' in message:
             device_id = message['device_id']
         elif 'serial_number' in message:
-            device_id = config['Station']['TempestID']
+            device_id = config['Station']['TempestSN']
         self.api_data[device_id] = {'flagAPI': self.flag_api[0]}
 
         # Discard duplicate TEMPEST Websocket messages
@@ -179,7 +179,7 @@ class obs_parser():
         if 'device_id' in message:
             device_id = message['device_id']
         elif 'serial_number' in message:
-            device_id = config['Station']['SkyID']
+            device_id = config['Station']['SkySN']
         self.api_data[device_id] = {'flagAPI': self.flag_api[1]}
 
         # Discard duplicate SKY Websocket messages
@@ -240,7 +240,7 @@ class obs_parser():
         if 'device_id' in message:
             device_id = message['device_id']
         elif 'serial_number' in message:
-            device_id = config['Station']['OutAirID']
+            device_id = config['Station']['OutAirSN']
         self.api_data[device_id] = {'flagAPI': self.flag_api[2]}
 
         # Discard duplicate outdoor AIR Websocket messages
@@ -305,7 +305,7 @@ class obs_parser():
         if 'device_id' in message:
             device_id = message['device_id']
         elif 'serial_number' in message:
-            device_id = config['Station']['InAirID']
+            device_id = config['Station']['InAirSN']
         self.api_data[device_id] = {'flagAPI': self.flag_api[3]}
 
         # Discard duplicate indoor AIR Websocket messages
@@ -351,9 +351,9 @@ class obs_parser():
             device_id = message['device_id']
         elif 'serial_number' in message:
             if 'ST' in message['serial_number']:
-                device_id = config['Station']['TempestID']
+                device_id = config['Station']['TempestSN']
             elif 'SK' in message['serial_number']:
-                device_id = config['Station']['SkyID']
+                device_id = config['Station']['SkySN']
 
         # Discard duplicate rapid_wind Websocket messages
         if 'rapid_wind' in self.display_obs:
@@ -405,9 +405,9 @@ class obs_parser():
             device_id = message['device_id']
         elif 'serial_number' in message:
             if 'ST' in message['serial_number']:
-                device_id = config['Station']['TempestID']
+                device_id = config['Station']['TempestSN']
             elif 'AR' in message['serial_number']:
-                device_id = config['Station']['OutAirID']
+                device_id = config['Station']['OutAirSN']
 
         # Discard duplicate evt_strike Websocket messages
         if 'evt_strike' in self.display_obs:
