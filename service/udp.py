@@ -84,7 +84,6 @@ class udp_client():
         self.task_list        = {}
         self.connected        = False
         self.socket           = None
-        #self.station          = None
         self.udp_port         = 50222
         self.udp_ip           = '0.0.0.0'
 
@@ -106,7 +105,7 @@ class udp_client():
                 Logger.info(f'UDP: {self.system.log_time()} - Socket open')
                 self.connected = True
                 await self.__async__get_devices()
-                self.app.obsParser.flagAPI = [1, 1, 1, 1]           
+                self.app.obsParser.flagAPI = [1, 1, 1, 1]
             except Exception as error:
                 Logger.error(f'UDP: {self.system.log_time()} - Connection error: {error}')
                 await asyncio.sleep(self.sleep_time)

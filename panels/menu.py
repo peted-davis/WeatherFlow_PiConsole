@@ -63,8 +63,9 @@ class mainMenu(ModalView):
         self.get_station_list()
 
         # Populate status fields
-        self.app.station.get_observation_count()
-        self.app.station.get_hub_firmware()
+        if bool(int(self.app.config['System']['rest_api'])):
+            self.app.station.get_observation_count()
+            self.app.station.get_hub_firmware()
 
         # Add station status panels to main menu
         self.ids.station_panel.add_widget(self.app.station.station_status_panel)
