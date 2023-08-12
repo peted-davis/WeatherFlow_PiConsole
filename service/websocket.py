@@ -193,9 +193,6 @@ class websocketClient():
                 watchdog_triggered = True
                 break
         if watchdog_triggered:
-            # no need to disconnect/connect if we're not using websockets for observations
-            if self.config['System']['SkipRestObservations']:
-                return
             Logger.warning(f'Websocket: {self.system.log_time()} - Watchdog triggered {ob}')
             await self.__async__disconnect()
             await self.__async__connect()
