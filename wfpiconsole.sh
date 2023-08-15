@@ -73,6 +73,7 @@ fi
 # ------------------------------------------------------------------------------
 # Download and install directories
 CONSOLEDIR=/home/${USER}/wfpiconsole/
+VENVDIR=${CONSOLEDIR}/venv/
 DLDIR=${CONSOLEDIR}/temp/
 
 # Package manager commands
@@ -82,9 +83,11 @@ PKG_UPDATE_INSTALL="${PKG_MANAGER} dist-upgrade -y"
 PKG_UPDATE_COUNT="${PKG_MANAGER} -s -o Debug::NoLocking=true upgrade | grep -c ^Inst || true"
 PKG_NEW_INSTALL=(${PKG_MANAGER} --yes install)
 
-# Python PIP commands
-PIP_INSTALL="python3 -m pip install --user"
-PIP_UPDATE="python3 -m pip install --user --upgrade"
+# Python commands
+PYTHON_SYS=python3
+PYTHON_VENV=${VENVDIR}bin/python3
+PIP_INSTALL="-m pip install"
+PIP_UPDATE="-m pip install --upgrade"
 
 # wfpiconsole and Kivy dependencies
 WFPICONSOLE_DEPENDENCIES=(git curl rng-tools build-essential python3-dev python3-pip python3-setuptools
@@ -111,7 +114,7 @@ if [ -f "$MODEL_FILE" ]; then
     SUPPORTED_RASPBERRY_PI="false"
   fi
 else
-  CRYPTOGRAPHY_VERSION="39.0.0"
+  CRYPTOGRAPHY_VERSION="41.0.3"
 fi
 
 # Python modules and versions
@@ -123,7 +126,7 @@ PYTHON_MODULES=(cython==0.29.26
                 ephem==4.1.3
                 packaging==21.3
                 cryptography==$CRYPTOGRAPHY_VERSION
-                pyOpenSSL==21.0.0
+                pyOpenSSL==23.2.0
                 certifi==2021.10.8)
 
 # Kivy pip source
@@ -221,12 +224,32 @@ install_packages() {
     fi
 }
 
+# INSTALL PYTHON VIRTUAL ENVIRONMENT
+# ------------------------------------------------------------------------------
+install_python_venv() {
+    local str="Installing Python virtual environment"
+    printf "\\n  %b %s..." "${INFO}" "${str}"
+    if [ ! -f "$VENVDIR/bin/activate" ]; then
+        if (${PYTHON_SYS} -m venv $VENVDIR &> error_log); then
+            printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
+        else
+            printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
+            printf "  %bError: Unable to install Python virtual environment\\n\\n %b" "${COL_LIGHT_RED}" "${COL_NC}"
+            printf "%s\\n\\n" "$(<error_log)"
+            clean_up
+            exit 1
+        fi        
+    else
+        printf " already exists\\n"
+    fi
+}
+
 # UPDATE PYTHON PACKAGE MANAGER: PIP
 # ------------------------------------------------------------------------------
 update_pip() {
     local str="Updating Python package manager"
     printf "\\n  %b %s..." "${INFO}" "${str}"
-    if (${PIP_UPDATE} pip setuptools &> error_log); then
+    if (${PYTHON_SYS} ${PIP_UPDATE} pip setuptools &> error_log); then
         printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
     else
         printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
@@ -254,7 +277,7 @@ install_python_modules() {
         module=$(echo $i | cut -d"[" -f 1 | cut -d"=" -f 1)
         local str="Installing Python module"
         printf "  %b %s %s..." "${INFO}" "${str}" "${module}"
-        if (${PIP_INSTALL} "$i" &> error_log); then
+        if (${PYTHON_VENV} ${PIP_INSTALL} "$i" &> error_log); then
             printf "%b  %b %s %s\\n" "${OVER}" "${TICK}" "${str}" "${module}"
         else
             printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
@@ -278,7 +301,7 @@ update_python_modules() {
     update_pip
 
     # Get list of installed packages and versions
-    python3 -m pip freeze > module_list
+    ${PYTHON_VENV} -m pip freeze > module_list
 
     # Update required Python modules
     for i in "${arg_array[@]}"; do
@@ -289,7 +312,7 @@ update_python_modules() {
             if [[ "$current_version" != "$required_version" ]]; then
                 local str="Updating Python module"
                 printf "  %b %s %s..." "${INFO}" "${str}" "${module}"
-                if (${PIP_INSTALL} "$i" &> error_log); then
+                if (${PYTHON_VENV} ${PIP_INSTALL} "$i" &> error_log); then
                     printf "%b  %b %s %s\\n" "${OVER}" "${TICK}" "${str}" "${module}"
                 else
                     printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
@@ -302,7 +325,7 @@ update_python_modules() {
         else
             local str="Installing new Python module"
             printf "  %b %s %s..." "${INFO}" "${str}" "${module}"
-            if (${PIP_INSTALL} "$i" &> error_log); then
+            if (${PYTHON_VENV} ${PIP_INSTALL} "$i" &> error_log); then
                 printf "%b  %b %s %s\\n" "${OVER}" "${TICK}" "${str}" "${module}"
             else
                 printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
@@ -358,8 +381,8 @@ install_kivy() {
     # Check if required Kivy version is installed
     local str="Kivy Python library installation check"
     printf "\\n  %b %s..." "${INFO}" "${str}"
-    if python3 -c "import kivy" &> /dev/null; then
-        kivy_version=$(python3 -m pip show kivy | grep Version | cut -d" " -f2)
+    if ${PYTHON_VENV} -c "import kivy" &> /dev/null; then
+        kivy_version=$(${PYTHON_VENV} -m pip show kivy | grep Version | cut -d" " -f2)
         if [[ "$KIVY_VERSION" == "$kivy_version" ]]; then
             printf "%b  %b %s \\n" "${OVER}" "${TICK}" "${str}"
         else
@@ -379,7 +402,7 @@ install_kivy() {
             local str="Installing Kivy Python library"
         fi
         printf "\\n  %b %s..." "${INFO}" "${str}"
-        if ($PIP_INSTALL $KIVY_SOURCE &> error_log); then
+        if (${PYTHON_VENV} ${PIP_INSTALL} ${KIVY_SOURCE} &> error_log); then
             printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
         else
             printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
@@ -401,7 +424,7 @@ update_kivy_config() {
     # Create Kivy config file for user that called function
     local str="Updating Kivy configuration for touch screen"
     printf "  %b %s..." "${INFO}" "${str}"
-    if python3 -c "import kivy" &> error_log; then
+    if ${PYTHON_VENV} -c "import kivy" &> error_log; then
         :
     else
         printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
@@ -430,7 +453,7 @@ update_kivy_config() {
     echo "configfile.close()" >> python_command
 
     # Run Python command to modify Kivy config for the Raspberry Pi touchscreen
-    if (python3 python_command &> error_log); then
+    if (${PYTHON_VENV} python_command &> error_log); then
         printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
     else
         printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
@@ -453,7 +476,7 @@ get_latest_version() {
     # If the WeatherFlow PiConsole is already installed, get the current
     # installed version from wfpiconsole.ini file.
     if [[ -f $CONSOLEDIR/wfpiconsole.ini ]]; then
-        current_version=$(python3 -c "import configparser; c=configparser.ConfigParser(); c.read('$CONSOLEDIR/wfpiconsole.ini'); print(c['System']['Version'])")
+        current_version=$(${PYTHON_VENV} -c "import configparser; c=configparser.ConfigParser(); c.read('$CONSOLEDIR/wfpiconsole.ini'); print(c['System']['Version'])")
         printf "\\n  %b Latest version of WeatherFlow PiConsole: %s" ${INFO} ${latest_version}
         printf "\\n  %b Installed version of WeatherFlow PiConsole: %s" ${INFO} ${current_version}
 
@@ -588,6 +611,7 @@ switch_beta_branch() {
 install_service_file () {
 
     # Write current user and install directory to wfpiconsole.service file
+    sed -i "s+ExecStart=.*$+ExecStart=$PYTHON_VENV -u main.py+" $CONSOLEDIR/wfpiconsole.service
     sed -i "s+WorkingDirectory=.*$+WorkingDirectory=$CONSOLEDIR+" $CONSOLEDIR/wfpiconsole.service
     sed -i "s+User=.*$+User=$USER+" $CONSOLEDIR/wfpiconsole.service
     sed -i "s+StandardOutput=.*$+StandardOutput=file:${CONSOLEDIR}wfpiconsole.log+" $CONSOLEDIR/wfpiconsole.service
@@ -595,7 +619,7 @@ install_service_file () {
 
     # Install wfpiconsole.service file to /etc/systemd/system/ and reload deamon
     local str="Copying service file to autostart directory"
-    printf "  %b %s..." "${INFO}" "${str}"
+    printf "\\n  %b %s..." "${INFO}" "${str}"
     sudo cp $CONSOLEDIR/wfpiconsole.service /etc/systemd/system/
     if (sudo systemctl daemon-reload &> error_log); then
         printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
@@ -861,7 +885,7 @@ process_complete() {
 # ------------------------------------------------------------------------------
 start () {
     cd $CONSOLEDIR && rm -f wfpiconsole.log
-    python3 main.py |& tee wfpiconsole.log
+    ${PYTHON_VENV} main.py |& tee wfpiconsole.log
 }
 
 # STOP THE WeatherFlow PiConsole
@@ -885,6 +909,8 @@ install() {
     update_packages
     # Install required packages
     install_packages
+    # Install Python virtual environment
+    install_python_venv
     # Install required Python modules
     install_python_modules
     # Install required Kivy dependencies
@@ -893,6 +919,8 @@ install() {
     install_kivy
     # Get the latest version of the WeatherFlow PiConsole and install
     get_latest_version
+    # Edit and install wfpiconsole.service file
+    install_service_file
     # Clean up after update
     clean_up
     # Display installation complete dialogue
@@ -924,6 +952,8 @@ run_update() {
     install_kivy
     # Get the latest version of the WeatherFlow PiConsole and install
     get_latest_version
+    # Edit and install wfpiconsole.service file
+    install_service_file
     # Clean up after installation
     clean_up
     # Display update complete dialogue
@@ -981,8 +1011,6 @@ autostart-enable () {
 
     # Display autostart-enable starting dialogue
     process_starting ${FUNCNAME[0]}
-    # Edit and install wfpiconsole.service file
-    install_service_file
     # Enable wfpiconsole service
     enable_service
     # Clean up after enabling autostart
