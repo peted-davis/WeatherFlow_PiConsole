@@ -108,6 +108,7 @@ kivyconfig.write()
 # ==============================================================================
 # IMPORT REQUIRED CORE KIVY MODULES
 # ==============================================================================
+from kivy.uix.boxlayout      import BoxLayout
 from kivy.properties         import StringProperty
 from kivy.properties         import DictProperty, NumericProperty
 from kivy.core.window        import Window
@@ -185,6 +186,8 @@ class wfpiconsole(App):
         self.window = Window
         self.setScaleFactor(self.window, self.window.width, self.window.height)
         self.window.bind(on_resize=self.setScaleFactor)
+        from kivy.modules import inspector
+        inspector.create_inspector(Window, self)
 
         # Load Custom Panel KV file if present
         if Path('user/customPanels.py').is_file():
@@ -219,7 +222,7 @@ class wfpiconsole(App):
     # --------------------------------------------------------------------------
     def setScaleFactor(self, instance, x, y):
         self.scaleFactor = min(x / 800, y / 480)
-        if self.scaleFactor > 1:
+        if self.scaleFactor > 1 or int(self.config['Display']['PanelCount']) < 6:
             self.scaleSuffix = '_hR.png'
         else:
             self.scaleSuffix = '_lR.png'
@@ -320,6 +323,10 @@ class wfpiconsole(App):
                 for panel in getattr(self, 'BarometerPanel'):
                     panel.set_barometer_max_min()
 
+        # Update number of panels displayed on CurrentConditions screen
+        if section == 'Display' and key == 'PanelCount':
+            Clock.schedule_once(self.CurrentConditions.add_panels)
+
         # Update primary and secondary panels displayed on CurrentConditions
         # screen
         if section in ['PrimaryPanels', 'SecondaryPanels']:
@@ -339,14 +346,22 @@ class wfpiconsole(App):
         # Update button layout displayed on CurrentConditions screen
         if section == 'SecondaryPanels':
             self.CurrentConditions.button_list = []
+            secondary_panels  = tuple(self.config['SecondaryPanels'].items())
             button_list = ['button_' + Num for Num in ['one', 'two', 'three', 'four', 'five', 'six']]
             button_number = 0
             for button in button_list:
                 self.CurrentConditions.ids[button].clear_widgets()
-            for ii, (panel, type) in enumerate(self.config['SecondaryPanels'].items()):
-                if type and type != 'None':
-                    self.CurrentConditions.ids[button_list[button_number]].add_widget(eval(type + 'Button')())
-                    self.CurrentConditions.button_list.append([button_list[button_number], panel_list[ii], type, 'Primary'])
+            if int(self.config['Display']['PanelCount']) == 1:
+                button_ids = ['button_' + number for number in ['one']]
+            elif int(self.config['Display']['PanelCount']) == 4:
+                button_ids = ['button_' + number for number in ['one',   'two',  'three', 'four']]
+            elif int(self.config['Display']['PanelCount']) == 6:
+                button_ids = ['button_' + number for number in ['one',   'two',  'three', 'four', 'five', 'six']]
+            for ii, button_id in enumerate(button_ids):
+                button_type = secondary_panels[ii][1]
+                if button_type and button_type != 'None':
+                    self.CurrentConditions.ids[button_ids[button_number]].add_widget(eval(button_type + 'Button')())
+                    self.CurrentConditions.button_list.append([button_ids[button_number], panel_list[ii], button_type, 'Primary'])
                     button_number += 1
 
             # Change 'None' for secondary panel selection to blank in config
@@ -460,7 +475,7 @@ class CurrentConditions(Screen):
         self.Obs    = properties.Obs()
 
         # Add display panels
-        self.addPanels()
+        self.add_panels()
 
         # Schedule Station.getDeviceStatus to be called each second
         self.app.station = station()
@@ -485,22 +500,49 @@ class CurrentConditions(Screen):
 
     # ADD USER SELECTED PANELS TO CURRENT CONDITIONS SCREEN
     # --------------------------------------------------------------------------
-    def addPanels(self):
+    def add_panels(self, *args):
 
-        # Add primary panels to CurrentConditions screen
-        panel_list = ['panel_' + Num for Num in ['one', 'two', 'three', 'four', 'five', 'six']]
-        for ii, (Panel, Type) in enumerate(self.app.config['PrimaryPanels'].items()):
-            self.ids[panel_list[ii]].add_widget(eval(Type + 'Panel')())
+        # Clear existing panels
+        if 'row_layout' in self.ids:
+            button_list = ['button_' + Num for Num in ['one', 'two', 'three', 'four', 'five', 'six']]
+            for button in button_list:
+                self.ids[button].clear_widgets()
+            self.ids['row_layout'].clear_widgets()
 
-        # Add secondary panel buttons to CurrentConditions screen
+        # Define required variables
+        panel_count  = 0
+        button_count = 0
         self.button_list = []
-        button_list = ['button_' + Num for Num in ['one', 'two', 'three', 'four', 'five', 'six']]
-        button_number = 0
-        for ii, (Panel, Type) in enumerate(self.app.config['SecondaryPanels'].items()):
-            if Type:
-                self.ids[button_list[button_number]].add_widget(eval(Type + 'Button')())
-                self.button_list.append([button_list[button_number], panel_list[ii], Type, 'Primary'])
-                button_number += 1
+        primary_panels    = tuple(self.app.config['PrimaryPanels'].items())
+        secondary_panels  = tuple(self.app.config['SecondaryPanels'].items())
+        if int(self.app.config['Display']['PanelCount']) == 1:
+            panel_ids = [['panel_'  + number for number in ['one']]]
+            button_ids = ['button_' + number for number in ['one']]
+        elif int(self.app.config['Display']['PanelCount']) == 4:
+            panel_ids = [['panel_'  + number for number in ['one',   'two']],
+                         ['panel_'  + number for number in ['three', 'four']]]
+            button_ids = ['button_' + number for number in ['one',   'two',  'three', 'four']]
+        elif int(self.app.config['Display']['PanelCount']) == 6:
+            panel_ids = [['panel_'  + number for number in ['one',   'two',  'three']],
+                         ['panel_'  + number for number in ['four',  'five', 'six']]]
+            button_ids = ['button_' + number for number in ['one',   'two',  'three', 'four', 'five', 'six']]
+
+        # Add primary panels to screen and initialise required buttons
+        for row in range(len(panel_ids)):
+            row_box_layout = BoxLayout(spacing='5dp')
+            self.ids['row_layout'].add_widget(row_box_layout)
+            for panel_id in panel_ids[row]:
+                button_id   = button_ids[button_count]
+                panel_type  = primary_panels[panel_count][1]
+                button_type = secondary_panels[panel_count][1]
+                self.ids[panel_id] = BoxLayout()
+                self.ids[panel_id].add_widget(eval(panel_type + 'Panel')())
+                row_box_layout.add_widget(self.ids[panel_id])
+                if button_type:
+                    self.ids[button_id].add_widget(eval(button_type + 'Button')())
+                    self.button_list.append([button_id, panel_id, button_type, 'Primary'])
+                    button_count += 1
+                panel_count += 1
 
     # SWITCH BETWEEN PRIMARY AND SECONDARY PANELS ON CURRENT CONDITIONS SCREEN
     # --------------------------------------------------------------------------

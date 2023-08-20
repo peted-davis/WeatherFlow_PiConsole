@@ -23,7 +23,6 @@ import collections
 import subprocess
 import requests
 import platform
-import shutil
 import sys
 import os
 
@@ -90,10 +89,10 @@ def create():
     print('  Required fields are marked with an asterix (*)     ')
     print('')
 
-    # Give the user the opportunity to install a minimal .ini file for 
+    # Give the user the opportunity to install a minimal .ini file for
     # demonstration purposes or advanced configuration
-    if query_user('Would you like to install a minimal configuration file \n' +
-                  '  for demonstration purposes or advanced setup?*', 'no'):
+    if query_user('Would you like to install a minimal configuration file \n'
+                  + '  for demonstration purposes or advanced setup?*', 'no'):
 
         # Generate minimal configuration file
         try:
@@ -140,8 +139,8 @@ def create():
             elif TYPE == '2':
                 print('  UDP and REST API selected')
             elif TYPE == '3':
-                print('  UDP only selected')        
-            TYPE = int(TYPE)    
+                print('  UDP only selected')
+            TYPE = int(TYPE)
             print('')
             break
         else:
@@ -165,14 +164,14 @@ def create():
                 elif UNITS == '2':
                     print('  Metric units selected')
                 elif UNITS == '3':
-                    print('  Imperial units selected')        
-                UNITS = int(UNITS)    
+                    print('  Imperial units selected')
+                UNITS = int(UNITS)
                 print('')
                 break
             else:
                 print('  Unit convention not recognised')
                 UNITS = input('  Please select your preferred unit convention: ') or '1'
-                print('')    
+                print('')
 
     # Open new user configuration file
     config = configparser.ConfigParser(allow_no_value=True)
@@ -270,7 +269,7 @@ def update():
         with open('wfpiconsole.ini', 'w') as config_file:
             new_config.write(config_file)
 
-    #  VERSION UNCHANGED. VERIFY STATION AND DEVICE DETAILS FOR EXISTING 
+    #  VERSION UNCHANGED. VERIFY STATION AND DEVICE DETAILS FOR EXISTING
     # CONFIGURATION
     # --------------------------------------------------------------------------
     elif version.parse(current_version) == version.parse(latest_version):
@@ -279,10 +278,11 @@ def update():
         with open('wfpiconsole.ini', 'w') as config_file:
             current_config.write(config_file)
 
+
 def verify_station(config):
 
     # Skip verification if running example config
-    if not  config['Keys']['WeatherFlow'] or not config['Station']['StationID']:
+    if not config['Keys']['WeatherFlow'] or not config['Station']['StationID']:
         return config
 
     # Fetch latest station metadata
@@ -318,6 +318,7 @@ def verify_station(config):
 
     # Return verified configuration
     return config
+
 
 def switch(station_meta_data, device_list, config):
 
@@ -362,6 +363,7 @@ def switch(station_meta_data, device_list, config):
     except TypeError:
         with open('wfpiconsole.ini', 'w') as configfile:
             config.write(configfile)
+
 
 def copy_config_key(new_config, current_config, section, key, details):
 
@@ -423,7 +425,7 @@ def write_config_key(config, section, key, details):
     # --------------------------------------------------------------------------
     if details['Type'] in ['userInput']:
 
-        # Determine whether userInput keys are required based on specified 
+        # Determine whether userInput keys are required based on specified
         # connection type
         if key in ['WeatherFlow', 'CheckWX', 'StationID'] and TYPE == 3:
             print('  ' + key + ' key not required for UDP only connections')
@@ -461,7 +463,7 @@ def write_config_key(config, section, key, details):
             key_required = False
         elif 'InAir' in key and not INDOORAIR:
             value = ''
-            key_required = False           
+            key_required = False
 
         # userInput key required. Get value from user
         if key_required:
@@ -788,6 +790,7 @@ def validate_API_keys(Config):
             if station['station_id'] == int(Config['Station']['StationID']):
                 idx = ii
 
+
 def query_user(Question, Default=None):
 
     """ Ask a yes/no question via raw_input() and return their answer.
@@ -840,16 +843,16 @@ def default_config():
     default =                    collections.OrderedDict()
     default['Keys'] =            collections.OrderedDict([('Description',    '  API keys'),
                                                           ('WeatherFlow',    {'Type': 'userInput', 'State': 'required',         'Desc': 'WeatherFlow Access Token',     'Format': str}),
-                                                          ('CheckWX',        {'Type': 'userInput', 'State': 'required',         'Desc': 'CheckWX API Key',              'Format': str, })])
+                                                          ('CheckWX',        {'Type': 'userInput', 'State': 'required',         'Desc': 'CheckWX API Key',              'Format': str})])
     default['Station'] =         collections.OrderedDict([('Description',    '  Station and device IDs'),
                                                           ('StationID',      {'Type': 'userInput', 'State': 'required',         'Desc': 'Station ID',                   'Format': int}),
-                                                          ('TempestID',      {'Type': 'userInput', 'State': 'required',         'Desc': 'TEMPEST device ID',            'Format': int,}),
+                                                          ('TempestID',      {'Type': 'userInput', 'State': 'required',         'Desc': 'TEMPEST device ID',            'Format': int}),
                                                           ('TempestSN',      {'Type': 'request',   'Source': 'station',         'Desc': 'TEMPEST serial number'}),
-                                                          ('SkyID',          {'Type': 'userInput', 'State': 'required',         'Desc': 'SKY device ID',                'Format': int,}),
+                                                          ('SkyID',          {'Type': 'userInput', 'State': 'required',         'Desc': 'SKY device ID',                'Format': int}),
                                                           ('SkySN',          {'Type': 'request',   'Source': 'station',         'Desc': 'SKY serial number'}),
-                                                          ('OutAirID',       {'Type': 'userInput', 'State': 'required',         'Desc': 'outdoor AIR device ID',        'Format': int, }),
+                                                          ('OutAirID',       {'Type': 'userInput', 'State': 'required',         'Desc': 'outdoor AIR device ID',        'Format': int}),
                                                           ('OutAirSN',       {'Type': 'request',   'Source': 'station',         'Desc': 'outdoor AIR serial number'}),
-                                                          ('InAirID',        {'Type': 'userInput', 'State': 'required',         'Desc': 'indoor AIR device ID',         'Format': int, }),
+                                                          ('InAirID',        {'Type': 'userInput', 'State': 'required',         'Desc': 'indoor AIR device ID',         'Format': int}),
                                                           ('InAirSN',        {'Type': 'request',   'Source': 'station',         'Desc': 'indoor AIR serial number'}),
                                                           ('TempestHeight',  {'Type': 'request',   'Source': 'station',         'Desc': 'height of TEMPEST'}),
                                                           ('SkyHeight',      {'Type': 'request',   'Source': 'station',         'Desc': 'height of SKY'}),
@@ -870,6 +873,7 @@ def default_config():
     default['Display'] =         collections.OrderedDict([('Description',    '  Display settings'),
                                                           ('TimeFormat',     {'Type': 'default',   'Value': '24 hr',            'Desc': 'time format'}),
                                                           ('DateFormat',     {'Type': 'default',   'Value': 'Mon, 01 Jan 0000', 'Desc': 'date format'}),
+                                                          ('PanelCount',     {'Type': 'default',   'Value': '6',                'Desc': 'number of display panels'}),
                                                           ('LightningPanel', {'Type': 'default',   'Value': '1',                'Desc': 'lightning panel toggle'}),
                                                           ('IndoorTemp',     {'Type': 'dependent',                              'Desc': 'indoor temperature toggle'}),
                                                           ('Cursor',         {'Type': 'default',   'Value': '1',                'Desc': 'cursor toggle'}),
@@ -915,7 +919,7 @@ def default_config():
 def udp_input_fields():
 
     """ Generates the default configuration required by the Raspberry Pi Python
-        console running in UDP mode for WeatherFlow Tempest and Smart Home 
+        console running in UDP mode for WeatherFlow Tempest and Smart Home
         Weather Stations.
 
     OUTPUT:
@@ -950,6 +954,7 @@ def udp_input_fields():
 
     # Return default configuration
     return udp_input
+
 
 def update_required(Key, current_version):
 
