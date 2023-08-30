@@ -29,6 +29,7 @@ from datetime import datetime, timedelta, time
 import ephem
 import pytz
 import math
+import pprint
 
 
 class astro():
@@ -48,10 +49,17 @@ class astro():
         self.sun  = ephem.Sun()
         self.moon = ephem.Moon()
 
+        Tz = pytz.timezone(self.app.config['Station']['Timezone'])
+        self.date = Tz.localize(datetime.now().replace(hour=23, minute=1, second=0, microsecond=0, day=18, month=8))
+
+        # Define sunrise/sunset event dictionary
+        self.sun_events = {}
+
     def reset_astro(self):
 
         ''' Reset the Astro data when the station ID changes
         '''
+        print("RESEST")
         # Cancel sun_transit and moon_phase schedules
         self.app.Sched.sun_transit.cancel()
         self.app.Sched.moon_phase.cancel()
@@ -69,7 +77,7 @@ class astro():
         self.app.Sched.sun_transit = Clock.schedule_interval(self.sun_transit, 1)
         self.app.Sched.moon_phase  = Clock.schedule_interval(self.moon_phase,  1)
 
-    def sunrise_sunset(self):
+    def get_sunrise_sunset(self, *args):
 
         """ Calculate sunrise and sunset times for the current day or tomorrow
         in the station timezone
@@ -85,66 +93,410 @@ class astro():
         # Get station timezone
         Tz = pytz.timezone(self.app.config['Station']['Timezone'])
 
-        # Set pressure to 0 to match the United States Naval Observatory Astronomical
-        # Almanac
+        # Set pressure to 0 to match the United States Naval Observatory
+        # Astronomical Almanac
         self.observer.pressure = 0
 
-        # The code is initialising. Calculate sunset/sunrise times for current day
-        # starting at midnight today in UTC
+        # Set sun event conditions
+        self.sun_down_no_dawn = False
+        self.sun_down_no_rise = False
+        self.sun_up_no_set    = False
+        self.sun_up_no_dusk   = False
+        self.night    = [False]
+        self.twilight = [False]
+        self.daylight = [False]
+
+        # The code is initialising. Calculate sunset/sunrise times for current
+        # day starting at midnight today in station timezone
         if self.astro_data['Sunset'][0] == '-':
+            # midnight_local = Tz.localize(datetime.now().replace(hour=0, minute=0, second=0, microsecond=0))
+            # self.date += timedelta(days=1)
+            midnight_local = self.date.replace(hour=0, minute=0, second=0)
+            print(midnight_local)
+            self.observer.date = midnight_local.astimezone(pytz.utc).strftime('%Y/%m/%d %H:%M:%S')
 
-            # Set Observer time to midnight today in UTC
-            UTC = datetime.now(pytz.utc)
-            Midnight = datetime(UTC.year, UTC.month, UTC.day, 0, 0, 0)
-            self.observer.date = Midnight.strftime('%Y/%m/%d %H:%M:%S')
-
-        # Dusk has passed. Calculate sunset/sunrise times for tomorrow starting at
-        # time of last Dusk in UTC
+        # Dusk has passed. Calculate sunset/sunrise times for tomorrow starting
+        # at time of Dusk in station timezone
         else:
 
-            # Set Observer time to last Sunset time in UTC
-            Dusk = self.astro_data['Dusk'][0].astimezone(pytz.utc) + timedelta(minutes=1)
-            self.observer.date = Dusk.strftime('%Y/%m/%d %H:%M:%S')
+            # THIS IS NOT RIGHT. THE TIME SWITCH IS NOT OCCURING CORRECTLY
 
-        # Calculate Dawn time in UTC
-        self.observer.horizon = '-6'
-        Dawn = self.observer.next_rising(self.sun, use_center=True)
-        Dawn = pytz.utc.localize(Dawn.datetime().replace(second=0, microsecond=0))
+            # CALCULATE MIDNIGHT_LOCAL FURTHER DOWN
 
-        # Calculate Sunrise time in UTC
-        self.observer.horizon = '-0:34'
-        Sunrise = self.observer.next_rising(self.sun)
-        Sunrise = pytz.utc.localize(Sunrise.datetime().replace(second=0, microsecond=0))
+            tz = pytz.timezone(self.app.config['Station']['Timezone'])
+            #time_now = datetime.now(pytz.utc).astimezone(tz) + timedelta(seconds=1)
+            time_now = self.date + timedelta(seconds=1)
+            midnight_local = self.date.replace(hour=0, minute=0, second=0)
+            print(midnight_local)
+            self.observer.date = time_now.astimezone(pytz.utc).strftime('%Y/%m/%d %H:%M:%S')
 
-        # Calculate Sunset time in UTC
-        self.observer.horizon = '-0:34'
-        Sunset = self.observer.next_setting(self.sun)
-        Sunset = pytz.utc.localize(Sunset.datetime().replace(second=0, microsecond=0))
+        # Reset sun events list
+        self.sun_events = {}
 
-        # Calculate Dusk time in UTC
-        self.observer.horizon = '-6'
-        Dusk = self.observer.next_setting(self.sun, use_center=True)
-        Dusk = pytz.utc.localize(Dusk.datetime().replace(second=0, microsecond=0))
+        # Loop over all required sun events for current day
+        for event in ['dawn', 'sunrise', 'sunset', 'dusk']:
 
-        # Define Dawn/Dusk and Sunrise/Sunset times in Station timezone
-        self.astro_data['Dawn'][0]    = Dawn.astimezone(Tz)
-        self.astro_data['Sunrise'][0] = Sunrise.astimezone(Tz)
-        self.astro_data['Sunset'][0]  = Sunset.astimezone(Tz)
-        self.astro_data['Dusk'][0]    = Dusk.astimezone(Tz)
+            # Define required horizons based on current event
+            if event == 'dawn' or event == 'dusk':
+                self.observer.horizon = '-6'
+                center = True
+            elif event == 'sunrise' or event == 'sunset':
+                self.observer.horizon = '-0:34'
+                center = False
+            if event == 'dawn' or event == 'sunrise':
+                event_function = self.observer.next_rising
+            elif event == 'dusk' or event == 'sunset':
+                event_function = self.observer.next_setting
+
+            # Calculate time of event for current day
+            try:
+                event_time = event_function(self.sun, use_center=center)
+                event_time = pytz.utc.localize(event_time.datetime().replace(second=0, microsecond=0)).astimezone(Tz)
+            except ephem.AlwaysUpError:
+                event_time = None
+                if event == 'sunset':
+                    self.sun_up_no_set = True
+                elif event == 'dusk':
+                    self.sun_up_no_dusk = True
+            except ephem.NeverUpError:
+                event_time = None
+                if event == 'sunrise':
+                    self.sun_down_no_rise = True
+                elif event == 'dawn':
+                    self.sun_down_no_dawn = True
+
+            self.sun_events[event] = {}
+            self.sun_events[event]['time'] = event_time
+            self.astro_data[event.capitalize()][0] = event_time
+
+        # If sun is always up or never up, or sunset occurs before sunrise,
+        # calculate time of next sunset or sunrise
+        if ((self.sun_up_no_set or self.sun_down_no_rise)
+           or (self.sun_events['sunset']['time'] < self.sun_events['sunrise']['time'])):
+            self.observer.horizon = '-0:34'
+            center = False
+            observer_date = datetime.strptime(str(self.observer.date), '%Y/%m/%d %H:%M:%S') + timedelta(hours=12)
+            self.observer.date = observer_date.strftime('%Y/%m/%d %H:%M:%S')
+            if (self.sun_up_no_set
+               or self.sun_events['sunset']['time'] < self.sun_events['sunrise']['time']):
+                event = 'next_sunset'
+                event_function = self.observer.next_setting
+            elif self.sun_down_no_rise:
+                event = 'next_sunrise'
+                event_function = self.observer.next_rising
+            while True:
+                try:
+                    event_time = event_function(self.sun, use_center=center)
+                    event_time = pytz.utc.localize(event_time.datetime().replace(second=0, microsecond=0)).astimezone(Tz)
+                    self.sun_events[event] = {}
+                    self.sun_events[event]['time'] = event_time
+                    self.astro_data[event] = event_time
+                    break
+                except (ephem.AlwaysUpError, ephem.NeverUpError):
+                    observer_date = datetime.strptime(str(self.observer.date), '%Y/%m/%d %H:%M:%S') + timedelta(hours=12)
+                    self.observer.date = observer_date.strftime('%Y/%m/%d %H:%M:%S')
+
+        pprint.pprint(self.sun_events, sort_dicts=False)
 
         # Calculate length and position of the dawn/dusk and sunrise/sunset
         # lines on the day/night bar
-        dawnMidnight    = (self.astro_data['Dawn'][0].hour * 3600    + self.astro_data['Dawn'][0].minute * 60)
-        sunriseMidnight = (self.astro_data['Sunrise'][0].hour * 3600 + self.astro_data['Sunrise'][0].minute * 60)
-        sunsetMidnight  = (self.astro_data['Sunset'][0].hour * 3600  + self.astro_data['Sunset'][0].minute * 60)
-        duskMidnight    = (self.astro_data['Dusk'][0].hour * 3600    + self.astro_data['Dusk'][0].minute * 60)
-        self.astro_data['Dawn'][2]    = dawnMidnight / 86400
-        self.astro_data['Sunrise'][2] = sunriseMidnight / 86400
-        self.astro_data['Sunset'][2]  = (sunsetMidnight - sunriseMidnight) / 86400
-        self.astro_data['Dusk'][2]    = (duskMidnight - dawnMidnight) / 86400
+        if self.sun_down_no_dawn and self.sun_down_no_rise:
+            self.day_night_order = ['night']
+            self.night           = [True, 0, 1]
+        elif self.sun_up_no_set and self.sun_up_no_dusk:
+            self.day_night_order = ['daylight']
+            self.daylight        = [True, 0, 1]
+        elif self.sun_down_no_rise:
+            self.day_night_order = ['night', 'twilight']
+            self.night           = [True, 0, 1]
+            self.twilight        = [True,
+                                    max((self.sun_events['dawn']['time'] - midnight_local).total_seconds() / 86400, 0),
+                                    min((self.sun_events['dusk']['time'] - midnight_local).total_seconds() / 86400, 1)]
+        elif self.sun_up_no_dusk:
+            if self.sun_events['sunset']['time'] < self.sun_events['sunrise']['time']:
+                self.day_night_order = ['daylight', 'twilight']
+                self.twilight        = [True,
+                                        max((self.sun_events['sunset']['time']  - midnight_local).total_seconds() / 86400, 0),
+                                        min((self.sun_events['sunrise']['time'] - midnight_local).total_seconds() / 86400, 1)]
+                self.daylight        = [True, 0, 1]
+            else:
+                self.day_night_order = ['twilight', 'daylight']
+                self.twilight        = [True, 0, 1]
+                self.daylight        = [True,
+                                        max((self.sun_events['sunrise']['time'] - midnight_local).total_seconds() / 86400, 0),
+                                        min((self.sun_events['sunset']['time']  - midnight_local).total_seconds() / 86400, 1)]
+        else:
+            if self.sun_events['dusk']['time'] < self.sun_events['dawn']['time']:
+                self.day_night_order = ['twilight', 'night', 'daylight']
+                self.night           = [True,
+                                        max((self.sun_events['dusk']['time'] - midnight_local).total_seconds() / 86400, 0),
+                                        min((self.sun_events['dawn']['time'] - midnight_local).total_seconds() / 86400, 1)]
+                self.twilight        = [True, 0, 1]
+                self.daylight        = [True,
+                                        max((self.sun_events['sunrise']['time'] - midnight_local).total_seconds() / 86400, 0),
+                                        min((self.sun_events['sunset']['time']  - midnight_local).total_seconds() / 86400, 1)]
+            else:
+                self.day_night_order = ['night', 'twilight', 'daylight']
+                self.night           = [True, 0, 1]
+                self.twilight        = [True,
+                                        max((self.sun_events['dawn']['time'] - midnight_local).total_seconds() / 86400, 0),
+                                        min((self.sun_events['dusk']['time'] - midnight_local).total_seconds() / 86400, 1)]
+                self.daylight        = [True,
+                                        max((self.sun_events['sunrise']['time'] - midnight_local).total_seconds() / 86400, 0),
+                                        min((self.sun_events['sunset']['time']  - midnight_local).total_seconds() / 86400, 1)]
+
+        print("self.sun_down_no_dawn: ", self.sun_down_no_dawn)
+        print("self.sun_down_no_rise: ", self.sun_down_no_rise)
+        print("self.sun_up_no_set:    ", self.sun_up_no_set)
+        print("self.sun_up_no_dusk:   ", self.sun_up_no_dusk)
+        print("self.night:    ", self.night)
+        print("self.twilight: ", self.twilight)
+        print("self.daylight: ", self.daylight)
 
         # Format sunrise/sunset labels based on date of next sunrise
-        self.format_labels('sun')
+        self.format_event_labels('sun')
+        self.sun_transit()
+
+    def sun_transit(self, *largs):
+
+        """ Calculate the sun transit between sunrise and sunset
+
+        INPUTS:
+            self.astro_data           Dictionary holding sunrise and sunset data
+            Config              Station configuration
+
+        OUTPUT:
+            self.astro_data           Dictionary holding moonrise and moonset data
+        """
+        # Get current time in station time zone
+        # Tz = pytz.timezone(self.app.config['Station']['Timezone'])
+        # Now = datetime.now(pytz.utc).astimezone(Tz)
+        # Now = Tz.localize(datetime.now().replace(day=15, month=8))
+        self.date += timedelta(minutes=1)
+        Now = self.date
+        #print(Now)
+
+        # Calculate sun icon position on daytime/nightime bar
+        seconds_to_midnight = (Now.replace(microsecond=0) - Now.replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds()
+        sun_position        = seconds_to_midnight / 86400
+
+        # If sun is always up calculate number of days until sunset
+        if not self.night[0] and not self.twilight[0]:
+
+            # Determine number of days until next sunset
+            seconds_to_sunset = (self.astro_data['next_sunset'] - Now.replace(second=0, microsecond=0)).total_seconds()
+            days, remainder = divmod(seconds_to_sunset, 86400)
+            hours, minutes  = divmod(remainder, 3600)
+
+            # Determine whether time of day is daytime or twilight
+            if self.sun_up_no_dusk:
+                description = 'Daytime'
+            else:
+                if Now <= self.astro_data['Dawn'][0] and Now >= self.astro_data['Dusk'][0]:
+                    description = 'Twilight'
+                else:
+                    description = 'Daytime'
+
+            # Define Kivy labels
+            if days > 0:
+                self.astro_data['sunEvent'] = ['[color=F05E40FF]Sunset[/color]', '{:02.0f}'.format(days), 'days', '{:02.0f}'.format(hours), 'hrs', description]
+            else:
+                self.astro_data['sunEvent'] = ['[color=F05E40FF]Sunset[/color]', '{:02.0f}'.format(hours), 'hrs', '{:02.0f}'.format(minutes), 'mins', description]
+            self.astro_data['sunIcon']  = ['sunUp', 0, sun_position]
+
+        # If sun is never up calculate number of days until sunrise
+        elif not self.daylight[0]:
+
+            # Determine number of days until next sunrise
+            seconds_to_sunrise = (self.astro_data['next_sunrise'] - Now.replace(second=0, microsecond=0)).total_seconds()
+            days, remainder    = divmod(seconds_to_sunrise, 86400)
+            hours, remainder   = divmod(remainder, 3600)
+            minutes, remainder = divmod(remainder, 60)
+
+            # Determine whether time of day is nighttime or twilight
+            if self.sun_down_no_dawn:
+                description = 'Nighttime'
+            else:
+                if Now >= self.astro_data['Dawn'][0] and Now <= self.astro_data['Dusk'][0]:
+                    description = 'Twilight'
+                else:
+                    description = 'Nighttime'
+
+            # Define Kivy labels
+            if days > 0:
+                self.astro_data['sunEvent'] = ['[color=F05E40FF]Sunrise[/color]', '{:02.0f}'.format(days), 'days', '{:02.0f}'.format(hours), 'hrs', description]
+            else:
+                self.astro_data['sunEvent'] = ['[color=F05E40FF]Sunrise[/color]', '{:02.0f}'.format(hours), 'hrs', '{:02.0f}'.format(minutes), 'mins', description]
+            self.astro_data['sunIcon']  = ['-', 1, sun_position]
+
+        # If there is no night
+        elif not self.night[0] and self.twilight[0] and self.daylight[0]:
+
+            # and time is between sunrise and sunset, calculate time until next
+            # sunset
+            if (self.astro_data['Sunrise'][0] < self.astro_data['Sunset'][0]
+               and Now >= self.astro_data['Sunrise'][0] and Now <= self.astro_data['Sunset'][0]):
+
+                # Determine number of daylight hours remaining
+                seconds_to_sunset  = (self.astro_data['Sunset'][0] - Now.replace(second=0, microsecond=0)).total_seconds()
+                hours, remainder = divmod(seconds_to_sunset, 3600)
+                minutes, seconds = divmod(remainder, 60)
+
+                # Define Kivy labels
+                self.astro_data['sunEvent'] = ['[color=F05E40FF]Sunset[/color]', '{:02.0f}'.format(hours), 'hrs', '{:02.0f}'.format(minutes), 'mins', 'Daytime']
+                self.astro_data['sunIcon']  = ['sunUp', 0, sun_position]
+            elif (self.astro_data['Sunrise'][0] > self.astro_data['Sunset'][0]
+                  and Now <= self.astro_data['Sunset'][0]):
+
+                # Determine number of daylight hours remaining
+                seconds_to_sunset  = (self.astro_data['Sunset'][0] - Now.replace(second=0, microsecond=0)).total_seconds()
+                hours, remainder = divmod(seconds_to_sunset, 3600)
+                minutes, seconds = divmod(remainder, 60)
+
+                # Define Kivy labels
+                self.astro_data['sunEvent'] = ['[color=F05E40FF]Sunset[/color]', '{:02.0f}'.format(hours), 'hrs', '{:02.0f}'.format(minutes), 'mins', 'Daytime']
+                self.astro_data['sunIcon']  = ['sunUp', 0, sun_position]
+            elif (self.astro_data['Sunrise'][0] > self.astro_data['Sunset'][0]
+                  and Now >= self.astro_data['Sunrise'][0]):
+
+                # Determine number of daylight hours remaining
+                seconds_to_sunset  = (self.sun_events['next_sunset']['time'] - Now.replace(second=0, microsecond=0)).total_seconds()
+                hours, remainder = divmod(seconds_to_sunset, 3600)
+                minutes, seconds = divmod(remainder, 60)
+
+                # Define Kivy labels
+                self.astro_data['sunEvent'] = ['[color=F05E40FF]Sunset[/color]', '{:02.0f}'.format(hours), 'hrs', '{:02.0f}'.format(minutes), 'mins', 'Daytime']
+                self.astro_data['sunIcon']  = ['sunUp', 0, sun_position]
+
+            # Else, calculate time until next sunrise
+            else:
+
+                # Determine number of twilight hours remaining
+                seconds_to_sunrise  = (self.astro_data['Sunrise'][0] - Now.replace(second=0, microsecond=0)).total_seconds()
+                hours, remainder  = divmod(seconds_to_sunrise, 3600)
+                minutes, seconds  = divmod(remainder, 60)
+
+                # Define Kivy labels
+                self.astro_data['sunEvent'] = ['[color=FF8841FF]Sunrise[/color]', '{:02.0f}'.format(hours), 'hrs', '{:02.0f}'.format(minutes), 'mins', 'Twilight']
+                self.astro_data['sunIcon']  = ['-', 1, sun_position]
+
+        # If time is before dawn, calculate number of night time hours remaining
+        elif Now < self.astro_data['Dawn'][0]:
+
+            # Determine number of nighttime hours remaining
+            seconds_to_dawn    = (self.astro_data['Dawn'][0] - Now.replace(second=0, microsecond=0)).total_seconds()
+            hours, remainder = divmod(seconds_to_dawn, 3600)
+            minutes, seconds = divmod(remainder, 60)
+
+            # Define Kivy labels
+            self.astro_data['sunEvent'] = ['[color=00A4B4FF]Dawn[/color]', '{:02.0f}'.format(hours), 'hrs', '{:02.0f}'.format(minutes), 'mins', 'Nighttime']
+            self.astro_data['sunIcon']  = ['-', 1, sun_position]
+
+        # If time is before sunrise, calculate number of dawn hours remaining
+        elif Now < self.astro_data['Sunrise'][0]:
+
+            # Determine number of nighttime hours remaining
+            seconds_to_sunrise  = (self.astro_data['Sunrise'][0] - Now.replace(second=0, microsecond=0)).total_seconds()
+            hours, remainder  = divmod(seconds_to_sunrise, 3600)
+            minutes, seconds  = divmod(remainder, 60)
+
+            # Define Kivy labels
+            self.astro_data['sunEvent'] = ['[color=FF8841FF]Sunrise[/color]', '{:02.0f}'.format(hours), 'hrs', '{:02.0f}'.format(minutes), 'mins', 'Dawn']
+            self.astro_data['sunIcon']  = ['-', 1, sun_position]
+
+        # If time is between sunrise and sunset, calculate number of daylight hours
+        # remaining
+        elif Now >= self.astro_data['Sunrise'][0] and Now <= self.astro_data['Sunset'][0]:
+
+            # Determine number of daylight hours remaining
+            seconds_to_sunset  = (self.astro_data['Sunset'][0] - Now.replace(second=0, microsecond=0)).total_seconds()
+            hours, remainder = divmod(seconds_to_sunset, 3600)
+            minutes, seconds = divmod(remainder, 60)
+
+            # Define Kivy labels
+            self.astro_data['sunEvent'] = ['[color=F05E40FF]Sunset[/color]', '{:02.0f}'.format(hours), 'hrs', '{:02.0f}'.format(minutes), 'mins', 'Daytime']
+            self.astro_data['sunIcon']  = ['sunUp', 0, sun_position]
+
+        # If time after sunset, calculate number of dusk hours remaining
+        elif Now < self.astro_data['Dusk'][0]:
+
+            # Determine hours and minutes left until sunrise
+            secondsToNightfall  = (self.astro_data['Dusk'][0] - Now.replace(second=0, microsecond=0)).total_seconds()
+            hours, remainder    = divmod(secondsToNightfall, 3600)
+            minutes, seconds    = divmod(remainder, 60)
+
+            # Define Kivy labels
+            self.astro_data['sunEvent'] = ['[color=00A4B4FF]Nightfall[/color]', '{:02.0f}'.format(hours), 'hrs', '{:02.0f}'.format(minutes), 'mins', 'Dusk']
+            self.astro_data['sunIcon']  = ['-', 1, sun_position]
+
+        # Update display
+        self.update_display()
+        #print(self.astro_data['sunEvent'])
+        #try:
+        panels = getattr(self.app, 'SunriseSunsetPanel')
+        for panel in panels:
+            panel.draw_day_night_bar()
+        #except AttributeError:
+        #    pass
+
+        # Once dusk has passed calculate new sunrise/sunset times
+
+        # IF DUSK IS PAST MIDNIGHT AND SUNSET HAS PASSED
+
+
+        if self.night[0] and not self.daylight[0]:
+            #print("RESET AT MIDNIGHT")
+            if Now.replace(second=0, microsecond=0).time() == time(0, 0, 0):
+                self.get_sunrise_sunset()
+        elif not self.night[0] and self.twilight[0] and self.daylight[0]:
+            if (self.astro_data['Sunset'][0].date() > Now.date()
+               or self.astro_data['Sunset'][0] < self.astro_data['Sunrise'][0]):
+                #print("RESET AT MIDNIGHT")
+                if Now.replace(second=0, microsecond=0).time() == time(0, 0, 0):
+                    self.get_sunrise_sunset()
+            else:
+                #print("RESET AT SUNSET")
+                if Now.replace(microsecond=0) >= self.astro_data['Sunset'][0]:
+                    self.get_sunrise_sunset()
+        elif self.night[0] and self.twilight[0] and self.daylight[0]:
+            if (self.astro_data['Dusk'][0].date() > Now.date()
+               or self.astro_data['Dusk'][0] < self.astro_data['Dawn'][0]):
+                #print("RESET AT SUNSET")
+                if Now.replace(microsecond=0) >= self.astro_data['Sunset'][0]:
+                    self.get_sunrise_sunset()
+            else:
+                #print("RESET AT DUSK")
+                if Now.replace(microsecond=0) >= self.astro_data['Dusk'][0]:
+                    self.get_sunrise_sunset()
+
+
+
+        #elif self.night[0]:
+        #    if (self.astro_data['Dusk'][0].date() > Now.date()
+        #       or self.astro_data['Dusk'][0] < self.astro_data['Dawn'][0]):
+        #        if Now.replace(microsecond=0) >= self.astro_data['Sunset'][0]:
+        #            self.get_sunrise_sunset()
+
+        #elif Now.replace(microsecond=0) >= self.astro_data['Dusk'][0]:
+        #    self.get_sunrise_sunset()
+
+
+        #     if Now.replace(microsecond=0) >= self.astro_data['Sunset'][0]:
+        #         self.sunrise_sunset()
+        # elif not self.no_sunrise and not self.no_sunset:
+        #if Now.replace(microsecond=0) >= self.astro_data['Dusk'][0]:
+        #    self.get_sunrise_sunset()
+        # if self.no_sunrise and Now.replace(second=0).replace(microsecond=0).time() == time(0, 0, 0):
+        #    pass
+
+        # # Once moonset has passed, calculate new moonrise/moonset times
+        # if Now.replace(microsecond=0) > self.astro_data['Moonset'][0]:
+        #     self.moonrise_moonset()
+
+        # # At midnight update sunrise/sunset times
+        # if self.astro_data['Reformat'] and Now.replace(second=0).replace(microsecond=0).time() == time(0, 0, 0):
+        #    self.format_labels('sun')
+        #    self.format_labels('moon')
 
     def moonrise_moonset(self):
 
@@ -217,89 +569,6 @@ class astro():
         # Format sunrise/sunset labels based on date of next sunrise
         self.format_labels('moon')
 
-    def sun_transit(self, *largs):
-
-        """ Calculate the sun transit between sunrise and sunset
-
-        INPUTS:
-            self.astro_data           Dictionary holding sunrise and sunset data
-            Config              Station configuration
-
-        OUTPUT:
-            self.astro_data           Dictionary holding moonrise and moonset data
-        """
-
-        # Get current time in station time zone
-        Tz = pytz.timezone(self.app.config['Station']['Timezone'])
-        Now = datetime.now(pytz.utc).astimezone(Tz)
-
-        # Calculate sun icon position on daytime/nightime bar
-        secondsMidnight = (Now.replace(microsecond=0) - Now.replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds()
-        sunPosition     = secondsMidnight / 86400
-
-        # If time is before dawn, calculate number of nighttime hours remaining
-        if Now < self.astro_data['Dawn'][0]:
-
-            # Determine number of nighttime hours remaining
-            secondsToDawn    = (self.astro_data['Dawn'][0] - Now.replace(second=0, microsecond=0)).total_seconds()
-            hours, remainder = divmod(secondsToDawn, 3600)
-            minutes, seconds = divmod(remainder, 60)
-
-            # Define Kivy Label binds
-            self.astro_data['sunEvent']   = ['[color=00A4B4FF]Dawn[/color]', '{:02.0f}'.format(hours), '{:02.0f}'.format(minutes), 'Nighttime']
-            self.astro_data['sunIcon']    = ['-', 1, sunPosition]
-
-        # If time is before sunrise, calculate number of dawn hours remaining
-        elif Now < self.astro_data['Sunrise'][0]:
-
-            # Determine number of nighttime hours remaining
-            secondsToSunrise  = (self.astro_data['Sunrise'][0] - Now.replace(second=0, microsecond=0)).total_seconds()
-            hours, remainder  = divmod(secondsToSunrise, 3600)
-            minutes, seconds  = divmod(remainder, 60)
-
-            # Define Kivy Label binds
-            self.astro_data['sunEvent']   = ['[color=FF8841FF]Sunrise[/color]', '{:02.0f}'.format(hours), '{:02.0f}'.format(minutes), 'Dawn']
-            self.astro_data['sunIcon']    = ['-', 1, sunPosition]
-
-        # If time is between sunrise and sunset, calculate number of daylight hours
-        # remaining
-        elif Now >= self.astro_data['Sunrise'][0] and Now < self.astro_data['Sunset'][0]:
-
-            # Determine number of daylight hours remaining
-            secondsToSunset  = (self.astro_data['Sunset'][0] - Now.replace(second=0, microsecond=0)).total_seconds()
-            hours, remainder = divmod(secondsToSunset, 3600)
-            minutes, seconds = divmod(remainder, 60)
-
-            # Define Kivy Label binds
-            self.astro_data['sunEvent']   = ['[color=F05E40FF]Sunset[/color]', '{:02.0f}'.format(hours), '{:02.0f}'.format(minutes), 'Daytime']
-            self.astro_data['sunIcon']    = ['sunUp', 0, sunPosition]
-
-        # If time after sunset, calculate number of dusk hours remaining
-        elif Now < self.astro_data['Dusk'][0]:
-
-            # Determine hours and minutes left until sunrise
-            secondsToNightfall  = (self.astro_data['Dusk'][0] - Now.replace(second=0, microsecond=0)).total_seconds()
-            hours, remainder    = divmod(secondsToNightfall, 3600)
-            minutes, seconds    = divmod(remainder, 60)
-
-            # Define Kivy Label binds
-            self.astro_data['sunEvent'] = ['[color=00A4B4FF]Nightfall[/color]', '{:02.0f}'.format(hours), '{:02.0f}'.format(minutes), 'Dusk']
-            self.astro_data['sunIcon']  = ['-', 1, sunPosition]
-            self.update_display()
-
-        # Once dusk has passed calculate new sunrise/sunset times
-        if Now.replace(microsecond=0) >= self.astro_data['Dusk'][0]:
-            self.sunrise_sunset()
-
-        # Once moonset has passed, calculate new moonrise/moonset times
-        if Now.replace(microsecond=0) > self.astro_data['Moonset'][0]:
-            self.moonrise_moonset()
-
-        # At midnight update sunrise/sunset times
-        if self.astro_data['Reformat'] and Now.replace(second=0).replace(microsecond=0).time() == time(0, 0, 0):
-            self.format_labels('sun')
-            self.format_labels('moon')
-
     def moon_phase(self, *largs):
 
         """ Calculate the moon phase for the current time in station timezone
@@ -367,7 +636,7 @@ class astro():
         self.astro_data['Phase'] = [phase_icon, phase_text, illumination, tilt]
         self.update_display()
 
-    def format_labels(self, Type):
+    def format_event_labels(self, type):
 
         """ Format the sunrise/sunset labels and moonrise/moonset labels based on
         the current time of day in the station timezone
@@ -384,7 +653,8 @@ class astro():
 
         # Get current time in Station timezone
         Tz = pytz.timezone(self.app.config['Station']['Timezone'])
-        Now = datetime.now(pytz.utc).astimezone(Tz)
+        #Now = datetime.now(pytz.utc).astimezone(Tz)
+        Now = self.date
 
         # Set time format based on user configuration
         if self.app.config['Display']['TimeFormat'] == '12 hr':
@@ -395,21 +665,26 @@ class astro():
         else:
             time_format = '%H:%M'
 
-        # time_format Sunrise/Sunset data
-        if Type == 'sun':
-            if Now.date() == self.astro_data['Sunrise'][0].date():
-                self.astro_data['Sunrise'][1] = self.astro_data['Sunrise'][0].strftime(time_format)
-                self.astro_data['Sunset'][1]  = self.astro_data['Sunset'][0].strftime(time_format)
+        # Format sunrise/sunset event data
+        if type == 'sun':
+            if (self.sun_down_no_rise or self.sun_up_no_set):
+                self.astro_data['Sunrise'][1] = '-'
+                self.astro_data['Sunrise'][1] = '-'
                 self.astro_data['Reformat']   = 0
             else:
-                self.astro_data['Sunrise'][1] = self.astro_data['Sunrise'][0].strftime(time_format) + ' (+1)'
-                self.astro_data['Sunset'][1]  = self.astro_data['Sunset'][0].strftime(time_format)  + ' (+1)'
-                self.astro_data['Reformat']   = 1
+                if Now.date() == self.astro_data['Sunrise'][0].date():
+                    self.astro_data['Sunrise'][1] = self.astro_data['Sunrise'][0].strftime(time_format)
+                else:
+                    self.astro_data['Sunrise'][1] = self.astro_data['Sunrise'][0].strftime(time_format) + ' (+1)'
+                if Now.date() == self.astro_data['Sunset'][0].date():
+                    self.astro_data['Sunset'][1]  = self.astro_data['Sunset'][0].strftime(time_format)
+                else:
+                    self.astro_data['Sunset'][1]  = self.astro_data['Sunset'][0].strftime(time_format)  + ' (+1)'
 
-        # time_format Moonrise/Moonset data
-        elif Type == 'moon':
+        # Format moonrise/moonset data
+        elif type == 'moon':
 
-            # Update Moonrise Kivy Label bind based on date of next moonrise
+            # Update Moonrise Kivy Label based on date of next moonrise
             if Now.date() == self.astro_data['Moonrise'][0].date():
                 self.astro_data['Moonrise'][1] = self.astro_data['Moonrise'][0].strftime(time_format)
             elif Now.date() < self.astro_data['Moonrise'][0].date():
@@ -417,7 +692,7 @@ class astro():
             else:
                 self.astro_data['Moonrise'][1] = self.astro_data['Moonrise'][0].strftime(time_format) + ' (-1)'
 
-            # Update Moonset Kivy Label bind based on date of next moonset
+            # Update Moonset Kivy Label based on date of next moonset
             if Now.date() == self.astro_data['Moonset'][0].date():
                 self.astro_data['Moonset'][1] = self.astro_data['Moonset'][0].strftime(time_format)
             elif Now.date() < self.astro_data['Moonset'][0].date():
@@ -425,11 +700,11 @@ class astro():
             else:
                 self.astro_data['Moonset'][1] = self.astro_data['Moonset'][0].strftime(time_format) + ' (-1)'
 
-            # Update New Moon Kivy Label bind based on date of next new moon
+            # Update New Moon Kivy Label based on date of next new moon
             if self.astro_data['FullMoon'][1].date() == Now.date():
                 self.astro_data['FullMoon'] = ['[color=ff8837ff]Today[/color]', self.astro_data['FullMoon'][1]]
 
-            # Update Full Moon Kivy Label bind based on date of next full moon
+            # Update Full Moon Kivy Label based on date of next full moon
             elif self.astro_data['NewMoon'][1].date() == Now.date():
                 self.astro_data['NewMoon'] = ['[color=ff8837ff]Today[/color]', self.astro_data['NewMoon'][1]]
 
@@ -444,9 +719,9 @@ class astro():
 
         # Update display values with new derived observations
         reference_error = False
-        for Key, Value in list(self.astro_data.items()):
+        for key, value in list(self.astro_data.items()):
             try:
-                self.app.CurrentConditions.Astro[Key] = Value
+                self.app.CurrentConditions.Astro[key] = value
             except ReferenceError:
                 if not reference_error:
                     Logger.warning(f'astro: {system().log_time()} - Reference error')

@@ -25,40 +25,13 @@
         _panelTitle: 'Solar  [size=' + str(int(self.ids.Title.font_size*0.8)) + ']|[/size]  UV'
         _panelStatus: app.CurrentConditions.Status['sky_last_sample'] if app.config['Station']['SkyID'] else app.CurrentConditions.Status['tempest_last_sample']
 
-    ## Night bar
+    # Day/night bar
     BoxLayout:
+        id: day_night_bar
         pos_hint: {'x': 13/262, 'y': 96/202}
         size_hint: [236/262, 10/202]
-        canvas.after:
-            Color:
-                rgba: [100/255,100/255,100/255,1]
-            Rectangle:
-                pos: self.pos
-                size: self.size
 
-    ## Dawn/Dusk bar
-    BoxLayout:
-        pos_hint: {'x': (13+app.CurrentConditions.Astro['Dawn'][2]*236)/262, 'y': 96/202}
-        size_hint: [(app.CurrentConditions.Astro['Dusk'][2]*236)/262, 10/202]
-        canvas.after:
-            Color:
-                rgba: [29/255,74/255,87/255,1]
-            Rectangle:
-                pos: self.pos
-                size: self.size
-
-    ## Sunrise/sunset bar
-    BoxLayout:
-        pos_hint: {'x': (13+app.CurrentConditions.Astro['Sunrise'][2]*236)/262, 'y': 96/202}
-        size_hint: [(app.CurrentConditions.Astro['Sunset'][2]*236)/262, 10/202]
-        canvas.after:
-            Color:
-                rgba: [0/255,113/255,123/255,1]
-            Rectangle:
-                pos: self.pos
-                size: self.size
-
-    ## Sun bar and icon position
+    ## Sun icon
     BoxLayout:
         pos_hint: {'x': 13/262, 'y': 94/202}
         size_hint: [236/262, 14/202]
@@ -137,29 +110,31 @@
 
     ## Time remaining until sunrise or sunset
     TitleField:
-        text: app.CurrentConditions.Astro['sunEvent'][3]
+        text: app.CurrentConditions.Astro['sunEvent'][5]
         pos_hint: {'x': 24/262, 'y': 50/202}
         size_hint_x: (80/262)
     MediumField:
         text: app.CurrentConditions.Astro['sunEvent'][1]
-        pos_hint: {'x': 10/262, 'y': 27/202}
-        size_hint_x: (30/262)
+        pos_hint: {'x': (29/262) if app.CurrentConditions.Astro['sunEvent'][2] == 'days' and int(app.CurrentConditions.Astro['sunEvent'][1]) > 99 else (10/262), 'y': 27/202}
+        size_hint_x: (40/262)    if app.CurrentConditions.Astro['sunEvent'][2] == 'days' and int(app.CurrentConditions.Astro['sunEvent'][1]) > 99 else (30/262)
     TitleField:
-        text: 'hrs'
+        text: app.CurrentConditions.Astro['sunEvent'][2]
         font_size: dp(10.9*app.scaleFactor)
-        pos_hint: {'x': 40/262, 'y': 25/202}
-        size_hint_x: (20/262)
+        pos_hint: {'x': 67/262 if app.CurrentConditions.Astro['sunEvent'][2] == 'days' and int(app.CurrentConditions.Astro['sunEvent'][1]) > 99 else 40/262, 'y': 25/202}
+        size_hint_x: (20/262)  if app.CurrentConditions.Astro['sunEvent'][2] == 'hrs'  else (28/262)
         color: utils.rgba('ffffffff')
     MediumField:
-        text: app.CurrentConditions.Astro['sunEvent'][2]
-        pos_hint: {'x': 60/262, 'y': 27/202}
+        text: app.CurrentConditions.Astro['sunEvent'][3]
+        pos_hint: {'x': 60/262 if app.CurrentConditions.Astro['sunEvent'][2] == 'hrs' else 68/262, 'y': 27/202}
         size_hint_x: (30/262)
+        opacity: 0 if app.CurrentConditions.Astro['sunEvent'][2] == 'days' and int(app.CurrentConditions.Astro['sunEvent'][1]) > 99 else 1
     TitleField:
-        text:  'mins'
+        text:  app.CurrentConditions.Astro['sunEvent'][4]
         font_size: dp(10.9*app.scaleFactor)
-        pos_hint: {'x': 90/262, 'y': 25/202}
-        size_hint_x: (28/262)
+        pos_hint: {'x': 90/262 if app.CurrentConditions.Astro['sunEvent'][2] == 'mins' else 98/262, 'y': 25/202}
+        size_hint_x: (28/262) if app.CurrentConditions.Astro['sunEvent'][2] == 'mins' else (20/262)
         color: utils.rgba('ffffffff')
+        opacity: 0 if app.CurrentConditions.Astro['sunEvent'][2] == 'days' and int(app.CurrentConditions.Astro['sunEvent'][1]) > 99 else 1
     SmallField:
         text: 'Till ' + app.CurrentConditions.Astro['sunEvent'][0]
         pos_hint: {'x': 24/262, 'y': 5/202}
