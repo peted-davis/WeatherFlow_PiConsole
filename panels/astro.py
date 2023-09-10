@@ -52,7 +52,7 @@ class SunriseSunsetPanel(panelTemplate):
         for type in self.app.astro.day_night_order:
             if self.app.astro.night[0] and type == 'night':
                 start_x = self.app.astro.night[1]
-                width   = self.app.astro.night[2]
+                width   = self.app.astro.night[2] - self.app.astro.night[1]
                 with self.ids['day_night_bar'].canvas.after:
                     Color(100 / 255, 100 / 255, 100 / 255, 1)
                     self.ids['day_night_bar'].night_bar = Rectangle(pos=(self.ids['day_night_bar'].x + start_x * self.ids['day_night_bar'].width,
