@@ -72,7 +72,7 @@ fi
 # DEFINE INSTALLER VARIABLES
 # ------------------------------------------------------------------------------
 # Download and install directories
-CONSOLEDIR=/home/${USER}/wfpiconsole/
+CONSOLEDIR=/home/${USER}/wfpiconsole
 VENVDIR=${CONSOLEDIR}/venv/
 DLDIR=${CONSOLEDIR}/temp/
 

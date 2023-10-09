@@ -26,11 +26,11 @@ StartLimitBurst=5
 Restart=always
 Environment=DISPLAY=:0
 ExecStartPre=/bin/sleep 5
-ExecStart=/home/peterd/wfpiconsole//venv/bin/python3 -u main.py
-WorkingDirectory=/home/peterd/wfpiconsole/
-StandardOutput=file:/home/peterd/wfpiconsole/wfpiconsole.log
-StandardError=file:/home/peterd/wfpiconsole/wfpiconsole.log
-User=peterd
+ExecStart=
+WorkingDirectory=
+StandardOutput=
+StandardError=
+User=
 
 [Install]
 WantedBy=multi-user.target
