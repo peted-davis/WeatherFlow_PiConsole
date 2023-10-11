@@ -18,6 +18,7 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 # Import required modules
 from kivy.logger    import Logger
 from packaging      import version
+from tzlocal        import get_localzone
 import configparser
 import collections
 import subprocess
@@ -152,9 +153,9 @@ def create():
     if TYPE == 3:
         print('  Please select your preferred unit convention')
         print('  Individual units can be adjusted in the console')
-        print('    1) Metric WX (\u00b0C, mb,   m/s, mm, km) [default]')
-        print('    2) Metric    (\u00b0C, mb,   kph, cm, km)')
-        print('    3) Imperial  (\u00b0F, inHg, mph, in, miles)')
+        print('    1) Metric WX (C, mb,   m/s, mm, km) [default]')
+        print('    2) Metric    (C, mb,   kph, cm, km)')
+        print('    3) Imperial  (F, inHg, mph, in, miles)')
         UNITS = input('    > ') or '1'
         print('')
         while True:
@@ -931,18 +932,18 @@ def udp_input_fields():
     # ORDERED DICTS
     # --------------------------------------------------------------------------
     udp_input =                    collections.OrderedDict()
-    udp_input['Station'] =         collections.OrderedDict([('TempestSN',      {'Type': 'userInput',   'State': 'required',   'Desc': 'TEMPEST serial number',                  'Format': str}),
-                                                            ('SkySN',          {'Type': 'userInput',   'State': 'required',   'Desc': 'SKY serial number',                      'Format': str}),
-                                                            ('OutAirSN',       {'Type': 'userInput',   'State': 'required',   'Desc': 'outdoor AIR serial number',              'Format': str}),
-                                                            ('InAirSN',        {'Type': 'userInput',   'State': 'required',   'Desc': 'indoor AIR serial number',               'Format': str}),
-                                                            ('TempestHeight',  {'Type': 'userInput',   'State': 'required',   'Desc': 'TEMPEST height (meters)',                'Format': float}),
-                                                            ('SkyHeight',      {'Type': 'userInput',   'State': 'required',   'Desc': 'SKY height (meters)',                    'Format': float}),
-                                                            ('OutAirHeight',   {'Type': 'userInput',   'State': 'required',   'Desc': 'outdoor AIR height (meters)',            'Format': float}),
-                                                            ('Latitude',       {'Type': 'userInput',   'State': 'required',   'Desc': 'station latitude (negative for south)',  'Format': float}),
-                                                            ('Longitude',      {'Type': 'userInput',   'State': 'required',   'Desc': 'station longitude (negative for west)',  'Format': float}),
-                                                            ('Elevation',      {'Type': 'userInput',   'State': 'required',   'Desc': 'station elevation (meters)',             'Format': float}),
-                                                            ('Timezone',       {'Type': 'userInput',   'State': 'required',   'Desc': 'station timezone',                       'Format': str}),
-                                                            ('Name',           {'Type': 'userInput',   'State': 'required',   'Desc': 'station name',                           'Format': str})])
+    udp_input['Station'] =         collections.OrderedDict([('TempestSN',      {'Type': 'userInput',   'State': 'required',             'Desc': 'TEMPEST serial number',                  'Format': str}),
+                                                            ('SkySN',          {'Type': 'userInput',   'State': 'required',             'Desc': 'SKY serial number',                      'Format': str}),
+                                                            ('OutAirSN',       {'Type': 'userInput',   'State': 'required',             'Desc': 'outdoor AIR serial number',              'Format': str}),
+                                                            ('InAirSN',        {'Type': 'userInput',   'State': 'required',             'Desc': 'indoor AIR serial number',               'Format': str}),
+                                                            ('TempestHeight',  {'Type': 'userInput',   'State': 'required',             'Desc': 'TEMPEST height (meters)',                'Format': float}),
+                                                            ('SkyHeight',      {'Type': 'userInput',   'State': 'required',             'Desc': 'SKY height (meters)',                    'Format': float}),
+                                                            ('OutAirHeight',   {'Type': 'userInput',   'State': 'required',             'Desc': 'outdoor AIR height (meters)',            'Format': float}),
+                                                            ('Latitude',       {'Type': 'userInput',   'State': 'required',             'Desc': 'station latitude (negative for south)',  'Format': float}),
+                                                            ('Longitude',      {'Type': 'userInput',   'State': 'required',             'Desc': 'station longitude (negative for west)',  'Format': float}),
+                                                            ('Elevation',      {'Type': 'userInput',   'State': 'required',             'Desc': 'station elevation (meters)',             'Format': float}),
+                                                            ('Timezone',       {'Type': 'default',     'Value': str(get_localzone()),   'Desc': 'station timezone',                                      }),
+                                                            ('Name',           {'Type': 'userInput',   'State': 'required',             'Desc': 'station name',                           'Format': str})])
     udp_input['Units'] =           collections.OrderedDict([('Description',    '  Observation units'),
                                                             ('Temp',           {'Type': 'dependent',   'Desc': 'station temperature units',    'Value': {1: 'c',        2: 'c',        3: 'f'}}),
                                                             ('Pressure',       {'Type': 'dependent',   'Desc': 'station pressure units',       'Value': {1: 'mb',       2: 'mb',       3: 'inhg'}}),
