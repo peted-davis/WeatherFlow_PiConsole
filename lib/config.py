@@ -36,10 +36,10 @@ INDOORAIR     = False
 STATION       = None
 OBSERVATION   = None
 CHECKWX       = None
-MAXRETRIES    = 3
 TYPE          = None
 UNITS         = None
 idx           = None
+MAXRETRIES    = 3
 
 # Determine current system
 if os.path.exists('/proc/device-tree/model'):
@@ -942,8 +942,8 @@ def udp_input_fields():
                                                             ('Latitude',       {'Type': 'userInput',   'State': 'required',             'Desc': 'station latitude (negative for south)',  'Format': float}),
                                                             ('Longitude',      {'Type': 'userInput',   'State': 'required',             'Desc': 'station longitude (negative for west)',  'Format': float}),
                                                             ('Elevation',      {'Type': 'userInput',   'State': 'required',             'Desc': 'station elevation (meters)',             'Format': float}),
-                                                            ('Timezone',       {'Type': 'default',     'Value': str(get_localzone()),   'Desc': 'station timezone',                                      }),
-                                                            ('Name',           {'Type': 'userInput',   'State': 'required',             'Desc': 'station name',                           'Format': str})])
+                                                            ('Name',           {'Type': 'userInput',   'State': 'required',             'Desc': 'station name',                           'Format': str}),
+                                                            ('Timezone',       {'Type': 'default',     'Value': str(get_localzone()),   'Desc': 'station timezone'})])
     udp_input['Units'] =           collections.OrderedDict([('Description',    '  Observation units'),
                                                             ('Temp',           {'Type': 'dependent',   'Desc': 'station temperature units',    'Value': {1: 'c',        2: 'c',        3: 'f'}}),
                                                             ('Pressure',       {'Type': 'dependent',   'Desc': 'station pressure units',       'Value': {1: 'mb',       2: 'mb',       3: 'inhg'}}),
