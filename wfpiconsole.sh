@@ -95,10 +95,11 @@ WFPICONSOLE_DEPENDENCIES=(git curl rng-tools build-essential python3-dev python3
 KIVY_DEPENDENCIES_ARM=(pkg-config libgl1-mesa-dev libgles2-mesa-dev libgstreamer1.0-dev
                        gstreamer1.0-plugins-{bad,base,good,ugly} gstreamer1.0-{omx,alsa}
                        libmtdev-dev xclip xsel libjpeg-dev libsdl2-dev libsdl2-image-dev
-                       libsdl2-mixer-dev libsdl2-ttf-dev)
+                       libsdl2-mixer-dev libsdl2-ttf-dev libopenblas-dev)
 KIVY_DEPENDENCIES=(ffmpeg libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev
                    libportmidi-dev libswscale-dev libavformat-dev libavcodec-dev zlib1g-dev
-                   libgstreamer1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good)
+                   libgstreamer1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good
+                   libopenblas-dev)
 
 # Cryptography version
 MODEL_FILE=/proc/device-tree/model
@@ -114,20 +115,21 @@ if [ -f "$MODEL_FILE" ]; then
     SUPPORTED_RASPBERRY_PI="false"
   fi
 else
-  CRYPTOGRAPHY_VERSION="41.0.3"
+  CRYPTOGRAPHY_VERSION="41.0.4"
 fi
 
 # Python modules and versions
-KIVY_VERSION="2.1.0"
-PYTHON_MODULES=(cython==0.29.26
-                websockets==10.1
-                numpy==1.21.4
-                pytz==2021.3
-                ephem==4.1.3
-                packaging==21.3
+KIVY_VERSION="2.2.0"
+PYTHON_MODULES=(cython==3.0.3
+                websockets==11.0.3
+                numpy==1.26.0
+                pytz==2023.3
+                tzlocal==5.1
+                ephem==4.1.5
+                packaging==23.2
                 cryptography==$CRYPTOGRAPHY_VERSION
                 pyOpenSSL==23.2.0
-                certifi==2021.10.8)
+                certifi==2023.7.22)
 
 # Kivy pip source
 if [ -f "$MODEL_FILE" ]; then
@@ -238,7 +240,7 @@ install_python_venv() {
             printf "%s\\n\\n" "$(<error_log)"
             clean_up
             exit 1
-        fi        
+        fi
     else
         printf " already exists\\n"
     fi
@@ -249,7 +251,7 @@ install_python_venv() {
 update_pip() {
     local str="Updating Python package manager"
     printf "\\n  %b %s..." "${INFO}" "${str}"
-    if (${PYTHON_SYS} ${PIP_UPDATE} pip setuptools &> error_log); then
+    if (${PYTHON_VENV} ${PIP_UPDATE} pip setuptools &> error_log); then
         printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
     else
         printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
@@ -1099,7 +1101,7 @@ if [[ "${1}" == "install" ]] || [[ "${1}" == "run_update" ]] || [[ "${1}" == "ru
         exit 1
     fi
     OS=$(. /etc/os-release && echo $PRETTY_NAME)
-    if ([[ "$HARDWARE" == *"Raspberry Pi 2"* ]] || [[ "$HARDWARE" == *"Raspberry Pi 3"* ]]) && [[ "$OS" == *"bullseye"* ]]; then
+    if ([[ "$HARDWARE" == *"Raspberry Pi 2"* ]] || [[ "$HARDWARE" == *"Raspberry Pi 3"* ]]) && ([[ "$OS" == *"bullseye"* ]] || [[ "$OS" == *"bookworm"* ]]); then
         printf "  %b OS check failed (%b)\\n\\n" "${CROSS}" "${OS}"
         clean_up
         exit 1

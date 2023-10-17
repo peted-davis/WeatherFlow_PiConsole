@@ -22,6 +22,15 @@ SHUTDOWN = 0
 REBOOT = 0
 
 # ==============================================================================
+# SET KIVY_LOG_MODE TO MIXED
+# ==============================================================================
+# Import required modules
+import os
+
+# Set KIVY_LOG_MODE environment variable
+os.environ['KIVY_LOG_MODE'] = 'MIXED'
+
+# ==============================================================================
 # CREATE OR UPDATE wfpiconsole.ini FILE
 # ==============================================================================
 # Import required modules
@@ -39,7 +48,6 @@ else:
 # ==============================================================================
 # Import required modules
 import configparser
-import os
 
 # Load wfpiconsole.ini config file
 config = configparser.ConfigParser()
