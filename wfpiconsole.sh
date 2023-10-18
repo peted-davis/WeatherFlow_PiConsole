@@ -106,12 +106,10 @@ MODEL_FILE=/proc/device-tree/model
 if [ -f "$MODEL_FILE" ]; then
   SUPPORTED_RASPBERRY_PI="true"
   HARDWARE=$(tr -d '\0' < $MODEL_FILE)
-  if [[ "$HARDWARE" == *"Raspberry Pi 4"* ]]; then
-    CRYPTOGRAPHY_VERSION="38.0.1"
-  elif [[ "$HARDWARE" == *"Raspberry Pi 3"* ]]; then
-    CRYPTOGRAPHY_VERSION="37.0.4"
+  if [[ "$HARDWARE" == *"Raspberry Pi 3"* ]] || [[ "$HARDWARE" == *"Raspberry Pi 4"* ]] ; then
+    CRYPTOGRAPHY_VERSION="41.0.4"
   else
-    CRYPTOGRAPHY_VERSION="37.0.4"
+    CRYPTOGRAPHY_VERSION="41.0.4"
     SUPPORTED_RASPBERRY_PI="false"
   fi
 else
@@ -120,8 +118,7 @@ fi
 
 # Python modules and versions
 KIVY_VERSION="2.2.0"
-PYTHON_MODULES=(cython==3.0.3
-                websockets==11.0.3
+PYTHON_MODULES=(websockets==11.0.3
                 numpy==1.26.0
                 pytz==2023.3
                 tzlocal==5.1
@@ -134,13 +131,11 @@ PYTHON_MODULES=(cython==3.0.3
 # Kivy pip source
 if [ -f "$MODEL_FILE" ]; then
   HARDWARE=$(tr -d '\0' < $MODEL_FILE)
-  if [[ "$HARDWARE" == *"Raspberry Pi 3"* ]] || [[ "$HARDWARE" == *"Raspberry Pi 2"* ]]; then
-    KIVY_SOURCE="https://github.com/kivy/kivy/archive/"$KIVY_VERSION".zip"
-  elif [[ "$HARDWARE" == *"Raspberry Pi 4"* ]]; then
-    KIVY_SOURCE="kivy=="$KIVY_VERSION
+  if [[ "$HARDWARE" == *"Raspberry Pi"* ]]; then
+    KIVY_SOURCE="kivy[base]=="$KIVY_VERSION
   fi
 else
-  KIVY_SOURCE="https://github.com/kivy/kivy/archive/"$KIVY_VERSION".zip"
+  KIVY_SOURCE="kivy[base]=="$KIVY_VERSION
 fi
 
 # Github repositories
@@ -1090,10 +1085,10 @@ fi
 if [[ "${1}" == "install" ]] || [[ "${1}" == "run_update" ]] || [[ "${1}" == "run_beta" ]] || [[ "${1}" == "stable" ]] ; then
 
     # Check compatability of architecture/OS/Raspberry Pi
-    ARCHITECTURE=$(uname -m)
-    if [[ $ARCHITECTURE = arm* ]] || [[ $ARCHITECTURE = x86_64 ]] || [[ $ARCHITECTURE = i*86 ]]; then
+    ARCHITECTURE=$(dpkg --print-architecture)
+    if [[ $ARCHITECTURE = armhf ]] || [[ $ARCHITECTURE = x86_64 ]] || [[ $ARCHITECTURE = i*86 ]]; then
         printf "  %b Architecture check passed (%b)\\n" "${TICK}" "${ARCHITECTURE}"
-    elif [[ $ARCHITECTURE = aarch64 ]]; then
+    if [[ $ARCHITECTURE = arm64 ]]; then
         printf "  %b Architecture check warning (%b)\\n\\n" "${EXCLAMATION}" "${ARCHITECTURE}"
     else
         printf "  %b Architecture check failed (%b)\\n\\n" "${CROSS}" "${ARCHITECTURE}"
@@ -1101,12 +1096,9 @@ if [[ "${1}" == "install" ]] || [[ "${1}" == "run_update" ]] || [[ "${1}" == "ru
         exit 1
     fi
     OS=$(. /etc/os-release && echo $PRETTY_NAME)
-    if ([[ "$HARDWARE" == *"Raspberry Pi 2"* ]] || [[ "$HARDWARE" == *"Raspberry Pi 3"* ]]) && ([[ "$OS" == *"bullseye"* ]] || [[ "$OS" == *"bookworm"* ]]); then
-        printf "  %b OS check failed (%b)\\n\\n" "${CROSS}" "${OS}"
-        clean_up
-        exit 1
-    elif [[ "$HARDWARE" == *"Raspberry Pi 4"* ]] && [[ "$OS" == *"buster"* ]]; then
-        printf "  %b OS check failed (%b)\\n\\n" "${CROSS}" "${OS}"
+    if ([[ "$HARDWARE" == *"Raspberry Pi"* ]] && [[ "$OS" == *"buster"* ]]; then
+        printf "  %b OS check failed (%b)\\n" "${CROSS}" "${OS}"
+        printf "  The PiConsole is no longer compatible with Debian Buster\\n\\n"
         clean_up
         exit 1
     elif is_command apt-get ; then
@@ -1123,7 +1115,7 @@ if [[ "${1}" == "install" ]] || [[ "${1}" == "run_update" ]] || [[ "${1}" == "ru
     fi
 
     # Print warning if unsupported architecture/Raspberry Pi detected
-    if [[ $ARCHITECTURE = aarch64 ]] || [[ $SUPPORTED_RASPBERRY_PI == "false" ]]; then
+    if [[ $ARCHITECTURE = arm64 ]] || [[ $SUPPORTED_RASPBERRY_PI == "false" ]]; then
         printf "\n  %b WARNING: unsupported architecture or Raspberry Pi detected\n" "${EXCLAMATION}"
         printf "      No support is available for errors encountered while running\n"
         printf "      the PiConsole\n"
