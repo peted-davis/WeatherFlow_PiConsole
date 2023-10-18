@@ -92,14 +92,6 @@ PIP_UPDATE="-m pip install --upgrade"
 # wfpiconsole and Kivy dependencies
 WFPICONSOLE_DEPENDENCIES=(git curl rng-tools build-essential python3-dev python3-pip python3-setuptools
                           libssl-dev libffi-dev libatlas-base-dev jq)
-KIVY_DEPENDENCIES_ARM=(pkg-config libgl1-mesa-dev libgles2-mesa-dev libgstreamer1.0-dev
-                       gstreamer1.0-plugins-{bad,base,good,ugly} gstreamer1.0-{omx,alsa}
-                       libmtdev-dev xclip xsel libjpeg-dev libsdl2-dev libsdl2-image-dev
-                       libsdl2-mixer-dev libsdl2-ttf-dev libopenblas-dev)
-KIVY_DEPENDENCIES=(ffmpeg libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev
-                   libportmidi-dev libswscale-dev libavformat-dev libavcodec-dev zlib1g-dev
-                   libgstreamer1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good
-                   libopenblas-dev)
 
 # Cryptography version
 MODEL_FILE=/proc/device-tree/model
@@ -117,7 +109,6 @@ else
 fi
 
 # Python modules and versions
-KIVY_VERSION="2.2.0"
 PYTHON_MODULES=(websockets==11.0.3
                 numpy==1.26.0
                 pytz==2023.3
@@ -129,6 +120,7 @@ PYTHON_MODULES=(websockets==11.0.3
                 certifi==2023.7.22)
 
 # Kivy pip source
+KIVY_VERSION="2.2.0"
 if [ -f "$MODEL_FILE" ]; then
   HARDWARE=$(tr -d '\0' < $MODEL_FILE)
   if [[ "$HARDWARE" == *"Raspberry Pi"* ]]; then
@@ -333,42 +325,6 @@ update_python_modules() {
             fi
         fi
     done
-}
-
-# INSTALL PACKAGES REQUIRED BY KIVY PYTHON LIBRARY ON ARM MACHINES
-# ------------------------------------------------------------------------------
-install_kivy_packages() {
-
-    # Define required packages and print progress to screen
-    printf "\\n  %b Kivy Python library dependency checks...\\n" "${INFO}"
-    if [[ "$ARCHITECTURE" = "arm"* ]] || [[ $ARCHITECTURE = aarch64 ]]; then
-        declare -a arg_array=("${KIVY_DEPENDENCIES_ARM[@]}")
-    else
-        declare -a arg_array=("${KIVY_DEPENDENCIES[@]}")
-    fi
-    declare -a install_array
-
-    # Check if any of the required packages are already installed.
-    for i in "${arg_array[@]}"; do
-        printf "  %b Checking for %s..." "${INFO}" "${i}"
-        if dpkg-query -W -f='${Status}' "${i}" 2>/dev/null | grep "ok installed" &> /dev/null; then
-            printf "%b  %b Checking for %s\\n" "${OVER}" "${TICK}" "${i}"
-        else
-            echo -e "${OVER}  ${INFO} Checking for $i (will be installed)"
-            install_array+=("${i}")
-        fi
-    done
-
-    # Only install required packages that are missing from the system to avoid
-    # unecessary downloading
-    if [[ "${#install_array[@]}" -gt 0 ]]; then
-        if ! (sudo debconf-apt-progress --logfile error_log -- "${PKG_NEW_INSTALL[@]}" "${install_array[@]}"); then
-            printf "  %b\\nError: Unable to install dependent packages\\n\\n %b" "${COL_LIGHT_RED}" "${COL_NC}"
-            printf "%s\\n\\n" "$(<error_log)"
-            clean_up
-            exit 1
-        fi
-    fi
 }
 
 # INSTALL KIVY PYTHON LIBRARY
@@ -910,8 +866,6 @@ install() {
     install_python_venv
     # Install required Python modules
     install_python_modules
-    # Install required Kivy dependencies
-    install_kivy_packages
     # Install Kivy Python library
     install_kivy
     # Get the latest version of the WeatherFlow PiConsole and install
@@ -943,8 +897,6 @@ run_update() {
     install_packages
     # Update Python modules as required
     update_python_modules
-    # Install required Kivy dependencies
-    install_kivy_packages
     # Install Kivy Python library
     install_kivy
     # Get the latest version of the WeatherFlow PiConsole and install
@@ -990,8 +942,6 @@ run_beta() {
     install_packages
     # Update Python modules as required
     update_python_modules
-    # Install required Kivy dependencies
-    install_kivy_packages
     # Install Kivy Python library
     install_kivy
     # Switch to the WeatherFlow PiConsole beta branch
@@ -1088,7 +1038,7 @@ if [[ "${1}" == "install" ]] || [[ "${1}" == "run_update" ]] || [[ "${1}" == "ru
     ARCHITECTURE=$(dpkg --print-architecture)
     if [[ $ARCHITECTURE = armhf ]] || [[ $ARCHITECTURE = x86_64 ]] || [[ $ARCHITECTURE = i*86 ]]; then
         printf "  %b Architecture check passed (%b)\\n" "${TICK}" "${ARCHITECTURE}"
-    if [[ $ARCHITECTURE = arm64 ]]; then
+    elif [[ $ARCHITECTURE = arm64 ]] || [[ $ARCHITECTURE = amd64 ]]; then
         printf "  %b Architecture check warning (%b)\\n\\n" "${EXCLAMATION}" "${ARCHITECTURE}"
     else
         printf "  %b Architecture check failed (%b)\\n\\n" "${CROSS}" "${ARCHITECTURE}"
@@ -1096,7 +1046,7 @@ if [[ "${1}" == "install" ]] || [[ "${1}" == "run_update" ]] || [[ "${1}" == "ru
         exit 1
     fi
     OS=$(. /etc/os-release && echo $PRETTY_NAME)
-    if ([[ "$HARDWARE" == *"Raspberry Pi"* ]] && [[ "$OS" == *"buster"* ]]; then
+    if [[ "$HARDWARE" == *"Raspberry Pi"* ]] && [[ "$OS" == *"buster"* ]]; then
         printf "  %b OS check failed (%b)\\n" "${CROSS}" "${OS}"
         printf "  The PiConsole is no longer compatible with Debian Buster\\n\\n"
         clean_up
@@ -1115,7 +1065,7 @@ if [[ "${1}" == "install" ]] || [[ "${1}" == "run_update" ]] || [[ "${1}" == "ru
     fi
 
     # Print warning if unsupported architecture/Raspberry Pi detected
-    if [[ $ARCHITECTURE = arm64 ]] || [[ $SUPPORTED_RASPBERRY_PI == "false" ]]; then
+    if [[ $ARCHITECTURE = arm64 ]] || [[ $ARCHITECTURE = amd64 ]] || [[ $SUPPORTED_RASPBERRY_PI == "false" ]]; then
         printf "\n  %b WARNING: unsupported architecture or Raspberry Pi detected\n" "${EXCLAMATION}"
         printf "      No support is available for errors encountered while running\n"
         printf "      the PiConsole\n"
