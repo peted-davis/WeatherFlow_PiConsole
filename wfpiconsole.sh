@@ -1047,8 +1047,10 @@ if [[ "${1}" == "install" ]] || [[ "${1}" == "run_update" ]] || [[ "${1}" == "ru
     fi
     OS=$(. /etc/os-release && echo $PRETTY_NAME)
     if [[ "$HARDWARE" == *"Raspberry Pi"* ]] && [[ "$OS" == *"buster"* ]]; then
-        printf "  %b OS check failed (%b)\\n" "${CROSS}" "${OS}"
-        printf "  The PiConsole is no longer compatible with Debian Buster\\n\\n"
+        printf "  %b OS check failed (%b)\\n\\n" "${CROSS}" "${OS}"
+        printf "  %b ERROR: The PiConsole is no longer compatible with\\n" "${CROSS}"
+        printf "      Raspberry Pi OS (Buster). Please upgrade your\\n"
+        printf "      Raspberry Pi hardware and/or Raspberry Pi OS\\n\\n"
         clean_up
         exit 1
     elif is_command apt-get ; then
