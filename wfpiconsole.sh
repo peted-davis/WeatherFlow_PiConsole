@@ -1017,14 +1017,23 @@ if [[ "${1}" == "install" ]] || [[ "${1}" == "run_update" ]] || [[ "${1}" == "ru
     if [[ $ARCHITECTURE = armhf ]] || [[ $ARCHITECTURE = x86_64 ]] || [[ $ARCHITECTURE = i*86 ]]; then
         printf "  %b Architecture check passed (%b)\\n" "${TICK}" "${ARCHITECTURE}"
     elif [[ $ARCHITECTURE = arm64 ]] || [[ $ARCHITECTURE = amd64 ]]; then
-        printf "  %b Architecture check warning (%b)\\n\\n" "${EXCLAMATION}" "${ARCHITECTURE}"
+        printf "  %b Architecture check warning (%b)\\n" "${EXCLAMATION}" "${ARCHITECTURE}"
     else
         printf "  %b Architecture check failed (%b)\\n\\n" "${CROSS}" "${ARCHITECTURE}"
         clean_up
         exit 1
     fi
+    MODEL_FILE=/proc/device-tree/model
+    if [ -f $MODEL_FILE ]; then
+        HARDWARE=$(tr -d '\0' < $MODEL_FILE)
+        if [[ $HARDWARE == *"Raspberry Pi 3"* ]] || [[ $HARDWARE == *"Raspberry Pi 4"* ]] ; then
+            SUPPORTED_RASPBERRY_PI="true"
+        else
+            SUPPORTED_RASPBERRY_PI="false"
+        fi
+    fi
     OS=$(. /etc/os-release && echo $PRETTY_NAME)
-    if [[ "$HARDWARE" == *"Raspberry Pi"* ]] && [[ "$OS" == *"buster"* ]]; then
+    if [[ $HARDWARE == *"Raspberry Pi"* ]] && [[ $OS == *"buster"* ]]; then
         printf "  %b OS check failed (%b)\\n\\n" "${CROSS}" "${OS}"
         printf "  %b ERROR: Updates to the PiConsole are no longer compatible\\n" "${CROSS}"
         printf "      with Raspberry Pi OS (Buster). Please upgrade your OS\\n\\n"
@@ -1036,15 +1045,6 @@ if [[ "${1}" == "install" ]] || [[ "${1}" == "run_update" ]] || [[ "${1}" == "ru
         printf "  %b OS check failed (%b)\\n\\n" "${CROSS}" "${OS}"
         clean_up
         exit 1
-    fi
-    MODEL_FILE=/proc/device-tree/model
-    if [ -f "$MODEL_FILE" ]; then
-        HARDWARE=$(tr -d '\0' < $MODEL_FILE)
-        if [[ "$HARDWARE" == *"Raspberry Pi 3"* ]] || [[ "$HARDWARE" == *"Raspberry Pi 4"* ]] ; then
-            SUPPORTED_RASPBERRY_PI="true"
-        else
-            SUPPORTED_RASPBERRY_PI="false"
-        fi
     fi
     if [[ $SUPPORTED_RASPBERRY_PI == "true" ]]; then
         printf "  %b Raspberry Pi check passed (%b)\\n" "${TICK}" "${HARDWARE}"
