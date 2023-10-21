@@ -1024,7 +1024,13 @@ if [[ "${1}" == "install" ]] || [[ "${1}" == "run_update" ]] || [[ "${1}" == "ru
         exit 1
     fi
     OS=$(. /etc/os-release && echo $PRETTY_NAME)
-    if is_command apt-get ; then
+    if [[ "$HARDWARE" == *"Raspberry Pi"* ]] && [[ "$OS" == *"buster"* ]]; then
+        printf "  %b OS check failed (%b)\\n\\n" "${CROSS}" "${OS}"
+        printf "  %b ERROR: Updates to the PiConsole are no longer compatible\\n" "${CROSS}"
+        printf "      with Raspberry Pi OS (Buster). Please upgrade your OS\\n\\n"
+        clean_up
+        exit 1
+    elif is_command apt-get ; then
         printf "  %b OS check passed (%b)\\n" "${TICK}" "${OS}"
     else
         printf "  %b OS check failed (%b)\\n\\n" "${CROSS}" "${OS}"
