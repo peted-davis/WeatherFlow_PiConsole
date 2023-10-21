@@ -54,7 +54,7 @@ config = configparser.ConfigParser()
 config.read('wfpiconsole.ini')
 
 # Initialise Kivy backend based on current hardware
-if config['System']['Hardware'] in ['Pi4', 'Pi5', 'Linux']:
+if config['System']['Hardware'] != 'Other':
     os.environ['SDL_VIDEO_ALLOW_SCREENSAVER'] = '1'
     os.environ['KIVY_GRAPHICS'] = 'gles'
     os.environ['KIVY_WINDOW']   = 'sdl2'
@@ -93,12 +93,12 @@ else:
 # Initialise mouse support if required
 if int(config['Display']['Cursor']):
     kivyconfig.set('graphics', 'show_cursor', '1')
-    if config['System']['Hardware'] in ['PiB', 'Pi3', 'Pi4', 'Pi5']:
+    if 'Pi' in config['System']['Hardware']:
         kivyconfig.set('input', 'mouse', 'mouse')
         kivyconfig.remove_option('input', 'mtdev_%(name)s')
 else:
     kivyconfig.set('graphics', 'show_cursor', '0')
-    if config['System']['Hardware'] in ['PiB', 'Pi3', 'Pi4', 'Pi5']:
+    if 'Pi' in config['System']['Hardware']:
         kivyconfig.remove_option('input', 'mouse')
 
 # Save wfpiconsole Kivy configuration file
