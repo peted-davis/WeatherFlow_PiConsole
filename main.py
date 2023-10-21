@@ -54,12 +54,10 @@ config = configparser.ConfigParser()
 config.read('wfpiconsole.ini')
 
 # Initialise Kivy backend based on current hardware
-if config['System']['Hardware'] in ['Pi4', 'Linux']:
+if config['System']['Hardware'] in ['Pi4', 'Pi5', 'Linux']:
     os.environ['SDL_VIDEO_ALLOW_SCREENSAVER'] = '1'
     os.environ['KIVY_GRAPHICS'] = 'gles'
     os.environ['KIVY_WINDOW']   = 'sdl2'
-elif config['System']['Hardware'] in ['PiB', 'Pi3']:
-    os.environ['KIVY_GL_BACKEND'] = 'gl'
 
 # ==============================================================================
 # INITIALISE KIVY WINDOW PROPERTIES BASED ON OPTIONS SET IN wfpiconsole.ini
@@ -78,36 +76,29 @@ with open(os.path.expanduser('~/.kivy/') + 'config_wfpiconsole.ini', 'w') as cfg
 kivyconfig.read(os.path.expanduser('~/.kivy/') + 'config_wfpiconsole.ini')
 
 # Set Kivy window properties
-if config['System']['Hardware'] in ['Pi4', 'Linux', 'Other']:
-    if int(config['Display']['Fullscreen']):
-        kivyconfig.set('graphics', 'fullscreen', 'auto')
-    else:
-        kivyconfig.set('graphics', 'fullscreen', '0')
-        kivyconfig.set('graphics', 'width',  config['Display']['Width'])
-        kivyconfig.set('graphics', 'height', config['Display']['Height'])
-    if int(config['Display']['Border']):
-        kivyconfig.set('graphics', 'borderless', '0')
-    else:
-        kivyconfig.set('graphics', 'borderless', '1')
+if int(config['Display']['Fullscreen']):
+    kivyconfig.set('graphics', 'fullscreen', 'auto')
+else:
+    kivyconfig.set('graphics', 'fullscreen', '0')
+    kivyconfig.set('graphics', 'width',  config['Display']['Width'])
+    kivyconfig.set('graphics', 'height', config['Display']['Height'])
+if int(config['Display']['Border']):
+    kivyconfig.set('graphics', 'borderless', '0')
+else:
+    kivyconfig.set('graphics', 'borderless', '1')
 
 # ==============================================================================
 # INITIALISE MOUSE SUPPORT IF OPTION SET in wfpiconsole.ini
 # ==============================================================================
-# Enable mouse support on Raspberry Pi 3 if not already set
-if config['System']['Hardware'] in ['PiB', 'Pi3']:
-    if not config.has_option('modules', 'cursor'):
-        kivyconfig.set('modules', 'cursor', '1')
-
 # Initialise mouse support if required
 if int(config['Display']['Cursor']):
     kivyconfig.set('graphics', 'show_cursor', '1')
-    if config['System']['Hardware'] == 'Pi4':
+    if config['System']['Hardware'] in ['PiB', 'Pi3', 'Pi4', 'Pi5']:
         kivyconfig.set('input', 'mouse', 'mouse')
         kivyconfig.remove_option('input', 'mtdev_%(name)s')
-        # kivyconfig.remove_option('input', 'hid_%(name)s')
 else:
     kivyconfig.set('graphics', 'show_cursor', '0')
-    if config['System']['Hardware'] == 'Pi4':
+    if config['System']['Hardware'] in ['PiB', 'Pi3', 'Pi4', 'Pi5']:
         kivyconfig.remove_option('input', 'mouse')
 
 # Save wfpiconsole Kivy configuration file

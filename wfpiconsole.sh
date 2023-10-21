@@ -93,21 +93,6 @@ PIP_UPDATE="-m pip install --upgrade"
 WFPICONSOLE_DEPENDENCIES=(git curl rng-tools build-essential python3-dev python3-pip python3-setuptools
                           libssl-dev libffi-dev libatlas-base-dev jq)
 
-# Cryptography version
-MODEL_FILE=/proc/device-tree/model
-if [ -f "$MODEL_FILE" ]; then
-  SUPPORTED_RASPBERRY_PI="true"
-  HARDWARE=$(tr -d '\0' < $MODEL_FILE)
-  if [[ "$HARDWARE" == *"Raspberry Pi 3"* ]] || [[ "$HARDWARE" == *"Raspberry Pi 4"* ]] ; then
-    CRYPTOGRAPHY_VERSION="41.0.4"
-  else
-    CRYPTOGRAPHY_VERSION="41.0.4"
-    SUPPORTED_RASPBERRY_PI="false"
-  fi
-else
-  CRYPTOGRAPHY_VERSION="41.0.4"
-fi
-
 # Python modules and versions
 PYTHON_MODULES=(websockets==11.0.3
                 numpy==1.26.0
@@ -115,20 +100,13 @@ PYTHON_MODULES=(websockets==11.0.3
                 tzlocal==5.1
                 ephem==4.1.5
                 packaging==23.2
-                cryptography==$CRYPTOGRAPHY_VERSION
+                cryptography==41.0.4
                 pyOpenSSL==23.2.0
                 certifi==2023.7.22)
 
-# Kivy pip source
-KIVY_VERSION="2.2.0"
-if [ -f "$MODEL_FILE" ]; then
-  HARDWARE=$(tr -d '\0' < $MODEL_FILE)
-  if [[ "$HARDWARE" == *"Raspberry Pi"* ]]; then
-    KIVY_SOURCE="kivy[base]=="$KIVY_VERSION
-  fi
-else
-  KIVY_SOURCE="kivy[base]=="$KIVY_VERSION
-fi
+# Kivy source and version
+KIVY_VERSION="2.2.1"
+KIVY_SOURCE="kivy[base]=="$KIVY_VERSION
 
 # Github repositories
 WFPICONSOLE_REPO="https://github.com/peted-davis/WeatherFlow_PiConsole.git"
@@ -1046,19 +1024,21 @@ if [[ "${1}" == "install" ]] || [[ "${1}" == "run_update" ]] || [[ "${1}" == "ru
         exit 1
     fi
     OS=$(. /etc/os-release && echo $PRETTY_NAME)
-    if [[ "$HARDWARE" == *"Raspberry Pi"* ]] && [[ "$OS" == *"buster"* ]]; then
-        printf "  %b OS check failed (%b)\\n\\n" "${CROSS}" "${OS}"
-        printf "  %b ERROR: The PiConsole is no longer compatible with\\n" "${CROSS}"
-        printf "      Raspberry Pi OS (Buster). Please upgrade your\\n"
-        printf "      Raspberry Pi hardware and/or Raspberry Pi OS\\n\\n"
-        clean_up
-        exit 1
-    elif is_command apt-get ; then
+    if is_command apt-get ; then
         printf "  %b OS check passed (%b)\\n" "${TICK}" "${OS}"
     else
         printf "  %b OS check failed (%b)\\n\\n" "${CROSS}" "${OS}"
         clean_up
         exit 1
+    fi
+    MODEL_FILE=/proc/device-tree/model
+    if [ -f "$MODEL_FILE" ]; then
+        HARDWARE=$(tr -d '\0' < $MODEL_FILE)
+        if [[ "$HARDWARE" == *"Raspberry Pi 3"* ]] || [[ "$HARDWARE" == *"Raspberry Pi 4"* ]] ; then
+            SUPPORTED_RASPBERRY_PI="true"
+        else
+            SUPPORTED_RASPBERRY_PI="false"
+        fi
     fi
     if [[ $SUPPORTED_RASPBERRY_PI == "true" ]]; then
         printf "  %b Raspberry Pi check passed (%b)\\n" "${TICK}" "${HARDWARE}"

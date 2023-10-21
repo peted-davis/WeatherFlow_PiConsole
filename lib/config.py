@@ -46,7 +46,9 @@ if os.path.exists('/proc/device-tree/model'):
     proc = subprocess.Popen(['cat', '/proc/device-tree/model'], stdout=subprocess.PIPE)
     hardware = proc.stdout.read().decode('utf-8')
     proc.kill()
-    if 'Raspberry Pi 4' in hardware:
+    if 'Raspberry Pi 5' in hardware:
+        hardware = 'Pi5'
+    elif 'Raspberry Pi 4' in hardware:
         hardware = 'Pi4'
     elif 'Raspberry Pi 3' in hardware:
         hardware = 'Pi3'
