@@ -105,7 +105,7 @@ PYTHON_MODULES=(websockets==11.0.3
                 certifi==2023.7.22)
 
 # Kivy source and version
-KIVY_VERSION="2.2.1"
+KIVY_VERSION="2.2.0"
 KIVY_SOURCE="kivy[base]=="$KIVY_VERSION
 
 # Github repositories
