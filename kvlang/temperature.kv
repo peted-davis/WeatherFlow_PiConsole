@@ -154,8 +154,7 @@
         source: 'icons/feelsLike/' + root.feelsLikeIcon + app.scaleSuffix
         pos_hint: {'x': 7/262, 'y': 7/202}
         size_hint: (36/262, 31/202)
-        keep_ratio: 1
-        allow_stretch: 1
+        fit_mode: 'contain'
     SmallField:
         text: app.CurrentConditions.Obs['FeelsLike'][2]
         pos_hint: {'x': 49/262, 'y': 10/202}

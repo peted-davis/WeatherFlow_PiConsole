@@ -43,8 +43,7 @@
                 height: self.parent.height
                 pos: self.parent.pos
                 Image:
-                    keep_ratio: 0
-                    allow_stretch: 1
+                    fit_mode: 'fill'
                     source: 'icons/misc/rainIntensity' + app.scaleSuffix
                     pos_hint: {'x': root.rain_rate_x, 'y': root.rain_rate_y}
 
@@ -111,11 +110,10 @@
 
     Image:
         source: 'icons/misc/offline' + app.scaleSuffix
-        keep_ratio: 0
-        allow_stretch: 1
         opacity: 1 if 'Offline' in app.CurrentConditions.Status['station_status'] else 0
         pos_hint: {'x': 230/262, 'y': 9/202}
         size_hint: (30/262, 30/202)
+        fit_mode: 'contain'
 
 <RainfallButton>:
     PanelButton:

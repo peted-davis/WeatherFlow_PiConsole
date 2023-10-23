@@ -32,8 +32,7 @@
             source: 'icons/barometer/' + root.barometer_arrow + app.scaleSuffix
             pos_hint: {'x': 0, 'y': 0.5}
             size_hint: (1, 0.5)
-            keep_ratio: 0
-            allow_stretch: 1
+            fit_mode: 'fill'
 
     ## Maximum and minimum pressure on pressure dial
     TitleField:
