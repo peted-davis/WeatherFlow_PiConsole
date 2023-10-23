@@ -180,11 +180,11 @@ class wfpiconsole(App):
     # --------------------------------------------------------------------------
     def build(self):
 
-        # Calculate initial ScaleFactor and bind self.setScaleFactor to Window
+        # Calculate initial ScaleFactor and bind self.set_scale_factor to Window
         # on_resize
         self.window = Window
-        self.setScaleFactor(self.window, self.window.width, self.window.height)
-        self.window.bind(on_resize=self.setScaleFactor)
+        self.set_scale_factor(self.window, self.window.width, self.window.height)
+        self.window.bind(on_resize=self.set_scale_factor)
         from kivy.modules import inspector
         inspector.create_inspector(Window, self)
 
@@ -219,7 +219,7 @@ class wfpiconsole(App):
 
     # SET DISPLAY SCALE FACTOR BASED ON SCREEN DIMENSIONS
     # --------------------------------------------------------------------------
-    def setScaleFactor(self, instance, x, y):
+    def set_scale_factor(self, instance, x, y):
         self.scaleFactor = min(x / 800, y / 480)
         if self.scaleFactor > 1 or int(self.config['Display']['PanelCount']) < 6:
             self.scaleSuffix = '_hR.png'
@@ -324,6 +324,7 @@ class wfpiconsole(App):
 
         # Update number of panels displayed on CurrentConditions screen
         if section == 'Display' and key == 'PanelCount':
+            self.set_scale_factor(self.window, self.window.width, self.window.height)
             Clock.schedule_once(self.CurrentConditions.add_panels)
 
         # Update primary and secondary panels displayed on CurrentConditions
