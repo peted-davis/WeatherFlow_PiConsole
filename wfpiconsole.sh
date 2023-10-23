@@ -91,7 +91,7 @@ PIP_UPDATE="-m pip install --upgrade"
 
 # wfpiconsole and Kivy dependencies
 WFPICONSOLE_DEPENDENCIES=(git curl rng-tools build-essential python3-dev python3-pip python3-setuptools
-                          libssl-dev libffi-dev libatlas-base-dev jq)
+                          libssl-dev libffi-dev libatlas-base-dev libopenblas-dev jq)
 
 # Python modules and versions
 PYTHON_MODULES=(websockets==11.0.3
