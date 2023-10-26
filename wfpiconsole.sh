@@ -61,14 +61,6 @@ c=$(( columns / 2 ))
 r=$(( r < 20 ? 20 : r ))
 c=$(( c < 70 ? 70 : c ))
 
-# GET INVOKING USER
-# ------------------------------------------------------------------------------
-if [[ "${EUID}" -eq 0 ]]; then
-    USER=$SUDO_USER
-else
-    USER=$USER
-fi
-
 # DEFINE INSTALLER VARIABLES
 # ------------------------------------------------------------------------------
 # Download and install directories
@@ -985,6 +977,15 @@ fi
 
 # ENSURE ROOT ACCESS IS AVAILABLE
 # ------------------------------------------------------------------------------
+# Ensure script has not been called from an elevated prompt or with sudo
+if [[ "${EUID}" -eq 0 ]]; then
+    printf "\\n"
+    printf "  %bError: Unable to $1 the WeatherFlow PiConsole.\\n\\n%b" "${COL_LIGHT_RED}" "${COL_NC}"
+    printf "  This script is not designed for elevated privileges\\n"
+    printf "  Please run this script again with as a regular user\\n\\n"
+    clean_up
+    exit 1
+fi
 # Ensure sudo command is available and script can be elevated to root privileges
 if [[ ! -x "$(command -v sudo)" ]]; then
     printf "\\n"
