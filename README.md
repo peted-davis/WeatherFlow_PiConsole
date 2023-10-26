@@ -17,7 +17,7 @@ system compatibility details, see below. Support for Raspberry Pi 5 is coming
 soon.
 
 For a list of supported features and screenshots of the console in action,
-please checkout the WeatherFlow community forums: https://community.weatherflow.com/t/weatherflow-piconsole/1933
+please checkout the WeatherFlow community forums: https://community.weatherflow.com/t/weatherflow-piconsole/20083
 
 https://weatherflow.com/tempest-weather-system/<br/>
 https://community.weatherflow.com/
