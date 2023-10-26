@@ -865,6 +865,8 @@ run_update() {
     update_packages
     # Check if any new dependencies are required
     install_packages
+    # Install Python virtual environment
+    install_python_venv
     # Update Python modules as required
     update_python_modules
     # Install Kivy Python library
@@ -910,6 +912,8 @@ run_beta() {
     update_packages
     # Check if any new dependencies are required
     install_packages
+    # Install Python virtual environment
+    install_python_venv
     # Update Python modules as required
     update_python_modules
     # Install Kivy Python library
