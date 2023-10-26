@@ -20,29 +20,33 @@
 ## =============================================================================
 <BarometerPanel>:
 
-    ## Panel background, title, and Barometer dial
+    ## Panel background and title
     PanelBackground:
         _panelTitle: 'Barometer'
         _panelStatus: app.CurrentConditions.Status['out_air_last_sample'] if app.config['Station']['OutAirID'] else app.CurrentConditions.Status['tempest_last_sample']
-    barometerDial:
 
-    ## Current pressure arrow
-    Image:
-        source: 'icons/barometer/' + root.barometerArrow + app.scaleSuffix
-        keep_ratio: 0
-        allow_stretch: 1
-        pos_hint: {'x': 46/262, 'y': 18/202}
-        size_hint: (168/262, 84/202)
+    ## Barometer dial and current pressure arrow
+    barometer_dial:
+        id: barometer_dial
+        Image:
+            source: 'icons/barometer/' + root.barometer_arrow + app.scaleSuffix
+            pos_hint: {'x': 0, 'y': 0.5}
+            size_hint: (1, 0.5)
+            fit_mode: 'fill'
 
     ## Maximum and minimum pressure on pressure dial
     TitleField:
-        text: app.BarometerMin
-        pos_hint: {'x': 29/262, 'y': 4/202}
+        text: root.barometer_min
+        #pos_hint: {'x': 29/262, 'y': 4/202}
+        pos_hint: {'y': 4/202}
         size_hint_x: (40/262)
+        x: root.ids.barometer_dial.x+(root.ids.barometer_dial._width*app.scaleFactor) - self.width/2
     TitleField:
-        text: app.BarometerMax
-        pos_hint: {'x': 191/262, 'y': 4/202}
+        text: root.barometer_max
+        #pos_hint: {'x': 191/262, 'y': 4/202}
+        pos_hint: {'y': 4/202}
         size_hint_x: (40/262)
+        x: root.ids.barometer_dial.right-(root.ids.barometer_dial._width*app.scaleFactor) - self.width/2
 
     ## Current pressure
     TitleField:

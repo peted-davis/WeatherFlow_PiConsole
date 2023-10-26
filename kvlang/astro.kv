@@ -72,8 +72,7 @@
         source: 'icons/misc/' + app.CurrentConditions.Astro['sunIcon'][0] + app.scaleSuffix
         pos_hint: {'x': (4+app.CurrentConditions.Astro['sunIcon'][2]*236)/262, 'y': 92/202}
         size_hint: (18/262, 18/202)
-        keep_ratio: 0
-        allow_stretch: 1
+        fit_mode: 'contain'
 
     ## Solar radiation
     TitleField:
@@ -192,7 +191,7 @@
     ## Panel background, title, and MoonRose
     PanelBackground:
         _panelTitle: 'Moon'
-    moonRose:
+    moon_rose:
 
     ## Moonrise time
     TitleField:
@@ -247,8 +246,7 @@
         source: 'icons/moonPhase/' + app.CurrentConditions.Astro['Phase'][0] + app.scaleSuffix
         pos_hint: {'x': 108/262, 'y': 93/202}
         size_hint: (46/262, 46/202)
-        keep_ratio: 0
-        allow_stretch: 1
+        fit_mode: 'contain'
         canvas.before:
             PushMatrix
             Rotate:

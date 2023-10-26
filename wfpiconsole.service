@@ -26,7 +26,7 @@ StartLimitBurst=5
 Restart=always
 Environment=DISPLAY=:0
 ExecStartPre=/bin/sleep 5
-ExecStart=/usr/bin/python3 -u main.py
+ExecStart=
 WorkingDirectory=
 StandardOutput=
 StandardError=

@@ -27,10 +27,14 @@
     RainfallBackground:
         _panelTitle: 'Rainfall'
         _panelStatus: app.CurrentConditions.Status['sky_last_sample'] if app.config['Station']['SkyID'] else app.CurrentConditions.Status['tempest_last_sample']
-    RainGauge:
+    rain_gauge:
         id: rain_gauge
-        pos_hint: {'x': 198 / 262, 'y': 80 / 202}
         size_hint: (41 / 262, 99 / 202)
+        x: (218.5/262)*root.width  - self.width/2
+        y: (129.5/202)*root.height - self.height/2
+        _aspect_ratio: ((99 / 202) * 220) / ((41 / 262) * 262)
+        size_hint_max_x: self.height / self._aspect_ratio if self.parent.width  > self.parent.height else None
+        size_hint_max_y: self.width  * self._aspect_ratio if self.parent.height > self.parent.width  else None
         StencilView:
             pos_hint: {'x': 4 / rain_gauge._width, 'y': 1 / rain_gauge._height}
             size_hint: [1 - 8 / rain_gauge._width, 1 - 1 / rain_gauge._height]
@@ -39,10 +43,10 @@
                 height: self.parent.height
                 pos: self.parent.pos
                 Image:
-                    keep_ratio: 0
-                    allow_stretch: 1
+                    fit_mode: 'fill'
                     source: 'icons/misc/rainIntensity' + app.scaleSuffix
                     pos_hint: {'x': root.rain_rate_x, 'y': root.rain_rate_y}
+
 
     ## Current rain rate and text
     SmallField:
@@ -106,11 +110,10 @@
 
     Image:
         source: 'icons/misc/offline' + app.scaleSuffix
-        keep_ratio: 0
-        allow_stretch: 1
         opacity: 1 if 'Offline' in app.CurrentConditions.Status['station_status'] else 0
         pos_hint: {'x': 230/262, 'y': 9/202}
         size_hint: (30/262, 30/202)
+        fit_mode: 'contain'
 
 <RainfallButton>:
     PanelButton:

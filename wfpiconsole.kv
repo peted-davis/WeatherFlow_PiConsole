@@ -54,25 +54,11 @@
         padding: ['2dp', '2dp', '2dp', '0dp']
         spacing: '3dp'
         orientation: 'vertical'
+        id: panel_layout
         BoxLayout:
             spacing: '4dp'
             orientation: 'vertical'
-            BoxLayout:
-                spacing: '5dp'
-                BoxLayout:
-                    id: panel_one
-                BoxLayout:
-                    id: panel_two
-                BoxLayout:
-                    id: panel_three
-            BoxLayout:
-                spacing: '5dp'
-                BoxLayout:
-                    id: panel_four
-                BoxLayout:
-                    id: panel_five
-                BoxLayout:
-                    id: panel_six
+            id: row_layout
         BoxLayout:
             spacing: '4dp'
             size_hint: (1, 31/444)
@@ -241,10 +227,10 @@
                     CreditsMultilineField:
                         text:
                             'Python Console for Weather Flow Tempest and Smart Home Weather Station \n' \
-                            'Code written by Peter Davis. Copyright 2018-2020 \n' \
+                            'Code written by Peter Davis. Copyright 2018-2023 \n' \
                             'GNU General Public License v3.0 \n\n' \
                             'Graphics inspired by Weather34 Home Weather Station \n' \
-                            'Copyright 2015-2020 Brian Underdown \n' \
+                            'Copyright 2015-2023 Brian Underdown \n' \
                             'CC Attribution-NonCommercial-NoDerivatives 4.0 International License \n' \
                             'www.weather34.com/homeweatherstation/ \n\n' \
                             'Weather forecast data provided by \n' \

@@ -242,7 +242,7 @@
                 id: switch_button
                 disabled: 1
                 text: 'Fetching all available stations'
-                on_release: app.mainMenu.switchStations()
+                on_release: app.mainMenu.switch_stations()
 
 # =============================================================================
 # [device]_status PANEL
@@ -326,10 +326,13 @@
 ## =============================================================================
 ## WIND ROSE LAYOUT
 ## =============================================================================
-<windRose@FloatLayout>:
+<wind_rose@FloatLayout>:
     _width: 3.0
-    pos_hint: {'x': 65/262, 'y': 26/202}
     size_hint: (134/262, 134/202)
+    x: self.parent.width/2 - self.width/2
+    y: (92/202)*self.parent.height - self.height/2
+    size_hint_max_x: self.height if self.parent.width  > self.parent.height else None
+    size_hint_max_y: self.width  if self.parent.height > self.parent.width  else None
     canvas.before:
         Color:
             rgba: utils.rgba('c8c8c8ff')
@@ -351,11 +354,14 @@
 ## =============================================================================
 ## MOON ROSE LAYOUT
 ## =============================================================================
-<moonRose@FloatLayout>:
+<moon_rose@FloatLayout>:
     _width: 3.0
-    pos_hint: {'x': 64/262, 'y': 25/202}
     size_hint: (134/262, 134/202)
-    canvas.after:
+    x: self.parent.width/2 - self.width/2
+    y: (92/202)*self.parent.height - self.height/2
+    size_hint_max_x: self.height if self.parent.width  > self.parent.height else None
+    size_hint_max_y: self.width  if self.parent.height > self.parent.width  else None
+    canvas.before:
         Color:
             rgba: utils.rgba('646464ff')
         SmoothLine:
@@ -365,11 +371,14 @@
 ## =============================================================================
 ## BAROMETER DIAL LAYOUT
 ## =============================================================================
-<barometerDial@FloatLayout>:
+<barometer_dial@FloatLayout>:
     _width: 3.0
-    pos_hint: {'x': 46/262, 'y': -66/202}
     size_hint: (168/262, 168/202)
-    canvas.after:
+    x: self.parent.width/2 - self.width/2
+    y: (18/202)*self.parent.height - self.height/2
+    size_hint_max_x: self.height if self.parent.width  > self.parent.height else None
+    size_hint_max_y: self.width  if self.parent.height > self.parent.width  else None
+    canvas.before:
         Color:
             rgba: utils.rgba('646464ff')
         SmoothLine:
@@ -379,9 +388,9 @@
 ## =============================================================================
 ## RAIN GAUGE LAYOUT
 ## =============================================================================
-<RainGauge@FloatLayout>:
-    _width: 41
-    _height: 118
+<rain_gauge@FloatLayout>:
+    _width:  (41 / 262) * 262
+    _height: (99 / 202) * 220
 
     # Gauge text
     TitleField:
@@ -446,7 +455,7 @@
 
     # Gauge increments left-hand side (top set)
     Widget:
-        pos_hint: {'x': 4 / root._width, 'y': 110.5 / root._height}
+        pos_hint: {'x': 4 / root._width, 'y': 100.5 / root._height}
         size_hint: [8 / root._width, 2.5 / root._height]
         canvas.after:
             Color:
@@ -455,7 +464,7 @@
                 pos: self.pos
                 size: self.size
     Widget:
-        pos_hint: {'x': 4 / root._width, 'y': 103.5 / root._height}
+        pos_hint: {'x': 4 / root._width, 'y': 94.1 / root._height}
         size_hint: [4 / root._width, 2.5 / root._height]
         canvas.after:
             Color:
@@ -464,7 +473,7 @@
                 pos: self.pos
                 size: self.size
     Widget:
-        pos_hint: {'x': 4 / root._width, 'y': 96.5 / root._height}
+        pos_hint: {'x': 4 / root._width, 'y': 87.7 / root._height}
         size_hint: [4 / root._width, 2.5 / root._height]
         canvas.after:
             Color:
@@ -473,7 +482,7 @@
                 pos: self.pos
                 size: self.size
     Widget:
-        pos_hint: {'x': 4 / root._width, 'y': 89.5 / root._height}
+        pos_hint: {'x': 4 / root._width, 'y': 81.3 / root._height}
         size_hint: [4 / root._width, 2.5 / root._height]
         canvas.after:
             Color:
@@ -482,7 +491,7 @@
                 pos: self.pos
                 size: self.size
     Widget:
-        pos_hint: {'x': 4 / root._width, 'y': 82.5 / root._height}
+        pos_hint: {'x': 4 / root._width, 'y': 74.9 / root._height}
         size_hint: [4 / root._width, 2.5 / root._height]
         canvas.after:
             Color:
@@ -493,7 +502,7 @@
 
     # Gauge increments left-hand side (middle set)
     Widget:
-        pos_hint: {'x': 4 / root._width, 'y': 75.5 / root._height}
+        pos_hint: {'x': 4 / root._width, 'y': 68.5 / root._height}
         size_hint: [8 / root._width, 2.5 / root._height]
         canvas.after:
             Color:
@@ -502,7 +511,7 @@
                 pos: self.pos
                 size: self.size
     Widget:
-        pos_hint: {'x': 4 / root._width, 'y': 68.5 / root._height}
+        pos_hint: {'x': 4 / root._width, 'y': 62.1 / root._height}
         size_hint: [4 / root._width, 2.5 / root._height]
         canvas.after:
             Color:
@@ -511,7 +520,7 @@
                 pos: self.pos
                 size: self.size
     Widget:
-        pos_hint: {'x': 4 / root._width, 'y': 61.5 / root._height}
+        pos_hint: {'x': 4 / root._width, 'y': 55.7 / root._height}
         size_hint: [4 / root._width, 2.5 / root._height]
         canvas.after:
             Color:
@@ -520,7 +529,7 @@
                 pos: self.pos
                 size: self.size
     Widget:
-        pos_hint: {'x': 4 / root._width, 'y': 54.5 / root._height}
+        pos_hint: {'x': 4 / root._width, 'y': 49.3 / root._height}
         size_hint: [4 / root._width, 2.5 / root._height]
         canvas.after:
             Color:
@@ -529,7 +538,7 @@
                 pos: self.pos
                 size: self.size
     Widget:
-        pos_hint: {'x': 4 / root._width, 'y': 47.5 / root._height}
+        pos_hint: {'x': 4 / root._width, 'y': 42.9 / root._height}
         size_hint: [4 / root._width, 2.5 / root._height]
         canvas.after:
             Color:
@@ -540,7 +549,7 @@
 
     # Gauge increments left-hand side (bottom set)
     Widget:
-        pos_hint: {'x': 4 / root._width, 'y': 40.5 / root._height}
+        pos_hint: {'x': 4 / root._width, 'y': 36.5 / root._height}
         size_hint: [8 / root._width, 2.5 / root._height]
         canvas.after:
             Color:
@@ -549,7 +558,7 @@
                 pos: self.pos
                 size: self.size
     Widget:
-        pos_hint: {'x': 4 / root._width, 'y': 33.5 / root._height}
+        pos_hint: {'x': 4 / root._width, 'y': 30.1 / root._height}
         size_hint: [4 / root._width, 2.5 / root._height]
         canvas.after:
             Color:
@@ -558,7 +567,7 @@
                 pos: self.pos
                 size: self.size
     Widget:
-        pos_hint: {'x': 4 / root._width, 'y': 26.5 / root._height}
+        pos_hint: {'x': 4 / root._width, 'y': 23.7 / root._height}
         size_hint: [4 / root._width, 2.5 / root._height]
         canvas.after:
             Color:
@@ -567,7 +576,7 @@
                 pos: self.pos
                 size: self.size
     Widget:
-        pos_hint: {'x': 4 / root._width, 'y': 19.5 / root._height}
+        pos_hint: {'x': 4 / root._width, 'y': 17.3 / root._height}
         size_hint: [4 / root._width, 2.5 / root._height]
         canvas.after:
             Color:
@@ -576,7 +585,7 @@
                 pos: self.pos
                 size: self.size
     Widget:
-        pos_hint: {'x': 4 / root._width, 'y': 12.5 / root._height}
+        pos_hint: {'x': 4 / root._width, 'y': 10.9 / root._height}
         size_hint: [4 / root._width, 2.5 / root._height]
         canvas.after:
             Color:
@@ -585,7 +594,7 @@
                 pos: self.pos
                 size: self.size
     Widget:
-        pos_hint: {'x': 4 / root._width, 'y': 5.5 / root._height}
+        pos_hint: {'x': 4 / root._width, 'y': 4.5 / root._height}
         size_hint: [8 / root._width, 2.5 / root._height]
         canvas.after:
             Color:
@@ -596,7 +605,7 @@
 
     # Gauge increments right-hand side (top set)
     Widget:
-        pos_hint: {'x': (root._width - 12) / root._width, 'y': 110.5 / root._height}
+        pos_hint: {'x': (root._width - 12) / root._width, 'y': 100.5 / root._height}
         size_hint: [8 / root._width, 2.5 / root._height]
         canvas.after:
             Color:
@@ -605,7 +614,7 @@
                 pos: self.pos
                 size: self.size
     Widget:
-        pos_hint: {'x': (root._width - 8) / root._width, 'y': 103.5 / root._height}
+        pos_hint: {'x': (root._width - 8) / root._width, 'y': 94.1 / root._height}
         size_hint: [4 / root._width, 2.5 / root._height]
         canvas.after:
             Color:
@@ -614,7 +623,7 @@
                 pos: self.pos
                 size: self.size
     Widget:
-        pos_hint: {'x': (root._width - 8) / root._width, 'y': 96.5 / root._height}
+        pos_hint: {'x': (root._width - 8) / root._width, 'y': 87.7 / root._height}
         size_hint: [4 / root._width, 2.5 / root._height]
         canvas.after:
             Color:
@@ -623,7 +632,7 @@
                 pos: self.pos
                 size: self.size
     Widget:
-        pos_hint: {'x': (root._width - 8) / root._width, 'y': 89.5 / root._height}
+        pos_hint: {'x': (root._width - 8) / root._width, 'y': 81.3 / root._height}
         size_hint: [4 / root._width, 2.5 / root._height]
         canvas.after:
             Color:
@@ -632,7 +641,7 @@
                 pos: self.pos
                 size: self.size
     Widget:
-        pos_hint: {'x': (root._width - 8) / root._width, 'y': 82.5 / root._height}
+        pos_hint: {'x': (root._width - 8) / root._width, 'y': 74.9 / root._height}
         size_hint: [4 / root._width, 2.5 / root._height]
         canvas.after:
             Color:
@@ -643,7 +652,7 @@
 
     # Gauge increments right-hand side (middle set)
     Widget:
-        pos_hint: {'x': (root._width - 12) / root._width, 'y': 75.5 / root._height}
+        pos_hint: {'x': (root._width - 12) / root._width, 'y': 68.5 / root._height}
         size_hint: [8 / root._width, 2.5 / root._height]
         canvas.after:
             Color:
@@ -652,7 +661,7 @@
                 pos: self.pos
                 size: self.size
     Widget:
-        pos_hint: {'x': (root._width - 8) / root._width, 'y': 68.5 / root._height}
+        pos_hint: {'x': (root._width - 8) / root._width, 'y': 62.1 / root._height}
         size_hint: [4 / root._width, 2.5 / root._height]
         canvas.after:
             Color:
@@ -661,7 +670,7 @@
                 pos: self.pos
                 size: self.size
     Widget:
-        pos_hint: {'x': (root._width - 8) / root._width, 'y': 61.5 / root._height}
+        pos_hint: {'x': (root._width - 8) / root._width, 'y': 55.7 / root._height}
         size_hint: [4 / root._width, 2.5 / root._height]
         canvas.after:
             Color:
@@ -670,7 +679,7 @@
                 pos: self.pos
                 size: self.size
     Widget:
-        pos_hint: {'x': (root._width - 8) / root._width, 'y': 54.5 / root._height}
+        pos_hint: {'x': (root._width - 8) / root._width, 'y': 49.3 / root._height}
         size_hint: [4 / root._width, 2.5 / root._height]
         canvas.after:
             Color:
@@ -679,7 +688,7 @@
                 pos: self.pos
                 size: self.size
     Widget:
-        pos_hint: {'x': (root._width - 8) / root._width, 'y': 47.5 / root._height}
+        pos_hint: {'x': (root._width - 8) / root._width, 'y': 42.9 / root._height}
         size_hint: [4 / root._width, 2.5 / root._height]
         canvas.after:
             Color:
@@ -690,7 +699,7 @@
 
     # Gauge increments right-hand side (bottom set)
     Widget:
-        pos_hint: {'x': (root._width - 12) / root._width, 'y': 40.5 / root._height}
+        pos_hint: {'x': (root._width - 12) / root._width, 'y': 36.5 / root._height}
         size_hint: [8 / root._width, 2.5 / root._height]
         canvas.after:
             Color:
@@ -699,7 +708,7 @@
                 pos: self.pos
                 size: self.size
     Widget:
-        pos_hint: {'x': (root._width - 8) / root._width, 'y': 33.5 / root._height}
+        pos_hint: {'x': (root._width - 8) / root._width, 'y': 30.1 / root._height}
         size_hint: [4 / root._width, 2.5 / root._height]
         canvas.after:
             Color:
@@ -708,7 +717,7 @@
                 pos: self.pos
                 size: self.size
     Widget:
-        pos_hint: {'x': (root._width - 8) / root._width, 'y': 26.5 / root._height}
+        pos_hint: {'x': (root._width - 8) / root._width, 'y': 23.7 / root._height}
         size_hint: [4 / root._width, 2.5 / root._height]
         canvas.after:
             Color:
@@ -717,7 +726,7 @@
                 pos: self.pos
                 size: self.size
     Widget:
-        pos_hint: {'x': (root._width - 8) / root._width, 'y': 19.5 / root._height}
+        pos_hint: {'x': (root._width - 8) / root._width, 'y': 17.3 / root._height}
         size_hint: [4 / root._width, 2.5 / root._height]
         canvas.after:
             Color:
@@ -726,7 +735,7 @@
                 pos: self.pos
                 size: self.size
     Widget:
-        pos_hint: {'x': (root._width - 8) / root._width, 'y': 12.5 / root._height}
+        pos_hint: {'x': (root._width - 8) / root._width, 'y': 10.9 / root._height}
         size_hint: [4 / root._width, 2.5 / root._height]
         canvas.after:
             Color:
@@ -735,7 +744,7 @@
                 pos: self.pos
                 size: self.size
     Widget:
-        pos_hint: {'x': (root._width - 12) / root._width, 'y': 5.5 / root._height}
+        pos_hint: {'x': (root._width - 12) / root._width, 'y': 4.5 / root._height}
         size_hint: [8 / root._width, 2.5 / root._height]
         canvas.after:
             Color:

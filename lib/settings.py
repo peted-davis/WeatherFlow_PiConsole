@@ -232,6 +232,8 @@ def JSON(Section):
                   'title': 'Time format', 'desc': 'Set time to display in 12 hr or 24 hr format', 'section': 'Display', 'key': 'TimeFormat'},
                  {'type': 'FixedOptions', 'options': ['Mon, 01 Jan 0000', 'Mon, Jan 01 0000', 'Monday, 01 Jan 0000', 'Monday, Jan 01 0000'],
                   'title': 'Date format', 'desc': 'Set date format', 'section': 'Display', 'key': 'DateFormat'},
+                 {'type': 'FixedOptions', 'options': ['1', '4', '6'],
+                  'title': 'Number of panels', 'desc': 'Set the number of display panels', 'section': 'Display', 'key': 'PanelCount'},
                  {'type': 'bool', 'desc': 'Switch to lightning panel when a strike is detected',
                   'title': 'Lightning panel', 'section': 'Display', 'key': 'LightningPanel'},
                  {'type': 'bool', 'desc': 'Show indoor temperature',
@@ -306,7 +308,11 @@ def JSON(Section):
                   'desc': 'Set the maximum temperature for "Feeling very hot"', 'section': 'FeelsLike', 'key': 'VeryHot'}
                  ]
     elif 'System' in Section:
-        Data =  [{'type': 'ToggleHours', 'title': 'Sager Forecast interval',
+        Data =  [{'type': 'FixedOptions', 'options': ['Websocket', 'UDP'], 'title': 'Connection',
+                  'desc': 'Set the console connection type', 'section': 'System', 'key': 'Connection'},
+                 {'type': 'bool', 'desc': 'Use the WeatherFlow REST API to fetch historical data & forecast',
+                  'title': 'REST API', 'section': 'System', 'key': 'rest_api'},
+                 {'type': 'ToggleHours', 'title': 'Sager Forecast interval',
                   'desc': 'Set the interval in hours between Sager Forecasts', 'section': 'System', 'key': 'SagerInterval'},
                  ]
 

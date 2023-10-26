@@ -26,13 +26,12 @@
         _panelStatus: app.CurrentConditions.Status['sky_last_sample'] if app.config['Station']['SkyID'] else app.CurrentConditions.Status['tempest_last_sample']
 
     ## Rapid Wind wind speed and direction
-    windRose:
+    wind_rose:
         Image:
             source: 'icons/windRose/icons/' + str(round(root.rapidWindDir)) + app.scaleSuffix
             pos_hint: {'x': 0, 'y': 0}
             size_hint: (1, 1)
-            keep_ratio: 0
-            allow_stretch: 1
+            fit_mode: 'fill'
 
     ## Current average wind speed
     LargeField:
@@ -79,8 +78,7 @@
         source: 'icons/windSpd/' + root.windSpdIcon + app.scaleSuffix
         pos_hint: {'x': 18/262, 'y': 28/202}
         size_hint: (30/262, 30/202)
-        keep_ratio: 0
-        allow_stretch: 1
+        fit_mode: 'contain'
     SmallField:
         text: app.CurrentConditions.Obs['WindSpd'][4]
         pos_hint: {'x': 6/262, 'y': 6/202}
@@ -93,8 +91,7 @@
         source: 'icons/windDir/' + root.windDirIcon + app.scaleSuffix
         pos_hint: {'x': 216/262, 'y': 28/202}
         size_hint: (30/262, 30/202)
-        keep_ratio: 0
-        allow_stretch: 1
+        fit_mode: 'contain'
     SmallField:
         text: 'Direction: [color=9aba2fff]' + app.CurrentConditions.Obs['WindDir'][0] + app.CurrentConditions.Obs['WindDir'][1] + '[/color]'
         pos_hint: {'x': 119/262, 'y': 6/202}

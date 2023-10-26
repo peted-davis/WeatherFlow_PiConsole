@@ -30,65 +30,65 @@
         text: 'Indoor'
         pos_hint: {'x': 0/262, 'y': 166/202}
         size_hint_x: (131/262)
-        opacity: 1 if app.IndoorTemp == '1' else 0
+        opacity: 1 if root.indoor_temperature == '1' else 0
     LargeField:
         text: app.CurrentConditions.Obs['inTemp'][0] + app.CurrentConditions.Obs['inTemp'][1]
         pos_hint: {'x': 0/262, 'y': 132/202}
         size_hint_x: (131/262)
-        opacity: 1 if app.IndoorTemp == '1' else 0
+        opacity: 1 if root.indoor_temperature == '1' else 0
 
     ## Indoor temperature minimum
     MediumField:
         text: '[size=' + str(int(self.font_size*0.88)) + '][color=00a4b4ff]' + app.CurrentConditions.Obs['inTempMin'][0] + '[size=' + str(int(self.font_size*0.83)) + ']' + app.CurrentConditions.Obs['inTempMin'][1] + '[/color][/size][/size]'
         pos_hint: {'x': 0/262, 'y': 106/202}
         size_hint_x: (65.5/262)
-        opacity: 1 if app.IndoorTemp == '1' else 0
+        opacity: 1 if root.indoor_temperature == '1' else 0
     SmallField:
         text: app.CurrentConditions.Obs['inTempMin'][2]
         pos_hint: {'x': 0/262, 'y': 86/202}
         size_hint_x: (65.5/262)
-        opacity: 1 if app.IndoorTemp == '1' else 0
+        opacity: 1 if root.indoor_temperature == '1' else 0
 
     ## Indoor temperature maximum
     MediumField:
         text: '[size=' + str(int(self.font_size*0.88)) + '][color=f05e40ff]' + app.CurrentConditions.Obs['inTempMax'][0] + '[size=' + str(int(self.font_size*0.83)) + ']' + app.CurrentConditions.Obs['inTempMax'][1] + '[/color][/size][/size]'
         pos_hint: {'x': 65.5/262, 'y': 106/202}
         size_hint_x: (65.5/262)
-        opacity: 1 if app.IndoorTemp == '1' else 0
+        opacity: 1 if root.indoor_temperature == '1' else 0
     SmallField:
         text: app.CurrentConditions.Obs['inTempMax'][2]
         pos_hint: {'x': 65.5/262, 'y': 86/202}
         size_hint_x: (65.5/262)
-        opacity: 1 if app.IndoorTemp == '1' else 0
+        opacity: 1 if root.indoor_temperature == '1' else 0
 
     ## Outdoor temperature
     TitleField:
         text: 'Outdoor'
-        pos_hint: {'x': 131/262 if app.IndoorTemp == '1' else 3/262, 'y': 166/202}
+        pos_hint: {'x': 131/262 if root.indoor_temperature == '1' else 3/262, 'y': 166/202}
         size_hint_x: 131/262
     LargeField:
         text: app.CurrentConditions.Obs['outTemp'][0] + app.CurrentConditions.Obs['outTemp'][1]
-        pos_hint: {'x': 131/262 if app.IndoorTemp == '1' else 3/262, 'y': 132/202}
+        pos_hint: {'x': 131/262 if root.indoor_temperature == '1' else 3/262, 'y': 132/202}
         size_hint_x: (131/262)
 
     ## Outdoor temperature minimum
     MediumField:
         text: '[size=' + str(int(self.font_size*0.88)) + '][color=00a4b4ff]' + app.CurrentConditions.Obs['outTempMin'][0] + '[size=' + str(int(self.font_size*0.83)) + ']' + app.CurrentConditions.Obs['outTempMin'][1] + '[/color][/size][/size]'
-        pos_hint: {'x': 131/262 if app.IndoorTemp == '1' else 3/262, 'y': 106/202}
+        pos_hint: {'x': 131/262 if root.indoor_temperature == '1' else 3/262, 'y': 106/202}
         size_hint_x: (65.5/262)
     SmallField:
         text: app.CurrentConditions.Obs['outTempMin'][2]
-        pos_hint: {'x': 131/262 if app.IndoorTemp == '1' else 3/262, 'y': 86/202}
+        pos_hint: {'x': 131/262 if root.indoor_temperature == '1' else 3/262, 'y': 86/202}
         size_hint_x: (65.5/262)
 
     ## Outdoor temperature maximum
     MediumField:
         text: '[size=' + str(int(self.font_size*0.88)) + '][color=f05e40ff]' + app.CurrentConditions.Obs['outTempMax'][0] + '[size=' + str(int(self.font_size*0.83)) + ']' + app.CurrentConditions.Obs['outTempMax'][1] + '[/color][/size][/size]'
-        pos_hint: {'x': 196.5/262 if app.IndoorTemp == '1' else 68.5/262, 'y': 106/202}
+        pos_hint: {'x': 196.5/262 if root.indoor_temperature == '1' else 68.5/262, 'y': 106/202}
         size_hint_x: (65.5/262)
     SmallField:
         text: app.CurrentConditions.Obs['outTempMax'][2]
-        pos_hint: {'x': 196.5/262 if app.IndoorTemp == '1' else 68.5/262, 'y': 86/202}
+        pos_hint: {'x': 196.5/262 if root.indoor_temperature == '1' else 68.5/262, 'y': 86/202}
         size_hint_x: (65.5/262)
 
     ## 24 hour temperature difference
@@ -96,7 +96,7 @@
         text: '24 hr Difference'
         pos_hint: {'x': 128 / 262, 'y': 166 / 202}
         size_hint_x: (128 / 262)
-        opacity: 0 if app.IndoorTemp == '1' else 1
+        opacity: 0 if root.indoor_temperature == '1' else 1
     MediumField:
         _font_size: str(14*app.scaleFactor)
         _tempString: app.CurrentConditions.Obs['outTempDiff'][0] + app.CurrentConditions.Obs['outTempDiff'][1]
@@ -104,20 +104,20 @@
         text: self._tempString + self._descString
         pos_hint: {'x': 128 / 262, 'y': 137.5 / 202}
         size_hint_x: (128 / 262)
-        opacity: 0 if app.IndoorTemp == '1' else 1
+        opacity: 0 if root.indoor_temperature == '1' else 1
 
     ## 3 hour temperature trend
     TitleField:
         text: 'Trend'
         pos_hint: {'x': 128 / 262, 'y': 114.5 / 202}
         size_hint_x: (128 / 262)
-        opacity: 0 if app.IndoorTemp == '1' else 1
+        opacity: 0 if root.indoor_temperature == '1' else 1
     MediumField:
         _color: 'c8c8c8ff' if app.CurrentConditions.Obs['outTempTrend'][2] == '-' else app.CurrentConditions.Obs['outTempTrend'][2]
         text: '[color=' + self._color + ']' + app.CurrentConditions.Obs['outTempTrend'][0] + '[/color]' + app.CurrentConditions.Obs['outTempTrend'][1]
         pos_hint: {'x': 128 / 262, 'y': 86 / 202}
         size_hint_x: (128 / 262)
-        opacity: 0 if app.IndoorTemp == '1' else 1
+        opacity: 0 if root.indoor_temperature == '1' else 1
 
     ## 'Feels like' temperature
     TitleField:
@@ -154,8 +154,7 @@
         source: 'icons/feelsLike/' + root.feelsLikeIcon + app.scaleSuffix
         pos_hint: {'x': 7/262, 'y': 7/202}
         size_hint: (36/262, 31/202)
-        keep_ratio: 0
-        allow_stretch: 1
+        fit_mode: 'contain'
     SmallField:
         text: app.CurrentConditions.Obs['FeelsLike'][2]
         pos_hint: {'x': 49/262, 'y': 10/202}

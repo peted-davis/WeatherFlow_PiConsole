@@ -61,18 +61,11 @@ c=$(( columns / 2 ))
 r=$(( r < 20 ? 20 : r ))
 c=$(( c < 70 ? 70 : c ))
 
-# GET INVOKING USER
-# ------------------------------------------------------------------------------
-if [[ "${EUID}" -eq 0 ]]; then
-    USER=$SUDO_USER
-else
-    USER=$USER
-fi
-
 # DEFINE INSTALLER VARIABLES
 # ------------------------------------------------------------------------------
 # Download and install directories
-CONSOLEDIR=/home/${USER}/wfpiconsole/
+CONSOLEDIR=/home/${USER}/wfpiconsole
+VENVDIR=${CONSOLEDIR}/venv/
 DLDIR=${CONSOLEDIR}/temp/
 
 # Package manager commands
@@ -82,61 +75,30 @@ PKG_UPDATE_INSTALL="${PKG_MANAGER} dist-upgrade -y"
 PKG_UPDATE_COUNT="${PKG_MANAGER} -s -o Debug::NoLocking=true upgrade | grep -c ^Inst || true"
 PKG_NEW_INSTALL=(${PKG_MANAGER} --yes install)
 
-# Python PIP commands
-PIP_INSTALL="python3 -m pip install --user"
-PIP_UPDATE="python3 -m pip install --user --upgrade"
+# Python commands
+PYTHON_SYS=python3
+PYTHON_VENV=${VENVDIR}bin/python3
+PIP_INSTALL="-m pip install"
+PIP_UPDATE="-m pip install --upgrade"
 
 # wfpiconsole and Kivy dependencies
 WFPICONSOLE_DEPENDENCIES=(git curl rng-tools build-essential python3-dev python3-pip python3-setuptools
-                          libssl-dev libffi-dev libatlas-base-dev jq)
-KIVY_DEPENDENCIES_ARM=(pkg-config libgl1-mesa-dev libgles2-mesa-dev libgstreamer1.0-dev
-                       gstreamer1.0-plugins-{bad,base,good,ugly} gstreamer1.0-{omx,alsa}
-                       libmtdev-dev xclip xsel libjpeg-dev libsdl2-dev libsdl2-image-dev
-                       libsdl2-mixer-dev libsdl2-ttf-dev)
-KIVY_DEPENDENCIES=(ffmpeg libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev
-                   libportmidi-dev libswscale-dev libavformat-dev libavcodec-dev zlib1g-dev
-                   libgstreamer1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good)
-
-# Cryptography version
-MODEL_FILE=/proc/device-tree/model
-if [ -f "$MODEL_FILE" ]; then
-  SUPPORTED_RASPBERRY_PI="true"
-  HARDWARE=$(tr -d '\0' < $MODEL_FILE)
-  if [[ "$HARDWARE" == *"Raspberry Pi 4"* ]]; then
-    CRYPTOGRAPHY_VERSION="38.0.1"
-  elif [[ "$HARDWARE" == *"Raspberry Pi 3"* ]]; then
-    CRYPTOGRAPHY_VERSION="37.0.4"
-  else
-    CRYPTOGRAPHY_VERSION="37.0.4"
-    SUPPORTED_RASPBERRY_PI="false"
-  fi
-else
-  CRYPTOGRAPHY_VERSION="39.0.0"
-fi
+                          libssl-dev libffi-dev libatlas-base-dev libopenblas-dev jq)
 
 # Python modules and versions
-KIVY_VERSION="2.1.0"
-PYTHON_MODULES=(cython==0.29.26
-                websockets==10.1
-                numpy==1.21.4
-                pytz==2021.3
-                ephem==4.1.3
-                packaging==21.3
-                cryptography==$CRYPTOGRAPHY_VERSION
-                pyOpenSSL==21.0.0
-                certifi==2021.10.8)
+PYTHON_MODULES=(websockets==11.0.3
+                numpy==1.26.0
+                pytz==2023.3
+                tzlocal==5.1
+                ephem==4.1.5
+                packaging==23.2
+                cryptography==41.0.4
+                pyOpenSSL==23.2.0
+                certifi==2023.7.22)
 
-# Kivy pip source
-if [ -f "$MODEL_FILE" ]; then
-  HARDWARE=$(tr -d '\0' < $MODEL_FILE)
-  if [[ "$HARDWARE" == *"Raspberry Pi 3"* ]] || [[ "$HARDWARE" == *"Raspberry Pi 2"* ]]; then
-    KIVY_SOURCE="https://github.com/kivy/kivy/archive/"$KIVY_VERSION".zip"
-  elif [[ "$HARDWARE" == *"Raspberry Pi 4"* ]]; then
-    KIVY_SOURCE="kivy=="$KIVY_VERSION
-  fi
-else
-  KIVY_SOURCE="https://github.com/kivy/kivy/archive/"$KIVY_VERSION".zip"
-fi
+# Kivy source and version
+KIVY_VERSION="2.2.0"
+KIVY_SOURCE="kivy[base]=="$KIVY_VERSION
 
 # Github repositories
 WFPICONSOLE_REPO="https://github.com/peted-davis/WeatherFlow_PiConsole.git"
@@ -221,12 +183,32 @@ install_packages() {
     fi
 }
 
+# INSTALL PYTHON VIRTUAL ENVIRONMENT
+# ------------------------------------------------------------------------------
+install_python_venv() {
+    local str="Installing Python virtual environment"
+    printf "\\n  %b %s..." "${INFO}" "${str}"
+    if [ ! -f "$VENVDIR/bin/activate" ]; then
+        if (${PYTHON_SYS} -m venv $VENVDIR &> error_log); then
+            printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
+        else
+            printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
+            printf "  %bError: Unable to install Python virtual environment\\n\\n %b" "${COL_LIGHT_RED}" "${COL_NC}"
+            printf "%s\\n\\n" "$(<error_log)"
+            clean_up
+            exit 1
+        fi
+    else
+        printf " already exists\\n"
+    fi
+}
+
 # UPDATE PYTHON PACKAGE MANAGER: PIP
 # ------------------------------------------------------------------------------
 update_pip() {
     local str="Updating Python package manager"
     printf "\\n  %b %s..." "${INFO}" "${str}"
-    if (${PIP_UPDATE} pip setuptools &> error_log); then
+    if (${PYTHON_VENV} ${PIP_UPDATE} pip setuptools &> error_log); then
         printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
     else
         printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
@@ -254,7 +236,7 @@ install_python_modules() {
         module=$(echo $i | cut -d"[" -f 1 | cut -d"=" -f 1)
         local str="Installing Python module"
         printf "  %b %s %s..." "${INFO}" "${str}" "${module}"
-        if (${PIP_INSTALL} "$i" &> error_log); then
+        if (${PYTHON_VENV} ${PIP_INSTALL} "$i" &> error_log); then
             printf "%b  %b %s %s\\n" "${OVER}" "${TICK}" "${str}" "${module}"
         else
             printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
@@ -278,7 +260,7 @@ update_python_modules() {
     update_pip
 
     # Get list of installed packages and versions
-    python3 -m pip freeze > module_list
+    ${PYTHON_VENV} -m pip freeze > module_list
 
     # Update required Python modules
     for i in "${arg_array[@]}"; do
@@ -289,7 +271,7 @@ update_python_modules() {
             if [[ "$current_version" != "$required_version" ]]; then
                 local str="Updating Python module"
                 printf "  %b %s %s..." "${INFO}" "${str}" "${module}"
-                if (${PIP_INSTALL} "$i" &> error_log); then
+                if (${PYTHON_VENV} ${PIP_INSTALL} "$i" &> error_log); then
                     printf "%b  %b %s %s\\n" "${OVER}" "${TICK}" "${str}" "${module}"
                 else
                     printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
@@ -302,7 +284,7 @@ update_python_modules() {
         else
             local str="Installing new Python module"
             printf "  %b %s %s..." "${INFO}" "${str}" "${module}"
-            if (${PIP_INSTALL} "$i" &> error_log); then
+            if (${PYTHON_VENV} ${PIP_INSTALL} "$i" &> error_log); then
                 printf "%b  %b %s %s\\n" "${OVER}" "${TICK}" "${str}" "${module}"
             else
                 printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
@@ -315,42 +297,6 @@ update_python_modules() {
     done
 }
 
-# INSTALL PACKAGES REQUIRED BY KIVY PYTHON LIBRARY ON ARM MACHINES
-# ------------------------------------------------------------------------------
-install_kivy_packages() {
-
-    # Define required packages and print progress to screen
-    printf "\\n  %b Kivy Python library dependency checks...\\n" "${INFO}"
-    if [[ "$ARCHITECTURE" = "arm"* ]] || [[ $ARCHITECTURE = aarch64 ]]; then
-        declare -a arg_array=("${KIVY_DEPENDENCIES_ARM[@]}")
-    else
-        declare -a arg_array=("${KIVY_DEPENDENCIES[@]}")
-    fi
-    declare -a install_array
-
-    # Check if any of the required packages are already installed.
-    for i in "${arg_array[@]}"; do
-        printf "  %b Checking for %s..." "${INFO}" "${i}"
-        if dpkg-query -W -f='${Status}' "${i}" 2>/dev/null | grep "ok installed" &> /dev/null; then
-            printf "%b  %b Checking for %s\\n" "${OVER}" "${TICK}" "${i}"
-        else
-            echo -e "${OVER}  ${INFO} Checking for $i (will be installed)"
-            install_array+=("${i}")
-        fi
-    done
-
-    # Only install required packages that are missing from the system to avoid
-    # unecessary downloading
-    if [[ "${#install_array[@]}" -gt 0 ]]; then
-        if ! (sudo debconf-apt-progress --logfile error_log -- "${PKG_NEW_INSTALL[@]}" "${install_array[@]}"); then
-            printf "  %b\\nError: Unable to install dependent packages\\n\\n %b" "${COL_LIGHT_RED}" "${COL_NC}"
-            printf "%s\\n\\n" "$(<error_log)"
-            clean_up
-            exit 1
-        fi
-    fi
-}
-
 # INSTALL KIVY PYTHON LIBRARY
 # ------------------------------------------------------------------------------
 install_kivy() {
@@ -358,8 +304,8 @@ install_kivy() {
     # Check if required Kivy version is installed
     local str="Kivy Python library installation check"
     printf "\\n  %b %s..." "${INFO}" "${str}"
-    if python3 -c "import kivy" &> /dev/null; then
-        kivy_version=$(python3 -m pip show kivy | grep Version | cut -d" " -f2)
+    if ${PYTHON_VENV} -c "import kivy" &> /dev/null; then
+        kivy_version=$(${PYTHON_VENV} -m pip show kivy | grep Version | cut -d" " -f2)
         if [[ "$KIVY_VERSION" == "$kivy_version" ]]; then
             printf "%b  %b %s \\n" "${OVER}" "${TICK}" "${str}"
         else
@@ -379,7 +325,7 @@ install_kivy() {
             local str="Installing Kivy Python library"
         fi
         printf "\\n  %b %s..." "${INFO}" "${str}"
-        if ($PIP_INSTALL $KIVY_SOURCE &> error_log); then
+        if (${PYTHON_VENV} ${PIP_INSTALL} ${KIVY_SOURCE} &> error_log); then
             printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
         else
             printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
@@ -401,7 +347,7 @@ update_kivy_config() {
     # Create Kivy config file for user that called function
     local str="Updating Kivy configuration for touch screen"
     printf "  %b %s..." "${INFO}" "${str}"
-    if python3 -c "import kivy" &> error_log; then
+    if ${PYTHON_VENV} -c "import kivy" &> error_log; then
         :
     else
         printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
@@ -430,7 +376,7 @@ update_kivy_config() {
     echo "configfile.close()" >> python_command
 
     # Run Python command to modify Kivy config for the Raspberry Pi touchscreen
-    if (python3 python_command &> error_log); then
+    if (${PYTHON_VENV} python_command &> error_log); then
         printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
     else
         printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
@@ -453,7 +399,7 @@ get_latest_version() {
     # If the WeatherFlow PiConsole is already installed, get the current
     # installed version from wfpiconsole.ini file.
     if [[ -f $CONSOLEDIR/wfpiconsole.ini ]]; then
-        current_version=$(python3 -c "import configparser; c=configparser.ConfigParser(); c.read('$CONSOLEDIR/wfpiconsole.ini'); print(c['System']['Version'])")
+        current_version=$(${PYTHON_VENV} -c "import configparser; c=configparser.ConfigParser(); c.read('$CONSOLEDIR/wfpiconsole.ini'); print(c['System']['Version'])")
         printf "\\n  %b Latest version of WeatherFlow PiConsole: %s" ${INFO} ${latest_version}
         printf "\\n  %b Installed version of WeatherFlow PiConsole: %s" ${INFO} ${current_version}
 
@@ -588,6 +534,7 @@ switch_beta_branch() {
 install_service_file () {
 
     # Write current user and install directory to wfpiconsole.service file
+    sed -i "s+ExecStart=.*$+ExecStart=$PYTHON_VENV -u main.py+" $CONSOLEDIR/wfpiconsole.service
     sed -i "s+WorkingDirectory=.*$+WorkingDirectory=$CONSOLEDIR+" $CONSOLEDIR/wfpiconsole.service
     sed -i "s+User=.*$+User=$USER+" $CONSOLEDIR/wfpiconsole.service
     sed -i "s+StandardOutput=.*$+StandardOutput=file:${CONSOLEDIR}wfpiconsole.log+" $CONSOLEDIR/wfpiconsole.service
@@ -595,7 +542,7 @@ install_service_file () {
 
     # Install wfpiconsole.service file to /etc/systemd/system/ and reload deamon
     local str="Copying service file to autostart directory"
-    printf "  %b %s..." "${INFO}" "${str}"
+    printf "\\n  %b %s..." "${INFO}" "${str}"
     sudo cp $CONSOLEDIR/wfpiconsole.service /etc/systemd/system/
     if (sudo systemctl daemon-reload &> error_log); then
         printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
@@ -861,7 +808,7 @@ process_complete() {
 # ------------------------------------------------------------------------------
 start () {
     cd $CONSOLEDIR && rm -f wfpiconsole.log
-    python3 main.py |& tee wfpiconsole.log
+    ${PYTHON_VENV} main.py |& tee wfpiconsole.log
 }
 
 # STOP THE WeatherFlow PiConsole
@@ -885,14 +832,16 @@ install() {
     update_packages
     # Install required packages
     install_packages
+    # Install Python virtual environment
+    install_python_venv
     # Install required Python modules
     install_python_modules
-    # Install required Kivy dependencies
-    install_kivy_packages
     # Install Kivy Python library
     install_kivy
     # Get the latest version of the WeatherFlow PiConsole and install
     get_latest_version
+    # Edit and install wfpiconsole.service file
+    install_service_file
     # Clean up after update
     clean_up
     # Display installation complete dialogue
@@ -916,14 +865,16 @@ run_update() {
     update_packages
     # Check if any new dependencies are required
     install_packages
+    # Install Python virtual environment
+    install_python_venv
     # Update Python modules as required
     update_python_modules
-    # Install required Kivy dependencies
-    install_kivy_packages
     # Install Kivy Python library
     install_kivy
     # Get the latest version of the WeatherFlow PiConsole and install
     get_latest_version
+    # Edit and install wfpiconsole.service file
+    install_service_file
     # Clean up after installation
     clean_up
     # Display update complete dialogue
@@ -961,10 +912,10 @@ run_beta() {
     update_packages
     # Check if any new dependencies are required
     install_packages
+    # Install Python virtual environment
+    install_python_venv
     # Update Python modules as required
     update_python_modules
-    # Install required Kivy dependencies
-    install_kivy_packages
     # Install Kivy Python library
     install_kivy
     # Switch to the WeatherFlow PiConsole beta branch
@@ -981,8 +932,6 @@ autostart-enable () {
 
     # Display autostart-enable starting dialogue
     process_starting ${FUNCNAME[0]}
-    # Edit and install wfpiconsole.service file
-    install_service_file
     # Enable wfpiconsole service
     enable_service
     # Clean up after enabling autostart
@@ -1032,6 +981,15 @@ fi
 
 # ENSURE ROOT ACCESS IS AVAILABLE
 # ------------------------------------------------------------------------------
+# Ensure script has not been called from an elevated prompt or with sudo
+if [[ "${EUID}" -eq 0 ]]; then
+    printf "\\n"
+    printf "  %bError: Unable to $1 the WeatherFlow PiConsole.\\n\\n%b" "${COL_LIGHT_RED}" "${COL_NC}"
+    printf "  This script is not designed for elevated privileges\\n"
+    printf "  Please run this script again with as a regular user\\n\\n"
+    clean_up
+    exit 1
+fi
 # Ensure sudo command is available and script can be elevated to root privileges
 if [[ ! -x "$(command -v sudo)" ]]; then
     printf "\\n"
@@ -1060,23 +1018,31 @@ fi
 if [[ "${1}" == "install" ]] || [[ "${1}" == "run_update" ]] || [[ "${1}" == "run_beta" ]] || [[ "${1}" == "stable" ]] ; then
 
     # Check compatability of architecture/OS/Raspberry Pi
-    ARCHITECTURE=$(uname -m)
-    if [[ $ARCHITECTURE = arm* ]] || [[ $ARCHITECTURE = x86_64 ]] || [[ $ARCHITECTURE = i*86 ]]; then
+    ARCHITECTURE=$(dpkg --print-architecture)
+    if [[ $ARCHITECTURE = armhf ]] || [[ $ARCHITECTURE = x86_64 ]] || [[ $ARCHITECTURE = i*86 ]]; then
         printf "  %b Architecture check passed (%b)\\n" "${TICK}" "${ARCHITECTURE}"
-    elif [[ $ARCHITECTURE = aarch64 ]]; then
-        printf "  %b Architecture check warning (%b)\\n\\n" "${EXCLAMATION}" "${ARCHITECTURE}"
+    elif [[ $ARCHITECTURE = arm64 ]] || [[ $ARCHITECTURE = amd64 ]]; then
+        printf "  %b Architecture check warning (%b)\\n" "${EXCLAMATION}" "${ARCHITECTURE}"
     else
         printf "  %b Architecture check failed (%b)\\n\\n" "${CROSS}" "${ARCHITECTURE}"
         clean_up
         exit 1
     fi
+    MODEL_FILE=/proc/device-tree/model
+    if [ -f $MODEL_FILE ]; then
+        HARDWARE=$(tr -d '\0' < $MODEL_FILE)
+        if [[ $HARDWARE == *"Raspberry Pi 3"* ]] || [[ $HARDWARE == *"Raspberry Pi 4"* ]] ; then
+            SUPPORTED_RASPBERRY_PI="true"
+        else
+            SUPPORTED_RASPBERRY_PI="false"
+        fi
+    fi
     OS=$(. /etc/os-release && echo $PRETTY_NAME)
-    if ([[ "$HARDWARE" == *"Raspberry Pi 2"* ]] || [[ "$HARDWARE" == *"Raspberry Pi 3"* ]]) && [[ "$OS" == *"bullseye"* ]]; then
+    if [[ $HARDWARE == *"Raspberry Pi"* ]] && [[ $OS == *"buster"* ]]; then
         printf "  %b OS check failed (%b)\\n\\n" "${CROSS}" "${OS}"
-        clean_up
-        exit 1
-    elif [[ "$HARDWARE" == *"Raspberry Pi 4"* ]] && [[ "$OS" == *"buster"* ]]; then
-        printf "  %b OS check failed (%b)\\n\\n" "${CROSS}" "${OS}"
+        printf "  %b ERROR: The latest version of the PiConsole is no longer\\n" "${CROSS}"
+        printf "      compatible with Raspberry Pi OS (Buster). Please upgrade\\n"
+        printf "      your OS\\n\\n"
         clean_up
         exit 1
     elif is_command apt-get ; then
@@ -1093,7 +1059,7 @@ if [[ "${1}" == "install" ]] || [[ "${1}" == "run_update" ]] || [[ "${1}" == "ru
     fi
 
     # Print warning if unsupported architecture/Raspberry Pi detected
-    if [[ $ARCHITECTURE = aarch64 ]] || [[ $SUPPORTED_RASPBERRY_PI == "false" ]]; then
+    if [[ $ARCHITECTURE = arm64 ]] || [[ $ARCHITECTURE = amd64 ]] || [[ $SUPPORTED_RASPBERRY_PI == "false" ]]; then
         printf "\n  %b WARNING: unsupported architecture or Raspberry Pi detected\n" "${EXCLAMATION}"
         printf "      No support is available for errors encountered while running\n"
         printf "      the PiConsole\n"

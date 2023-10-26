@@ -33,8 +33,7 @@
         source: 'icons/weather/' + self.parent.forecastIcon + app.scaleSuffix
         pos_hint: {'x': 18/262, 'y': 83/202}
         size_hint: (77/262, 80/202)
-        keep_ratio: 0
-        allow_stretch: 1
+        fit_mode: 'contain'
     SmallMultilineField:
         text: app.CurrentConditions.Met['Conditions']
         pos_hint: {'x': 110/262, 'y': 80/202}

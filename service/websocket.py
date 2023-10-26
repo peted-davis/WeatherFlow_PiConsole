@@ -16,7 +16,7 @@
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
 # Import required library modules
-from lib.observationParser  import obsParser
+from lib.observation_parser import obs_parser
 from lib.system             import system
 
 # Import required Kivy modules
@@ -27,6 +27,7 @@ from kivy.app               import App
 import websockets
 import threading
 import asyncio
+import certifi
 import socket
 import json
 import time
@@ -42,7 +43,7 @@ class websocketClient():
     async def create(cls):
 
         # Initialise websocketClient
-        self = App.get_running_app().websocket_client = websocketClient()
+        self = App.get_running_app().connection_client = websocketClient()
         self.app = App.get_running_app()
 
         # Load configuration file
@@ -52,32 +53,41 @@ class websocketClient():
         self.system = system()
 
         # Initialise websocketClient class variables
-        self._keep_running    = True
-        self._switch_device   = False
-        self.watchdog_timeout = 300
-        self.reply_timeout    = 60
-        self.ping_timeout     = 60
-        self.sleep_time       = 10
-        self.thread_list      = {}
-        self.task_list        = {}
-        self.watchdog_list    = {}
-        self.connected        = False
-        self.connection       = None
-        self.station          = int(self.config['Station']['StationID'])
-        self.url              = 'wss://swd.weatherflow.com/swd/data?token=' + self.config['Keys']['WeatherFlow']
+        self._keep_running     = True
+        self._switch_device    = False
+        self.watchdog_timeout  = 300
+        self.reply_timeout     = 60
+        self.ping_timeout      = 60
+        self.sleep_time        = 10
+        self.thread_list       = {}
+        self.task_list         = {}
+        self.watchdog_list     = {}
+        self.connected         = False
+        self.connection        = None
+        self.url               = None
 
         # Initialise Observation Parser
-        self.app.obsParser = obsParser()
+        self.app.obsParser = obs_parser()
 
         # Connect to specified Websocket URL and return websocketClient
         await self.__async__connect()
         return self
 
     async def __async__connect(self):
+
+        # Verify WeatherFlow token and StationID are specified in .ini file
+        self.config = self.app.config
+        if self.config['Keys']['WeatherFlow']:
+            self.url = 'wss://swd.weatherflow.com/swd/data?token=' + self.config['Keys']['WeatherFlow']
+        else:
+            return
+
+        # Connect to Websocket
         while not self.connected:
             try:
                 Logger.info(f'Websocket: {self.system.log_time()} - Opening connection')
-                self.connection = await websockets.connect(self.url, ssl=ssl.SSLContext())
+                ssl_context     = ssl.create_default_context(cafile=certifi.where())
+                self.connection = await websockets.connect(self.url, ssl=ssl_context)
                 self.message    = await asyncio.wait_for(self.connection.recv(), timeout=self.reply_timeout)
                 self.message    = json.loads(self.message)
                 try:
@@ -87,6 +97,8 @@ class websocketClient():
                         self.app.obsParser.flagAPI = [1, 1, 1, 1]
                         self.connected = True
                         Logger.info(f'Websocket: {self.system.log_time()} - Connection open')
+                        if all(device is None for device in self.device_list.values()):
+                            Logger.warning(f'Websocket: {self.system.log_time()} - No device IDs configured')
                     else:
                         Logger.error(f'Websocket: {self.system.log_time()} - Connection message error')
                         await self.connection.close()
@@ -136,6 +148,8 @@ class websocketClient():
         if self.config['Station']['InAirID']:
             self.device_list['in_air'] = self.config['Station']['InAirID']
             self.watchdog_list['obs_in_air']  = time.time()
+        if all(device is None for device in self.device_list.values()):
+            Logger.warning(f'Websocket: {system().log_time()} - Data unavailable; no device IDs specified')
 
     async def __async__listen_devices(self, action):
         devices = []
@@ -253,7 +267,7 @@ class websocketClient():
             raise
 
     async def __async__switch(self):
-        while not self._switch_device:
+        while not self._switch_device and self._keep_running:
             await asyncio.sleep(0.1)
         if 'verify' in self.task_list:
             while not self.task_list['verify'].done():
@@ -269,18 +283,24 @@ class websocketClient():
 
 async def main():
     websocket = await websocketClient.create()
-    while websocket._keep_running:
-        try:
-            websocket.task_list['listen'] = asyncio.create_task(websocket._websocketClient__async__listen())
-            websocket.task_list['switch'] = asyncio.create_task(websocket._websocketClient__async__switch())
-            await asyncio.gather(*list(websocket.task_list.values()))
-        except asyncio.CancelledError:
-            if websocket._switch_device:
-                await websocket._websocketClient__async__listen_devices('listen_stop')
-                await websocket._websocketClient__async__get_devices()
-                await websocket._websocketClient__async__listen_devices('listen_start')
-                Logger.info(f'Websocket: {system().log_time()} - Switching devices and/or station')
-                websocket._switch_device = False
+    if not websocket.config['Keys']['WeatherFlow']:
+        Logger.warning(f'Websocket: {system().log_time()} - Conection unavailable; WeatherFlow Access Token missing')
+    else:
+        while websocket._keep_running:
+            try:
+                websocket.task_list['listen'] = asyncio.create_task(websocket._websocketClient__async__listen())
+                websocket.task_list['switch'] = asyncio.create_task(websocket._websocketClient__async__switch())
+                await asyncio.gather(*list(websocket.task_list.values()))
+            except asyncio.CancelledError:
+                if not websocket._keep_running:
+                    await websocket._websocketClient__async__disconnect()
+                    break
+                if websocket._switch_device:
+                    await websocket._websocketClient__async__listen_devices('listen_stop')
+                    await websocket._websocketClient__async__get_devices()
+                    await websocket._websocketClient__async__listen_devices('listen_start')
+                    Logger.info(f'Websocket: {system().log_time()} - Switching devices and/or station')
+                    websocket._switch_device = False
 
 
 if __name__ == '__main__':

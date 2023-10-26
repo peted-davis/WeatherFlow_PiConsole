@@ -29,20 +29,32 @@ from panels.template         import panelTemplate
 class BarometerPanel(panelTemplate):
 
     # Define BarometerPanel class properties
-    barometerArrow = StringProperty('-')
+    barometer_arrow = StringProperty('-')
+    barometer_max   = StringProperty('-')
+    barometer_min   = StringProperty('-')
 
     # Initialise BarometerPanel
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.setBarometerArrow()
+        self.set_barometer_max_min()
 
     # Set Barometer arrow rotation angle to match current sea level pressure
     def setBarometerArrow(self):
         SLP = self.app.CurrentConditions.Obs['SLP'][2]
         if SLP is None or SLP == '-':
-            self.barometerArrow = '-'
+            self.barometer_arrow = '-'
         else:
-            self.barometerArrow = '{:.1f}'.format(max(min(1050, SLP), 950))
+            self.barometer_arrow = '{:.1f}'.format(max(min(1050, SLP), 950))
+
+    # Set maximum and minimum barometer limits based on selected units
+    def set_barometer_max_min(self):
+        value = self.app.config['Units']['Pressure']
+        units = ['mb', 'hpa', 'inhg', 'mmhg']
+        max   = ['1050', '1050', '31.0', '788']
+        min   = ['950', '950', '28.0', '713']
+        self.barometer_max = max[units.index(value)]
+        self.barometer_min = min[units.index(value)]
 
 
 class BarometerButton(RelativeLayout):

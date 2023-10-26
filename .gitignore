@@ -11,3 +11,6 @@ user/customPanels.py
 
 # Ignore source graphics folder
 graphics/
+
+# Ignore Python virtual environment
+venv/
