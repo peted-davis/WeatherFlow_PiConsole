@@ -511,12 +511,12 @@ def write_config_key(config, section, key, details):
             value = details['Value'][UNITS]
         elif section == 'System':
             if key == 'Connection':
-                if TYPE == 1:
+                if TYPE == 1 or TYPE is None:
                     value = 'Websocket'
                 elif TYPE in [2, 3]:
                     value = 'UDP'
             elif key == 'rest_api':
-                if TYPE in [1, 2]:
+                if TYPE in [1, 2] or TYPE is None:
                     value = '1'
                 elif TYPE == 3:
                     value = '0'
