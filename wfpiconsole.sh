@@ -537,8 +537,8 @@ install_service_file () {
     sed -i "s+ExecStart=.*$+ExecStart=$PYTHON_VENV -u main.py+" $CONSOLEDIR/wfpiconsole.service
     sed -i "s+WorkingDirectory=.*$+WorkingDirectory=$CONSOLEDIR+" $CONSOLEDIR/wfpiconsole.service
     sed -i "s+User=.*$+User=$USER+" $CONSOLEDIR/wfpiconsole.service
-    sed -i "s+StandardOutput=.*$+StandardOutput=file:${CONSOLEDIR}wfpiconsole.log+" $CONSOLEDIR/wfpiconsole.service
-    sed -i "s+StandardError=.*$+StandardError=file:${CONSOLEDIR}wfpiconsole.log+" $CONSOLEDIR/wfpiconsole.service
+    sed -i "s+StandardOutput=.*$+StandardOutput=file:${CONSOLEDIR}/wfpiconsole.log+" $CONSOLEDIR/wfpiconsole.service
+    sed -i "s+StandardError=.*$+StandardError=file:${CONSOLEDIR}/wfpiconsole.log+" $CONSOLEDIR/wfpiconsole.service
 
     # Install wfpiconsole.service file to /etc/systemd/system/ and reload deamon
     local str="Copying service file to autostart directory"
