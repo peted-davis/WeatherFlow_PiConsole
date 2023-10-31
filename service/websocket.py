@@ -98,7 +98,7 @@ class websocketClient():
                         self.connected = True
                         Logger.info(f'Websocket: {self.system.log_time()} - Connection open')
                         if all(device is None for device in self.device_list.values()):
-                            Logger.warning(f'Websocket: {self.system.log_time()} - No device IDs configured')
+                            Logger.warning(f'Websocket: {system().log_time()} - Data unavailable; no device IDs specified')
                     else:
                         Logger.error(f'Websocket: {self.system.log_time()} - Connection message error')
                         await self.connection.close()
@@ -148,8 +148,6 @@ class websocketClient():
         if self.config['Station']['InAirID']:
             self.device_list['in_air'] = self.config['Station']['InAirID']
             self.watchdog_list['obs_in_air']  = time.time()
-        if all(device is None for device in self.device_list.values()):
-            Logger.warning(f'Websocket: {system().log_time()} - Data unavailable; no device IDs specified')
 
     async def __async__listen_devices(self, action):
         devices = []

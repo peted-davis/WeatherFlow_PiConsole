@@ -404,7 +404,8 @@ class wfpiconsole(App):
             self.start_connection_service()
 
         # Update derived variables to reflect configuration changes
-        self.obsParser.reformat_display()
+        if hasattr(self, 'obsParser'):
+            self.obsParser.reformat_display()
 
     # START WEBSOCKET OR UDP SERVICE
     # --------------------------------------------------------------------------

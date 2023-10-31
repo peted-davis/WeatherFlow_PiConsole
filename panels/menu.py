@@ -63,7 +63,7 @@ class mainMenu(ModalView):
         self.get_station_list()
 
         # Populate status fields
-        if bool(int(self.app.config['System']['rest_api'])):
+        if self.app.config['System']['rest_api'] == '1':
             self.app.station.get_observation_count()
             self.app.station.get_hub_firmware()
 
