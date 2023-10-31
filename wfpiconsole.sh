@@ -537,8 +537,8 @@ install_service_file () {
     sed -i "s+ExecStart=.*$+ExecStart=$PYTHON_VENV -u main.py+" $CONSOLEDIR/wfpiconsole.service
     sed -i "s+WorkingDirectory=.*$+WorkingDirectory=$CONSOLEDIR+" $CONSOLEDIR/wfpiconsole.service
     sed -i "s+User=.*$+User=$USER+" $CONSOLEDIR/wfpiconsole.service
-    sed -i "s+StandardOutput=.*$+StandardOutput=file:${CONSOLEDIR}wfpiconsole.log+" $CONSOLEDIR/wfpiconsole.service
-    sed -i "s+StandardError=.*$+StandardError=file:${CONSOLEDIR}wfpiconsole.log+" $CONSOLEDIR/wfpiconsole.service
+    sed -i "s+StandardOutput=.*$+StandardOutput=file:${CONSOLEDIR}/wfpiconsole.log+" $CONSOLEDIR/wfpiconsole.service
+    sed -i "s+StandardError=.*$+StandardError=file:${CONSOLEDIR}/wfpiconsole.log+" $CONSOLEDIR/wfpiconsole.service
 
     # Install wfpiconsole.service file to /etc/systemd/system/ and reload deamon
     local str="Copying service file to autostart directory"
@@ -642,12 +642,11 @@ create_repo() {
 # ------------------------------------------------------------------------------
 update_repo_latest_tag() {
 
-    # Clear all changes from local git repository and remove Python bytecode to
-    # ensure directory contents always matches the Git repository
+    # Clear all changes from files that are tracked in the local git repository
+    # and remove Python bytecode
     local directory=${1}
     find ${directory} -type d -name __pycache__ -exec rm -r {} +
     git -C ${directory} checkout . &> error_log || return $?
-    git -C ${directory} clean --force -d &> error_log || true
 
     # Checkout the main branch if required and pull latest commits. Reset code
     # to most recent release
@@ -656,18 +655,20 @@ update_repo_latest_tag() {
         git -C ${directory} checkout main &> error_log || return $?
     fi
     git -C ${directory} pull &> error_log || return $?
+
+    # Remove all untracked files and folders
+    git -C ${directory} clean --force -d &> error_log || true
 }
 
 # SWITCH GIT REPOSITORY TO LATEST MAIN BRANCH COMMIT
 # ------------------------------------------------------------------------------
 switch_repo_stable() {
 
-    # Clear all changes from local git repository and remove Python bytecode to
-    # ensure directory contents always matches the Git repository
+    # Clear all changes from files that are tracked in the local git repository
+    # and remove Python bytecode
     local directory=${1}
     find ${directory} -type d -name __pycache__ -exec rm -r {} +
     git -C ${directory} checkout . &> error_log || return $?
-    git -C ${directory} clean --force -d &> error_log || true
 
     # Checkout the main branch if required and pull latest commits
     local current_branch=$(git -C ${directory} rev-parse --abbrev-ref HEAD)
@@ -675,18 +676,20 @@ switch_repo_stable() {
         git -C ${directory} checkout main &> error_log || return $?
     fi
     git -C ${directory} pull &> error_log || return $?
+
+    # Remove all untracked files and folders
+    git -C ${directory} clean --force -d &> error_log || true
 }
 
 # SWITCH GIT REPOSITORY TO LATEST DEVELOP BRANCH COMMIT
 # ------------------------------------------------------------------------------
 switch_repo_beta() {
 
-    # Clear all changes from local git repository and remove Python bytecode to
-    # ensure directory contents always matches the Git repository
+    # Clear all changes from files that are tracked in the local git repository
+    # and remove Python bytecode
     local directory=${1}
     find ${directory} -type d -name __pycache__ -exec rm -r {} +
     git -C ${directory} checkout . &> error_log || return $?
-    git -C ${directory} clean --force -d &> error_log || true
 
     # Checkout the develop branch if required and pull latest commits
     local current_branch=$(git -C ${directory} rev-parse --abbrev-ref HEAD)
@@ -694,6 +697,9 @@ switch_repo_beta() {
         git -C ${directory} checkout develop &> error_log || return $?
     fi
     git -C ${directory} pull &> error_log || return $?
+
+    # Remove all untracked files and folders
+    git -C ${directory} clean --force -d &> error_log || true
 }
 
 # DISPLAY REQUIRED PROCESS STARTING DIALOGUE
