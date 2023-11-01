@@ -571,15 +571,18 @@ def write_config_key(config, section, key, details):
         if section == 'Station':
             if key in ['TempestHeight', 'TempestSN'] and TEMPEST:
                 while True:
+                    from pprint import pprint
+                    pprint(STATION)
                     for station in STATION['stations']:
-                        for device in station['devices']:
-                            if 'device_type' in device:
-                                if str(device['device_id']) == config['Station']['TempestID']:
-                                    if device['device_type'] == 'ST':
-                                        if key == 'TempestHeight':
-                                            value = device['device_meta']['agl']
-                                        elif key == 'TempestSN':
-                                            value = device['serial_number']
+                        if 'devices' in station:
+                            for device in station['devices']:
+                                if 'device_type' in device:
+                                    if str(device['device_id']) == config['Station']['TempestID']:
+                                        if device['device_type'] == 'ST':
+                                            if key == 'TempestHeight':
+                                                value = device['device_meta']['agl']
+                                            elif key == 'TempestSN':
+                                                value = device['serial_number']
                     if not value and value != 0:
                         inputStr = '    TEMPEST not found. Please re-enter your TEMPEST device ID*: '
                         while True:
@@ -602,11 +605,12 @@ def write_config_key(config, section, key, details):
             if key in ['OutAirHeight', 'OutAirSN'] and not TEMPEST:
                 while True:
                     for station in STATION['stations']:
-                        for device in station['devices']:
-                            if 'device_type' in device:
-                                if str(device['device_id']) == config['Station']['OutAirID']:
-                                    if device['device_type'] == 'AR':
-                                        value = device['device_meta']['agl']
+                        if 'devices' in station:
+                            for device in station['devices']:
+                                if 'device_type' in device:
+                                    if str(device['device_id']) == config['Station']['OutAirID']:
+                                        if device['device_type'] == 'AR':
+                                            value = device['device_meta']['agl']
                     if not value and value != 0:
                         inputStr = '    Outdoor AIR not found. Please re-enter your Outdoor AIR device ID*: '
                         while True:
@@ -630,14 +634,15 @@ def write_config_key(config, section, key, details):
                 print(TEMPEST)
                 while True:
                     for station in STATION['stations']:
-                        for device in station['devices']:
-                            if 'device_type' in device:
-                                if str(device['device_id']) == config['Station']['SkyID']:
-                                    if device['device_type'] == 'SK':
-                                        if key == 'SkyHeight':
-                                            value = device['device_meta']['agl']
-                                        elif key == 'SkySN':
-                                            value = device['serial_number']
+                        if 'devices' in station:
+                            for device in station['devices']:
+                                if 'device_type' in device:
+                                    if str(device['device_id']) == config['Station']['SkyID']:
+                                        if device['device_type'] == 'SK':
+                                            if key == 'SkyHeight':
+                                                value = device['device_meta']['agl']
+                                            elif key == 'SkySN':
+                                                value = device['serial_number']
                     if not value and value != 0:
                         inputStr = '    SKY not found. Please re-enter your SKY device ID*: '
                         while True:
@@ -660,11 +665,12 @@ def write_config_key(config, section, key, details):
             if key in 'InAirSN' and config['Station']['InAirID']:
                 while True:
                     for station in STATION['stations']:
-                        for device in station['devices']:
-                            if 'device_type' in device:
-                                if str(device['device_id']) == config['Station']['InAirID']:
-                                    if device['device_type'] == 'AR':
-                                        value = device['serial_number']
+                        if 'devices' in station:
+                            for device in station['devices']:
+                                if 'device_type' in device:
+                                    if str(device['device_id']) == config['Station']['InAirID']:
+                                        if device['device_type'] == 'AR':
+                                            value = device['serial_number']
                     if not value and value != 0:
                         inputStr = '    Indoor AIR not found. Please re-enter your Indoor AIR device ID*: '
                         while True:
