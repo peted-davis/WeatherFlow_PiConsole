@@ -89,7 +89,7 @@ class obs_parser():
 
         # Extract latest TEMPEST Websocket JSON
         if 'obs' in message:
-            latestOb = message['obs'][0]
+            latest_ob = message['obs'][0]
         else:
             return
 
@@ -97,39 +97,41 @@ class obs_parser():
         if 'device_id' in message:
             device_id = message['device_id']
         elif 'serial_number' in message:
-            device_id = config['Station']['TempestSN']
-        self.api_data[device_id] = {'flagAPI': self.flag_api[0]}
+            device_id = message['serial_number']
+        if int(config['System']['rest_api']) and config['Station']['TempestID']:
+            api_device_id = config['Station']['TempestID']
+            self.api_data[device_id] = {'flagAPI': self.flag_api[0]}
 
         # Discard duplicate TEMPEST Websocket messages
         if 'obs_st' in self.display_obs:
-            if self.display_obs['obs_st']['obs'][0] == latestOb[0]:
+            if self.display_obs['obs_st']['obs'][0] == latest_ob[0]:
                 return
 
         # Extract required observations from latest TEMPEST Websocket JSON
-        self.device_obs['obTime']       = [latestOb[0],  's']
-        self.device_obs['windSpd']      = [latestOb[2],  'mps']
-        self.device_obs['windGust']     = [latestOb[3],  'mps']
-        self.device_obs['windDir']      = [latestOb[4],  'degrees']
-        self.device_obs['pressure']     = [latestOb[6],  'mb']
-        self.device_obs['outTemp']      = [latestOb[7],  'c']
-        self.device_obs['humidity']     = [latestOb[8],  '%']
-        self.device_obs['uvIndex']      = [latestOb[10], 'index']
-        self.device_obs['radiation']    = [latestOb[11], 'Wm2']
-        self.device_obs['minuteRain']   = [latestOb[12], 'mm']
-        self.device_obs['strikeMinute'] = [latestOb[15], 'count']
-        if len(latestOb) > 18:
-            self.device_obs['dailyRain']    = [latestOb[18], 'mm']
+        self.device_obs['obTime']       = [latest_ob[0],  's']
+        self.device_obs['windSpd']      = [latest_ob[2],  'mps']
+        self.device_obs['windGust']     = [latest_ob[3],  'mps']
+        self.device_obs['windDir']      = [latest_ob[4],  'degrees']
+        self.device_obs['pressure']     = [latest_ob[6],  'mb']
+        self.device_obs['outTemp']      = [latest_ob[7],  'c']
+        self.device_obs['humidity']     = [latest_ob[8],  '%']
+        self.device_obs['uvIndex']      = [latest_ob[10], 'index']
+        self.device_obs['radiation']    = [latest_ob[11], 'Wm2']
+        self.device_obs['minuteRain']   = [latest_ob[12], 'mm']
+        self.device_obs['strikeMinute'] = [latest_ob[15], 'count']
+        if len(latest_ob) > 18:
+            self.device_obs['dailyRain']    = [latest_ob[18], 'mm']
 
         # Extract lightning strike data from the latest TEMPEST Websocket JSON
-        # "Summary" object
+        # "summary" object
         if 'summary' in message:
             self.device_obs['strikeTime'] = [message['summary']['strike_last_epoch'] if 'strike_last_epoch' in message['summary'] else None, 's']
             self.device_obs['strikeDist'] = [message['summary']['strike_last_dist']  if 'strike_last_dist'  in message['summary'] else None, 'km']
             self.device_obs['strike3hr']  = [message['summary']['strike_count_3h']   if 'strike_count_3h'   in message['summary'] else None, 'count']
 
         # Request required TEMPEST data from the WeatherFlow API
-        if int(config['System']['rest_api']):
-            self.api_data[device_id]['24Hrs'] = weatherflow_api.last_24h(device_id, latestOb[0], config)
+        if int(config['System']['rest_api']) and config['Station']['TempestID']:
+            self.api_data[device_id]['24Hrs'] = weatherflow_api.last_24h(api_device_id, latest_ob[0], config)
             if (self.api_data[device_id]['flagAPI']
                     or self.derive_obs['SLPMin'][0] is None
                     or self.derive_obs['SLPMax'][0] is None
@@ -140,18 +142,18 @@ class obs_parser():
                     or self.derive_obs['peakSun'][0] is None
                     or self.derive_obs['rainAccum']['today'][0] is None
                     or self.derive_obs['strikeCount']['today'][0] is None):
-                self.api_data[device_id]['today'] = weatherflow_api.today(device_id, config)
+                self.api_data[device_id]['today'] = weatherflow_api.today(api_device_id, config)
             if (self.api_data[device_id]['flagAPI']
                     or self.derive_obs['rainAccum']['yesterday'][0] is None):
-                self.api_data[device_id]['yesterday'] = weatherflow_api.yesterday(device_id, config)
+                self.api_data[device_id]['yesterday'] = weatherflow_api.yesterday(api_device_id, config)
             if (self.api_data[device_id]['flagAPI']
                     or self.derive_obs['rainAccum']['month'][0] is None
                     or self.derive_obs['strikeCount']['month'][0] is None):
-                self.api_data[device_id]['month'] = weatherflow_api.month(device_id, config)
+                self.api_data[device_id]['month'] = weatherflow_api.month(api_device_id, config)
             if (self.api_data[device_id]['flagAPI']
                     or self.derive_obs['rainAccum']['year'][0] is None
                     or self.derive_obs['strikeCount']['year'][0] is None):
-                self.api_data[device_id]['year']  = weatherflow_api.year(device_id, config)
+                self.api_data[device_id]['year']  = weatherflow_api.year(api_device_id, config)
             self.flag_api[0] = 0
 
         # Store latest TEMPEST JSON message
@@ -179,7 +181,7 @@ class obs_parser():
         if 'device_id' in message:
             device_id = message['device_id']
         elif 'serial_number' in message:
-            device_id = config['Station']['SkySN']
+            device_id = message['serial_number']
         self.api_data[device_id] = {'flagAPI': self.flag_api[1]}
 
         # Discard duplicate SKY Websocket messages
@@ -240,7 +242,7 @@ class obs_parser():
         if 'device_id' in message:
             device_id = message['device_id']
         elif 'serial_number' in message:
-            device_id = config['Station']['OutAirSN']
+            device_id = message['serial_number']
         self.api_data[device_id] = {'flagAPI': self.flag_api[2]}
 
         # Discard duplicate outdoor AIR Websocket messages
@@ -305,7 +307,7 @@ class obs_parser():
         if 'device_id' in message:
             device_id = message['device_id']
         elif 'serial_number' in message:
-            device_id = config['Station']['InAirSN']
+            device_id = message['serial_number']
         self.api_data[device_id] = {'flagAPI': self.flag_api[3]}
 
         # Discard duplicate indoor AIR Websocket messages
@@ -350,10 +352,7 @@ class obs_parser():
         if 'device_id' in message:
             device_id = message['device_id']
         elif 'serial_number' in message:
-            if 'ST' in message['serial_number']:
-                device_id = config['Station']['TempestSN']
-            elif 'SK' in message['serial_number']:
-                device_id = config['Station']['SkySN']
+            device_id = message['serial_number']
 
         # Discard duplicate rapid_wind Websocket messages
         if 'rapid_wind' in self.display_obs:
@@ -404,10 +403,7 @@ class obs_parser():
         if 'device_id' in message:
             device_id = message['device_id']
         elif 'serial_number' in message:
-            if 'ST' in message['serial_number']:
-                device_id = config['Station']['TempestSN']
-            elif 'AR' in message['serial_number']:
-                device_id = config['Station']['OutAirSN']
+            device_id = message['serial_number']
 
         # Discard duplicate evt_strike Websocket messages
         if 'evt_strike' in self.display_obs:

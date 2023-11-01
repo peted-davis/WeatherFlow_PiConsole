@@ -62,14 +62,15 @@ class forecast():
         """
 
         # Fetch latest hourly and daily forecast
-        URL = 'https://swd.weatherflow.com/swd/rest/better_forecast?token={}&station_id={}'
-        URL = URL.format(self.app.config['Keys']['WeatherFlow'],
-                         self.app.config['Station']['StationID'])
-        UrlRequest(URL,
-                   on_success=self.success_forecast,
-                   on_failure=self.fail_forecast,
-                   on_error=self.fail_forecast,
-                   ca_file=certifi.where())
+        if int(self.app.config['System']['rest_api']):
+            URL = 'https://swd.weatherflow.com/swd/rest/better_forecast?token={}&station_id={}'
+            URL = URL.format(self.app.config['Keys']['WeatherFlow'],
+                             self.app.config['Station']['StationID'])
+            UrlRequest(URL,
+                       on_success=self.success_forecast,
+                       on_failure=self.fail_forecast,
+                       on_error=self.fail_forecast,
+                       ca_file=certifi.where())
 
     def schedule_forecast(self, dt):
 
