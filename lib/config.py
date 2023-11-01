@@ -571,8 +571,6 @@ def write_config_key(config, section, key, details):
         if section == 'Station':
             if key in ['TempestHeight', 'TempestSN'] and TEMPEST:
                 while True:
-                    from pprint import pprint
-                    pprint(STATION)
                     for station in STATION['stations']:
                         if 'devices' in station:
                             for device in station['devices']:
