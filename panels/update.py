@@ -24,7 +24,7 @@ from kivy.app                import App
 # ==============================================================================
 # UpdateNotification POPUP CLASS
 # ==============================================================================
-class updateNotification(ModalView):
+class update_notification(ModalView):
 
     latest_ver = StringProperty('-')
 
