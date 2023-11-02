@@ -516,14 +516,14 @@ class CurrentConditions(Screen):
         self.button_list = []
         primary_panels    = tuple(self.app.config['PrimaryPanels'].items())
         secondary_panels  = tuple(self.app.config['SecondaryPanels'].items())
-        if int(self.app.config['Display']['PanelCount']) == 1:
+        if self.app.config['Display']['PanelCount'] == '1':
             panel_ids = [['panel_'  + number for number in ['one']]]
             button_ids = ['button_' + number for number in ['one']]
-        elif int(self.app.config['Display']['PanelCount']) == 4:
+        elif self.app.config['Display']['PanelCount'] == '4':
             panel_ids = [['panel_'  + number for number in ['one',   'two']],
                          ['panel_'  + number for number in ['three', 'four']]]
             button_ids = ['button_' + number for number in ['one',   'two',  'three', 'four']]
-        elif int(self.app.config['Display']['PanelCount']) == 6:
+        elif self.app.config['Display']['PanelCount'] == '6':
             panel_ids = [['panel_'  + number for number in ['one',   'two',  'three']],
                          ['panel_'  + number for number in ['four',  'five', 'six']]]
             button_ids = ['button_' + number for number in ['one',   'two',  'three', 'four', 'five', 'six']]

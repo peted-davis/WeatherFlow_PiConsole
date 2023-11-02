@@ -63,7 +63,7 @@ class mainMenu(ModalView):
         self.get_station_list()
 
         # Populate status fields
-        if int(self.app.config['System']['rest_api']):
+        if self.app.config['System']['rest_api'] == '1':
             self.app.station.get_observation_count()
             self.app.station.get_hub_firmware()
 
@@ -104,6 +104,7 @@ class mainMenu(ModalView):
                    on_success=self.parse_station_list,
                    on_failure=self.fail_station_list,
                    on_error=self.fail_station_list,
+                   timeout=int(self.app.config['System']['Timeout']),
                    ca_file=certifi.where()
                    )
 
