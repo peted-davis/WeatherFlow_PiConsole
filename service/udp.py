@@ -33,7 +33,7 @@ import json
 # ==============================================================================
 # DEFINE 'EchoClientProtocol' CLASS
 # ==============================================================================
-class EchoClientProtocol:
+class EchoClientProtocol(asyncio.Protocol):
     def __init__(self, _loop, _udp_connection, udp_client):
         self._udp_connection = _udp_connection
         self._asyncio_loop   = _loop
@@ -47,8 +47,8 @@ class EchoClientProtocol:
         self.udp_client.message = json.loads(data.decode())
         self._asyncio_loop.create_task(self.udp_client._udp_client__async__decode_message())
 
-    def error_received(self, exc):
-        print('Error received:', exc)
+    def error_received(self, exception):
+        Logger.error(f'UDP: {self.system.log_time()} - Error received: {exception}')
 
     def connection_lost(self, exc):
         pass
@@ -98,12 +98,14 @@ class udp_client():
         while not self.connected:
             try:
                 Logger.info(f'UDP: {self.system.log_time()} - Opening socket')
+                self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+                self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+                self.socket.bind((self.udp_ip, self.udp_port))
                 self.transport, self.protocol = await self._asyncio_loop.create_datagram_endpoint(
                     lambda: EchoClientProtocol(self._asyncio_loop, self._udp_connection, self),
-                    local_addr=(self.udp_ip, self.udp_port),
-                    flags=socket.SO_REUSEADDR)
-                Logger.info(f'UDP: {self.system.log_time()} - Socket open')
+                    sock=self.socket)
                 self.connected = True
+                Logger.info(f'UDP: {self.system.log_time()} - Socket open')
                 await self.__async__get_devices()
                 self.app.obsParser.flagAPI = [1, 1, 1, 1]
             except Exception as error:
