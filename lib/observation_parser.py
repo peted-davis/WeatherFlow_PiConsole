@@ -98,7 +98,7 @@ class obs_parser():
             device_id = message['device_id']
         elif 'serial_number' in message:
             device_id = message['serial_number']
-        if int(config['System']['rest_api']) and config['Station']['TempestID']:
+        if config['System']['rest_api'] == '1' and config['Station']['TempestID']:
             api_device_id = config['Station']['TempestID']
             self.api_data[device_id] = {'flagAPI': self.flag_api[0]}
 
@@ -130,7 +130,7 @@ class obs_parser():
             self.device_obs['strike3hr']  = [message['summary']['strike_count_3h']   if 'strike_count_3h'   in message['summary'] else None, 'count']
 
         # Request required TEMPEST data from the WeatherFlow API
-        if int(config['System']['rest_api']) and config['Station']['TempestID']:
+        if config['System']['rest_api'] == '1' and config['Station']['TempestID']:
             self.api_data[device_id]['24Hrs'] = weatherflow_api.last_24h(api_device_id, latest_ob[0], config)
             if (self.api_data[device_id]['flagAPI']
                     or self.derive_obs['SLPMin'][0] is None
@@ -182,7 +182,9 @@ class obs_parser():
             device_id = message['device_id']
         elif 'serial_number' in message:
             device_id = message['serial_number']
-        self.api_data[device_id] = {'flagAPI': self.flag_api[1]}
+        if config['System']['rest_api'] == '1' and config['Station']['SkyID']:
+            api_device_id = config['Station']['SkyID']
+            self.api_data[device_id] = {'flagAPI': self.flag_api[1]}
 
         # Discard duplicate SKY Websocket messages
         if 'obs_sky' in self.display_obs:
@@ -200,21 +202,21 @@ class obs_parser():
             self.device_obs['dailyRain']  = [latest_ob[11], 'mm']
 
         # Request required SKY data from the WeatherFlow API
-        if int(config['System']['rest_api']):
+        if config['System']['rest_api'] == '1' and config['Station']['SkyID']:
             if (self.api_data[device_id]['flagAPI']
                     or self.derive_obs['windAvg'][0] is None
                     or self.derive_obs['gustMax'][0] is None
                     or self.derive_obs['peakSun'][0] is None):
-                self.api_data[device_id]['today'] = weatherflow_api.today(device_id, config)
+                self.api_data[device_id]['today'] = weatherflow_api.today(api_device_id, config)
             if (self.api_data[device_id]['flagAPI']
                     or self.derive_obs['rainAccum']['yesterday'][0] is None):
-                self.api_data[device_id]['yesterday'] = weatherflow_api.yesterday(device_id, config)
+                self.api_data[device_id]['yesterday'] = weatherflow_api.yesterday(api_device_id, config)
             if (self.api_data[device_id]['flagAPI']
                     or self.derive_obs['rainAccum']['month'][0] is None):
-                self.api_data[device_id]['month'] = weatherflow_api.month(device_id, config)
+                self.api_data[device_id]['month'] = weatherflow_api.month(api_device_id, config)
             if (self.api_data[device_id]['flagAPI']
                     or self.derive_obs['rainAccum']['year'][0] is None):
-                self.api_data[device_id]['year'] = weatherflow_api.year(device_id, config)
+                self.api_data[device_id]['year'] = weatherflow_api.year(api_device_id, config)
             self.flag_api[1] = 0
 
         # Store latest SKY JSON message
@@ -243,7 +245,9 @@ class obs_parser():
             device_id = message['device_id']
         elif 'serial_number' in message:
             device_id = message['serial_number']
-        self.api_data[device_id] = {'flagAPI': self.flag_api[2]}
+        if config['System']['rest_api'] == '1' and config['Station']['OutAirID']:
+            api_device_id = config['Station']['OutAirID']
+            self.api_data[device_id] = {'flagAPI': self.flag_api[2]}
 
         # Discard duplicate outdoor AIR Websocket messages
         if 'obs_out_air' in self.display_obs:
@@ -265,21 +269,21 @@ class obs_parser():
             self.device_obs['strike3hr']  = [message['summary']['strike_count_3h']   if 'strike_count_3h'   in message['summary'] else None, 'count']
 
         # Request required outdoor AIR data from the WeatherFlow API
-        if int(config['System']['rest_api']):
-            self.api_data[device_id]['24Hrs'] = weatherflow_api.last_24h(device_id, latest_ob[0], config)
+        if config['System']['rest_api'] == '1' and config['Station']['OutAirID']:
+            self.api_data[device_id]['24Hrs'] = weatherflow_api.last_24h(api_device_id, latest_ob[0], config)
             if (self.api_data[device_id]['flagAPI']
                     or self.derive_obs['SLPMin'][0] is None
                     or self.derive_obs['SLPMax'][0] is None
                     or self.derive_obs['outTempMin'][0] is None
                     or self.derive_obs['outTempMax'][0] is None
                     or self.derive_obs['strikeCount']['today'][0] is None):
-                self.api_data[device_id]['today'] = weatherflow_api.today(device_id, config)
+                self.api_data[device_id]['today'] = weatherflow_api.today(api_device_id, config)
             if (self.api_data[device_id]['flagAPI']
                     or self.derive_obs['strikeCount']['month'][0] is None):
-                self.api_data[device_id]['month'] = weatherflow_api.month(device_id, config)
+                self.api_data[device_id]['month'] = weatherflow_api.month(api_device_id, config)
             if (self.api_data[device_id]['flagAPI']
                     or self.derive_obs['strikeCount']['year'][0] is None):
-                self.api_data[device_id]['year']  = weatherflow_api.year(device_id, config)
+                self.api_data[device_id]['year']  = weatherflow_api.year(api_device_id, config)
             self.flag_api[2] = 0
 
         # Store latest outdoor AIR JSON message
@@ -308,7 +312,9 @@ class obs_parser():
             device_id = message['device_id']
         elif 'serial_number' in message:
             device_id = message['serial_number']
-        self.api_data[device_id] = {'flagAPI': self.flag_api[3]}
+        if config['System']['rest_api'] == '1' and config['Station']['InAirID']:
+            api_device_id = config['Station']['InAirID']
+            self.api_data[device_id] = {'flagAPI': self.flag_api[3]}
 
         # Discard duplicate indoor AIR Websocket messages
         if 'obs_in_air' in self.display_obs:
@@ -320,10 +326,11 @@ class obs_parser():
         self.device_obs['inTemp'] = [latest_ob[2], 'c']
 
         # Request required indoor AIR data from the WeatherFlow API
-        if (self.api_data[device_id]['flagAPI']
-                or self.derive_obs['inTempMin'][0] is None
-                or self.derive_obs['inTempMax'][0] is None):
-            self.api_data[device_id]['today'] = weatherflow_api.today(device_id, config)
+        if config['System']['rest_api'] == '1' and config['Station']['InAirID']:
+            if (self.api_data[device_id]['flagAPI']
+                    or self.derive_obs['inTempMin'][0] is None
+                    or self.derive_obs['inTempMax'][0] is None):
+                self.api_data[device_id]['today'] = weatherflow_api.today(api_device_id, config)
         self.flag_api[3] = 0
 
         # Store latest indoor AIR JSON message
