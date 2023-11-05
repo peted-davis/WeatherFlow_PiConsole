@@ -40,6 +40,9 @@ running the 32 bit version of Raspberry Pi OS. It can be run on earlier models,
 a Raspberry Pi 5, or the 64 bit version of Raspberry Pi OS, but no direct
 support is provided for these environments. It is not compatible with Raspberry
 Pi Zero or Zero W. Raspberry Pi 5 will become fully supported in the future.
+While the console is compatiable with Raspberry Pi 3, the graphics hardware on
+this model is ageing and performance of the console can be sluggish. It is
+recommended to use a Pi 4 or above
 
 For all models of Raspberry Pi, the console is compatible with Raspberry Pi OS
 (Bookworm) or the legacy Raspberry Pi OS (Bullseye). The console is no longer

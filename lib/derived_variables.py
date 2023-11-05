@@ -209,9 +209,9 @@ def SLP_trend(pressure, ob_time, device, api_data, config):
         return error_output
 
     # Define index of pressure in websocket packets
-    if str(device) == config['Station']['OutAirID']:
+    if str(device) in [config['Station']['OutAirID'], config['Station']['OutAirSN']]:
         index_bucket_a  = 1
-    elif str(device) == config['Station']['TempestID']:
+    elif str(device) in [config['Station']['TempestID'], config['Station']['TempestSN']]:
         index_bucket_a  = 6
 
     # If REST API services are enabled, extract required observations from
@@ -319,9 +319,9 @@ def SLP_max(pressure, ob_time, max_pres, device, api_data, config):
     time_now = datetime.now(pytz.utc).astimezone(Tz)
 
     # Define index of temperature in websocket packets
-    if str(device) == config['Station']['OutAirID']:
+    if str(device) in [config['Station']['OutAirID'], config['Station']['OutAirSN']]:
         index_bucket_a  = 1
-    elif str(device) == config['Station']['TempestID']:
+    elif str(device) in [config['Station']['TempestID'], config['Station']['TempestSN']]:
         index_bucket_a  = 6
 
     # If console is initialising and REST API services are enabled, download all
@@ -397,9 +397,9 @@ def SLP_min(pressure, ob_time, min_pres, device, api_data, config):
     time_now = datetime.now(pytz.utc).astimezone(Tz)
 
     # Define index of temperature in websocket packets
-    if str(device) == config['Station']['OutAirID']:
+    if str(device) in [config['Station']['OutAirID'], config['Station']['OutAirSN']]:
         index_bucket_a  = 1
-    elif str(device) == config['Station']['TempestID']:
+    elif str(device) in [config['Station']['TempestID'], config['Station']['TempestSN']]:
         index_bucket_a  = 6
 
     # If console is initialising and REST API services are enabled, download all
@@ -467,9 +467,9 @@ def temp_diff(out_temp, ob_time, device, api_data, config):
         return error_output
 
     # Define index of temperature in websocket packets
-    if str(device) == config['Station']['OutAirID']:
+    if str(device) in [config['Station']['OutAirID'], config['Station']['OutAirSN']]:
         index_bucket_a  = 2
-    elif str(device) == config['Station']['TempestID']:
+    elif str(device) in [config['Station']['TempestID'], config['Station']['TempestSN']]:
         index_bucket_a  = 7
 
     # If REST API services are enabled, extract required observations from
@@ -538,9 +538,9 @@ def temp_trend(out_temp, ob_time, device, api_data, config):
         return error_output
 
     # Define index of temperature in websocket packets
-    if str(device) == config['Station']['OutAirID']:
+    if str(device) in [config['Station']['OutAirID'], config['Station']['OutAirSN']]:
         index_bucket_a  = 2
-    elif str(device) == config['Station']['TempestID']:
+    elif str(device) in [config['Station']['TempestID'], config['Station']['TempestSN']]:
         index_bucket_a  = 7
 
     # If REST API services are enabled, extract required observations from
@@ -616,10 +616,10 @@ def temp_max(temp, ob_time, max_temp, device, api_data, config):
     time_now = datetime.now(pytz.utc).astimezone(Tz)
 
     # Define index of temperature in websocket packets
-    if (str(device) == config['Station']['OutAirID']
-            or str(device) == config['Station']['InAirID']):
+    if (str(device) in [config['Station']['OutAirID'], config['Station']['OutAirSN']]
+            or str(device) in [config['Station']['InAirID'], config['Station']['InAirSN']]):
         index_bucket_a  = 2
-    elif str(device) == config['Station']['TempestID']:
+    elif str(device) in [config['Station']['TempestID'], config['Station']['TempestSN']]:
         index_bucket_a  = 7
 
     # If console is initialising and REST API services are enabled, download all
@@ -692,10 +692,10 @@ def temp_min(temp, ob_time, min_temp, device, api_data, config):
     time_now = datetime.now(pytz.utc).astimezone(Tz)
 
     # Define index of temperature in websocket packets
-    if (str(device) == config['Station']['OutAirID']
-            or str(device) == config['Station']['InAirID']):
+    if (str(device) in [config['Station']['OutAirID'], config['Station']['OutAirSN']]
+            or str(device) in [config['Station']['InAirID'], config['Station']['InAirSN']]):
         index_bucket_a  = 2
-    elif str(device) == config['Station']['TempestID']:
+    elif str(device) in [config['Station']['TempestID'], config['Station']['TempestSN']]:
         index_bucket_a  = 7
 
     # If console is initialising and REST API services are enabled, download all
@@ -787,9 +787,9 @@ def strike_frequency(ob_time, device, api_data, config):
         return error_output
 
     # Define index of total lightning strike counts in websocket packets
-    if str(device) == config['Station']['OutAirID']:
+    if str(device) in [config['Station']['OutAirID'], config['Station']['OutAirSN']]:
         index_bucket_a  = 4
-    elif str(device) == config['Station']['TempestID']:
+    elif str(device) in [config['Station']['TempestID'], config['Station']['TempestSN']]:
         index_bucket_a  = 15
 
     # If REST API services are enabled, extract lightning strike count over the
@@ -891,10 +891,10 @@ def strike_count(count, strike_count, device, api_data, config):
     time_now = datetime.now(pytz.utc).astimezone(Tz)
 
     # Define index of total lightning strike counts in websocket packets
-    if str(device) == config['Station']['OutAirID']:
+    if str(device) in [config['Station']['OutAirID'], config['Station']['OutAirSN']]:
         index_bucket_a = 4
         index_bucket_e = 4
-    elif str(device) == config['Station']['TempestID']:
+    elif str(device) in [config['Station']['TempestID'], config['Station']['TempestSN']]:
         index_bucket_a = 15
         index_bucket_e = 24
 
@@ -1096,10 +1096,10 @@ def rain_accumulation(minute_rain, daily_rain, rain_accum, device, api_data, con
     time_now = datetime.now(pytz.utc).astimezone(Tz)
 
     # Define index of total daily rain accumulation in websocket packets
-    if str(device) == config['Station']['SkyID']:
+    if str(device) in [config['Station']['SkyID'], config['Station']['SkySN']]:
         index_bucket_a = 3
         index_bucket_e = 3
-    elif str(device) == config['Station']['TempestID']:
+    elif str(device) in [config['Station']['TempestID'], config['Station']['TempestSN']]:
         index_bucket_a = 12
         index_bucket_e = 28
 
@@ -1309,9 +1309,9 @@ def avg_wind_speed(wind_spd, avg_wind, device, api_data, config):
     time_now = datetime.now(pytz.utc).astimezone(Tz)
 
     # Define index of wind speed in websocket packets
-    if str(device) == config['Station']['SkyID']:
+    if str(device) in [config['Station']['SkyID'], config['Station']['SkySN']]:
         index_bucket_a = 5
-    elif str(device) == config['Station']['TempestID']:
+    elif str(device) in [config['Station']['TempestID'], config['Station']['TempestSN']]:
         index_bucket_a = 2
 
     # If console is initialising and REST API services are enabled, download all
@@ -1377,9 +1377,9 @@ def max_wind_gust(wind_gust, max_gust, device, api_data, config):
     time_now = datetime.now(pytz.utc).astimezone(Tz)
 
     # Define index of wind speed in websocket packets
-    if str(device) == config['Station']['SkyID']:
+    if str(device) in [config['Station']['SkyID'], config['Station']['SkySN']]:
         index_bucket_a = 6
-    elif str(device) == config['Station']['TempestID']:
+    elif str(device) in [config['Station']['TempestID'], config['Station']['TempestSN']]:
         index_bucket_a = 3
 
     # If console is initialising and REST API services are enabled, download all
@@ -1576,9 +1576,9 @@ def peak_sun_hours(radiation, peak_sun, device, api_data, config):
         sunset            = peak_sun[5]
 
     # Define index of radiation in websocket packets
-    if str(device) == config['Station']['SkyID']:
+    if str(device) in [config['Station']['SkyID'], config['Station']['SkySN']]:
         index_bucket_a = 10
-    elif str(device) == config['Station']['TempestID']:
+    elif str(device) in [config['Station']['TempestID'], config['Station']['TempestSN']]:
         index_bucket_a = 11
 
     # If console is initialising and REST API services are enabled, download all

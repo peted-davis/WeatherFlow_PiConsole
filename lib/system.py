@@ -20,7 +20,7 @@ from lib.request_api import github_api
 from lib             import properties
 
 # Import required panels
-from panels.update  import updateNotification
+from panels.update  import update_notification
 
 # Import required Kivy modules
 from kivy.logger    import Logger
@@ -103,12 +103,16 @@ class system():
 
             # Check if update notification is already open. Close if required
             try:
-                App.get_running_self.app.updateNotification.dismiss()
+                App.get_running_self.app.update_notification.dismiss()
             except AttributeError:
                 pass
 
             # Open update notification
-            updateNotification(latest_ver).open()
+            if self.app.config['Display']['UpdateNotification'] == '1':
+                update_notification(latest_ver).open()
+                Logger.info(f'System: {self.log_time()} - New version available: {latest_ver}')
+            else:
+                Logger.info(f'System: {self.log_time()} - New version available: {latest_ver}')
 
         # Schedule next Version Check
         Next = Tz.localize(datetime(Now.year, Now.month, Now.day) + timedelta(days=1))
@@ -136,5 +140,5 @@ class system():
                 self.app.CurrentConditions.System[Key] = Value
             except ReferenceError:
                 if not reference_error:
-                    Logger.warning(f'system: {self.logTime()} - Reference error')
+                    Logger.warning(f'System: {self.log_time()} - Reference error')
                     reference_error = True

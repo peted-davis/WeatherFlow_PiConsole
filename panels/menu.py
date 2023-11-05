@@ -104,6 +104,7 @@ class mainMenu(ModalView):
                    on_success=self.parse_station_list,
                    on_failure=self.fail_station_list,
                    on_error=self.fail_station_list,
+                   timeout=int(self.app.config['System']['Timeout']),
                    ca_file=certifi.where()
                    )
 
