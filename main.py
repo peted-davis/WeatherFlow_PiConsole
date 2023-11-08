@@ -443,8 +443,8 @@ class CurrentConditions(Screen):
         self.app.astro.get_moonrise_moonset()
 
         # # Schedule sunTransit and moonPhase functions to be called each second
-        self.app.Sched.sun_transit = Clock.schedule_interval(self.app.astro.sun_transit, 0.001)
-        # self.app.Sched.moon_phase  = Clock.schedule_interval(self.app.astro.moon_phase, 1)
+        self.app.Sched.sun_transit = Clock.schedule_interval(self.app.astro.sun_transit, 0.01)
+        #self.app.Sched.moon_phase  = Clock.schedule_interval(self.app.astro.moon_phase, 1)
 
         # # Schedule WeatherFlow weather forecast download
         # self.app.forecast = forecast()
