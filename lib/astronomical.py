@@ -106,25 +106,56 @@ class astro():
             Dusk = self.astro_data['Dusk'][0].astimezone(pytz.utc) + timedelta(minutes=1)
             self.observer.date = Dusk.strftime('%Y/%m/%d %H:%M:%S')
 
+        # Set AlwaysUpError, NeverUpError time
+        UTC = datetime.now(pytz.utc)
+        AlwaysUpDawn = datetime(UTC.year, UTC.month, UTC.day, 0, 0, 0)
+        AlwaysUpRise = datetime(UTC.year, UTC.month, UTC.day, 0, 0, 10)
+        AlwaysUpSet  = datetime(UTC.year, UTC.month, UTC.day, 23, 59, 49)
+        AlwaysUpDusk = datetime(UTC.year, UTC.month, UTC.day, 23, 59, 59)
+        NeverUpDawn  = datetime(UTC.year, UTC.month, UTC.day, 23, 59, 29)
+        NeverUpRise  = datetime(UTC.year, UTC.month, UTC.day, 23, 59, 39)
+        NeverUpSet   = datetime(UTC.year, UTC.month, UTC.day, 23, 59, 49)
+        NeverUpDusk  = datetime(UTC.year, UTC.month, UTC.day, 23, 59, 59)
+
         # Calculate Dawn time in UTC
         self.observer.horizon = '-6'
-        Dawn = self.observer.next_rising(self.sun, use_center=True)
-        Dawn = pytz.utc.localize(Dawn.datetime().replace(second=0, microsecond=0))
+        try:
+            Dawn = self.observer.next_rising(self.sun, use_center=True)
+            Dawn = pytz.utc.localize(Dawn.datetime().replace(second=0, microsecond=0))
+        except ephem.AlwaysUpError:
+            Dawn = AlwaysUpDawn
+        except ephem.NeverUpError:
+            Dawn = NeverUpDawn
 
         # Calculate Sunrise time in UTC
         self.observer.horizon = '-0:34'
-        Sunrise = self.observer.next_rising(self.sun)
-        Sunrise = pytz.utc.localize(Sunrise.datetime().replace(second=0, microsecond=0))
+        try:
+            Sunrise = self.observer.next_rising(self.sun)
+            Sunrise = pytz.utc.localize(Sunrise.datetime().replace(second=0, microsecond=0))
+        except ephem.AlwaysUpError:
+            Sunrise = AlwaysUpRise
+        except ephem.NeverUpError:
+            Sunrise = NeverUpRise
 
         # Calculate Sunset time in UTC
         self.observer.horizon = '-0:34'
-        Sunset = self.observer.next_setting(self.sun)
-        Sunset = pytz.utc.localize(Sunset.datetime().replace(second=0, microsecond=0))
+        try:
+            Sunset = self.observer.next_setting(self.sun)
+            Sunset = pytz.utc.localize(Sunset.datetime().replace(second=0, microsecond=0))
+        except ephem.AlwaysUpError:
+            Sunset = AlwaysUpSet
+        except ephem.NeverUpError:
+            Sunset = NeverUpSet
 
         # Calculate Dusk time in UTC
         self.observer.horizon = '-6'
-        Dusk = self.observer.next_setting(self.sun, use_center=True)
-        Dusk = pytz.utc.localize(Dusk.datetime().replace(second=0, microsecond=0))
+        try:
+            Dusk = self.observer.next_setting(self.sun, use_center=True)
+            Dusk = pytz.utc.localize(Dusk.datetime().replace(second=0, microsecond=0))
+        except ephem.AlwaysUpError:
+            Dusk = AlwaysUpDusk
+        except ephem.NeverUpError:
+            Dusk = NeverUpDusk
 
         # Define Dawn/Dusk and Sunrise/Sunset times in Station timezone
         self.astro_data['Dawn'][0]    = Dawn.astimezone(Tz)
@@ -184,8 +215,15 @@ class astro():
             self.observer.date = Moonset.strftime('%Y/%m/%d %H:%M:%S')
 
         # Calculate Moonrise time in UTC
-        Moonrise = self.observer.next_rising(self.moon)
-        Moonrise = pytz.utc.localize(Moonrise.datetime().replace(second=0, microsecond=0))
+        UTC = datetime.now(pytz.utc)
+        Midnight = datetime(UTC.year, UTC.month, UTC.day, 0, 0, 0)
+        self.observer.date = Midnight.strftime('%Y/%m/%d %H:%M:%S')
+
+        try:
+            Moonrise = self.observer.next_rising(self.moon)
+            Moonrise = pytz.utc.localize(Moonrise.datetime().replace(second=0, microsecond=0))
+        except (ephem.AlwaysUpError, ephem.NeverUpError):
+            Moonrise = Midnight
 
         # Define Moonrise time in Station timezone
         self.astro_data['Moonrise'][0] = Moonrise.astimezone(Tz)
@@ -195,8 +233,11 @@ class astro():
         self.observer.date = Moonrise.strftime('%Y/%m/%d %H:%M:%S')
 
         # Calculate time of next Moonset starting at time of last Moonrise in UTC
-        Moonset = self.observer.next_setting(self.moon)
-        Moonset = pytz.utc.localize(Moonset.datetime().replace(second=0, microsecond=0))
+        try:
+            Moonset = self.observer.next_setting(self.moon)
+            Moonset = pytz.utc.localize(Moonset.datetime().replace(second=0, microsecond=0))
+        except (ephem.AlwaysUpError, ephem.NeverUpError):
+            Moonset = Midnight
 
         # Define Moonset time in Station timezone
         self.astro_data['Moonset'][0] = Moonset.astimezone(Tz)
