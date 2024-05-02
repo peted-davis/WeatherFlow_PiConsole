@@ -66,7 +66,7 @@ def METAR(Config):
 
     # Download closest METAR report to station location
     header = {'X-API-Key': Config['Keys']['CheckWX']}
-    Template = 'https://api.checkwx.com/metar/lat/{}/lon/{}/'
+    Template = 'https://api.checkwx.com/metar/lat/{}/lon/{}/radius/100/decoded/'
     URL = Template.format(Config['Station']['Latitude'], Config['Station']['Longitude'])
     try:
         Data = requests.get(URL, headers=header, timeout=int(Config['System']['Timeout']))
