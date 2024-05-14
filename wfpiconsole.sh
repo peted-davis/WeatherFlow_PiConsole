@@ -78,8 +78,8 @@ PKG_NEW_INSTALL=(${PKG_MANAGER} --yes install)
 # Python commands
 PYTHON_SYS=python3
 PYTHON_VENV=${VENVDIR}bin/python3
-PIP_INSTALL="-m pip install"
-PIP_UPDATE="-m pip install --upgrade"
+PIP_INSTALL="-m pip install --no-cache-dir"
+PIP_UPDATE="-m pip install --upgrade --no-cache-dir"
 
 # wfpiconsole and Kivy dependencies
 WFPICONSOLE_DEPENDENCIES=(git curl rng-tools build-essential python3-dev python3-pip python3-setuptools

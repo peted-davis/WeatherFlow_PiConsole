@@ -2,7 +2,6 @@
 
 <a href="https://www.buymeacoffee.com/peted.davis" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
-
 The WeatherFlow PiConsole is a Python console that displays the data collected
 by a WeatherFlow Tempest or Smart Home Weather Station. The console uses either
 the WeatherFlow REST API and websocket service or the local UDP connection to
