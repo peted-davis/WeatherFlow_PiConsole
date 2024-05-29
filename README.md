@@ -182,7 +182,7 @@ wfpiconsole stop
 ## Advanced: Custom Panels
 
 The console is distributed with 7 built-in panels to display weather, forecast
-and astronomical informtion. For advanced users, custom panels can be created
+and astronomical information. For advanced users, custom panels can be created
 allowing the data display to be customised, or additional data sources to be 
 integrated into the console. Custom panels should not be overwritten when the 
 console is updated.
