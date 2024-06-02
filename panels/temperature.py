@@ -33,8 +33,8 @@ class TemperaturePanel(panelTemplate):
     indoor_temperature = StringProperty('-')
 
     # Initialise TemperaturePanel
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, mode=None, **kwargs):
+        super().__init__(mode, **kwargs)
         self.set_feels_like_icon()
         self.set_indoor_temp_display()
 

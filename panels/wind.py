@@ -35,8 +35,8 @@ class WindSpeedPanel(panelTemplate):
     windSpdIcon  = StringProperty('-')
 
     # Initialise WindSpeedPanel
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, mode=None, **kwargs):
+        super().__init__(mode, **kwargs)
         if self.app.CurrentConditions.Obs['rapidDir'][0] != '-':
             self.rapidWindDir = self.app.CurrentConditions.Obs['rapidDir'][0]
         self.setWindIcons()

@@ -644,7 +644,7 @@ class obs_parser():
         elif ob_type == 'evt_strike':
             if self.app.config['Display']['LightningPanel'] == '1':
                 for ii, button in enumerate(self.app.CurrentConditions.button_list):
-                    if "Lightning" in button[2]:
+                    if "Lightning" in button[3] and button[4] == 'primary':
                         self.app.CurrentConditions.switchPanel([], button)
             if hasattr(self.app, 'LightningPanel'):
                 for panel in getattr(self.app, 'LightningPanel'):

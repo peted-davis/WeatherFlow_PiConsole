@@ -32,8 +32,8 @@ class SunriseSunsetPanel(panelTemplate):
     uvBackground = StringProperty('-')
 
     # Initialise SunriseSunsetPanel
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, mode=None, **kwargs):
+        super().__init__(mode, **kwargs)
         self.setUVBackground()
 
     # Set current UV index backgroud
