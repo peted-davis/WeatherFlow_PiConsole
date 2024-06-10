@@ -132,8 +132,8 @@ class obs_parser():
         # Request required TEMPEST data from the WeatherFlow API
         if config['System']['rest_api'] == '1' and config['Station']['TempestID']:
             self.api_data[device_id]['24Hrs'] = weatherflow_api.last_24h(api_device_id, latest_ob[0], config)
-            if (self.api_data[device_id]['flagAPI']
-                    or self.derive_obs['SLPMin'][0] is None
+            if self.api_data[device_id]['flagAPI']:
+                if (self.derive_obs['SLPMin'][0] is None
                     or self.derive_obs['SLPMax'][0] is None
                     or self.derive_obs['outTempMin'][0] is None
                     or self.derive_obs['outTempMax'][0] is None
@@ -142,19 +142,26 @@ class obs_parser():
                     or self.derive_obs['peakSun'][0] is None
                     or self.derive_obs['rainAccum']['today'][0] is None
                     or self.derive_obs['strikeCount']['today'][0] is None):
-                self.api_data[device_id]['today'] = weatherflow_api.today(api_device_id, config)
-            if (self.api_data[device_id]['flagAPI']
-                    or self.derive_obs['rainAccum']['yesterday'][0] is None):
-                self.api_data[device_id]['yesterday'] = weatherflow_api.yesterday(api_device_id, config)
-            if (self.api_data[device_id]['flagAPI']
-                    or self.derive_obs['rainAccum']['month'][0] is None
+                    self.api_data[device_id]['today'] = weatherflow_api.today(api_device_id, config)
+                if self.derive_obs['rainAccum']['yesterday'][0] is None:
+                    self.api_data[device_id]['yesterday'] = weatherflow_api.yesterday(api_device_id, config)
+                if (self.derive_obs['rainAccum']['month'][0] is None
                     or self.derive_obs['strikeCount']['month'][0] is None):
-                self.api_data[device_id]['month'] = weatherflow_api.month(api_device_id, config)
-            if (self.api_data[device_id]['flagAPI']
-                    or self.derive_obs['rainAccum']['year'][0] is None
-                    or self.derive_obs['strikeCount']['year'][0] is None):
-                self.api_data[device_id]['year']  = weatherflow_api.year(api_device_id, config)
-            self.flag_api[0] = 0
+                    self.api_data[device_id]['month'] = weatherflow_api.month(api_device_id, config)
+                if int(config['System']['stats_endpoint']):
+                    if (self.derive_obs['rainAccum']['month'][0] is None
+                        or self.derive_obs['strikeCount']['month'][0] is None
+                        or self.derive_obs['rainAccum']['year'][0] is None
+                        or self.derive_obs['strikeCount']['year'][0] is None):
+                        self.api_data[device_id]['statistics'] = weatherflow_api.statistics(config['Station']['StationID'], config)
+                elif not int(config['System']['stats_endpoint']):
+                    if (self.derive_obs['rainAccum']['month'][0] is None
+                        or self.derive_obs['strikeCount']['month'][0] is None):
+                        self.api_data[device_id]['month'] = weatherflow_api.month(api_device_id, config)
+                    if (self.derive_obs['rainAccum']['year'][0] is None
+                        or self.derive_obs['strikeCount']['year'][0] is None):
+                        self.api_data[device_id]['year']  = weatherflow_api.year(api_device_id, config)
+        self.flag_api[0] = 0
 
         # Store latest TEMPEST JSON message
         self.display_obs['obs_st'] = message
@@ -203,21 +210,23 @@ class obs_parser():
 
         # Request required SKY data from the WeatherFlow API
         if config['System']['rest_api'] == '1' and config['Station']['SkyID']:
-            if (self.api_data[device_id]['flagAPI']
-                    or self.derive_obs['windAvg'][0] is None
+            if self.api_data[device_id]['flagAPI']:
+                if (self.derive_obs['windAvg'][0] is None
                     or self.derive_obs['gustMax'][0] is None
                     or self.derive_obs['peakSun'][0] is None):
-                self.api_data[device_id]['today'] = weatherflow_api.today(api_device_id, config)
-            if (self.api_data[device_id]['flagAPI']
-                    or self.derive_obs['rainAccum']['yesterday'][0] is None):
-                self.api_data[device_id]['yesterday'] = weatherflow_api.yesterday(api_device_id, config)
-            if (self.api_data[device_id]['flagAPI']
-                    or self.derive_obs['rainAccum']['month'][0] is None):
-                self.api_data[device_id]['month'] = weatherflow_api.month(api_device_id, config)
-            if (self.api_data[device_id]['flagAPI']
-                    or self.derive_obs['rainAccum']['year'][0] is None):
-                self.api_data[device_id]['year'] = weatherflow_api.year(api_device_id, config)
-            self.flag_api[1] = 0
+                    self.api_data[device_id]['today'] = weatherflow_api.today(api_device_id, config)
+                if self.derive_obs['rainAccum']['yesterday'][0] is None:
+                    self.api_data[device_id]['yesterday'] = weatherflow_api.yesterday(api_device_id, config)
+                if int(config['System']['stats_endpoint']):
+                    if (self.derive_obs['rainAccum']['month'][0] is None
+                        or self.derive_obs['rainAccum']['year'][0] is None):
+                        self.api_data[device_id]['statistics'] = weatherflow_api.statistics(config['Station']['StationID'], config)            
+                elif not int(config['System']['stats_endpoint']):
+                    if self.derive_obs['rainAccum']['month'][0] is None:
+                        self.api_data[device_id]['month'] = weatherflow_api.month(api_device_id, config)
+                    if self.derive_obs['rainAccum']['year'][0] is None:
+                        self.api_data[device_id]['year'] = weatherflow_api.year(api_device_id, config)
+        self.flag_api[1] = 0
 
         # Store latest SKY JSON message
         self.display_obs['obs_sky'] = message
@@ -271,20 +280,23 @@ class obs_parser():
         # Request required outdoor AIR data from the WeatherFlow API
         if config['System']['rest_api'] == '1' and config['Station']['OutAirID']:
             self.api_data[device_id]['24Hrs'] = weatherflow_api.last_24h(api_device_id, latest_ob[0], config)
-            if (self.api_data[device_id]['flagAPI']
-                    or self.derive_obs['SLPMin'][0] is None
+            if self.api_data[device_id]['flagAPI']:
+                if (self.derive_obs['SLPMin'][0] is None
                     or self.derive_obs['SLPMax'][0] is None
                     or self.derive_obs['outTempMin'][0] is None
                     or self.derive_obs['outTempMax'][0] is None
                     or self.derive_obs['strikeCount']['today'][0] is None):
-                self.api_data[device_id]['today'] = weatherflow_api.today(api_device_id, config)
-            if (self.api_data[device_id]['flagAPI']
-                    or self.derive_obs['strikeCount']['month'][0] is None):
-                self.api_data[device_id]['month'] = weatherflow_api.month(api_device_id, config)
-            if (self.api_data[device_id]['flagAPI']
-                    or self.derive_obs['strikeCount']['year'][0] is None):
-                self.api_data[device_id]['year']  = weatherflow_api.year(api_device_id, config)
-            self.flag_api[2] = 0
+                    self.api_data[device_id]['today'] = weatherflow_api.today(api_device_id, config)
+                if int(config['System']['stats_endpoint']):
+                    if (self.derive_obs['strikeCount']['month'][0] is None
+                        or self.derive_obs['strikeCount']['year'][0] is None):
+                        self.api_data[device_id]['statistics'] = weatherflow_api.statistics(config['Station']['StationID'], config)
+                elif not int(config['System']['stats_endpoint']):
+                    if self.derive_obs['strikeCount']['month'][0] is None:
+                        self.api_data[device_id]['month'] = weatherflow_api.month(api_device_id, config)
+                    if self.derive_obs['strikeCount']['year'][0] is None:
+                        self.api_data[device_id]['year']  = weatherflow_api.year(api_device_id, config)
+        self.flag_api[2] = 0
 
         # Store latest outdoor AIR JSON message
         self.display_obs['obs_out_air'] = message

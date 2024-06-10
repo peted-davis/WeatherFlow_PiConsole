@@ -321,8 +321,10 @@ def JSON(Section):
     elif 'System' in Section:
         Data =  [{'type': 'FixedOptions', 'options': ['Websocket', 'UDP'], 'title': 'Connection',
                   'desc': 'Set the console connection type', 'section': 'System', 'key': 'Connection'},
-                 {'type': 'bool', 'desc': 'Use the WeatherFlow REST API to fetch historical data & forecast',
+                 {'type': 'bool', 'desc': 'Use the WeatherFlow REST API to fetch data & forecast',
                   'title': 'REST API', 'section': 'System', 'key': 'rest_api'},
+                 {'type': 'bool', 'desc': 'Use the Statistics API to fetch rain accumulation',
+                  'title': 'Statistics API endpoint', 'section': 'System', 'key': 'stats_endpoint'}, 
                  {'type': 'ToggleHours', 'title': 'Sager Forecast interval',
                   'desc': 'Set the interval in hours between Sager Forecasts', 'section': 'System', 'key': 'SagerInterval'},
                  ]

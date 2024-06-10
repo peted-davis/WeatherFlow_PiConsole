@@ -22,7 +22,7 @@ from lib             import derived_variables as derive
 
 # Import required Python modules
 from kivy.logger  import Logger
-from datetime     import datetime
+from datetime     import datetime, timedelta
 import bisect
 import ephem
 import math
@@ -332,8 +332,8 @@ def SLP_max(pressure, ob_time, max_pres, device, api_data, config):
                 and weatherflow_api.verify_response(api_data[device]['today'], 'obs')):
             data_today = api_data[device]['today'].json()['obs']
             ob_time    = [item[0]                       for item in data_today if item[index_bucket_a] is not None]
-            pressure  = [[item[index_bucket_a], 'mb']  for item in data_today if item[index_bucket_a] is not None]
-            SLP       = [derive.SLP(P, device, config) for P    in pressure]
+            pressure   = [[item[index_bucket_a], 'mb']  for item in data_today if item[index_bucket_a] is not None]
+            SLP        = [derive.SLP(P, device, config) for P    in pressure]
             try:
                 max_pres   = [max(SLP)[0], 'mb', ob_time[SLP.index(max(SLP))], 's', max(SLP)[0], ob_time[SLP.index(max(SLP))]]
             except Exception as error:
@@ -702,8 +702,7 @@ def temp_min(temp, ob_time, min_temp, device, api_data, config):
     # data for current day using Weatherflow API and calculate daily minimum
     # temperature
     if int(config['System']['rest_api']) and min_temp[0] is None:
-        if ('today' in api_data[device]
-                and weatherflow_api.verify_response(api_data[device]['today'], 'obs')):
+        if 'today' in api_data[device] and weatherflow_api.verify_response(api_data[device]['today'], 'obs'):
             data_today = api_data[device]['today'].json()['obs']
             api_time   = [item[0]              for item in data_today if item[index_bucket_a] is not None]
             api_temp   = [item[index_bucket_a] for item in data_today if item[index_bucket_a] is not None]
@@ -889,6 +888,9 @@ def strike_count(count, strike_count, device, api_data, config):
     # Define current time in station timezone
     Tz = pytz.timezone(config['Station']['Timezone'])
     time_now = datetime.now(pytz.utc).astimezone(Tz)
+    day_date = time_now.strftime("%Y-%m-%d")
+    month_date = time_now.replace(day=1).strftime("%Y-%m-%d")
+    year_date  = time_now.replace(day=1, month=1).strftime("%Y-%m-%d")
 
     # Define index of total lightning strike counts in websocket packets
     if str(device) in [config['Station']['OutAirID'], config['Station']['OutAirSN']]:
@@ -904,17 +906,31 @@ def strike_count(count, strike_count, device, api_data, config):
     # If console is initialising and REST API services are enabled, calculate
     # total daily lightning strikes using WeatherFlow API
     if int(config['System']['rest_api']) and strike_count['today'][0] is None:
-        if ('today' in api_data[device]
-                and weatherflow_api.verify_response(api_data[device]['today'], 'obs')):
-            data_today  = api_data[device]['today'].json()['obs']
-            strikes = [item[index_bucket_a] for item in data_today if item[index_bucket_a] is not None]
-            try:
-                today_strikes = [sum(x for x in strikes), 'count', sum(x for x in strikes), time.time()]
-            except Exception as error:
-                Logger.warning(f'strike_count: {system().log_time()} - {error}')
+        if not int(config['System']['stats_endpoint']):
+            if 'today' in api_data[device] and weatherflow_api.verify_response(api_data[device]['today'], 'obs'):
+                data_today = api_data[device]['today'].json()['obs']
+                strikes = [item[index_bucket_a] for item in data_today if item[index_bucket_a] is not None]
+                try:
+                    today_strikes = [sum(x for x in strikes), 'count', sum(x for x in strikes), time.time()]
+                except Exception as error:
+                    Logger.warning(f'strike_count: {system().log_time()} - {error}')
+                    today_strikes = error_output
+            else:
                 today_strikes = error_output
-        else:
-            today_strikes = error_output
+        elif int(config['System']['stats_endpoint']):
+            if 'statistics' in api_data[device] and weatherflow_api.verify_response(api_data[device]['statistics'], 'stats_day'):
+                statistics = api_data[device]['statistics'].json()
+                if statistics["stats_day"][-1][0] == day_date:
+                    strikes = statistics["stats_day"][-1][24]
+                    try:
+                        today_strikes = [strikes, 'count', strikes, time.time()]
+                    except Exception as error:
+                        Logger.warning(f'strike_count: {system().log_time()} - {error}')
+                        today_strikes = error_output
+                else:
+                    today_strikes = error_output
+            else:
+                today_strikes = error_output
 
     # Else if console is initialising and REST API services are not enabled,
     # set total daily lightning strikes equal to last minute count
@@ -927,9 +943,9 @@ def strike_count(count, strike_count, device, api_data, config):
 
     # Else, calculate current daily lightning strike count
     else:
-        currentCount = strike_count['today'][2]
-        updatedCount = currentCount + count[0] if count[0] is not None else currentCount
-        today_strikes = [updatedCount, 'count', updatedCount, time.time()]
+        current_count = strike_count['today'][2]
+        updated_count = current_count + count[0] if count[0] is not None else current_count
+        today_strikes = [updated_count, 'count', updated_count, time.time()]
 
     # ==========================================================================
     # MONTH COUNTS
@@ -942,20 +958,34 @@ def strike_count(count, strike_count, device, api_data, config):
     # Else if console is initialising and REST API services are enabled,
     # calculate total monthly lightning strikes using WeatherFlow API
     elif int(config['System']['rest_api']) and strike_count['month'][0] is None:
-        if ('month' in api_data[device]
-                and weatherflow_api.verify_response(api_data[device]['month'], 'obs')):
-            month_data  = api_data[device]['month'].json()['obs']
-            strikes     = [item[index_bucket_e] for item in month_data if item[index_bucket_e] is not None]
-            try:
-                month_strikes = [sum(x for x in strikes), 'count', sum(x for x in strikes), time.time()]
-                if today_strikes[0] is not None:
-                    month_strikes[0] += today_strikes[0]
-                    month_strikes[2] += today_strikes[2]
-            except Exception as error:
-                Logger.warning(f'strike_count: {system().log_time()} - {error}')
+        if not int(config['System']['stats_endpoint']):
+            if 'month' in api_data[device] and weatherflow_api.verify_response(api_data[device]['month'], 'obs'):
+                month_data  = api_data[device]['month'].json()['obs']
+                strikes     = [item[index_bucket_e] for item in month_data if item[index_bucket_e] is not None]
+                try:
+                    month_strikes = [sum(x for x in strikes), 'count', sum(x for x in strikes), time.time()]
+                    if today_strikes[0] is not None:
+                        month_strikes[0] += today_strikes[0]
+                        month_strikes[2] += today_strikes[2]
+                except Exception as error:
+                    Logger.warning(f'strike_count: {system().log_time()} - {error}')
+                    month_strikes = error_output
+            else:
                 month_strikes = error_output
-        else:
-            month_strikes = error_output
+        elif int(config['System']['stats_endpoint']):
+            if 'statistics' in api_data[device] and weatherflow_api.verify_response(api_data[device]['statistics'], 'stats_month'):
+                statistics = api_data[device]['statistics'].json()
+                if statistics["stats_month"][-1][0] == month_date:
+                    strikes = statistics["stats_month"][-1][24]
+                    try:
+                        month_strikes = [strikes, 'count', strikes, time.time()]
+                    except Exception as error:
+                        Logger.warning(f'strike_count: {system().log_time()} - {error}')
+                        month_strikes = error_output
+                else:
+                    month_strikes = error_output
+            else:
+                month_strikes = error_output
 
     # Else if console is initialising and REST API services are not enabled, set
     # total daily lightning strikes equal to last minute count
@@ -969,9 +999,9 @@ def strike_count(count, strike_count, device, api_data, config):
 
     # Else, calculate current monthly lightning strike count
     else:
-        currentCount = strike_count['month'][2]
-        updatedCount = currentCount + count[0] if count[0] is not None else currentCount
-        month_strikes = [updatedCount, 'count', updatedCount, time.time()]
+        current_count = strike_count['month'][2]
+        updated_count = current_count + count[0] if count[0] is not None else current_count
+        month_strikes = [updated_count, 'count', updated_count, time.time()]
 
     # ==========================================================================
     # YEAR COUNTS
@@ -984,20 +1014,34 @@ def strike_count(count, strike_count, device, api_data, config):
     # Else if console is initialising and REST API services are enabled,
     # calculate total yearly lightning strikes using WeatherFlow API
     elif int(config['System']['rest_api']) and strike_count['year'][0] is None:
-        if ('year' in api_data[device]
-                and weatherflow_api.verify_response(api_data[device]['year'], 'obs')):
-            year_data = api_data[device]['year'].json()['obs']
-            strikes   = [item[index_bucket_e] for item in year_data if item[index_bucket_e] is not None]
-            try:
-                year_strikes = [sum(x for x in strikes), 'count', sum(x for x in strikes), time.time()]
-                if today_strikes[0] is not None:
-                    year_strikes[0] += today_strikes[0]
-                    year_strikes[2] += today_strikes[2]
-            except Exception as error:
-                Logger.warning(f'strike_count: {system().log_time()} - {error}')
+        if not int(config['System']['stats_endpoint']):
+            if 'year' in api_data[device] and weatherflow_api.verify_response(api_data[device]['year'], 'obs'):
+                year_data = api_data[device]['year'].json()['obs']
+                strikes   = [item[index_bucket_e] for item in year_data if item[index_bucket_e] is not None]
+                try:
+                    year_strikes = [sum(x for x in strikes), 'count', sum(x for x in strikes), time.time()]
+                    if today_strikes[0] is not None:
+                        year_strikes[0] += today_strikes[0]
+                        year_strikes[2] += today_strikes[2]
+                except Exception as error:
+                    Logger.warning(f'strike_count: {system().log_time()} - {error}')
+                    year_strikes = error_output
+            else:
                 year_strikes = error_output
-        else:
-            year_strikes = error_output
+        elif int(config['System']['stats_endpoint']):
+            if 'statistics' in api_data[device] and weatherflow_api.verify_response(api_data[device]['statistics'], 'stats_year'):
+                statistics = api_data[device]['statistics'].json()
+                if statistics["stats_year"][-1][0] == year_date:
+                    strikes = statistics["stats_year"][-1][24]
+                    try:
+                        year_strikes = [strikes, 'count', strikes, time.time()]
+                    except Exception as error:
+                        Logger.warning(f'strike_count: {system().log_time()} - {error}')
+                        year_strikes = error_output
+                else:
+                    year_strikes = error_output
+            else:
+                year_strikes = error_output
 
     # Else if console is initialising and REST API services are not enabled, set
     # total yearly lightning strikes equal to last minute count
@@ -1012,9 +1056,9 @@ def strike_count(count, strike_count, device, api_data, config):
 
     # Else, calculate current yearly lightning strike count
     else:
-        currentCount = strike_count['year'][2]
-        updatedCount = currentCount + count[0] if count[0] is not None else currentCount
-        year_strikes = [updatedCount, 'count', updatedCount, time.time()]
+        current_count = strike_count['year'][2]
+        updated_count = current_count + count[0] if count[0] is not None else current_count
+        year_strikes = [updated_count, 'count', updated_count, time.time()]
 
     # Return Daily, Monthly, and Yearly lightning strike counts
     return {'today': today_strikes, 'month': month_strikes, 'year': year_strikes}
@@ -1094,6 +1138,10 @@ def rain_accumulation(minute_rain, daily_rain, rain_accum, device, api_data, con
     # Define current time in station timezone
     Tz = pytz.timezone(config['Station']['Timezone'])
     time_now = datetime.now(pytz.utc).astimezone(Tz)
+    day_date = time_now.strftime("%Y-%m-%d")
+    yesterday_date = (time_now - timedelta(days=1)).strftime("%Y-%m-%d")
+    month_date = time_now.replace(day=1).strftime("%Y-%m-%d")
+    year_date  = time_now.replace(day=1, month=1).strftime("%Y-%m-%d")
 
     # Define index of total daily rain accumulation in websocket packets
     if str(device) in [config['Station']['SkyID'], config['Station']['SkySN']]:
@@ -1120,17 +1168,31 @@ def rain_accumulation(minute_rain, daily_rain, rain_accum, device, api_data, con
         # all data for current day using Weatherflow API and calculate todays's
         # rainfall
         if int(config['System']['rest_api']) and rain_accum['today'][0] is None:
-            if ('today' in api_data[device]
-                    and weatherflow_api.verify_response(api_data[device]['today'], 'obs')):
-                today_data = api_data[device]['today'].json()['obs']
-                rain_data = [item[index_bucket_a] for item in today_data if item[index_bucket_a] is not None]
-                try:
-                    today_rain = [sum(x for x in rain_data), 'mm', sum(x for x in rain_data), time.time()]
-                except Exception as error:
-                    Logger.warning(f'rain_accum: {system().log_time()} - {error}')
+            if not int(config['System']['stats_endpoint']):
+                if 'today' in api_data[device] and weatherflow_api.verify_response(api_data[device]['today'], 'obs'):
+                    today_data = api_data[device]['today'].json()['obs']
+                    rain_data = [item[index_bucket_a] for item in today_data if item[index_bucket_a] is not None]
+                    try:
+                        today_rain = [sum(x for x in rain_data), 'mm', sum(x for x in rain_data), time.time()]
+                    except Exception as error:
+                        Logger.warning(f'rain_accum: {system().log_time()} - {error}')
+                        today_rain = error_output
+                else:
                     today_rain = error_output
-            else:
-                today_rain = error_output
+            elif int(config['System']['stats_endpoint']):    
+                if ('statistics' in api_data[device] and weatherflow_api.verify_response(api_data[device]['statistics'], 'stats_day')):
+                    statistics = api_data[device]['statistics'].json()
+                    if statistics["stats_day"][-1][0] == day_date:
+                        rain_data = statistics["stats_day"][-1][28]
+                        try:
+                            today_rain = [rain_data, 'mm', rain_data, time.time()]
+                        except Exception as error:
+                            Logger.warning(f'rain_accum: {system().log_time()} - {error}')
+                            today_rain = error_output
+                    else:
+                        today_rain = error_output
+                else:
+                    today_rain = error_output              
 
         # Else if console is initialising and REST API services are not enabled,
         # set today's rainfall accumulation equal to minute_rain
@@ -1153,17 +1215,31 @@ def rain_accumulation(minute_rain, daily_rain, rain_accum, device, api_data, con
     # all data for yesterday using Weatherflow API and calculate yesterday's
     # rainfall
     if int(config['System']['rest_api']) and rain_accum['yesterday'][0] is None:
-        if ('yesterday' in api_data[device]
-                and weatherflow_api.verify_response(api_data[device]['yesterday'], 'obs')):
-            yesterday_data = api_data[device]['yesterday'].json()['obs']
-            rain_data = [item[index_bucket_a] for item in yesterday_data if item[index_bucket_a] is not None]
-            try:
-                yesterday_rain = [sum(x for x in rain_data), 'mm', sum(x for x in rain_data), time.time()]
-            except Exception as error:
-                Logger.warning(f'rain_accum: {system().log_time()} - {error}')
+        if not int(config['System']['stats_endpoint']):
+            if 'yesterday' in api_data[device] and weatherflow_api.verify_response(api_data[device]['yesterday'], 'obs'):
+                yesterday_data = api_data[device]['yesterday'].json()['obs']
+                rain_data = [item[index_bucket_a] for item in yesterday_data if item[index_bucket_a] is not None]
+                try:
+                    yesterday_rain = [sum(x for x in rain_data), 'mm', sum(x for x in rain_data), time.time()]
+                except Exception as error:
+                    Logger.warning(f'rain_accum: {system().log_time()} - {error}')
+                    yesterday_rain = error_output
+            else:
                 yesterday_rain = error_output
-        else:
-            yesterday_rain = error_output
+        elif int(config['System']['stats_endpoint']):   
+            if ('statistics' in api_data[device] and weatherflow_api.verify_response(api_data[device]['statistics'], 'stats_day')):
+                statistics = api_data[device]['statistics'].json()
+                if statistics["stats_day"][-2][0] == yesterday_date:
+                    rain_data = statistics["stats_day"][-2][28]
+                    try:
+                        yesterday_rain = [rain_data, 'mm', rain_data, time.time()]
+                    except Exception as error:
+                        Logger.warning(f'rain_accum: {system().log_time()} - {error}')
+                        yesterday_rain = error_output
+                else:
+                    yesterday_rain = error_output
+            else:
+                yesterday_rain = error_output   
 
     # Else if midnight has passed, set yesterday's rainfall accumulation equal
     # to rain_accum['today'] (which still contains yesterday's accumulation)
@@ -1192,20 +1268,37 @@ def rain_accumulation(minute_rain, daily_rain, rain_accum, device, api_data, con
     # download all data for the current month using Weatherflow API and
     # calculate the monthly rainfall
     elif int(config['System']['rest_api']) and rain_accum['month'][0] is None:
-        if ('month' in api_data[device]
-                and weatherflow_api.verify_response(api_data[device]['month'], 'obs')):
-            month_data = api_data[device]['month'].json()['obs']
-            rain_data  = [item[index_bucket_e] for item in month_data if item[index_bucket_e] is not None]
-            try:
-                month_rain = [sum(x for x in rain_data), 'mm', sum(x for x in rain_data), time.time()]
-                if not today_rain[0] is None:
-                    month_rain[0] += today_rain[0]
-            except Exception as error:
-                Logger.warning(f'rain_accum: {system().log_time()} - {error}')
-                month_rain = error_output
+        if today_rain[0] is not None:
+            if not int(config['System']['stats_endpoint']):
+                if 'month' in api_data[device] and weatherflow_api.verify_response(api_data[device]['month'], 'obs'):
+                    month_data = api_data[device]['month'].json()['obs']
+                    rain_data  = [item[index_bucket_e] for item in month_data if item[index_bucket_e] is not None]
+                    try:
+                        month_rain = [sum(x for x in rain_data), 'mm', sum(x for x in rain_data), time.time()]
+                        month_rain[0] += today_rain[0]
+                    except Exception as error:
+                        Logger.warning(f'rain_accum: {system().log_time()} - {error}')
+                        month_rain = error_output
+                else:
+                    month_rain = error_output
+            elif int(config['System']['stats_endpoint']):
+                if ('statistics' in api_data[device] and weatherflow_api.verify_response(api_data[device]['statistics'], 'stats_month')):
+                    statistics = api_data[device]['statistics'].json()
+                    if statistics["stats_month"][-1][0] == month_date:
+                        rain_data = statistics["stats_month"][-1][28]
+                        try:
+                            month_rain = [rain_data, 'mm', rain_data, time.time()]
+                            month_rain[2] -= today_rain[0]
+                        except Exception as error:
+                            Logger.warning(f'rain_accum: {system().log_time()} - {error}')
+                            month_rain = error_output
+                    else:
+                        month_rain = error_output
+                else:
+                    month_rain = error_output 
         else:
-            month_rain = error_output
-
+            month_rain = error_output 
+     
     # Else if console is initialising and REST API services are not enabled, set
     # monthly rainfall accumulation equal to minute_rain
     elif not int(config['System']['rest_api']) and rain_accum['month'][0] is None:
@@ -1241,19 +1334,36 @@ def rain_accumulation(minute_rain, daily_rain, rain_accum, device, api_data, con
     # download all data for the current year using Weatherflow API and
     # calculate the yearly rainfall
     elif int(config['System']['rest_api']) and rain_accum['year'][0] is None:
-        if ('year' in api_data[device]
-                and weatherflow_api.verify_response(api_data[device]['year'], 'obs')):
-            year_data = api_data[device]['year'].json()['obs']
-            rain_data = [item[index_bucket_e] for item in year_data if item[index_bucket_e] is not None]
-            try:
-                year_rain = [sum(x for x in rain_data), 'mm', sum(x for x in rain_data), time.time()]
-                if today_rain[0] is None:
-                    year_rain[0] += today_rain[0]
-            except Exception as error:
-                Logger.warning(f'rain_accum: {system().log_time()} - {error}')
-                year_rain = error_output
+        if today_rain[0] is not None:
+            if not int(config['System']['stats_endpoint']):
+                if 'year' in api_data[device] and weatherflow_api.verify_response(api_data[device]['year'], 'obs'):
+                    year_data = api_data[device]['year'].json()['obs']
+                    rain_data = [item[index_bucket_e] for item in year_data if item[index_bucket_e] is not None]
+                    try:
+                        year_rain = [sum(x for x in rain_data), 'mm', sum(x for x in rain_data), time.time()]
+                        year_rain[0] += today_rain[0]
+                    except Exception as error:
+                        Logger.warning(f'rain_accum: {system().log_time()} - {error}')
+                        year_rain = error_output
+                else:
+                    year_rain = error_output
+            elif int(config['System']['stats_endpoint']):
+                if ('statistics' in api_data[device] and weatherflow_api.verify_response(api_data[device]['statistics'], 'stats_month')):
+                    statistics = api_data[device]['statistics'].json()
+                    if statistics["stats_year"][-1][0] == year_date:
+                        rain_data = statistics["stats_year"][-1][28]
+                        try:
+                            year_rain = [rain_data, 'mm', rain_data, time.time()]
+                            year_rain[2] -= today_rain[0]
+                        except Exception as error:
+                            Logger.warning(f'rain_accum: {system().log_time()} - {error}')
+                            year_rain = error_output
+                    else:
+                        year_rain = error_output
+                else:
+                    year_rain = error_output 
         else:
-            year_rain = error_output
+            year_rain = error_output 
 
     # Else if console is initialising and REST API services are not enabled, set
     # yearly rainfall accumulation equal to minute_rain

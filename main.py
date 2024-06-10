@@ -401,8 +401,8 @@ class wfpiconsole(App):
                                         if isinstance(child, Switch):
                                             child.active = True
 
-        # Switch connection type
-        if section == 'System' and key == 'Connection':
+        # Switch connection type or change between Device/Statistics API endpoint
+        if section == 'System' and (key == 'Connection' or key == 'stats_endpoint'):
             self.stop_connection_service()
             self.start_connection_service()
 
