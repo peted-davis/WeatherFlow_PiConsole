@@ -98,7 +98,7 @@ class obs_parser():
             device_id = message['device_id']
         elif 'serial_number' in message:
             device_id = message['serial_number']
-        if config['System']['rest_api'] == '1' and config['Station']['TempestID']:
+        if int(config['System']['rest_api']) and config['Station']['TempestID']:
             api_device_id = config['Station']['TempestID']
             self.api_data[device_id] = {'flagAPI': self.flag_api[0]}
 
@@ -130,7 +130,7 @@ class obs_parser():
             self.device_obs['strike3hr']  = [message['summary']['strike_count_3h']   if 'strike_count_3h'   in message['summary'] else None, 'count']
 
         # Request required TEMPEST data from the WeatherFlow API
-        if config['System']['rest_api'] == '1' and config['Station']['TempestID']:
+        if int(config['System']['rest_api']) and config['Station']['TempestID']:
             self.api_data[device_id]['24Hrs'] = weatherflow_api.last_24h(api_device_id, latest_ob[0], config)
             if self.api_data[device_id]['flagAPI']:
                 if (self.derive_obs['SLPMin'][0] is None
@@ -189,7 +189,7 @@ class obs_parser():
             device_id = message['device_id']
         elif 'serial_number' in message:
             device_id = message['serial_number']
-        if config['System']['rest_api'] == '1' and config['Station']['SkyID']:
+        if int(config['System']['rest_api']) and config['Station']['SkyID']:
             api_device_id = config['Station']['SkyID']
             self.api_data[device_id] = {'flagAPI': self.flag_api[1]}
 
@@ -209,7 +209,7 @@ class obs_parser():
             self.device_obs['dailyRain']  = [latest_ob[11], 'mm']
 
         # Request required SKY data from the WeatherFlow API
-        if config['System']['rest_api'] == '1' and config['Station']['SkyID']:
+        if int(config['System']['rest_api']) and config['Station']['SkyID']:
             if self.api_data[device_id]['flagAPI']:
                 if (self.derive_obs['windAvg'][0] is None
                     or self.derive_obs['gustMax'][0] is None
@@ -254,7 +254,7 @@ class obs_parser():
             device_id = message['device_id']
         elif 'serial_number' in message:
             device_id = message['serial_number']
-        if config['System']['rest_api'] == '1' and config['Station']['OutAirID']:
+        if int(config['System']['rest_api']) and config['Station']['OutAirID']:
             api_device_id = config['Station']['OutAirID']
             self.api_data[device_id] = {'flagAPI': self.flag_api[2]}
 
@@ -278,7 +278,7 @@ class obs_parser():
             self.device_obs['strike3hr']  = [message['summary']['strike_count_3h']   if 'strike_count_3h'   in message['summary'] else None, 'count']
 
         # Request required outdoor AIR data from the WeatherFlow API
-        if config['System']['rest_api'] == '1' and config['Station']['OutAirID']:
+        if int(config['System']['rest_api']) and config['Station']['OutAirID']:
             self.api_data[device_id]['24Hrs'] = weatherflow_api.last_24h(api_device_id, latest_ob[0], config)
             if self.api_data[device_id]['flagAPI']:
                 if (self.derive_obs['SLPMin'][0] is None
@@ -324,7 +324,7 @@ class obs_parser():
             device_id = message['device_id']
         elif 'serial_number' in message:
             device_id = message['serial_number']
-        if config['System']['rest_api'] == '1' and config['Station']['InAirID']:
+        if int(config['System']['rest_api']) and config['Station']['InAirID']:
             api_device_id = config['Station']['InAirID']
             self.api_data[device_id] = {'flagAPI': self.flag_api[3]}
 
@@ -338,7 +338,7 @@ class obs_parser():
         self.device_obs['inTemp'] = [latest_ob[2], 'c']
 
         # Request required indoor AIR data from the WeatherFlow API
-        if config['System']['rest_api'] == '1' and config['Station']['InAirID']:
+        if int(config['System']['rest_api']) and config['Station']['InAirID']:
             if (self.api_data[device_id]['flagAPI']
                     or self.derive_obs['inTempMin'][0] is None
                     or self.derive_obs['inTempMax'][0] is None):
@@ -654,7 +654,7 @@ class obs_parser():
                 for panel in getattr(self.app, 'WindSpeedPanel'):
                     panel.animateWindRose()
         elif ob_type == 'evt_strike':
-            if self.app.config['Display']['LightningPanel'] == '1':
+            if int(self.app.config['Display']['LightningPanel']):
                 for ii, button in enumerate(self.app.CurrentConditions.button_list):
                     if "Lightning" in button[3] and button[4] == 'primary':
                         self.app.CurrentConditions.switchPanel([], button)

@@ -76,7 +76,7 @@ with open(os.path.expanduser('~/.kivy/') + 'config_wfpiconsole.ini', 'w') as cfg
 kivyconfig.read(os.path.expanduser('~/.kivy/') + 'config_wfpiconsole.ini')
 
 # Set Kivy window properties
-if config['Display']['Fullscreen'] == '1':
+if int(config['Display']['Fullscreen']):
     kivyconfig.set('graphics', 'fullscreen', 'auto')
 else:
     kivyconfig.set('graphics', 'fullscreen', '0')
