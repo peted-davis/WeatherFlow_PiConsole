@@ -614,11 +614,21 @@ class obs_parser():
         self.update_display(device_type)
 
     def reformat_display(self):
+
+        """ Reformat display when user changes settings
+        """
+
+        # Wait for active threads to finish, then reformat display
         while self.app.connection_client.activeThreads():
             pass
         self.format_derived_variables(self.app.config, 'obs_all')
 
-    def resetDisplay(self):
+    def reset_display(self):
+
+        """ Reset display when user changes station or device
+        """
+
+        # Wait for active threads to finish, then reset display
         while self.app.connection_client.activeThreads():
             pass
         self.display_obs = properties.Obs()
