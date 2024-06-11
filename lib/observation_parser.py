@@ -634,6 +634,7 @@ class obs_parser():
         self.display_obs = properties.Obs()
         self.device_obs  = device_obs.copy()
         self.derive_obs  = derive_obs.copy()
+        self.flag_api    = [1, 1, 1, 1]
         self.api_data    = {}
         self.update_display('obs_reset')
 
