@@ -191,12 +191,12 @@ class SettingToggle(SettingString):
         self.popup.dismiss()
 
     def _minus_value(self, instance):
-        Value = int(self.Label.text.replace(self.units, '')) - 1
-        self.Label.text = str(Value) + self.units
+        value = int(self.Label.text.replace(self.units, '')) - 1
+        self.Label.text = str(value) + self.units
 
     def _plus_value(self, instance):
-        Value = int(self.Label.text.replace(self.units, '')) + 1
-        self.Label.text = str(Value) + self.units
+        value = int(self.Label.text.replace(self.units, '')) + 1
+        self.Label.text = str(value) + self.units
 
 
 class ToggleTemperature(SettingToggle):
@@ -220,6 +220,10 @@ class ToggleMinutes(SettingToggle):
 
     def _set_unit(self):
         self.units = ' minutes'
+
+    def _minus_value(self, instance):
+        value = max(int(self.Label.text.replace(self.units, '')) - 1, 0)
+        self.Label.text = str(value) + self.units
 
 
 def JSON(Section):
@@ -245,7 +249,7 @@ def JSON(Section):
                   'title': 'Number of panels', 'desc': 'Set the number of display panels', 'section': 'Display', 'key': 'PanelCount'},
                  {'type': 'bool', 'desc': 'Switch to lightning panel when a strike is detected',
                   'title': 'Lightning panel', 'section': 'Display', 'key': 'LightningPanel'},
-                 {'type': 'ToggleMinutes', 'desc': 'Lightning panel timeout in minutes',
+                 {'type': 'ToggleMinutes', 'desc': 'Lightning panel timeout after strike is detected',
                   'title': 'Lightning timeout', 'section': 'Display', 'key': 'lightning_timeout'},
                  {'type': 'bool', 'desc': 'Show indoor temperature',
                   'title': 'Indoor temperature', 'section': 'Display', 'key': 'IndoorTemp'},
