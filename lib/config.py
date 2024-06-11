@@ -917,6 +917,7 @@ def default_config_file():
     config['System'] =          collections.OrderedDict([('Description',           '  System settings'),
                                                          ('Connection',            {'Type': 'dependent',                              'Desc': 'Connection type'}),
                                                          ('rest_api',              {'Type': 'dependent',                              'Desc': 'REST API services'}),
+                                                         ('stats_endpoint',        {'Type': 'default',   'Value': '0',                'Desc': 'Statistics API endpoint toggle'}),
                                                          ('SagerInterval',         {'Type': 'default',   'Value': '6',                'Desc': 'Interval in hours between Sager Forecasts'}),
                                                          ('Timeout',               {'Type': 'default',   'Value': '20',               'Desc': 'Timeout in seconds for API requests'}),
                                                          ('Hardware',              {'Type': 'default',   'Value': hardware,           'Desc': 'Hardware type'}),
