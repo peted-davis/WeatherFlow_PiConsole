@@ -885,6 +885,7 @@ def default_config_file():
                                                          ('UpdateNotification',    {'Type': 'default',   'Value': '1',                'Desc': 'update notification toggle'}),
                                                          ('PanelCount',            {'Type': 'default',   'Value': '6',                'Desc': 'number of display panels'}),
                                                          ('LightningPanel',        {'Type': 'default',   'Value': '1',                'Desc': 'lightning panel toggle'}),
+                                                         ('lightning_timeout',     {'Type': 'default',   'Value': '0',                'Desc': 'lightning panel timeout'}),
                                                          ('IndoorTemp',            {'Type': 'dependent',                              'Desc': 'indoor temperature toggle'}),
                                                          ('Cursor',                {'Type': 'default',   'Value': '1',                'Desc': 'cursor toggle'}),
                                                          ('Border',                {'Type': 'default',   'Value': '1',                'Desc': 'border toggle'}),
