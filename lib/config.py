@@ -225,14 +225,14 @@ def update():
     if version.parse(current_version) < version.parse(latest_version):
 
         # Print progress dialogue to screen
-        print('')
-        print('  ===================================================')
-        print('  New version detected                               ')
-        print('  Starting wfpiconsole configuration wizard          ')
-        print('  ===================================================')
-        print('')
-        print('  Required fields are marked with an asterix (*)     ')
-        print('')
+        print(''                                                     , flush=True)
+        print('  ===================================================', flush=True)
+        print('  New version detected                               ', flush=True)
+        print('  Starting wfpiconsole configuration wizard          ', flush=True)
+        print('  ===================================================', flush=True)
+        print(''                                                     , flush=True)
+        print('  Required fields are marked with an asterix (*)     ', flush=True)
+        print(''                                                     , flush=True)
 
         # Create new config parser object to hold updated user configuration file
         new_config = configparser.ConfigParser(allow_no_value=True)
@@ -245,8 +245,8 @@ def update():
             new_config.add_section(section)
             for key in default_config_file()[section]:
                 if key == 'Description':
-                    print(default_config_file()[section][key])
-                    print('  ---------------------------------')
+                    print(default_config_file()[section][key]  , flush=True)
+                    print('  ---------------------------------', flush=True)
                 else:
                     if current_config.has_option(section, key):
                         if update_required(key, current_version):
@@ -260,10 +260,10 @@ def update():
                     elif key == 'Version':
                         changes = True
                         new_config.set(section, key, latest_version)
-                        print('  Updating version number to: ' + latest_version)
+                        print('  Updating version number to: ' + latest_version, flush=True)
             if not changes:
-                print('  No changes required')
-            print('')
+                print('  No changes required', flush=True)
+            print('', flush=True)
 
         # Verify station details for updated configuration
         new_config = verify_station(new_config)
@@ -885,6 +885,7 @@ def default_config_file():
                                                          ('UpdateNotification',    {'Type': 'default',   'Value': '1',                'Desc': 'update notification toggle'}),
                                                          ('PanelCount',            {'Type': 'default',   'Value': '6',                'Desc': 'number of display panels'}),
                                                          ('LightningPanel',        {'Type': 'default',   'Value': '1',                'Desc': 'lightning panel toggle'}),
+                                                         ('lightning_timeout',     {'Type': 'default',   'Value': '0',                'Desc': 'lightning panel timeout'}),
                                                          ('IndoorTemp',            {'Type': 'dependent',                              'Desc': 'indoor temperature toggle'}),
                                                          ('Cursor',                {'Type': 'default',   'Value': '1',                'Desc': 'cursor toggle'}),
                                                          ('Border',                {'Type': 'default',   'Value': '1',                'Desc': 'border toggle'}),
@@ -917,6 +918,7 @@ def default_config_file():
     config['System'] =          collections.OrderedDict([('Description',           '  System settings'),
                                                          ('Connection',            {'Type': 'dependent',                              'Desc': 'Connection type'}),
                                                          ('rest_api',              {'Type': 'dependent',                              'Desc': 'REST API services'}),
+                                                         ('stats_endpoint',        {'Type': 'default',   'Value': '0',                'Desc': 'Statistics API endpoint toggle'}),
                                                          ('SagerInterval',         {'Type': 'default',   'Value': '6',                'Desc': 'Interval in hours between Sager Forecasts'}),
                                                          ('Timeout',               {'Type': 'default',   'Value': '20',               'Desc': 'Timeout in seconds for API requests'}),
                                                          ('Hardware',              {'Type': 'default',   'Value': hardware,           'Desc': 'Hardware type'}),
