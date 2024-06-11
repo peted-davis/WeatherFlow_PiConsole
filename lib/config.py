@@ -225,14 +225,14 @@ def update():
     if version.parse(current_version) < version.parse(latest_version):
 
         # Print progress dialogue to screen
-        print('')
-        print('  ===================================================')
-        print('  New version detected                               ')
-        print('  Starting wfpiconsole configuration wizard          ')
-        print('  ===================================================')
-        print('')
-        print('  Required fields are marked with an asterix (*)     ')
-        print('')
+        print(''                                                     , flush=True)
+        print('  ===================================================', flush=True)
+        print('  New version detected                               ', flush=True)
+        print('  Starting wfpiconsole configuration wizard          ', flush=True)
+        print('  ===================================================', flush=True)
+        print(''                                                     , flush=True)
+        print('  Required fields are marked with an asterix (*)     ', flush=True)
+        print(''                                                     , flush=True)
 
         # Create new config parser object to hold updated user configuration file
         new_config = configparser.ConfigParser(allow_no_value=True)
@@ -245,8 +245,8 @@ def update():
             new_config.add_section(section)
             for key in default_config_file()[section]:
                 if key == 'Description':
-                    print(default_config_file()[section][key])
-                    print('  ---------------------------------')
+                    print(default_config_file()[section][key]  , flush=True)
+                    print('  ---------------------------------', flush=True)
                 else:
                     if current_config.has_option(section, key):
                         if update_required(key, current_version):
@@ -260,10 +260,10 @@ def update():
                     elif key == 'Version':
                         changes = True
                         new_config.set(section, key, latest_version)
-                        print('  Updating version number to: ' + latest_version)
+                        print('  Updating version number to: ' + latest_version, flush=True)
             if not changes:
-                print('  No changes required')
-            print('')
+                print('  No changes required', flush=True)
+            print('', flush=True)
 
         # Verify station details for updated configuration
         new_config = verify_station(new_config)
