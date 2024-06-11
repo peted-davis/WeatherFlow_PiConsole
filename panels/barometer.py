@@ -34,8 +34,8 @@ class BarometerPanel(panelTemplate):
     barometer_min   = StringProperty('-')
 
     # Initialise BarometerPanel
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, mode=None, **kwargs):
+        super().__init__(mode, **kwargs)
         self.setBarometerArrow()
         self.set_barometer_max_min()
 

@@ -32,8 +32,8 @@ class ForecastPanel(panelTemplate):
     forecastIcon = StringProperty('-')
 
     # Initialise ForecastPanel
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, mode=None, **kwargs):
+        super().__init__(mode, **kwargs)
         self.setForecastIcon()
 
     # Set Forecast icon

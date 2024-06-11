@@ -108,7 +108,7 @@ class system():
                 pass
 
             # Open update notification
-            if self.app.config['Display']['UpdateNotification'] == '1':
+            if int(self.app.config['Display']['UpdateNotification']):
                 update_notification(latest_ver).open()
                 Logger.info(f'System: {self.log_time()} - New version available: {latest_ver}')
             else:

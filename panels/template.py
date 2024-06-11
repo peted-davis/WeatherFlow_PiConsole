@@ -25,9 +25,10 @@ from kivy.app                import App
 # ==============================================================================
 class panelTemplate(RelativeLayout):
 
-    def __init__(self, **kwargs):
+    def __init__(self, mode=None, **kwargs):
         super().__init__(**kwargs)
         self.app = App.get_running_app()
+        self.mode = mode
         if not hasattr(self.app, self.__class__.__name__):
             panelList = []
         else:

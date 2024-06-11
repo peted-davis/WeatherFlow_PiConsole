@@ -63,7 +63,7 @@ class mainMenu(ModalView):
         self.get_station_list()
 
         # Populate status fields
-        if self.app.config['System']['rest_api'] == '1':
+        if int(self.app.config['System']['rest_api']):
             self.app.station.get_observation_count()
             self.app.station.get_hub_firmware()
 
@@ -446,7 +446,7 @@ class mainMenu(ModalView):
         self.dismiss(animation=False)
         current_station  = self.app.config['Station']['StationID']
         config.switch(self.station_meta_data, self.device_list, self.app.config)
-        self.app.obsParser.resetDisplay()
+        self.app.obsParser.reset_display()
         if hasattr(self.app.connection_client, '_switch_device'):
             self.app.connection_client._switch_device = True
         if current_station != str(self.station_meta_data['station_id']):

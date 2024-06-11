@@ -222,6 +222,16 @@ the `.ini` file, you can delete it and then restart the console. You will be tak
 through the steps to generate a new `.ini` file with the updated device ID and serial
 number. 
 
+When a device is replaced, the total monthly/yearly rain accumulation displayed in the
+console will also reset to zero as these fields are calculated directly from the 
+total rain accumuluation recorded by the new device (which is naturally zero as 
+the device is brand new). To retain the correct values, it is necessary to switch
+the console to use the Tempest Statistics API endpoint using `Menu` -> `Settings` -> 
+`System` -> `Statistics API endpoint`. By default this option is disbaled as it
+results in a small loss of accuracy through rounding errors. Therefore it is not 
+recommended for use unless you have replaced a device within the last calendar 
+year. At the end of a calendar year, the Statistics endoint can be switched off.  
+
 ## Advanced Installation: Windows
 
 Although not officially supported, use the following step-by-step instructions

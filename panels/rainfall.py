@@ -37,8 +37,8 @@ class RainfallPanel(panelTemplate):
     rain_rate_y  = NumericProperty(-1)
 
     # Initialise RainfallPanel
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, mode=None, **kwargs):
+        super().__init__(mode, **kwargs)
         self.animate_rain_rate()
 
     # Animate RainRate level

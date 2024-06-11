@@ -76,7 +76,7 @@ with open(os.path.expanduser('~/.kivy/') + 'config_wfpiconsole.ini', 'w') as cfg
 kivyconfig.read(os.path.expanduser('~/.kivy/') + 'config_wfpiconsole.ini')
 
 # Set Kivy window properties
-if config['Display']['Fullscreen'] == '1':
+if int(config['Display']['Fullscreen']):
     kivyconfig.set('graphics', 'fullscreen', 'auto')
 else:
     kivyconfig.set('graphics', 'fullscreen', '0')
@@ -241,6 +241,7 @@ class wfpiconsole(App):
         settings.register_type('FixedOptions',      userSettings.FixedOptions)
         settings.register_type('ToggleTemperature', userSettings.ToggleTemperature)
         settings.register_type('ToggleHours',       userSettings.ToggleHours)
+        settings.register_type('ToggleMinutes',     userSettings.ToggleMinutes)
 
         # Add required panels to setting screen. Remove Kivy settings panel
         settings.add_json_panel('Display',          self.config, data=userSettings.JSON('Display'))
@@ -346,7 +347,8 @@ class wfpiconsole(App):
         # Update button layout displayed on CurrentConditions screen
         if section == 'SecondaryPanels':
             self.CurrentConditions.button_list = []
-            secondary_panels  = tuple(self.config['SecondaryPanels'].items())
+            primary_panel_list   = tuple(self.config['PrimaryPanels'].items())
+            secondary_panel_list = tuple(self.config['SecondaryPanels'].items())
             button_list = ['button_' + Num for Num in ['one', 'two', 'three', 'four', 'five', 'six']]
             button_number = 0
             for button in button_list:
@@ -358,10 +360,11 @@ class wfpiconsole(App):
             elif int(self.config['Display']['PanelCount']) == 6:
                 button_ids = ['button_' + number for number in ['one',   'two',  'three', 'four', 'five', 'six']]
             for ii, button_id in enumerate(button_ids):
-                button_type = secondary_panels[ii][1]
-                if button_type and button_type != 'None':
-                    self.CurrentConditions.ids[button_ids[button_number]].add_widget(eval(button_type + 'Button')())
-                    self.CurrentConditions.button_list.append([button_ids[button_number], panel_list[ii], button_type, 'Primary'])
+                primary_panel   = primary_panel_list[ii][1]
+                secondary_panel = secondary_panel_list[ii][1]
+                if secondary_panel and secondary_panel != 'None':
+                    self.CurrentConditions.ids[button_ids[button_number]].add_widget(eval(secondary_panel + 'Button')())
+                    self.CurrentConditions.button_list.append([button_ids[button_number], panel_list[ii], primary_panel, secondary_panel, 'primary'])
                     button_number += 1
 
             # Change 'None' for secondary panel selection to blank in config
@@ -398,8 +401,8 @@ class wfpiconsole(App):
                                         if isinstance(child, Switch):
                                             child.active = True
 
-        # Switch connection type
-        if section == 'System' and key == 'Connection':
+        # Switch connection type or change between Device/Statistics API endpoint
+        if section == 'System' and (key == 'Connection' or key == 'stats_endpoint'):
             self.stop_connection_service()
             self.start_connection_service()
 
@@ -534,39 +537,48 @@ class CurrentConditions(Screen):
             self.ids['row_layout'].add_widget(row_box_layout)
             for panel_id in panel_ids[row]:
                 button_id   = button_ids[button_count]
-                panel_type  = primary_panels[panel_count][1]
-                button_type = secondary_panels[panel_count][1]
+                primary_panel     = primary_panels[panel_count][1]
+                secondary_panel   = secondary_panels[panel_count][1]
                 self.ids[panel_id] = BoxLayout()
-                self.ids[panel_id].add_widget(eval(panel_type + 'Panel')())
+                self.ids[panel_id].add_widget(eval(primary_panel + 'Panel')())
                 row_box_layout.add_widget(self.ids[panel_id])
-                if button_type:
-                    self.ids[button_id].add_widget(eval(button_type + 'Button')())
-                    self.button_list.append([button_id, panel_id, button_type, 'Primary'])
+                if secondary_panel:
+                    self.ids[button_id].add_widget(eval(secondary_panel + 'Button')())
+                    self.button_list.append([button_id, panel_id, primary_panel, secondary_panel, 'primary'])
                     button_count += 1
                 panel_count += 1
 
     # SWITCH BETWEEN PRIMARY AND SECONDARY PANELS ON CURRENT CONDITIONS SCREEN
     # --------------------------------------------------------------------------
-    def switchPanel(self, button_pressed, button_overide=None):
+    def switchPanel(self, button_pressed, button_overide=None, *args):
 
         # Determine ID of button that has been pressed and extract corresponding
         # entry in buttonList
         if button_pressed:
-            for id, Object in self.ids.items():
-                if Object == button_pressed.parent.parent:
+            for id, object in self.ids.items():
+                if object == button_pressed.parent.parent:
                     break
         else:
             id = button_overide[0]
-        for ii, button in enumerate(self.button_list):
-            if button[0] == id:
+        for ii, button_data in enumerate(self.button_list):
+            if button_data[0] == id:
                 break
+
+        # Cancel lightning_panel_timeout if scheduled and Lightning button has
+        # been pressed
+        if 'Lightning' in button_data and hasattr(self.app.Sched, 'lightning_panel_timeout'):
+            self.app.Sched.lightning_panel_timeout.cancel()
 
         # Extract panel object that corresponds to the button that has been
         # pressed and determine new button type required
-        panel_object = self.ids[button[1]].children
-        panel_number = 'Panel' + button[1].split('_')[1].title()
-        panel_type   = button[3] + 'Panels'
+        panel_object = self.ids[button_data[1]].children
+        panel_number = 'Panel' + button_data[1].split('_')[1].title()
+        panel_type   = button_data[4].title() + 'Panels'
         new_button   = self.app.config[panel_type][panel_number]
+        if panel_type == 'PrimaryPanels':
+            new_panel = self.app.config['SecondaryPanels'][panel_number]
+        elif panel_type == 'SecondaryPanels':
+            new_panel = self.app.config['PrimaryPanels'][panel_number]
 
         # Destroy reference to old panel class attribute
         if hasattr(self.app, new_button + 'Panel'):
@@ -575,18 +587,22 @@ class CurrentConditions(Screen):
             except ValueError:
                 Logger.warning('Unable to remove panel reference from wfpiconsole class')
 
+        if button_overide:
+            mode = 'auto'
+        else:
+            mode = 'manual'
+
         # Switch panel
-        self.ids[button[1]].clear_widgets()
-        self.ids[button[1]].add_widget(eval(button[2] + 'Panel')())
-        self.ids[button[0]].clear_widgets()
-        self.ids[button[0]].add_widget(eval(new_button + 'Button')())
+        self.ids[button_data[1]].clear_widgets()
+        self.ids[button_data[1]].add_widget(eval(new_panel + 'Panel')(mode))
+        self.ids[button_data[0]].clear_widgets()
+        self.ids[button_data[0]].add_widget(eval(new_button + 'Button')())
 
         # Update button list
-        if button[3] == 'Primary':
-            self.button_list[ii] = [button[0], button[1], new_button, 'Secondary']
-        elif button[3] == 'Secondary':
-            self.button_list[ii] = [button[0], button[1], new_button, 'Primary']
-
+        if button_data[4] == 'primary':
+            self.button_list[ii][4] = 'secondary' 
+        elif button_data[4] == 'secondary':
+            self.button_list[ii][4] = 'primary'
 
 # ==============================================================================
 # RUN APP
