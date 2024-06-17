@@ -28,7 +28,7 @@ import sys
 import os
 
 # Define wfpiconsole version number
-ver = 'v24.6.1'
+ver = 'v24.6.2'
 
 # Define required variables
 TEMPEST       = False
@@ -107,9 +107,9 @@ def create():
             for section in default_config:
                 config.add_section(section)
                 for key in default_config[section]:
-                    if key != 'Description':
-                        if 'Value' in default_config[section][key]:
-                            config.set(section, key, str(default_config[section][key]['Value']))
+                    if key != 'description':
+                        if 'value' in default_config[section][key]:
+                            config.set(section, key, str(default_config[section][key]['value']))
                         else:
                             config.set(section, key, '')
 
@@ -188,7 +188,7 @@ def create():
 
         # Add remaining sections to user configuration file
         for key in default_config[section]:
-            if key == 'Description':
+            if key == 'description':
                 print(default_config[section][key])
                 print('  ---------------------------------')
             else:
@@ -212,7 +212,7 @@ def update():
     """
 
     # Fetch latest version number
-    latest_version = default_config_file()['System']['Version']['Value']
+    latest_version = default_config_file()['System']['Version']['value']
 
     # Load current user configuration file
     current_config = configparser.ConfigParser(allow_no_value=True)
@@ -244,7 +244,7 @@ def update():
             changes = False
             new_config.add_section(section)
             for key in default_config_file()[section]:
-                if key == 'Description':
+                if key == 'description':
                     print(default_config_file()[section][key]  , flush=True)
                     print('  ---------------------------------', flush=True)
                 else:
@@ -374,8 +374,8 @@ def copy_config_key(new_config, current_config, section, key, details):
     global TEMPEST, INDOORAIR
 
     # Copy fixed key from default configuration
-    if details['Type'] == 'fixed':
-        value = details['Value']
+    if details['type'] == 'fixed':
+        value = details['value']
 
     # Copy key value from existing configuration. Ignore AIR/SKY device IDs if
     # switching to TEMPEST
@@ -424,11 +424,11 @@ def write_config_key(config, section, key, details):
     # Define required variables
     key_required = True
 
-    # GET VALUE OF userInput KEY TYPE
+    # GET value OF user_input KEY type
     # --------------------------------------------------------------------------
-    if details['Type'] in ['userInput']:
+    if details['type'] in ['user_input']:
 
-        # Determine whether userInput keys are required based on specified
+        # Determine whether user_input keys are required based on specified
         # connection type
         if key in ['WeatherFlow', 'CheckWX', 'StationID'] and CONNECTION == 3:
             print('  ' + key + ' key not required for UDP only connections')
@@ -468,38 +468,38 @@ def write_config_key(config, section, key, details):
             value = ''
             key_required = False
 
-        # userInput key required. Get value from user
+        # user_input key required. Get value from user
         if key_required:
             while True:
-                if details['State'] == 'required':
-                    string = '  Please enter your ' + details['Desc'] + '*: '
+                if details['state'] == 'required':
+                    string = '  Please enter your ' + details['desc'] + '*: '
                 else:
-                    string = '  Please enter your ' + details['Desc'] + ': '
+                    string = '  Please enter your ' + details['desc'] + ': '
                 value = input(string)
 
-                # userInput key value is empty. Check if userInput key is
+                # user_input key value is empty. Check if user_input key is
                 # required
-                if not value and details['State'] == 'required':
-                    print('    ' + details['Desc'] + ' cannot be empty. Please try again')
+                if not value and details['state'] == 'required':
+                    print('    ' + details['desc'] + ' cannot be empty. Please try again')
                     continue
-                elif not value and details['State'] == 'optional':
+                elif not value and details['state'] == 'optional':
                     break
 
-                # Check if userInput key value matches required format
+                # Check if user_input key value matches required format
                 try:
-                    value = details['Format'](value)
+                    value = details['format'](value)
                     break
                 except ValueError:
-                    print('    ' + details['Desc'] + ' format is not valid. Please try again')
+                    print('    ' + details['desc'] + ' format is not valid. Please try again')
                 except KeyError:
                     break
 
-        # Write userInput Key value pair to configuration file
+        # Write user_input Key value pair to configuration file
         config.set(section, key, str(value))
 
-    # GET VALUE OF dependent KEY TYPE
+    # GET value OF dependent KEY type
     # --------------------------------------------------------------------------
-    elif details['Type'] in ['dependent']:
+    elif details['type'] in ['dependent']:
 
         # Get dependent Key value
         if key == 'IndoorTemp':
@@ -508,7 +508,7 @@ def write_config_key(config, section, key, details):
             else:
                 value = '0'
         elif section == 'Units':
-            value = details['Value'][UNITS]
+            value = details['value'][UNITS]
         elif section == 'System':
             if key == 'Connection':
                 if CONNECTION == 1 or CONNECTION is None:
@@ -520,38 +520,38 @@ def write_config_key(config, section, key, details):
                     value = '1'
                 elif CONNECTION == 3:
                     value = '0'
-            print('  Adding ' + details['Desc'] + ': ' + value)
+            print('  Adding ' + details['desc'] + ': ' + value)
 
         # Write dependent Key value pair to configuration file
         config.set(section, key, str(value))
 
-    # GET VALUE OF default OR fixed KEY TYPE
+    # GET value OF default OR fixed KEY type
     # --------------------------------------------------------------------------
-    elif details['Type'] in ['default', 'fixed']:
+    elif details['type'] in ['default', 'fixed']:
 
         # Get default or fixed Key value
         if key in ['ExtremelyCold', 'FreezingCold', 'VeryCold', 'Cold', 'Mild', 'Warm', 'Hot', 'VeryHot']:
             if 'c' in config['Units']['Temp']:
-                value = details['Value']
+                value = details['value']
             elif 'f' in config['Units']['Temp']:
-                value = str(int(float(details['Value']) * 9 / 5 + 32))
+                value = str(int(float(details['value']) * 9 / 5 + 32))
         else:
-            value = details['Value']
+            value = details['value']
 
         # Write default or fixed Key value pair to configuration file
-        print('  Adding ' + details['Desc'] + ': ' + value)
+        print('  Adding ' + details['desc'] + ': ' + value)
         config.set(section, key, str(value))
 
-    # GET VALUE OF request KEY TYPE
+    # GET value OF request KEY type
     # --------------------------------------------------------------------------
-    elif details['Type'] in ['request']:
+    elif details['type'] in ['request']:
 
         # Define local variables
         value = ''
 
         # Get Observation metadata from WeatherFlow API
         RETRIES = 0
-        if details['Source'] == 'observation' and OBSERVATION is None:
+        if details['source'] == 'observation' and OBSERVATION is None:
             while True:
                 Template = 'https://swd.weatherflow.com/swd/rest/observations/station/{}?token={}'
                 URL = Template.format(config['Station']['StationID'], config['Keys']['WeatherFlow'])
@@ -700,7 +700,7 @@ def write_config_key(config, section, key, details):
 
         # Write request Key value pair to configuration file
         if value:
-            print('  Adding ' + details['Desc'] + ': ' + str(value))
+            print('  Adding ' + details['desc'] + ': ' + str(value))
         config.set(section, key, str(value))
 
     # Validate API keys
@@ -850,79 +850,79 @@ def default_config_file():
     # ORDERED DICTS
     # --------------------------------------------------------------------------
     config =                    collections.OrderedDict()
-    config['Keys'] =            collections.OrderedDict([('Description',           '  API keys'),
-                                                         ('WeatherFlow',           {'Type': 'userInput', 'State': 'required',         'Desc': 'WeatherFlow Access Token',     'Format': str}),
-                                                         ('CheckWX',               {'Type': 'userInput', 'State': 'required',         'Desc': 'CheckWX API Key',              'Format': str})])
-    config['Station'] =         collections.OrderedDict([('Description',           '  Station and device IDs'),
-                                                         ('StationID',             {'Type': 'userInput', 'State': 'required',         'Desc': 'Station ID',                   'Format': int}),
-                                                         ('TempestID',             {'Type': 'userInput', 'State': 'required',         'Desc': 'TEMPEST device ID',            'Format': int}),
-                                                         ('TempestSN',             {'Type': 'request',   'Source': 'station',         'Desc': 'TEMPEST serial number'}),
-                                                         ('SkyID',                 {'Type': 'userInput', 'State': 'required',         'Desc': 'SKY device ID',                'Format': int}),
-                                                         ('SkySN',                 {'Type': 'request',   'Source': 'station',         'Desc': 'SKY serial number'}),
-                                                         ('OutAirID',              {'Type': 'userInput', 'State': 'required',         'Desc': 'outdoor AIR device ID',        'Format': int}),
-                                                         ('OutAirSN',              {'Type': 'request',   'Source': 'station',         'Desc': 'outdoor AIR serial number'}),
-                                                         ('InAirID',               {'Type': 'userInput', 'State': 'required',         'Desc': 'indoor AIR device ID',         'Format': int}),
-                                                         ('InAirSN',               {'Type': 'request',   'Source': 'station',         'Desc': 'indoor AIR serial number'}),
-                                                         ('TempestHeight',         {'Type': 'request',   'Source': 'station',         'Desc': 'height of TEMPEST'}),
-                                                         ('SkyHeight',             {'Type': 'request',   'Source': 'station',         'Desc': 'height of SKY'}),
-                                                         ('OutAirHeight',          {'Type': 'request',   'Source': 'station',         'Desc': 'height of outdoor AIR'}),
-                                                         ('Latitude',              {'Type': 'request',   'Source': 'station',         'Desc': 'station latitude',             'Value': '51.5072'}),
-                                                         ('Longitude',             {'Type': 'request',   'Source': 'station',         'Desc': 'station longitude',            'Value': '0.1276'}),
-                                                         ('Elevation',             {'Type': 'request',   'Source': 'station',         'Desc': 'station elevation',            'Value': '11'}),
-                                                         ('Timezone',              {'Type': 'request',   'Source': 'station',         'Desc': 'station timezone',             'Value': 'Europe/London'}),
-                                                         ('Name',                  {'Type': 'request',   'Source': 'station',         'Desc': 'station name',                 'Value': 'London, UK'})])
-    config['Units'] =           collections.OrderedDict([('Description',           '  Observation units'),
-                                                         ('Temp',                  {'Type': 'request',   'Source': 'observation',     'Desc': 'station temperature units',    'Value': 'c'}),
-                                                         ('Pressure',              {'Type': 'request',   'Source': 'observation',     'Desc': 'station pressure units',       'Value': 'mb'}),
-                                                         ('Wind',                  {'Type': 'request',   'Source': 'observation',     'Desc': 'station wind units',           'Value': 'mph'}),
-                                                         ('Direction',             {'Type': 'request',   'Source': 'observation',     'Desc': 'station direction units',      'Value': 'cardinal'}),
-                                                         ('Precip',                {'Type': 'request',   'Source': 'observation',     'Desc': 'station precipitation units',  'Value': 'mm'}),
-                                                         ('Distance',              {'Type': 'request',   'Source': 'observation',     'Desc': 'station distance units',       'Value': 'km'}),
-                                                         ('Other',                 {'Type': 'request',   'Source': 'observation',     'Desc': 'station other units',          'Value': 'metric'})])
-    config['Display'] =         collections.OrderedDict([('Description',           '  Display settings'),
-                                                         ('TimeFormat',            {'Type': 'default',   'Value': '24 hr',            'Desc': 'time format'}),
-                                                         ('DateFormat',            {'Type': 'default',   'Value': 'Mon, 01 Jan 0000', 'Desc': 'date format'}),
-                                                         ('UpdateNotification',    {'Type': 'default',   'Value': '1',                'Desc': 'update notification toggle'}),
-                                                         ('PanelCount',            {'Type': 'default',   'Value': '6',                'Desc': 'number of display panels'}),
-                                                         ('LightningPanel',        {'Type': 'default',   'Value': '1',                'Desc': 'lightning panel toggle'}),
-                                                         ('lightning_timeout',     {'Type': 'default',   'Value': '0',                'Desc': 'lightning panel timeout'}),
-                                                         ('IndoorTemp',            {'Type': 'dependent',                              'Desc': 'indoor temperature toggle'}),
-                                                         ('Cursor',                {'Type': 'default',   'Value': '1',                'Desc': 'cursor toggle'}),
-                                                         ('Border',                {'Type': 'default',   'Value': '1',                'Desc': 'border toggle'}),
-                                                         ('Fullscreen',            {'Type': 'default',   'Value': '1',                'Desc': 'fullscreen toggle'}),
-                                                         ('Width',                 {'Type': 'default',   'Value': '800',              'Desc': 'console width (pixels)'}),
-                                                         ('Height',                {'Type': 'default',   'Value': '480',              'Desc': 'console height (pixels)'})])
-    config['FeelsLike'] =       collections.OrderedDict([('Description',           '  "Feels Like" temperature cut-offs'),
-                                                         ('ExtremelyCold',         {'Type': 'default',   'Value': '-5',               'Desc': '"Feels extremely cold" cut-off temperature'}),
-                                                         ('FreezingCold',          {'Type': 'default',   'Value': '0',                'Desc': '"Feels freezing cold" cut-off temperature'}),
-                                                         ('VeryCold',              {'Type': 'default',   'Value': '5',                'Desc': '"Feels very cold" cut-off temperature'}),
-                                                         ('Cold',                  {'Type': 'default',   'Value': '10',               'Desc': '"Feels cold" cut-off temperature'}),
-                                                         ('Mild',                  {'Type': 'default',   'Value': '15',               'Desc': '"Feels mild" cut-off temperature'}),
-                                                         ('Warm',                  {'Type': 'default',   'Value': '20',               'Desc': '"Feels warm" cut-off temperature'}),
-                                                         ('Hot',                   {'Type': 'default',   'Value': '25',               'Desc': '"Feels hot" cut-off temperature'}),
-                                                         ('VeryHot',               {'Type': 'default',   'Value': '30',               'Desc': '"Feels very hot" cut-off temperature'})])
-    config['PrimaryPanels'] =   collections.OrderedDict([('Description',           '  Primary panel layout'),
-                                                         ('PanelOne',              {'Type': 'default',   'Value': 'Forecast',         'Desc': 'Primary display for Panel One'}),
-                                                         ('PanelTwo',              {'Type': 'default',   'Value': 'Temperature',      'Desc': 'Primary display for Panel Two'}),
-                                                         ('PanelThree',            {'Type': 'default',   'Value': 'WindSpeed',        'Desc': 'Primary display for Panel Three'}),
-                                                         ('PanelFour',             {'Type': 'default',   'Value': 'SunriseSunset',    'Desc': 'Primary display for Panel Four'}),
-                                                         ('PanelFive',             {'Type': 'default',   'Value': 'Rainfall',         'Desc': 'Primary display for Panel Five'}),
-                                                         ('PanelSix',              {'Type': 'default',   'Value': 'Barometer',        'Desc': 'Primary display for Panel Six'})])
-    config['SecondaryPanels'] = collections.OrderedDict([('Description',           '  Secondary panel layout'),
-                                                         ('PanelOne',              {'Type': 'default',   'Value': 'Sager',            'Desc': 'Secondary display for Panel One'}),
-                                                         ('PanelTwo',              {'Type': 'default',   'Value': '',                 'Desc': 'Secondary display for Panel Two'}),
-                                                         ('PanelThree',            {'Type': 'default',   'Value': '',                 'Desc': 'Secondary display for Panel Three'}),
-                                                         ('PanelFour',             {'Type': 'default',   'Value': 'MoonPhase',        'Desc': 'Secondary display for Panel Four'}),
-                                                         ('PanelFive',             {'Type': 'default',   'Value': '',                 'Desc': 'Secondary display for Panel Five'}),
-                                                         ('PanelSix',              {'Type': 'default',   'Value': 'Lightning',        'Desc': 'Secondary display for Panel Six'})])
-    config['System'] =          collections.OrderedDict([('Description',           '  System settings'),
-                                                         ('Connection',            {'Type': 'dependent',                              'Desc': 'Connection type'}),
-                                                         ('rest_api',              {'Type': 'dependent',                              'Desc': 'REST API services'}),
-                                                         ('stats_endpoint',        {'Type': 'default',   'Value': '0',                'Desc': 'Statistics API endpoint toggle'}),
-                                                         ('SagerInterval',         {'Type': 'default',   'Value': '6',                'Desc': 'Interval in hours between Sager Forecasts'}),
-                                                         ('Timeout',               {'Type': 'default',   'Value': '20',               'Desc': 'Timeout in seconds for API requests'}),
-                                                         ('Hardware',              {'Type': 'default',   'Value': hardware,           'Desc': 'Hardware type'}),
-                                                         ('Version',               {'Type': 'default',   'Value': ver,                'Desc': 'Version number'})])
+    config['Keys'] =            collections.OrderedDict([('description',           '  API keys'),
+                                                         ('WeatherFlow',           {'type': 'user_input', 'state': 'required',         'desc': 'WeatherFlow Access Token',     'format': str}),
+                                                         ('CheckWX',               {'type': 'user_input', 'state': 'required',         'desc': 'CheckWX API Key',              'format': str})])
+    config['Station'] =         collections.OrderedDict([('description',           '  Station and device IDs'),
+                                                         ('StationID',             {'type': 'user_input', 'state': 'required',         'desc': 'Station ID',                   'format': int}),
+                                                         ('TempestID',             {'type': 'user_input', 'state': 'required',         'desc': 'TEMPEST device ID',            'format': int}),
+                                                         ('TempestSN',             {'type': 'request',    'source': 'station',         'desc': 'TEMPEST serial number'}),
+                                                         ('SkyID',                 {'type': 'user_input', 'state': 'required',         'desc': 'SKY device ID',                'format': int}),
+                                                         ('SkySN',                 {'type': 'request',    'source': 'station',         'desc': 'SKY serial number'}),
+                                                         ('OutAirID',              {'type': 'user_input', 'state': 'required',         'desc': 'outdoor AIR device ID',        'format': int}),
+                                                         ('OutAirSN',              {'type': 'request',    'source': 'station',         'desc': 'outdoor AIR serial number'}),
+                                                         ('InAirID',               {'type': 'user_input', 'state': 'required',         'desc': 'indoor AIR device ID',         'format': int}),
+                                                         ('InAirSN',               {'type': 'request',    'source': 'station',         'desc': 'indoor AIR serial number'}),
+                                                         ('TempestHeight',         {'type': 'request',    'source': 'station',         'desc': 'height of TEMPEST'}),
+                                                         ('SkyHeight',             {'type': 'request',    'source': 'station',         'desc': 'height of SKY'}),
+                                                         ('OutAirHeight',          {'type': 'request',    'source': 'station',         'desc': 'height of outdoor AIR'}),
+                                                         ('Latitude',              {'type': 'request',    'source': 'station',         'desc': 'station latitude',             'value': '51.5072'}),
+                                                         ('Longitude',             {'type': 'request',    'source': 'station',         'desc': 'station longitude',            'value': '0.1276'}),
+                                                         ('Elevation',             {'type': 'request',    'source': 'station',         'desc': 'station elevation',            'value': '11'}),
+                                                         ('Timezone',              {'type': 'request',    'source': 'station',         'desc': 'station timezone',             'value': 'Europe/London'}),
+                                                         ('Name',                  {'type': 'request',    'source': 'station',         'desc': 'station name',                 'value': 'London, UK'})])
+    config['Units'] =           collections.OrderedDict([('description',           '  Observation units'),
+                                                         ('Temp',                  {'type': 'request',   'source': 'observation',     'desc': 'station temperature units',    'value': 'c'}),
+                                                         ('Pressure',              {'type': 'request',   'source': 'observation',     'desc': 'station pressure units',       'value': 'mb'}),
+                                                         ('Wind',                  {'type': 'request',   'source': 'observation',     'desc': 'station wind units',           'value': 'mph'}),
+                                                         ('Direction',             {'type': 'request',   'source': 'observation',     'desc': 'station direction units',      'value': 'cardinal'}),
+                                                         ('Precip',                {'type': 'request',   'source': 'observation',     'desc': 'station precipitation units',  'value': 'mm'}),
+                                                         ('Distance',              {'type': 'request',   'source': 'observation',     'desc': 'station distance units',       'value': 'km'}),
+                                                         ('Other',                 {'type': 'request',   'source': 'observation',     'desc': 'station other units',          'value': 'metric'})])
+    config['Display'] =         collections.OrderedDict([('description',           '  Display settings'),
+                                                         ('TimeFormat',            {'type': 'default',   'value': '24 hr',            'desc': 'time format'}),
+                                                         ('DateFormat',            {'type': 'default',   'value': 'Mon, 01 Jan 0000', 'desc': 'date format'}),
+                                                         ('UpdateNotification',    {'type': 'default',   'value': '1',                'desc': 'update notification toggle'}),
+                                                         ('PanelCount',            {'type': 'default',   'value': '6',                'desc': 'number of display panels'}),
+                                                         ('LightningPanel',        {'type': 'default',   'value': '1',                'desc': 'lightning panel toggle'}),
+                                                         ('lightning_timeout',     {'type': 'default',   'value': '0',                'desc': 'lightning panel timeout'}),
+                                                         ('IndoorTemp',            {'type': 'dependent',                              'desc': 'indoor temperature toggle'}),
+                                                         ('Cursor',                {'type': 'default',   'value': '1',                'desc': 'cursor toggle'}),
+                                                         ('Border',                {'type': 'default',   'value': '1',                'desc': 'border toggle'}),
+                                                         ('Fullscreen',            {'type': 'default',   'value': '1',                'desc': 'fullscreen toggle'}),
+                                                         ('Width',                 {'type': 'default',   'value': '800',              'desc': 'console width (pixels)'}),
+                                                         ('Height',                {'type': 'default',   'value': '480',              'desc': 'console height (pixels)'})])
+    config['FeelsLike'] =       collections.OrderedDict([('description',           '  "Feels Like" temperature cut-offs'),
+                                                         ('ExtremelyCold',         {'type': 'default',   'value': '-5',               'desc': '"Feels extremely cold" cut-off temperature'}),
+                                                         ('FreezingCold',          {'type': 'default',   'value': '0',                'desc': '"Feels freezing cold" cut-off temperature'}),
+                                                         ('VeryCold',              {'type': 'default',   'value': '5',                'desc': '"Feels very cold" cut-off temperature'}),
+                                                         ('Cold',                  {'type': 'default',   'value': '10',               'desc': '"Feels cold" cut-off temperature'}),
+                                                         ('Mild',                  {'type': 'default',   'value': '15',               'desc': '"Feels mild" cut-off temperature'}),
+                                                         ('Warm',                  {'type': 'default',   'value': '20',               'desc': '"Feels warm" cut-off temperature'}),
+                                                         ('Hot',                   {'type': 'default',   'value': '25',               'desc': '"Feels hot" cut-off temperature'}),
+                                                         ('VeryHot',               {'type': 'default',   'value': '30',               'desc': '"Feels very hot" cut-off temperature'})])
+    config['PrimaryPanels'] =   collections.OrderedDict([('description',           '  Primary panel layout'),
+                                                         ('PanelOne',              {'type': 'default',   'value': 'Forecast',         'desc': 'Primary display for Panel One'}),
+                                                         ('PanelTwo',              {'type': 'default',   'value': 'Temperature',      'desc': 'Primary display for Panel Two'}),
+                                                         ('PanelThree',            {'type': 'default',   'value': 'WindSpeed',        'desc': 'Primary display for Panel Three'}),
+                                                         ('PanelFour',             {'type': 'default',   'value': 'SunriseSunset',    'desc': 'Primary display for Panel Four'}),
+                                                         ('PanelFive',             {'type': 'default',   'value': 'Rainfall',         'desc': 'Primary display for Panel Five'}),
+                                                         ('PanelSix',              {'type': 'default',   'value': 'Barometer',        'desc': 'Primary display for Panel Six'})])
+    config['SecondaryPanels'] = collections.OrderedDict([('description',           '  Secondary panel layout'),
+                                                         ('PanelOne',              {'type': 'default',   'value': 'Sager',            'desc': 'Secondary display for Panel One'}),
+                                                         ('PanelTwo',              {'type': 'default',   'value': '',                 'desc': 'Secondary display for Panel Two'}),
+                                                         ('PanelThree',            {'type': 'default',   'value': '',                 'desc': 'Secondary display for Panel Three'}),
+                                                         ('PanelFour',             {'type': 'default',   'value': 'MoonPhase',        'desc': 'Secondary display for Panel Four'}),
+                                                         ('PanelFive',             {'type': 'default',   'value': '',                 'desc': 'Secondary display for Panel Five'}),
+                                                         ('PanelSix',              {'type': 'default',   'value': 'Lightning',        'desc': 'Secondary display for Panel Six'})])
+    config['System'] =          collections.OrderedDict([('description',           '  System settings'),
+                                                         ('Connection',            {'type': 'dependent',                              'desc': 'Connection type',     'value': 'Websocket'}),
+                                                         ('rest_api',              {'type': 'dependent',                              'desc': 'REST API services',   'value': 1}),
+                                                         ('stats_endpoint',        {'type': 'default',   'value': '0',                'desc': 'Statistics API endpoint toggle'}),
+                                                         ('SagerInterval',         {'type': 'default',   'value': '6',                'desc': 'Interval in hours between Sager Forecasts'}),
+                                                         ('Timeout',               {'type': 'default',   'value': '20',               'desc': 'Timeout in seconds for API requests'}),
+                                                         ('Hardware',              {'type': 'default',   'value': hardware,           'desc': 'Hardware type'}),
+                                                         ('Version',               {'type': 'default',   'value': ver,                'desc': 'Version number'})])
 
     # Return default configuration
     return config
@@ -943,26 +943,26 @@ def udp_input_fields():
     # ORDERED DICTS
     # --------------------------------------------------------------------------
     udp_input =                    collections.OrderedDict()
-    udp_input['Station'] =         collections.OrderedDict([('TempestSN',      {'Type': 'userInput',   'State': 'required',             'Desc': 'TEMPEST serial number',                  'Format': str}),
-                                                            ('SkySN',          {'Type': 'userInput',   'State': 'required',             'Desc': 'SKY serial number',                      'Format': str}),
-                                                            ('OutAirSN',       {'Type': 'userInput',   'State': 'required',             'Desc': 'outdoor AIR serial number',              'Format': str}),
-                                                            ('InAirSN',        {'Type': 'userInput',   'State': 'required',             'Desc': 'indoor AIR serial number',               'Format': str}),
-                                                            ('TempestHeight',  {'Type': 'userInput',   'State': 'required',             'Desc': 'TEMPEST height (meters)',                'Format': float}),
-                                                            ('SkyHeight',      {'Type': 'userInput',   'State': 'required',             'Desc': 'SKY height (meters)',                    'Format': float}),
-                                                            ('OutAirHeight',   {'Type': 'userInput',   'State': 'required',             'Desc': 'outdoor AIR height (meters)',            'Format': float}),
-                                                            ('Latitude',       {'Type': 'userInput',   'State': 'required',             'Desc': 'station latitude (negative for south)',  'Format': float}),
-                                                            ('Longitude',      {'Type': 'userInput',   'State': 'required',             'Desc': 'station longitude (negative for west)',  'Format': float}),
-                                                            ('Elevation',      {'Type': 'userInput',   'State': 'required',             'Desc': 'station elevation (meters)',             'Format': float}),
-                                                            ('Name',           {'Type': 'userInput',   'State': 'required',             'Desc': 'station name',                           'Format': str}),
-                                                            ('Timezone',       {'Type': 'default',     'Value': str(get_localzone()),   'Desc': 'station timezone'})])
-    udp_input['Units'] =           collections.OrderedDict([('Description',    '  Observation units'),
-                                                            ('Temp',           {'Type': 'dependent',   'Desc': 'station temperature units',    'Value': {1: 'c',        2: 'c',        3: 'f'}}),
-                                                            ('Pressure',       {'Type': 'dependent',   'Desc': 'station pressure units',       'Value': {1: 'mb',       2: 'mb',       3: 'inhg'}}),
-                                                            ('Wind',           {'Type': 'dependent',   'Desc': 'station wind units',           'Value': {1: 'mps',      2: 'kph',      3: 'mph'}}),
-                                                            ('Direction',      {'Type': 'dependent',   'Desc': 'station direction units',      'Value': {1: 'cardinal', 2: 'cardinal', 3: 'cardinal'}}),
-                                                            ('Precip',         {'Type': 'dependent',   'Desc': 'station precipitation units',  'Value': {1: 'mm',       2: 'cm',       3: 'in'}}),
-                                                            ('Distance',       {'Type': 'dependent',   'Desc': 'station distance units',       'Value': {1: 'km',       2: 'km',       3: 'mi'}}),
-                                                            ('Other',          {'Type': 'dependent',   'Desc': 'station other units',          'Value': {1: 'metric',   2: 'metric',   3: 'imperial'}})])
+    udp_input['Station'] =         collections.OrderedDict([('TempestSN',      {'type': 'user_input',   'state': 'required',             'desc': 'TEMPEST serial number',                  'format': str}),
+                                                            ('SkySN',          {'type': 'user_input',   'state': 'required',             'desc': 'SKY serial number',                      'format': str}),
+                                                            ('OutAirSN',       {'type': 'user_input',   'state': 'required',             'desc': 'outdoor AIR serial number',              'format': str}),
+                                                            ('InAirSN',        {'type': 'user_input',   'state': 'required',             'desc': 'indoor AIR serial number',               'format': str}),
+                                                            ('TempestHeight',  {'type': 'user_input',   'state': 'required',             'desc': 'TEMPEST height (meters)',                'format': float}),
+                                                            ('SkyHeight',      {'type': 'user_input',   'state': 'required',             'desc': 'SKY height (meters)',                    'format': float}),
+                                                            ('OutAirHeight',   {'type': 'user_input',   'state': 'required',             'desc': 'outdoor AIR height (meters)',            'format': float}),
+                                                            ('Latitude',       {'type': 'user_input',   'state': 'required',             'desc': 'station latitude (negative for south)',  'format': float}),
+                                                            ('Longitude',      {'type': 'user_input',   'state': 'required',             'desc': 'station longitude (negative for west)',  'format': float}),
+                                                            ('Elevation',      {'type': 'user_input',   'state': 'required',             'desc': 'station elevation (meters)',             'format': float}),
+                                                            ('Name',           {'type': 'user_input',   'state': 'required',             'desc': 'station name',                           'format': str}),
+                                                            ('Timezone',       {'type': 'default',     'value': str(get_localzone()),   'desc': 'station timezone'})])
+    udp_input['Units'] =           collections.OrderedDict([('description',    '  Observation units'),
+                                                            ('Temp',           {'type': 'dependent',   'desc': 'station temperature units',    'value': {1: 'c',        2: 'c',        3: 'f'}}),
+                                                            ('Pressure',       {'type': 'dependent',   'desc': 'station pressure units',       'value': {1: 'mb',       2: 'mb',       3: 'inhg'}}),
+                                                            ('Wind',           {'type': 'dependent',   'desc': 'station wind units',           'value': {1: 'mps',      2: 'kph',      3: 'mph'}}),
+                                                            ('Direction',      {'type': 'dependent',   'desc': 'station direction units',      'value': {1: 'cardinal', 2: 'cardinal', 3: 'cardinal'}}),
+                                                            ('Precip',         {'type': 'dependent',   'desc': 'station precipitation units',  'value': {1: 'mm',       2: 'cm',       3: 'in'}}),
+                                                            ('Distance',       {'type': 'dependent',   'desc': 'station distance units',       'value': {1: 'km',       2: 'km',       3: 'mi'}}),
+                                                            ('Other',          {'type': 'dependent',   'desc': 'station other units',          'value': {1: 'metric',   2: 'metric',   3: 'imperial'}})])
 
     # Return default configuration
     return udp_input

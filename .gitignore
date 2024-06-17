@@ -5,6 +5,9 @@ __pycache__/
 # Ignore user configuration file
 *.ini
 
+# Ignore user log file
+*.log
+
 # Ignore custom user panels
 user/customPanels.kv
 user/customPanels.py
