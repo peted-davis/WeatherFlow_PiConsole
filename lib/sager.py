@@ -271,7 +271,7 @@ class sager_forecast():
         if checkwx_api.verify_response(data, 'data'):
             METAR_data = data.json()['data']
             for METAR in METAR_data:
-                if METAR['clouds']:
+                if 'clouds' in METAR:
                     self.sager_data['METAR'] = METAR['raw_text']
                     break
         else:
