@@ -52,7 +52,7 @@ class forecast():
         self.update_display()
         if hasattr(self.app, 'ForecastPanel'):
             for panel in getattr(self.app, 'ForecastPanel'):
-                panel.setForecastIcon()
+                panel.set_forecast_icon()
         Clock.schedule_once(self.fetch_forecast)
 
     def fetch_forecast(self, *largs):
@@ -86,8 +86,8 @@ class forecast():
 
         # Schedule next forecast
         seconds_sched = (sched_time - Now).total_seconds()
-        self.app.Sched.metDownload.cancel()
-        self.app.Sched.metDownload = Clock.schedule_once(self.fetch_forecast, seconds_sched)
+        self.app.schedule.metDownload.cancel()
+        self.app.schedule.metDownload = Clock.schedule_once(self.fetch_forecast, seconds_sched)
 
     def success_forecast(self, Request, Response):
 
@@ -138,7 +138,7 @@ class forecast():
         # Update forecast icon
         if hasattr(self.app, 'ForecastPanel'):
             for panel in getattr(self.app, 'ForecastPanel'):
-                panel.setForecastIcon()
+                panel.set_forecast_icon()
 
         # Schedule new forecast to be downloaded in 5 minutes. Note secondsSched
         # refers to number of seconds since the function was last called.
@@ -146,8 +146,8 @@ class forecast():
         Now = datetime.now(pytz.utc).astimezone(Tz)
         sched_time = Now + timedelta(minutes=5)
         secondsSched = (sched_time - Now).total_seconds()
-        self.app.Sched.metDownload.cancel()
-        self.app.Sched.metDownload = Clock.schedule_once(self.fetch_forecast, secondsSched)
+        self.app.schedule.metDownload.cancel()
+        self.app.schedule.metDownload = Clock.schedule_once(self.fetch_forecast, secondsSched)
 
     def parse_forecast(self):
 
@@ -287,7 +287,7 @@ class forecast():
             # Update forecast icon
             if hasattr(self.app, 'ForecastPanel'):
                 for panel in getattr(self.app, 'ForecastPanel'):
-                    panel.setForecastIcon()
+                    panel.set_forecast_icon()
 
             # Schedule new forecast
             Clock.schedule_once(self.schedule_forecast)

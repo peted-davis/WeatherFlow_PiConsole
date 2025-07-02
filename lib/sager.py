@@ -93,8 +93,8 @@ class sager_forecast():
 
         # Schedule next Sager forecast
         seconds_sched = (self.sched_time - Now).total_seconds()
-        self.app.Sched.sager.cancel()
-        self.app.Sched.sager = Clock.schedule_once(self.fetch_forecast, seconds_sched)
+        self.app.schedule.sager.cancel()
+        self.app.schedule.sager = Clock.schedule_once(self.fetch_forecast, seconds_sched)
 
     def schedule_forecast(self, dt):
 
@@ -118,8 +118,8 @@ class sager_forecast():
 
         # Schedule next Sager forecast
         secondsSched = (self.sched_time - Now).total_seconds()
-        self.app.Sched.sager.cancel()
-        self.app.Sched.sager = Clock.schedule_once(self.fetch_forecast, secondsSched)
+        self.app.schedule.sager.cancel()
+        self.app.schedule.sager = Clock.schedule_once(self.fetch_forecast, secondsSched)
 
     def generate_forecast(self):
 

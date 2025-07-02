@@ -445,7 +445,7 @@ def format(Obs, obType, config=[]):
                         if cObs[ii - 1] is None:
                             cObs[ii - 1] = '-'
                         else:
-                            cObs[ii - 1] = '{:.0f}'.format(max(cObs[ii - 1] - 3 * 0.62137, 0)) + '-' +  '{:.0f}'.format(cObs[ii - 1] + 3 * 0.62137)
+                            cObs[ii - 1] = '{:.0f}'.format(max(cObs[ii - 1] - 3 * 0.62137, 0)) + '-' + '{:.0f}'.format(cObs[ii - 1] + 3 * 0.62137)
 
         # Format lightning strike frequency observations
         elif Type == 'StrikeFrequency':

@@ -53,8 +53,8 @@ class astro():
         ''' Reset the Astro data when the station ID changes
         '''
         # Cancel sun_transit and moon_phase schedules
-        self.app.Sched.sun_transit.cancel()
-        self.app.Sched.moon_phase.cancel()
+        self.app.schedule.sun_transit.cancel()
+        self.app.schedule.moon_phase.cancel()
 
         # Reset the astro data and generate new sunrise/sunset and
         # moonrise/moonset times
@@ -66,8 +66,8 @@ class astro():
         # Force update sun_transit to correct sunrise/sunset times and then
         # reschedule sun_transit and moon_phase
         self.sun_transit()
-        self.app.Sched.sun_transit = Clock.schedule_interval(self.sun_transit, 1)
-        self.app.Sched.moon_phase  = Clock.schedule_interval(self.moon_phase,  1)
+        self.app.schedule.sun_transit = Clock.schedule_interval(self.sun_transit, 1)
+        self.app.schedule.moon_phase  = Clock.schedule_interval(self.moon_phase,  1)
 
     def sunrise_sunset(self):
 

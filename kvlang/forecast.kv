@@ -24,13 +24,16 @@
     PanelBackground:
         _panelTitle: 'Forecast'
 
+    Button:
+        on_press: self.parent.forecast_detail_panel.open()
+
     ## Forecast Conditions
     TitleField:
         text: 'Conditions'
         pos_hint: {'x': 18/262, 'y': 166/202}
         size_hint_x: 77/262
     Image:
-        source: 'icons/weather/' + self.parent.forecastIcon + app.scaleSuffix
+        source: 'icons/weather/' + self.parent.forecast_icon + app.scaleSuffix
         pos_hint: {'x': 18/262, 'y': 83/202}
         size_hint: (77/262, 80/202)
         fit_mode: 'contain'
@@ -125,3 +128,61 @@
     PanelButton:
         text: 'Sager'
         on_release: app.CurrentConditions.switchPanel(self)
+
+## =============================================================================
+## FORECAST DETAIL POPUP
+## =============================================================================
+<forecast_detail>:
+    size_hint: (640/800, 384/480)
+    canvas:
+        Color:
+            rgba: 0,0,0,1
+        Rectangle:
+            pos: self.pos
+            size: self.size
+    GridLayout:
+        padding: dp(5)
+        cols: 1
+        size_hint: None, None
+        pos: root.pos
+        size: root.size
+        TabbedPanel:
+            background_color: (0, 0, 0,0)
+            do_default_tab: False
+            tab_pos: 'bottom_left'
+            tab_height: 40*app.scaleFactor
+            tab_width: 100*app.scaleFactor
+            MainMenuTab:
+                text: 'METAR'
+                MainMenuLayout:
+
+
+            MainMenuTab:
+                text: 'TAF'
+                MainMenuLayout:
+                    BoxLayout:
+                        orientation: 'vertical'
+                        size_hint: (1,.25)
+                        MediumMultilineField:
+                            halign: 'left'
+                            text: app.CurrentConditions.metar_taf['taf_location_string'] + "\n" + app.CurrentConditions.metar_taf['taf_timing_string']
+                    BoxLayout:
+                        orientation: 'vertical'
+                        size_hint: (1,.75)
+                        ScrollView:
+                            do_scroll_x: False
+                            do_scroll_y: True
+                            bar_color:  [.7, .7, .7, 0.9]
+                            bar_inactive_color: [.7, .7, .7, 0.9]
+                            bar_width: 4
+                            scroll_type: ['bars', 'content']
+                            SmallMultilineField:
+                                halign: 'left'
+                                valign: 'top'
+                                size_hint: (0.95, None)
+                                height: self.texture_size[1]
+                                text_size: self.width, None
+                                text: app.CurrentConditions.metar_taf['taf_forecast_string']
+            MainMenuTab:
+                text: 'Credits'
+                MainMenuLayout:

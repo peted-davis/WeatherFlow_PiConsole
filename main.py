@@ -34,14 +34,14 @@ os.environ['KIVY_LOG_MODE'] = 'MIXED'
 # CREATE OR UPDATE wfpiconsole.ini FILE
 # ==============================================================================
 # Import required modules
-from lib     import config as configFile
+from lib     import config as config_file
 from pathlib import Path
 
 # Create or update config file if required
 if not Path('wfpiconsole.ini').is_file():
-    configFile.create()
+    config_file.create()
 else:
-    configFile.update()
+    config_file.update()
 
 # ==============================================================================
 # INITIALISE KIVY GRAPHICS WINDOW BASED ON CURRENT HARDWARE TYPE
@@ -63,7 +63,7 @@ if config['System']['Hardware'] != 'Other':
 # INITIALISE KIVY WINDOW PROPERTIES BASED ON OPTIONS SET IN wfpiconsole.ini
 # ==============================================================================
 # Import required modules
-from kivy.config import Config as kivyconfig                                    # type: ignore
+from kivy.config import Config as kivy_config                                    # type: ignore
 
 # Generate default wfpiconsole Kivy config file. Config file is always
 # regenerated to ensure changes to the default file are always copied across
@@ -73,36 +73,36 @@ with open(os.path.expanduser('~/.kivy/') + 'config_wfpiconsole.ini', 'w') as cfg
     defaultconfig.write(cfg)
 
 # Load wfpiconsole Kivy configuration file
-kivyconfig.read(os.path.expanduser('~/.kivy/') + 'config_wfpiconsole.ini')
+kivy_config.read(os.path.expanduser('~/.kivy/') + 'config_wfpiconsole.ini')
 
 # Set Kivy window properties
 if int(config['Display']['Fullscreen']):
-    kivyconfig.set('graphics', 'fullscreen', 'auto')
+    kivy_config.set('graphics', 'fullscreen', 'auto')
 else:
-    kivyconfig.set('graphics', 'fullscreen', '0')
-    kivyconfig.set('graphics', 'width',  config['Display']['Width'])
-    kivyconfig.set('graphics', 'height', config['Display']['Height'])
+    kivy_config.set('graphics', 'fullscreen', '0')
+    kivy_config.set('graphics', 'width',  config['Display']['Width'])
+    kivy_config.set('graphics', 'height', config['Display']['Height'])
 if int(config['Display']['Border']):
-    kivyconfig.set('graphics', 'borderless', '0')
+    kivy_config.set('graphics', 'borderless', '0')
 else:
-    kivyconfig.set('graphics', 'borderless', '1')
+    kivy_config.set('graphics', 'borderless', '1')
 
 # ==============================================================================
 # INITIALISE MOUSE SUPPORT IF OPTION SET in wfpiconsole.ini
 # ==============================================================================
 # Initialise mouse support if required
 if int(config['Display']['Cursor']):
-    kivyconfig.set('graphics', 'show_cursor', '1')
+    kivy_config.set('graphics', 'show_cursor', '1')
     if 'Pi' in config['System']['Hardware']:
-        kivyconfig.set('input', 'mouse', 'mouse')
-        kivyconfig.remove_option('input', 'mtdev_%(name)s')
+        kivy_config.set('input', 'mouse', 'mouse')
+        kivy_config.remove_option('input', 'mtdev_%(name)s')
 else:
-    kivyconfig.set('graphics', 'show_cursor', '0')
+    kivy_config.set('graphics', 'show_cursor', '0')
     if 'Pi' in config['System']['Hardware']:
-        kivyconfig.remove_option('input', 'mouse')
+        kivy_config.remove_option('input', 'mouse')
 
 # Save wfpiconsole Kivy configuration file
-kivyconfig.write()
+kivy_config.write()
 
 # ==============================================================================
 # IMPORT REQUIRED CORE KIVY MODULES
@@ -112,6 +112,7 @@ from kivy.properties         import StringProperty
 from kivy.properties         import DictProperty, NumericProperty
 from kivy.core.window        import Window
 from kivy.factory            import Factory
+from kivy.modules            import inspector
 from kivy.logger             import Logger
 from kivy.clock              import Clock
 from kivy.lang               import Builder
@@ -122,6 +123,7 @@ from kivy.app                import App
 # ==============================================================================
 from lib.system       import system
 from lib.astronomical import astro
+from lib.metar_taf    import metar_taf
 from lib.forecast     import forecast
 from lib.sager        import sager_forecast
 from lib.status       import station
@@ -147,7 +149,7 @@ from panels.menu        import mainMenu
 # IMPORT CUSTOM USER PANELS
 # ==============================================================================
 if Path('user/customPanels.py').is_file():
-    from user.customPanels import *                                              # noqa: F401,F403
+    from user.customPanels import *                                              # type: ignore
 
 # ==============================================================================
 # IMPORT REQUIRED SYSTEM MODULES
@@ -170,7 +172,7 @@ from kivy.uix.switch         import Switch
 class wfpiconsole(App):
 
     # Define App class dictionary properties
-    Sched = DictProperty([])
+    schedule = DictProperty([])
 
     # Define display properties
     scaleFactor = NumericProperty(1)
@@ -185,8 +187,7 @@ class wfpiconsole(App):
         self.window = Window
         self.set_scale_factor(self.window, self.window.width, self.window.height)
         self.window.bind(on_resize=self.set_scale_factor)
-        from kivy.modules import inspector
-        inspector.create_inspector(Window, self)
+        inspector.create_inspector(self.window, self)
 
         # Load Custom Panel KV file if present
         if Path('user/customPanels.py').is_file():
@@ -207,7 +208,7 @@ class wfpiconsole(App):
         self.settings_cls = SettingsWithSidebar
 
         # Initialise realtime clock
-        self.Sched.realtimeClock = Clock.schedule_interval(self.system.realtimeClock, 1.0)
+        self.schedule.realtimeClock = Clock.schedule_interval(self.system.realtimeClock, 1.0)
 
         # Return ScreenManager
         return self.screenManager
@@ -460,17 +461,19 @@ class screenManager(ScreenManager):
 # ==============================================================================
 class CurrentConditions(Screen):
 
-    System = DictProperty()
-    Status = DictProperty()
-    Sager  = DictProperty()
-    Astro  = DictProperty()
-    Obs    = DictProperty()
-    Met    = DictProperty()
+    metar_taf = DictProperty()
+    System    = DictProperty()
+    Status    = DictProperty()
+    Sager     = DictProperty()
+    Astro     = DictProperty()
+    Obs       = DictProperty()
+    Met       = DictProperty()
 
     def __init__(self, **kwargs):
         super(CurrentConditions, self).__init__(**kwargs)
         self.app = App.get_running_app()
         self.app.CurrentConditions = self
+        self.metar_taf = properties.metar_taf()
         self.System = properties.System()
         self.Status = properties.Status()
         self.Sager  = properties.Sager()
@@ -483,7 +486,7 @@ class CurrentConditions(Screen):
 
         # Schedule Station.getDeviceStatus to be called each second
         self.app.station = station()
-        self.app.Sched.deviceStatus = Clock.schedule_interval(self.app.station.get_device_status, 1.0)
+        self.app.schedule.deviceStatus = Clock.schedule_interval(self.app.station.get_device_status, 1.0)
 
         # Initialise Sunrise, Sunset, Moonrise and Moonset times
         self.app.astro = astro()
@@ -491,16 +494,20 @@ class CurrentConditions(Screen):
         self.app.astro.moonrise_moonset()
 
         # Schedule sunTransit and moonPhase functions to be called each second
-        self.app.Sched.sun_transit = Clock.schedule_interval(self.app.astro.sun_transit, 1)
-        self.app.Sched.moon_phase  = Clock.schedule_interval(self.app.astro.moon_phase, 1)
+        self.app.schedule.sun_transit = Clock.schedule_interval(self.app.astro.sun_transit, 1)
+        self.app.schedule.moon_phase  = Clock.schedule_interval(self.app.astro.moon_phase, 1)
 
         # Schedule WeatherFlow weather forecast download
         self.app.forecast = forecast()
-        self.app.Sched.metDownload = Clock.schedule_once(self.app.forecast.fetch_forecast)
+        self.app.schedule.metDownload = Clock.schedule_once(self.app.forecast.fetch_forecast)
+
+        # Schedule METAR/TAF weather forecast download
+        self.app.metar_taf = metar_taf()
+        self.app.schedule.taf_metar_download = Clock.schedule_once(self.app.metar_taf.fetch_metar_taf)
 
         # Generate Sager Weathercaster forecast
         self.app.sager = sager_forecast()
-        self.app.Sched.sager = Clock.schedule_once(self.app.sager.fetch_forecast)
+        self.app.schedule.sager = Clock.schedule_once(self.app.sager.fetch_forecast)
 
     # ADD USER SELECTED PANELS TO CURRENT CONDITIONS SCREEN
     # --------------------------------------------------------------------------
@@ -566,8 +573,8 @@ class CurrentConditions(Screen):
 
         # Cancel lightning_panel_timeout if scheduled and Lightning button has
         # been pressed
-        if 'Lightning' in button_data and hasattr(self.app.Sched, 'lightning_panel_timeout'):
-            self.app.Sched.lightning_panel_timeout.cancel()
+        if 'Lightning' in button_data and hasattr(self.app.schedule, 'lightning_panel_timeout'):
+            self.app.schedule.lightning_panel_timeout.cancel()
 
         # Extract panel object that corresponds to the button that has been
         # pressed and determine new button type required

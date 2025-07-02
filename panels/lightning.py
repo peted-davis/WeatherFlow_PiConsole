@@ -61,13 +61,13 @@ class LightningPanel(panelTemplate):
     def auto_close_lightning_panel(self):
         panel_timeout = int(self.app.config['Display']['lightning_timeout']) * 60
         try:
-            self.app.Sched.lightning_timeout.cancel()
+            self.app.schedule.lightning_timeout.cancel()
         except AttributeError:
             pass
         if panel_timeout > 0:
             for ii, button in enumerate(self.app.CurrentConditions.button_list):
                 if button[3] == "Lightning" and button[4] == 'primary':
-                    self.app.Sched.lightning_timeout = Clock.schedule_once(
+                    self.app.schedule.lightning_timeout = Clock.schedule_once(
                         partial(self.app.CurrentConditions.switchPanel, 
                                 None, 
                                 button), 
