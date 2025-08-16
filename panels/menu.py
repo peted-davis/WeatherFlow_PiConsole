@@ -453,6 +453,7 @@ class mainMenu(ModalView):
             self.app.forecast.reset_forecast()
             self.app.astro.reset_astro()
             self.app.sager.reset_forecast()
+            self.app.metar_taf.reset_metar_taf()
 
 
 # ==============================================================================

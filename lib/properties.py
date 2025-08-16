@@ -63,7 +63,7 @@ def metar_taf():
     """ Define the taf_metar property values """
 
     return {'taf_location_string': '-',     'taf_timing_string': '-',       'taf_forecast_string': '-',     
-            'metar': '-'}
+            'metar_location_string': '-',   'metar_timing_string': '-',     'metar_observation_string': '-',     }
 
 def Sager():
 

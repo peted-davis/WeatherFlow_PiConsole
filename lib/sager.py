@@ -325,12 +325,12 @@ class sager_forecast():
         # call has not failed
         self.device_obs = {}
         if weatherflow_api.verify_response(data, 'obs'):
-            self.device_obs['time']    = [item[0] if item[0]   is not None else NaN for item in data.json()['obs']]
-            self.device_obs['wind_speed'] = [item[2] if item[2]   is not None else NaN for item in data.json()['obs']]
-            self.device_obs['wind_dir'] = [item[4] if item[4]   is not None else NaN for item in data.json()['obs']]
-            self.device_obs['pressure']    = [item[6] if item[6]   is not None else NaN for item in data.json()['obs']]
-            self.device_obs['temperature']    = [item[7] if item[7]   is not None else NaN for item in data.json()['obs']]
-            self.device_obs['Rain']    = [item[12] if item[12] is not None else NaN for item in data.json()['obs']]
+            self.device_obs['time']        = [item[0]  if item[0]  is not None else NaN for item in data.json()['obs']]
+            self.device_obs['wind_speed']  = [item[2]  if item[2]  is not None else NaN for item in data.json()['obs']]
+            self.device_obs['wind_dir']    = [item[4]  if item[4]  is not None else NaN for item in data.json()['obs']]
+            self.device_obs['pressure']    = [item[6]  if item[6]  is not None else NaN for item in data.json()['obs']]
+            self.device_obs['temperature'] = [item[7]  if item[7]  is not None else NaN for item in data.json()['obs']]
+            self.device_obs['Rain']        = [item[12] if item[12] is not None else NaN for item in data.json()['obs']]
 
     def get_sky_data(self, Now):
 

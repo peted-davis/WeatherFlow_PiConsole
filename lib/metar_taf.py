@@ -63,8 +63,8 @@ class metar_taf():
             self.fetch_taf_data()
             
         # Fetch latest METAR data
-        #if int(self.app.config['System']['rest_api']):
-        #    self.fetch_metar_data()
+        if int(self.app.config['System']['rest_api']):
+            self.fetch_metar_data()
 
     def fetch_metar_data(self, *largs):
 
@@ -72,7 +72,7 @@ class metar_taf():
         """            
         # Fetch latest METAR data
         if int(self.app.config['System']['rest_api']):
-            URL    = 'https://api.checkwx.com/metar/lat/{}/lon/{}/decoded'
+            URL    = 'https://api.checkwx.com/metar/lat/{}/lon/{}/radius/100/decoded'
             URL    = URL.format(self.app.config['Station']['Latitude'], self.app.config['Station']['Longitude'])
             header = {'X-API-Key': self.app.config['Keys']['CheckWX']}
             UrlRequest(URL,
@@ -89,7 +89,7 @@ class metar_taf():
         """            
         # Fetch latest TAF data
         if int(self.app.config['System']['rest_api']):
-            URL    = 'https://api.checkwx.com/taf/lat/{}/lon/{}/decoded'
+            URL    = 'https://api.checkwx.com/taf/lat/{}/lon/{}/radius/100/decoded'   
             URL    = URL.format(self.app.config['Station']['Latitude'], self.app.config['Station']['Longitude'])
             header = {'X-API-Key': self.app.config['Keys']['CheckWX']}
             UrlRequest(URL,
@@ -124,12 +124,34 @@ class metar_taf():
         INPUTS:
             request             Urlrequest object
             response            Urlrequest response
-
         """
 
         # Parse the latest daily and hourly weather forecast data
-        self.met_data['response'] = response
+        self.metar_taf_data['metar'] = response['data']
         self.parse_metar_taf('metar')
+
+    def fail_metar(self, *largs):
+
+        """ Failed to fetch METAR data from the CheckWX API. Reschedule fetch_metar 
+        in 300 seconds
+
+        INPUTS:
+            request             Urlrequest object
+            response            Urlrequest response
+        """
+
+        # Set METAR forecast variables to blank and indicate to user that METAR 
+        # is unavailable
+        self.metar_taf_data['metar_location_string']    = "METAR observation currently unavailable"
+        self.metar_taf_data['metar_timing_string']      = ""
+        self.metar_taf_data['metar_observation_string'] = ""
+
+        # Update display
+        self.update_display()
+
+        # Schedule new METAR data to be downloaded in 5 minutes
+        self.app.schedule.taf_metar_download.cancel()
+        self.app.schedule.taf_metar_download = Clock.schedule_once(self.fetch_metar_taf, timedelta(minutes=5).total_seconds())        
 
     def success_taf(self, request, response):
 
@@ -139,11 +161,10 @@ class metar_taf():
         INPUTS:
             request             Urlrequest object
             response            Urlrequest response
-
         """
 
         # Parse the latest daily and hourly weather forecast data
-        self.metar_taf_data['taf'] = response['data'][0]
+        self.metar_taf_data['taf'] = response['data']
         self.parse_metar_taf('taf')        
 
     def fail_taf(self, *largs):
@@ -154,7 +175,6 @@ class metar_taf():
         INPUTS:
             request             Urlrequest object
             response            Urlrequest response
-
         """
 
         # Set TAF forecast variables to blank and indicate to user that TAF is
@@ -177,17 +197,9 @@ class metar_taf():
         specified units
         """
 
-        # PARSE TAF DATA FROM CHECKWX API
-        # --------------------------------------------------------------------------
-        # Extract TAF dictionary
-        if 'taf' in self.metar_taf_data:
-            taf_data = self.metar_taf_data['taf']
-        else:
-            return
-        print(taf_data)
-
         # Get station time zone
         Tz  = pytz.timezone(self.app.config['Station']['Timezone'])
+        now = datetime.now(pytz.utc).astimezone(Tz)
 
         # Set time format based on user configuration
         if 'TimeFormat' in self.app.config['Display'] and 'DateFormat' in self.app.config['Display']:
@@ -207,208 +219,379 @@ class metar_taf():
             else:
                 date_format = '%a, %d %b %Y'
 
-        # Extract all TAF data from CheckWX API JSON object
-        try:
-            # Extract location and timing information   
-            location    = taf_data['station']['location']
-            issued_time = datetime.fromisoformat(taf_data['timestamp']['issued'] + "+00:00")
-            from_time   = datetime.fromisoformat(taf_data['timestamp']['from'] + "+00:00")
-            to_time     = datetime.fromisoformat(taf_data['timestamp']['to'] + "+00:00")
+        # PARSE METAR DATA FROM CHECKWX API
+        # ----------------------------------------------------------------------
+        # Extract METAR dictionary
+        if type == 'metar':
+            if 'metar' in self.metar_taf_data:
+                metar_data = self.metar_taf_data['metar']
+            else:
+                return
+            
+            # Define required variables
+            metar_cloud_type  = []
+            metar_cloud_code  = []
+            metar_cloud_level = []
+
+            # Extract all METAR data from CheckWX API JSON object for closest 
+            # location with a forecast issued today
+            try:
+                for METAR in metar_data:
+                    issued_time = datetime.fromisoformat(METAR['observed'] + "+00:00").astimezone(Tz)
+                    if issued_time.date() == now.date():
+                        metar_data = METAR
+                        break
+
+                # Extract location and timing information   
+                metar_location    = metar_data['station']['location']
+                metar_issued_time = datetime.fromisoformat(metar_data['observed'] + "+00:00").astimezone(Tz)
+
+                # Extract wind forecast variables
+                metar_wind_direction = [metar_data['wind']['degrees']   if 'wind' in metar_data and 'degrees'   in metar_data['wind'] else None, 'degrees']
+                metar_wind_speed     = [metar_data['wind']['speed_mps'] if 'wind' in metar_data and 'speed_mps' in metar_data['wind'] else None, 'mps']
+                metar_wind_gust      = [metar_data['wind']['gust_mps']  if 'wind' in metar_data and 'gust_mps'  in metar_data['wind'] else None, 'mps']    
+
+                # Extract visibility forecast variables
+                metar_visibility = [metar_data['visibility']['meters_text'].replace(',', ''), 'm'] if self.app.config['Units']['Distance'] == 'km' else [metar_data['visibility']['miles_text'].replace(',', ''), 'miles']
+        
+                # Extract cloud forecast variables
+                for ii, cloud in enumerate(metar_data['clouds']):
+                    metar_cloud_type.append(cloud['text'])
+                    metar_cloud_code.append(cloud['code'])
+                    if metar_cloud_code[ii] not in ['CAVOK', 'CLR']:
+                        metar_cloud_level.append([cloud['base_meters_agl'] if 'visibility' in metar_data else None, 'm'] if self.app.config['Units']['Distance'] == 'km' else 
+                                                [cloud['base_feet_agl']   if 'visibility' in metar_data else None, 'ft'])
+                    else:
+                        metar_cloud_level.append(None)
+
+                # Extract barometer, dewpoint and humidity
+                metar_baromter = [metar_data['barometer']['mb']     if 'barometer' in metar_data else None, 'mb']
+                metar_dewpoint = [metar_data['dewpoint']['celsius'] if 'dewpoint'  in metar_data else None, 'c']
+                metar_humidity = [metar_data['humidity']['percent'] if 'humidity'  in metar_data else None, '%']
+
+                # Convert METAR units as required
+                metar_wind_direction  = observation.units(metar_wind_direction,  self.app.config['Units']['Direction'])
+                metar_wind_speed      = observation.units(metar_wind_speed,      self.app.config['Units']['Wind'])
+                metar_wind_gust       = observation.units(metar_wind_gust,       self.app.config['Units']['Wind'])
+                metar_baromter        = observation.units(metar_baromter,        self.app.config['Units']['Pressure'])
+                metar_dewpoint        = observation.units(metar_dewpoint,        self.app.config['Units']['Temp'])
+                metar_humidity        = observation.units(metar_humidity,        self.app.config['Units']['Other'])
+                metar_wind_direction  = observation.format(metar_wind_direction, 'Direction')
+                metar_wind_speed      = observation.format(metar_wind_speed,     'Wind')
+                metar_wind_gust       = observation.format(metar_wind_gust,      'Wind')
+                metar_baromter        = observation.format(metar_baromter,       'Pressure')
+                metar_dewpoint        = observation.format(metar_dewpoint,       'Temp')
+                metar_humidity        = observation.format(metar_humidity,       'Humidity')            
+                
+                # print(metar_location, flush=True)
+                # print(metar_issued_time, flush=True)
+                # print(metar_wind_direction, flush=True)
+                # print(metar_wind_speed, flush=True)
+                # print(metar_wind_gust, flush=True)
+                # print(metar_visibility, flush=True)
+                #print(metar_cloud_type, flush=True)
+                #print(metar_cloud_code, flush=True)
+                #print(metar_cloud_level, flush=True)
+                # print(metar_baromter, flush=True)
+                # print(metar_dewpoint, flush=True)
+                # print(metar_humidity, flush=True)
+
+                # Construct main forecast taf string
+                metar_observation_string = ""
+                location_string          = (f"METAR for {metar_location}") 
+                timing_string            = (f"Issued at {metar_issued_time.strftime(time_format)} on {metar_issued_time.strftime(date_format)}")
+                wind_direction_string    = (f"Wind {metar_wind_direction[0]}" if self.app.config['Units']['Direction'] == 'cardinal' else f"Wind {metar_wind_direction[0] + metar_wind_direction[1]}")
+                wind_speed_string        = (f" at {metar_wind_speed[0]} {metar_wind_speed[1]}")
+                wind_gust_string         = (f" gusting {metar_wind_gust[0]} {metar_wind_gust[1]}" if metar_wind_gust[0] != '-' else f"")
+                visibility_string        = (f", {metar_visibility[0].lower()} {metar_visibility[1]} visibility" if metar_visibility[0] is not None else f"")
+                barometer_string         = (f"barometer {metar_baromter[0].lower()}{metar_baromter[1]}, " if metar_baromter[0] is not None else f"")
+                humidty_string           = (f"humidity  {metar_humidity[0].lower()}{metar_humidity[1]}, " if metar_humidity[0] is not None else f"")
+                dewpoint_string          = (f"dew point {metar_dewpoint[0].lower()}{metar_dewpoint[1]}."  if metar_dewpoint[0] is not None else f"")
+                if metar_cloud_type:
+                    for ii, cloud in enumerate(metar_cloud_type):
+                        if cloud is not None:
+                            if ii == 0 and 'clear' in metar_cloud_type[ii].lower():
+                                cloud_string = ", "
+                            elif ii == 0:
+                                cloud_string = ", cloud "
+                            cloud_string = (cloud_string + 
+                                            f"{metar_cloud_type[ii].lower()}" + 
+                                           (f" at {metar_cloud_level[ii][0]} {metar_cloud_level[ii][1]}, " if 'clear' not in metar_cloud_type[ii].lower() else f", "))
+                        else:
+                            cloud_string = f""
+                else:
+                    cloud_string = f""  
+                metar_observation_string = (wind_direction_string + 
+                                            wind_speed_string + 
+                                            wind_gust_string +
+                                            visibility_string + 
+                                            cloud_string +
+                                            barometer_string +
+                                            humidty_string +
+                                            dewpoint_string + "\n")
+
+                # Define and format labels
+                self.metar_taf_data['metar_location_string']    = location_string
+                self.metar_taf_data['metar_timing_string']      = timing_string
+                self.metar_taf_data['metar_observation_string'] = metar_observation_string
+
+                # Update display
+                self.update_display()
+
+                # Schedule new forecast
+                Clock.schedule_once(self.schedule_metar_taf)
+
+            # Unable to extract METAR data from JSON object. Set METAR
+            # variables to blank and indicate to user that forecast is 
+            # unavailable
+            except (IndexError, KeyError, ValueError, TypeError):
+                Clock.schedule_once(self.fail_metar)    
+
+        # PARSE TAF DATA FROM CHECKWX API
+        # ----------------------------------------------------------------------
+        # Extract TAF dictionary
+        if type == 'taf':
+            if 'taf' in self.metar_taf_data:
+                taf_data = self.metar_taf_data['taf']
+            else:
+                return
 
             # Define required variables
+            main_cloud_code         = []
+            main_cloud_type         = []
+            main_cloud_level        = []
             trend_from_time         = []
             trend_to_time           = []
-            trend_type              = []
+            trend_type_text         = []
             trend_wind_direction    = []
             trend_wind_speed        = []
             trend_wind_gust         = []
             trend_visibility        = []
+            trend_cloud_code        = []
             trend_cloud_type        = []
             trend_cloud_level       = []
-            trend_conditions        = []
-            main_cloud_type         = []
-            main_cloud_level        = []
+            trend_conditions_text   = []
+            trend_conditions_code   = []
 
-            # Extract each individual forecast in TAF
-            for forecast in taf_data['forecast']:
-                
-                # Parse main forecast data from TAF
-                if 'change' not in forecast:
+            # Extract all METAR data from CheckWX API JSON object for closest 
+            # location with a forecast issued today
+            try:
+                for taf in taf_data:
+                    issued_time = datetime.fromisoformat(taf['timestamp']['issued'] + "+00:00").astimezone(Tz)
+                    if issued_time.date() == now.date():
+                        taf_data = taf
+                        break
 
-                    # Extract wind forecast variables
-                    main_wind_direction = [forecast['wind']['degrees']   if 'wind' in forecast and 'degrees'   in forecast['wind'] else None, 'degrees']
-                    main_wind_speed     = [forecast['wind']['speed_mps'] if 'wind' in forecast and 'speed_mps' in forecast['wind'] else None, 'mps']
-                    main_wind_gust      = [forecast['wind']['gust_mps']  if 'wind' in forecast and 'gust_mps'  in forecast['wind'] else None, 'mps']    
+                # Extract location and timing information   
+                location    = taf_data['station']['location']
+                issued_time = datetime.fromisoformat(taf_data['timestamp']['issued'] + "+00:00").astimezone(Tz)
+                to_time     = datetime.fromisoformat(taf_data['timestamp']['to'] + "+00:00").astimezone(Tz)
 
-                    # Extract visibility forecast variables
-                    main_visibility = [forecast['visibility']['meters_text'], 'm'] if self.app.config['Units']['Distance'] == 'km' else [forecast['visibility']['miles_text'], 'miles']
+                # Extract each individual forecast in TAF
+                for forecast in taf_data['forecast']:
+                    
+                    # Parse main forecast data from TAF
+                    if 'change' not in forecast:
 
-                    # Extract cloud forecast variables
-                    for cloud in forecast['clouds']:
-                        main_cloud_type.append(cloud['text'])
-                        main_cloud_level.append([cloud['base_meters_agl'], 'm'] if self.app.config['Units']['Distance'] == 'km' else [cloud['base_feet_agl'], 'ft'])
+                        # Extract wind forecast variables
+                        main_wind_direction = [forecast['wind']['degrees']   if 'wind' in forecast and 'degrees'   in forecast['wind'] else None, 'degrees']
+                        main_wind_speed     = [forecast['wind']['speed_mps'] if 'wind' in forecast and 'speed_mps' in forecast['wind'] else None, 'mps']
+                        main_wind_gust      = [forecast['wind']['gust_mps']  if 'wind' in forecast and 'gust_mps'  in forecast['wind'] else None, 'mps']    
 
-                # Parse trend forecast data from TAF
-                elif 'change' in forecast:
+                        # Extract visibility forecast variables
+                        main_visibility = ([forecast['visibility']['meters_text'].replace(',', '') if 'visibility' in forecast else None, 'm'] if self.app.config['Units']['Distance'] == 'km' else 
+                                            [forecast['visibility']['miles_text'].replace(',', '')  if 'visibility' in forecast else None, 'miles' 'miles'])
 
-                    # Extract timing information
-                    trend_from_time.append(datetime.fromisoformat(forecast['timestamp']['from'] + "+00:00"))
-                    trend_to_time.append(datetime.fromisoformat(forecast['timestamp']['to']   + "+00:00"))
+                        # Extract cloud forecast variables
+                        for ii, cloud in enumerate(forecast['clouds']):
+                            main_cloud_code.append(cloud['code'])
+                            main_cloud_type.append(cloud['text'])
+                            if main_cloud_code[ii] not in ['CAVOK', 'CLR', 'SKC']:
+                                main_cloud_level.append([cloud['base_meters_agl'] if 'visibility' in forecast else None, 'm'] if self.app.config['Units']['Distance'] == 'km' else 
+                                                        [cloud['base_feet_agl']   if 'visibility' in forecast else None, 'ft'])
+                            else:
+                                main_cloud_level.append(None)
 
-                    # Extract trend type variable
-                    trend_type.append(forecast['change']['indicator']['text'])
+                    # Parse trend forecast data from TAF
+                    elif 'change' in forecast:
 
-                    # Extract wind forecast variables
-                    trend_wind_direction.append([forecast['wind']['degrees'] if 'wind' in forecast and 'degrees'   in forecast['wind'] else None, 'degrees'])
-                    trend_wind_speed.append([forecast['wind']['speed_mps']   if 'wind' in forecast and 'speed_mps' in forecast['wind'] else None, 'mps'])
-                    trend_wind_gust.append([forecast['wind']['gust_mps']     if 'wind' in forecast and 'gust_mps'  in forecast['wind'] else None, 'mps']  )  
+                        # Extract timing information
+                        trend_from_time.append(datetime.fromisoformat(forecast['timestamp']['from'] + "+00:00").astimezone(Tz))
+                        trend_to_time.append(datetime.fromisoformat(forecast['timestamp']['to']   + "+00:00").astimezone(Tz))
 
-                    # Extract visibility forecast variables
-                    trend_visibility.append([forecast['visibility']['meters_text'] if 'visibility' in forecast else None, 'm'] if self.app.config['Units']['Distance'] == 'km' else 
-                                            [forecast['visibility']['miles_text']  if 'visibility' in forecast else None, 'miles'])
+                        # Extract trend type variable
+                        trend_type_text.append(forecast['change']['indicator']['text'])
 
-                    # Extract cloud forecast variables
-                    cloud_type  = []
-                    cloud_level = []
-                    if 'clouds' in forecast:
-                        for cloud in forecast['clouds']:
-                            cloud_type.append(cloud['text'])
-                            cloud_level.append([cloud['base_meters_agl'], 'm'])
-                    else:
-                        cloud_type.append(None)
-                        cloud_level.append([None, 'm'])
-                    trend_cloud_type.append(cloud_type)
-                    trend_cloud_level.append(cloud_level)
+                        # Extract wind forecast variables
+                        trend_wind_direction.append([forecast['wind']['degrees'] if 'wind' in forecast and 'degrees'   in forecast['wind'] else None, 'degrees'])
+                        trend_wind_speed.append([forecast['wind']['speed_mps']   if 'wind' in forecast and 'speed_mps' in forecast['wind'] else None, 'mps'])
+                        trend_wind_gust.append([forecast['wind']['gust_mps']     if 'wind' in forecast and 'gust_mps'  in forecast['wind'] else None, 'mps']  )  
 
-                    # Extract conditions forecast
-                    conditions = []
-                    if 'conditions' in forecast:
-                        for condition in forecast['conditions']:
-                            conditions.append(condition['text'] if 'text' in condition else None)
-                    trend_conditions.append(conditions)
+                        # Extract visibility forecast variables
+                        trend_visibility.append([forecast['visibility']['meters_text'].replace(',', '') if 'visibility' in forecast else None, 'm'] if self.app.config['Units']['Distance'] == 'km' else 
+                                                [forecast['visibility']['miles_text'].replace(',', '')  if 'visibility' in forecast else None, 'miles'])
 
-            # Convert forecast units as required
-            main_wind_direction  = observation.units(main_wind_direction,  self.app.config['Units']['Direction'])
-            main_wind_speed      = observation.units(main_wind_speed,      self.app.config['Units']['Wind'])
-            main_wind_gust       = observation.units(main_wind_gust,       self.app.config['Units']['Wind'])
-            main_wind_direction  = observation.format(main_wind_direction, 'Direction')
-            main_wind_speed      = observation.format(main_wind_speed,     'Wind')
-            main_wind_gust       = observation.format(main_wind_gust,      'Wind')
-            for ii, jj in enumerate(trend_wind_direction):
-                trend_wind_direction[ii] = observation.units(trend_wind_direction[ii],  self.app.config['Units']['Direction'])
-                trend_wind_speed[ii]     = observation.units(trend_wind_speed[ii],      self.app.config['Units']['Wind'])
-                trend_wind_gust[ii]      = observation.units(trend_wind_gust[ii],       self.app.config['Units']['Wind'])            
-                trend_wind_direction[ii] = observation.format(trend_wind_direction[ii], 'Direction')
-                trend_wind_speed[ii]     = observation.format(trend_wind_speed[ii],     'Wind')
-                trend_wind_gust[ii]      = observation.format(trend_wind_gust[ii],      'Wind')
-
-
-            # print(issued_time, flush=True)
-            # print(from_time, flush=True)
-            # print(to_time, flush=True)
-            # print(main_wind_direction, flush=True)
-            # print(main_wind_speed, flush=True)
-            # print(main_wind_gust, flush=True)
-            # print(main_visibility, flush=True)
-            # print(main_cloud_type, flush=True)
-            # print(main_cloud_level, flush=True)
-            # print(trend_type, flush=True)      
-            # print(trend_from_time, flush=True)
-            # print(trend_to_time, flush=True)   
-            #print(trend_wind_direction, flush=True)
-            #print(trend_wind_speed, flush=True)
-            #print(trend_wind_gust, flush=True)  
-            # print(trend_visibility, flush=True)
-            # print(trend_cloud_type, flush=True)
-            # print(trend_cloud_level, flush=True) 
-            #print(trend_conditions, flush=True) 
-
-
-            # Construct main forecast taf string
-            taf_forecast_string   = ""
-            location_string       = (f"TAF forecast for {location}") 
-            timing_string         = (f"Issued at {issued_time.astimezone(Tz).strftime(time_format)} "
-                                     f"and valid until {to_time.astimezone(Tz).strftime(time_format)} on {to_time.astimezone(Tz).strftime(date_format)}\n")
-            wind_direction_string = (f"Wind {main_wind_direction[0]}" if self.app.config['Units']['Direction'] == 'cardinal' else f"Wind {main_wind_direction[0] + main_wind_direction[1]}")
-            wind_speed_string     = (f" at {main_wind_speed[0]} {main_wind_speed[1]}")
-            wind_gust_string      = (f" gusting {main_wind_gust[0]} {main_wind_gust[1]}" if main_wind_gust[0] != '-' else f"")
-            visibility_string     = (f", {main_visibility[0].lower()} {main_visibility[1]} visibility")
-            if main_cloud_type:
-                for ii, cloud in enumerate(main_cloud_type):
-                    if cloud is not None:
-                        if ii == 0:
-                            cloud_string = ", cloud "
+                        # Extract cloud forecast variables
+                        cloud_type  = []
+                        cloud_level = []
+                        cloud_code  = []
+                        if 'clouds' in forecast:
+                            for ii, cloud in enumerate(forecast['clouds']):
+                                cloud_code.append(cloud['code'])
+                                cloud_type.append(cloud['text'])
+                                if cloud_code[ii] not in ['CAVOK', 'CLR', 'SKC']:
+                                    cloud_level.append([cloud['base_meters_agl'] if 'visibility' in forecast else None, 'm'] if self.app.config['Units']['Distance'] == 'km' else 
+                                                    [cloud['base_feet_agl']   if 'visibility' in forecast else None, 'ft'])
+                                else:
+                                    cloud_level.append(None)
                         else:
-                            cloud_string = cloud_string + ", "
-                        cloud_string = cloud_string + f"{main_cloud_type[ii].lower()} at {main_cloud_level[ii][0]} {main_cloud_level[ii][1]}"
+                            cloud_code.append(None)
+                            cloud_type.append(None)
+                            cloud_level.append([None, 'm'])
+                        trend_cloud_code.append(cloud_code)     
+                        trend_cloud_type.append(cloud_type)
+                        trend_cloud_level.append(cloud_level)
+
+                        # Extract conditions forecast
+                        conditions_text = []
+                        conditions_code = []
+                        if 'conditions' in forecast:
+                            for condition in forecast['conditions']:
+                                conditions_text.append(condition['text'] if 'text' in condition else None)
+                                conditions_code.append(condition['code'] if 'code' in condition else None)
+                        trend_conditions_text.append(conditions_text)
+                        trend_conditions_code.append(conditions_text)
+
+                # Convert TAF units as required
+                main_wind_direction  = observation.units(main_wind_direction,  self.app.config['Units']['Direction'])
+                main_wind_speed      = observation.units(main_wind_speed,      self.app.config['Units']['Wind'])
+                main_wind_gust       = observation.units(main_wind_gust,       self.app.config['Units']['Wind'])
+                main_wind_direction  = observation.format(main_wind_direction, 'Direction')
+                main_wind_speed      = observation.format(main_wind_speed,     'Wind')
+                main_wind_gust       = observation.format(main_wind_gust,      'Wind')
+                for ii, jj in enumerate(trend_wind_direction):
+                    trend_wind_direction[ii] = observation.units(trend_wind_direction[ii],  self.app.config['Units']['Direction'])
+                    trend_wind_speed[ii]     = observation.units(trend_wind_speed[ii],      self.app.config['Units']['Wind'])
+                    trend_wind_gust[ii]      = observation.units(trend_wind_gust[ii],       self.app.config['Units']['Wind'])            
+                    trend_wind_direction[ii] = observation.format(trend_wind_direction[ii], 'Direction')
+                    trend_wind_speed[ii]     = observation.format(trend_wind_speed[ii],     'Wind')
+                    trend_wind_gust[ii]      = observation.format(trend_wind_gust[ii],      'Wind')
+
+                # print(issued_time, flush=True)
+                # print(from_time, flush=True)
+                # print(to_time, flush=True)
+                # print(main_wind_direction, flush=True)
+                # print(main_wind_speed, flush=True)
+                # print(main_wind_gust, flush=True)
+                # print(main_visibility, flush=True)
+                # print(main_cloud_type, flush=True)
+                # print(main_cloud_level, flush=True)
+                # print(trend_type, flush=True)      
+                # print(trend_from_time, flush=True)
+                # print(trend_to_time, flush=True)   
+                #print(trend_wind_direction, flush=True)
+                #print(trend_wind_speed, flush=True)
+                #print(trend_wind_gust, flush=True)  
+                # print(trend_visibility, flush=True)
+                #print(trend_cloud_code, flush=True) 
+                #print(trend_cloud_type, flush=True)
+                #print(trend_cloud_level, flush=True) 
+                #print(trend_conditions, flush=True) 
+
+                # Construct main forecast taf string
+                taf_forecast_string   = ""
+                location_string       = (f"TAF for {location}") 
+                timing_string         = (f"Issued at {issued_time.astimezone(Tz).strftime(time_format)} on {issued_time.strftime(date_format)} "
+                                        f"and valid until {to_time.astimezone(Tz).strftime(time_format)} on {to_time.astimezone(Tz).strftime(date_format)}\n")
+                wind_direction_string = (f"Wind {main_wind_direction[0]}" if self.app.config['Units']['Direction'] == 'cardinal' else f"Wind {main_wind_direction[0] + main_wind_direction[1]}")
+                wind_speed_string     = (f" at {main_wind_speed[0]} {main_wind_speed[1]}")
+                wind_gust_string      = (f" gusting {main_wind_gust[0]} {main_wind_gust[1]}" if main_wind_gust[0] != '-' else f"")
+                visibility_string     = (f", {main_visibility[0].lower()} {main_visibility[1]} visibility" if main_visibility[0] is not None else f"")
+                if main_cloud_type:
+                    for ii, cloud in enumerate(main_cloud_type):
+                        if cloud is not None:
+                            if ii == 0 and main_cloud_code[ii] in ['CAVOK', 'CLR', 'SKC']:
+                                cloud_string = ", "
+                            elif ii == 0:
+                                cloud_string = ", cloud "
+                            else:
+                                cloud_string = cloud_string + ", "    
+                            cloud_string = (cloud_string + 
+                                            f"{main_cloud_type[ii].lower()}" + 
+                                        (f" at {main_cloud_level[ii][0]} {main_cloud_level[ii][1]}" if main_cloud_code[ii] not in ['CAVOK', 'CLR', 'SKC'] else f""))
+                        else:
+                            cloud_string = f""
+                else:
+                    cloud_string = f""
+                taf_forecast_string = (taf_forecast_string +
+                                    wind_direction_string + 
+                                    wind_speed_string + 
+                                    wind_gust_string +
+                                    visibility_string + 
+                                    cloud_string + "\n\n")
+
+                # Construct trend forecast taf string
+                for ii, type in enumerate(trend_type_text):
+                    trend_time_string           = (f"{type} {trend_from_time[ii].astimezone(Tz).strftime(time_format)} {trend_from_time[ii].astimezone(Tz).strftime('%d %b')} until " 
+                                                f"{trend_to_time[ii].astimezone(Tz).strftime(time_format)} {trend_to_time[ii].astimezone(Tz).strftime('%d %b')}")
+                    trend_wind_direction_string = ((f", wind {trend_wind_direction[ii][0]}" if self.app.config['Units']['Direction'] == 'cardinal' else 
+                                                    f"Wind {trend_wind_direction[ii][0] + trend_wind_direction[ii][1]}") if trend_wind_direction[ii][0] != '-' else f"")
+                    trend_wind_speed_string     = (f" at {trend_wind_speed[ii][0]} {trend_wind_speed[ii][1]}" if trend_wind_speed[ii][0] != '-' else f"")
+                    trend_gust_speed_string     = (f" gusting {trend_wind_gust[ii][0]} {trend_wind_gust[ii][1]}" if trend_wind_gust[ii][0] != '-' else f"")
+                    trend_visibility_string     = (f", {trend_visibility[ii][0].lower()} {trend_visibility[ii][1]} visibility" if trend_visibility[ii][0] is not None else f"")
+                    if trend_cloud_type[ii]:
+                        for jj, cloud in enumerate(trend_cloud_type[ii]):
+                            if cloud is not None:
+                                if jj == 0 and trend_cloud_code[ii][jj] in ['CAVOK', 'CLR', 'SKC']:
+                                    trend_cloud_string = ", "
+                                elif jj == 0:
+                                    trend_cloud_string = ", cloud "
+                                else:
+                                    trend_cloud_string = trend_cloud_string + ", "
+                                trend_cloud_string = (trend_cloud_string + 
+                                                    f"{trend_cloud_type[ii][jj].lower()}" + 
+                                                    (f" at {trend_cloud_level[ii][jj][0]} {trend_cloud_level[ii][jj][1]}" if trend_cloud_code[ii][jj] not in ['CAVOK', 'CLR', 'SKC'] else f""))
+                            else:
+                                cloud_string = f""
                     else:
                         cloud_string = f""
-            else:
-                cloud_string = f""
-            taf_forecast_string = (taf_forecast_string + 
-                                   wind_direction_string + 
-                                   wind_speed_string + 
-                                   wind_gust_string +
-                                   visibility_string + 
-                                   cloud_string + "\n")
-
-            # Construct trend forecast taf string
-            for ii, type in enumerate(trend_type):
-                trend_time_string           = (f"{type} {trend_from_time[ii].astimezone(Tz).strftime(time_format)} {trend_from_time[ii].astimezone(Tz).strftime('%d %b')} to " 
-                                               f"{trend_to_time[ii].astimezone(Tz).strftime(time_format)} {trend_to_time[ii].astimezone(Tz).strftime('%d %b')}")
-                trend_wind_direction_string = ((f", wind {trend_wind_direction[ii][0]}" if self.app.config['Units']['Direction'] == 'cardinal' else 
-                                                f"Wind {trend_wind_direction[ii][0] + trend_wind_direction[ii][1]}") if trend_wind_direction[ii][0] != '-' else f"")
-                trend_wind_speed_string     = (f" at {trend_wind_speed[ii][0]} {trend_wind_speed[ii][1]}" if trend_wind_speed[ii][0] != '-' else f"")
-                trend_gust_speed_string     = (f" gusting {trend_wind_gust[ii][0]} {trend_wind_gust[ii][1]}" if trend_wind_gust[ii][0] != '-' else f"")
-                trend_visibility_string     = (f", {trend_visibility[ii][0].lower()} {trend_visibility[ii][1]} visibility" if trend_visibility[ii][0] is not None else f"")
-                if trend_cloud_type[ii]:
-                    for jj, cloud in enumerate(trend_cloud_type[ii]):
-                        if cloud is not None:
-                            if jj == 0:
-                                trend_cloud_string = ", cloud "
+                    if trend_conditions_text[ii]:
+                        for jj, condition in enumerate(trend_conditions_text[ii]):
+                            if condition is not None:
+                                if jj == 0:
+                                    trend_condition_string = ", conditions "
+                                else:
+                                    trend_condition_string = trend_condition_string + ", "
+                                trend_condition_string = trend_condition_string + f"{condition.lower()}"
                             else:
-                                trend_cloud_string = trend_cloud_string + ", "
-                            trend_cloud_string = trend_cloud_string + f"{trend_cloud_type[ii][jj].lower()} at {trend_cloud_level[ii][jj][0]} {trend_cloud_level[ii][jj][1]}"
-                        else:
-                            trend_cloud_string = f""
-                else:
-                            trend_cloud_string = f""
-                if trend_conditions[ii]:
-                    for jj, condition in enumerate(trend_conditions[ii]):
-                        if condition is not None:
-                            if jj == 0:
-                                trend_condition_string = ", conditions "
-                            else:
-                                trend_condition_string = trend_condition_string + ", "
-                            trend_condition_string = trend_condition_string + f"{condition.lower()}"
-                        else:
-                            trend_condition_string = f""
-                else:
-                            trend_condition_string = f""            
-                taf_forecast_string = (taf_forecast_string + "\n" + 
-                                       trend_time_string + 
-                                       trend_wind_direction_string + 
-                                       trend_wind_speed_string + 
-                                       trend_gust_speed_string + 
-                                       trend_visibility_string + 
-                                       trend_cloud_string +
-                                       trend_condition_string + "\n")
+                                trend_condition_string = f""
+                    else:
+                                trend_condition_string = f""            
+                    taf_forecast_string = (taf_forecast_string +
+                                        trend_time_string + 
+                                        trend_wind_direction_string + 
+                                        trend_wind_speed_string + 
+                                        trend_gust_speed_string + 
+                                        trend_visibility_string + 
+                                        trend_cloud_string +
+                                        trend_condition_string + "\n\n")
 
-            # Define and format labels
-            self.metar_taf_data['taf_location_string'] = location_string
-            self.metar_taf_data['taf_timing_string']   = timing_string
-            self.metar_taf_data['taf_forecast_string'] = taf_forecast_string
+                # Define and format labels
+                self.metar_taf_data['taf_location_string'] = location_string
+                self.metar_taf_data['taf_timing_string']   = timing_string
+                self.metar_taf_data['taf_forecast_string'] = taf_forecast_string
 
-            # Update display
-            self.update_display()
+                # Update display
+                self.update_display()
 
-            # Schedule new forecast
-            Clock.schedule_once(self.schedule_metar_taf)
+                # Schedule new forecast
+                Clock.schedule_once(self.schedule_metar_taf)
 
-        # Unable to extract TAF data from JSON object. Set forecast
-        # variables to blank and indicate to user that forecast is unavailable
-        except (IndexError, KeyError, ValueError):
-            Clock.schedule_once(self.fail_taf)
+            # Unable to extract TAF data from JSON object. Set forecast
+            # variables to blank and indicate to user that forecast is 
+            # unavailable
+            except (IndexError, KeyError, ValueError, TypeError):
+                Clock.schedule_once(self.fail_taf)
 
     def update_display(self):
 

@@ -24,8 +24,10 @@
     PanelBackground:
         _panelTitle: 'Forecast'
 
+    ## Forecast detail button
     Button:
         on_press: self.parent.forecast_detail_panel.open()
+        background_color: (0,0,0,0)
 
     ## Forecast Conditions
     TitleField:
@@ -155,34 +157,42 @@
             MainMenuTab:
                 text: 'METAR'
                 MainMenuLayout:
-
-
+                    BoxLayout:
+                        orientation: 'vertical'
+                        size_hint: (1,.2)
+                        MediumMultilineField:
+                            halign: 'left'
+                            valign: 'top'
+                            text: app.CurrentConditions.metar_taf['metar_location_string'] + '. ' + app.CurrentConditions.metar_taf['metar_timing_string']
+                            font_size: dp(16*app.scaleFactor)
+                    BoxLayout:
+                        orientation: 'vertical'
+                        size_hint: (1,.8)
+                        SmallMultilineField:
+                            halign: 'left'
+                            valign: 'top'
+                            ##size_hint: (0.95, None)
+                            height: self.texture_size[1]
+                            text_size: self.width, None
+                            text: app.CurrentConditions.metar_taf['metar_observation_string']
             MainMenuTab:
                 text: 'TAF'
                 MainMenuLayout:
                     BoxLayout:
                         orientation: 'vertical'
-                        size_hint: (1,.25)
+                        size_hint: (1,.2)
                         MediumMultilineField:
                             halign: 'left'
-                            text: app.CurrentConditions.metar_taf['taf_location_string'] + "\n" + app.CurrentConditions.metar_taf['taf_timing_string']
+                            valign: 'top'
+                            text: app.CurrentConditions.metar_taf['taf_location_string'] + '. ' + app.CurrentConditions.metar_taf['taf_timing_string']
+                            font_size: dp(16*app.scaleFactor)
                     BoxLayout:
                         orientation: 'vertical'
-                        size_hint: (1,.75)
-                        ScrollView:
-                            do_scroll_x: False
-                            do_scroll_y: True
-                            bar_color:  [.7, .7, .7, 0.9]
-                            bar_inactive_color: [.7, .7, .7, 0.9]
-                            bar_width: 4
-                            scroll_type: ['bars', 'content']
-                            SmallMultilineField:
-                                halign: 'left'
-                                valign: 'top'
-                                size_hint: (0.95, None)
-                                height: self.texture_size[1]
-                                text_size: self.width, None
-                                text: app.CurrentConditions.metar_taf['taf_forecast_string']
-            MainMenuTab:
-                text: 'Credits'
-                MainMenuLayout:
+                        size_hint: (1,.8)
+                        SmallMultilineField:
+                            halign: 'left'
+                            valign: 'top'
+                            ##size_hint: (0.95, None)
+                            height: self.texture_size[1]
+                            text_size: self.width, None
+                            text: app.CurrentConditions.metar_taf['taf_forecast_string']
