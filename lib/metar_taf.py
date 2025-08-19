@@ -305,7 +305,7 @@ class metar_taf():
                 wind_gust_string         = (f" gusting {metar_wind_gust[0]} {metar_wind_gust[1]}" if metar_wind_gust[0] != '-' else f"")
                 visibility_string        = (f", {metar_visibility[0].lower()} {metar_visibility[1]} visibility" if metar_visibility[0] is not None else f"")
                 barometer_string         = (f"barometer {metar_baromter[0].lower()}{metar_baromter[1]}, " if metar_baromter[0] is not None else f"")
-                humidty_string           = (f"humidity  {metar_humidity[0].lower()}{metar_humidity[1]}, " if metar_humidity[0] is not None else f"")
+                humidty_string           = (f"humidity {metar_humidity[0].lower()}{metar_humidity[1]}, "  if metar_humidity[0] is not None else f"")
                 dewpoint_string          = (f"dew point {metar_dewpoint[0].lower()}{metar_dewpoint[1]}."  if metar_dewpoint[0] is not None else f"")
                 if metar_cloud_type:
                     for ii, cloud in enumerate(metar_cloud_type):
@@ -440,8 +440,8 @@ class metar_taf():
                                 cloud_code.append(cloud['code'])
                                 cloud_type.append(cloud['text'])
                                 if cloud_code[ii] not in ['CAVOK', 'CLR', 'SKC']:
-                                    cloud_level.append([cloud['base_meters_agl'] if 'visibility' in forecast else None, 'm'] if self.app.config['Units']['Distance'] == 'km' else 
-                                                    [cloud['base_feet_agl']   if 'visibility' in forecast else None, 'ft'])
+                                    cloud_level.append([cloud['base_meters_agl'] if 'base_meters_agl' in cloud else None, 'm'] if self.app.config['Units']['Distance'] == 'km' else 
+                                                       [cloud['base_feet_agl']   if 'base_feet_agl'   in cloud else None, 'ft'])
                                 else:
                                     cloud_level.append(None)
                         else:
@@ -486,7 +486,7 @@ class metar_taf():
                 # print(main_visibility, flush=True)
                 # print(main_cloud_type, flush=True)
                 # print(main_cloud_level, flush=True)
-                # print(trend_type, flush=True)      
+                #print(trend_type_text, flush=True)      
                 # print(trend_from_time, flush=True)
                 # print(trend_to_time, flush=True)   
                 #print(trend_wind_direction, flush=True)
@@ -502,7 +502,7 @@ class metar_taf():
                 taf_forecast_string   = ""
                 location_string       = (f"TAF for {location}") 
                 timing_string         = (f"Issued at {issued_time.astimezone(Tz).strftime(time_format)} on {issued_time.strftime(date_format)} "
-                                        f"and valid until {to_time.astimezone(Tz).strftime(time_format)} on {to_time.astimezone(Tz).strftime(date_format)}\n")
+                                         f"and valid until {to_time.astimezone(Tz).strftime(time_format)} on {to_time.astimezone(Tz).strftime(date_format)}\n")
                 wind_direction_string = (f"Wind {main_wind_direction[0]}" if self.app.config['Units']['Direction'] == 'cardinal' else f"Wind {main_wind_direction[0] + main_wind_direction[1]}")
                 wind_speed_string     = (f" at {main_wind_speed[0]} {main_wind_speed[1]}")
                 wind_gust_string      = (f" gusting {main_wind_gust[0]} {main_wind_gust[1]}" if main_wind_gust[0] != '-' else f"")
@@ -518,7 +518,7 @@ class metar_taf():
                                 cloud_string = cloud_string + ", "    
                             cloud_string = (cloud_string + 
                                             f"{main_cloud_type[ii].lower()}" + 
-                                        (f" at {main_cloud_level[ii][0]} {main_cloud_level[ii][1]}" if main_cloud_code[ii] not in ['CAVOK', 'CLR', 'SKC'] else f""))
+                                           (f" at {main_cloud_level[ii][0]} {main_cloud_level[ii][1]}" if main_cloud_code[ii] not in ['CAVOK', 'CLR', 'SKC'] else f""))
                         else:
                             cloud_string = f""
                 else:
@@ -549,12 +549,12 @@ class metar_taf():
                                 else:
                                     trend_cloud_string = trend_cloud_string + ", "
                                 trend_cloud_string = (trend_cloud_string + 
-                                                    f"{trend_cloud_type[ii][jj].lower()}" + 
-                                                    (f" at {trend_cloud_level[ii][jj][0]} {trend_cloud_level[ii][jj][1]}" if trend_cloud_code[ii][jj] not in ['CAVOK', 'CLR', 'SKC'] else f""))
+                                                      f"{trend_cloud_type[ii][jj].lower()}" + 
+                                                     (f" at {trend_cloud_level[ii][jj][0]} {trend_cloud_level[ii][jj][1]}" if trend_cloud_code[ii][jj] not in ['CAVOK', 'CLR', 'SKC'] else f""))
                             else:
-                                cloud_string = f""
+                                trend_cloud_string = f""
                     else:
-                        cloud_string = f""
+                        trend_cloud_string = f""
                     if trend_conditions_text[ii]:
                         for jj, condition in enumerate(trend_conditions_text[ii]):
                             if condition is not None:
