@@ -234,7 +234,7 @@ install_python_modules() {
 
     # Install required Python modules
     for i in "${arg_array[@]}"; do
-        module=$(echo $i | cut -d"[" -f 1 | cut -d"=" -f 1)
+        module=$(echo $i | cut -d"[" -f 1 | cut -d"=" -f 1 | cut -d">" -f 1)
         local str="Installing Python module"
         printf "  %b %s %s..." "${INFO}" "${str}" "${module}"
         if (${PYTHON_VENV} ${PIP_INSTALL} "$i" &> error_log); then
