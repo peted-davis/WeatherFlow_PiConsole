@@ -87,18 +87,18 @@ WFPICONSOLE_DEPENDENCIES=(git curl rng-tools build-essential python3-dev python3
                           zlib1g-dev)
 
 # Python modules and versions
-PYTHON_MODULES=(websockets==11.0.3
-                numpy==1.26.0
-                pytz==2023.3
-                tzlocal==5.1
-                ephem==4.1.5
-                packaging==23.2
-                cryptography==41.0.4
-                pyOpenSSL==23.2.0
-                certifi==2023.7.22)
+PYTHON_MODULES=("websockets==15.0.1"
+                "numpy>=2.0.2"
+                "pytz==2025.2"
+                "tzlocal==5.3.1"
+                "ephem==4.2"
+                "packaging==25.0"
+                "cryptography==45.0.7"
+                "pyOpenSSL==25.1.0"
+                "certifi==2025.8.3")
 
 # Kivy source and version
-KIVY_VERSION="2.2.0"
+KIVY_VERSION="2.3.1"
 KIVY_SOURCE="kivy[base]=="$KIVY_VERSION
 
 # Github repositories
