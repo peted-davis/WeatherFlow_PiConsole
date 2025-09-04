@@ -83,7 +83,7 @@ PIP_UPDATE="-m pip install --upgrade --no-cache-dir"
 
 # wfpiconsole and Kivy dependencies
 WFPICONSOLE_DEPENDENCIES=(git curl rng-tools build-essential python3-dev python3-pip python3-setuptools
-                          libssl-dev libffi-dev libopenblas-dev jq libjpeg-dev zlib1g-dev)
+                          python3-venv libssl-dev libffi-dev libopenblas-dev jq libjpeg-dev zlib1g-dev)
 
 # Python modules and versions
 PYTHON_MODULES=("websockets==15.0.1"
@@ -1051,7 +1051,28 @@ if [[ "${1}" == "install" ]] || [[ "${1}" == "run_update" ]] || [[ "${1}" == "ru
         clean_up
         exit 1
     elif is_command apt-get ; then
-        printf "  %b OS check passed (%b)\\n" "${TICK}" "${OS}"
+        if [[ $OS == *"Ubuntu"* ]]; then
+            VERSION_ID=$(. /etc/os-release && echo $VERSION_ID)
+            MIN_VERSION_ID="22.04"
+            if [ -z "$VERSION_ID" ] ; then
+                printf "\n  %b WARNING: uknown Ubuntu version detected (%b)\n" "${EXCLAMATION}" "${OS}"
+                printf "      No support is available for errors encountered while running\n"
+                printf "      the PiConsole\n"
+            elif (( $(echo "${VERSION_ID}<${MIN_VERSION_ID}" | bc -l) )) ; then
+                printf "  %b OS check failed (%b)\\n\\n" "${CROSS}" "${OS}"
+                printf "  %b ERROR: The latest version of the PiConsole is no longer\\n" "${CROSS}"
+                printf "      compatible with Ubuntu 20.04 LTS. Please upgrade\\n"
+                printf "      your OS\\n\\n"
+                clean_up
+                exit 1
+            else
+                printf "  %b OS check passed (%b)\\n" "${TICK}" "${OS}"
+            fi
+        else
+            printf "\n  %b WARNING: unsupported Debian version detected (%b)\n" "${EXCLAMATION}" "${OS}"
+            printf "      No support is available for errors encountered while running\n"
+            printf "      the PiConsole\n"
+        fi
     else
         printf "  %b OS check failed (%b)\\n\\n" "${CROSS}" "${OS}"
         clean_up

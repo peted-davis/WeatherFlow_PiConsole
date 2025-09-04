@@ -36,18 +36,17 @@ https://community.weatherflow.com/
 
 ### Raspberry Pi
 
-The console is fully supported for Raspberry Pi 3 Model B/B+ and Raspberry Pi 4
-running the 32 bit version of Raspberry Pi OS. It can be run on earlier models,
-a Raspberry Pi 5, or the 64 bit version of Raspberry Pi OS, but no direct
-support is provided for these environments. It is not compatible with Raspberry
-Pi Zero or Zero W. Raspberry Pi 5 will become fully supported in the future.
-While the console is compatiable with Raspberry Pi 3, the graphics hardware on
-this model is ageing and performance of the console can be sluggish. It is
-recommended to use a Pi 4 or above
+The console is fully supported for Raspberry Pi 3 Model B/B+, Raspberry Pi 4 and
+Raspberry Pi 5 running the 32 or 64 bit version of Raspberry Pi OS. It can be 
+run on earlier models, but no direct support is  provided for these systems. It 
+is not compatible with Raspberry Pi Zero or Zero W. While the console is 
+compatiable with Raspberry Pi 3, the graphics hardware on this model is ageing 
+and performance of the console can be sluggish. It is recommended to use a Pi 4 
+or above
 
-For all models of Raspberry Pi, the console is compatible with Raspberry Pi OS
-(Bookworm) or the legacy Raspberry Pi OS (Bullseye). The console is no longer
-comptaible with Raspberry Pi OS (Buster).
+For all models of Raspberry Pi, the console is compatible with Raspberry Pi OS 
+Bookworm and Trixie (soon to be released) or the legacy Raspberry Pi OS Bullseye. 
+The console is not comptaible with Raspberry Pi OS Buster.
 
 The console is compatible with the Raspberry Pi Official 7 inch Touchscreen or
 other HDMI equivalents. Note, screens that attach solely to the GPIO pins (SPI)
@@ -55,7 +54,7 @@ are not compatible and the console will not start.
 
 ### PC / Laptop
 
-The console is fully supported on laptops and PCs running Ubuntu 20.04 LTS or
+The console is fully supported on laptops and PCs running Ubuntu 22.04 LTS or
 later, or the desktop version of Raspberry Pi OS. It will run on other
 debian-based operating systems with Python version 3.9 or above, but no direct
 support is provided for these environments.
