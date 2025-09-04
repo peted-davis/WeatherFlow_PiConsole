@@ -83,8 +83,7 @@ PIP_UPDATE="-m pip install --upgrade --no-cache-dir"
 
 # wfpiconsole and Kivy dependencies
 WFPICONSOLE_DEPENDENCIES=(git curl rng-tools build-essential python3-dev python3-pip python3-setuptools
-                          libssl-dev libffi-dev libatlas-base-dev libopenblas-dev jq libjpeg-dev
-                          zlib1g-dev)
+                          libssl-dev libffi-dev libopenblas-dev jq libjpeg-dev zlib1g-dev)
 
 # Python modules and versions
 PYTHON_MODULES=("websockets==15.0.1"
@@ -1026,10 +1025,9 @@ if [[ "${1}" == "install" ]] || [[ "${1}" == "run_update" ]] || [[ "${1}" == "ru
 
     # Check compatability of architecture/OS/Raspberry Pi
     ARCHITECTURE=$(dpkg --print-architecture)
-    if [[ $ARCHITECTURE = armhf ]] || [[ $ARCHITECTURE = x86_64 ]] || [[ $ARCHITECTURE = i*86 ]]; then
+    if [[ $ARCHITECTURE = armhf ]] || [[ $ARCHITECTURE = x86_64 ]] || [[ $ARCHITECTURE = i*86 ]] || \
+       [[ $ARCHITECTURE = arm64 ]] || [[ $ARCHITECTURE = amd64 ]] ; then
         printf "  %b Architecture check passed (%b)\\n" "${TICK}" "${ARCHITECTURE}"
-    elif [[ $ARCHITECTURE = arm64 ]] || [[ $ARCHITECTURE = amd64 ]]; then
-        printf "  %b Architecture check warning (%b)\\n" "${EXCLAMATION}" "${ARCHITECTURE}"
     else
         printf "  %b Architecture check failed (%b)\\n\\n" "${CROSS}" "${ARCHITECTURE}"
         clean_up
@@ -1038,7 +1036,7 @@ if [[ "${1}" == "install" ]] || [[ "${1}" == "run_update" ]] || [[ "${1}" == "ru
     MODEL_FILE=/proc/device-tree/model
     if [ -f $MODEL_FILE ]; then
         HARDWARE=$(tr -d '\0' < $MODEL_FILE)
-        if [[ $HARDWARE == *"Raspberry Pi 3"* ]] || [[ $HARDWARE == *"Raspberry Pi 4"* ]] ; then
+        if [[ $HARDWARE == *"Raspberry Pi 3"* ]] || [[ $HARDWARE == *"Raspberry Pi 4"* ]] || [[ $HARDWARE == *"Raspberry Pi 5"* ]] ; then
             SUPPORTED_RASPBERRY_PI="true"
         else
             SUPPORTED_RASPBERRY_PI="false"
@@ -1065,9 +1063,9 @@ if [[ "${1}" == "install" ]] || [[ "${1}" == "run_update" ]] || [[ "${1}" == "ru
         printf "  %b Raspberry Pi check warning (%b)\\n" "${EXCLAMATION}" "${HARDWARE}"
     fi
 
-    # Print warning if unsupported architecture/Raspberry Pi detected
-    if [[ $ARCHITECTURE = arm64 ]] || [[ $ARCHITECTURE = amd64 ]] || [[ $SUPPORTED_RASPBERRY_PI == "false" ]]; then
-        printf "\n  %b WARNING: unsupported architecture or Raspberry Pi detected\n" "${EXCLAMATION}"
+    # Print warning if unsupported Raspberry Pi detected
+    if [[ $SUPPORTED_RASPBERRY_PI == "false" ]]; then
+        printf "\n  %b WARNING: unsupported Raspberry Pi detected\n" "${EXCLAMATION}"
         printf "      No support is available for errors encountered while running\n"
         printf "      the PiConsole\n"
     fi
