@@ -83,7 +83,8 @@ PIP_UPDATE="-m pip install --upgrade --no-cache-dir"
 
 # wfpiconsole and Kivy dependencies
 WFPICONSOLE_DEPENDENCIES=(git curl rng-tools build-essential python3-dev python3-pip python3-setuptools
-                          python3-venv libssl-dev libffi-dev libopenblas-dev jq libjpeg-dev zlib1g-dev)
+                          python3-venv libssl-dev libffi-dev libopenblas-dev libjpeg-dev zlib1g-dev
+                          jq bc)
 
 # Python modules and versions
 PYTHON_MODULES=("websockets==15.0.1"
