@@ -1043,39 +1043,41 @@ if [[ "${1}" == "install" ]] || [[ "${1}" == "run_update" ]] || [[ "${1}" == "ru
             SUPPORTED_RASPBERRY_PI="false"
         fi
     fi
-    OS=$(. /etc/os-release && echo $PRETTY_NAME)
-    if [[ $HARDWARE == *"Raspberry Pi"* ]] && [[ $OS == *"buster"* ]]; then
-        printf "  %b OS check failed (%b)\\n\\n" "${CROSS}" "${OS}"
+    OS_NAME=$(. /etc/os-release && echo $PRETTY_NAME)
+    UBUNTU_VERSION_ID=$(. /etc/os-release && echo $VERSION_ID)
+    MIN_UBUNTU_VERSION="22.04"
+    if [[ $HARDWARE == *"Raspberry Pi"* ]] && [[ $OS == *"buster"* ]] ; then
+        printf "  %b OS check failed (%b)\\n\\n" "${CROSS}" "${OS_NAME}"
         printf "  %b ERROR: The latest version of the PiConsole is no longer\\n" "${CROSS}"
         printf "      compatible with Raspberry Pi OS (Buster). Please upgrade\\n"
         printf "      your OS\\n\\n"
         clean_up
         exit 1
     elif is_command apt-get ; then
-        if [[ $OS == *"Ubuntu"* ]]; then
-            VERSION_ID=$(. /etc/os-release && echo $VERSION_ID)
-            MIN_VERSION_ID="22.04"
-            if [ -z "$VERSION_ID" ] ; then
-                printf "\n  %b WARNING: uknown Ubuntu version detected (%b)\n" "${EXCLAMATION}" "${OS}"
+        if [[ $HARDWARE == *"Raspberry Pi"* ]] ; then
+            printf "  %b OS check passed (%b)\\n" "${TICK}" "${OS_NAME}"
+        elif [[ $OS_NAME == *"Ubuntu"* ]] ; then
+            if [ -z "$UBUNTU_VERSION_ID" ] ; then
+                printf "\n  %b WARNING: uknown Ubuntu version detected (%b)\n" "${EXCLAMATION}" "${OS_NAME}"
                 printf "      No support is available for errors encountered while running\n"
                 printf "      the PiConsole\n"
-            elif (( $(echo "${VERSION_ID}<${MIN_VERSION_ID}" | bc -l) )) ; then
-                printf "  %b OS check failed (%b)\\n\\n" "${CROSS}" "${OS}"
+            elif (( $(echo "${UBUNTU_VERSION_ID}<${MIN_UBUNTU_VERSION}" | bc -l) )) ; then
+                printf "  %b OS check failed (%b)\\n\\n" "${CROSS}" "${OS_NAME}"
                 printf "  %b ERROR: The latest version of the PiConsole is no longer\\n" "${CROSS}"
                 printf "      compatible with Ubuntu 20.04 LTS. Please upgrade\\n"
                 printf "      your OS\\n\\n"
                 clean_up
                 exit 1
             else
-                printf "  %b OS check passed (%b)\\n" "${TICK}" "${OS}"
+                printf "  %b OS check passed (%b)\\n" "${TICK}" "${OS_NAME}"
             fi
         else
-            printf "\n  %b WARNING: unsupported Debian version detected (%b)\n" "${EXCLAMATION}" "${OS}"
+            printf "\n  %b WARNING: unsupported Debian version detected (%b)\n" "${EXCLAMATION}" "${OS_NAME}"
             printf "      No support is available for errors encountered while running\n"
             printf "      the PiConsole\n"
         fi
     else
-        printf "  %b OS check failed (%b)\\n\\n" "${CROSS}" "${OS}"
+        printf "  %b OS check failed (%b)\\n\\n" "${CROSS}" "${OS_NAME}"
         clean_up
         exit 1
     fi
