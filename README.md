@@ -86,30 +86,32 @@ Piping a command directly to ```bash``` is controversial, as it prevents the
 user from reading code that is about to run on their system. If you are worried
 about the contents of the installer, please examine the [first](https://raw.githubusercontent.com/peted-davis/peted-davis.github.io/master/wfpiconsole)
 and [second](https://raw.githubusercontent.com/peted-davis/WeatherFlow_PiConsole/master/wfpiconsole.sh)
-install files in the Git repository before running the install command.
+installation files in the Git repository before running the install command.
 
 ### Configure and Run WeatherFlow PiConsole
 
-When the console is run for the first time, you'll be asked whether you want to
-install a blank configuration file for demonstration purposes or advanced setup.
-You can use this option if you wish to try out the console before your
-WeatherFlow hardware has arrived, or if you are a power user and wish to
-configure the console manually rather than using the configuration wizard. For
-most users, the advanced installation option is no appropriate and the default
-option of 'no' should be selected at this prompt.
+When the console is run for the first time, you'll first be asked whether you 
+want to install a blank configuration file for demonstration purposes or 
+advanced setup. You can use this option if you wish to try out the console 
+before your WeatherFlow hardware has arrived, or if you are a power user and 
+wish to configure the console manually rather than using the configuration 
+wizard. For most users, the advanced installation option is not appropriate and 
+the default option of 'no' should be selected at this prompt. If you choose to 
+install a blank configuration file, the console will start but no data will 
+show unless you edit the configuration file manually. 
 
-You will be prompted to specify your preferred connection type: Websocket and
-REST API (default), UDP and REST API, or UDP only. For UDP only you will be
-prompted to manually enter futher information about your station (location,
+You will also be prompted to specify your preferred connection type: Websocket 
+and REST API (default), UDP and REST API, or UDP only. For UDP only you will be
+required to manually enter futher information about your station (location,
 name, elevation etc.). For Websocket and REST API or UDP and REST API you will
-be prompted to enter a WeatherFlow Personal Access Token and a CheckWX Aviation
+be asked to enter a WeatherFlow Personal Access Token and a CheckWX Aviation
 Weather API key. The Personal Access Token is required for the PiConsole to
 access the data from your station, and the CheckWX API key is required to
 download the closest METAR information to your station location.
 
-A Personal Access Token can be generated, viewed, and deleted here: https://tempestwx.com/settings/tokens,
-and a CheckWX API key can be obtained by registering for a free account here:
-https://www.checkwxapi.com/auth/signup
+A Personal Access Token can be generated, viewed, and deleted here: 
+https://tempestwx.com/settings/tokens, and a CheckWX API key can be obtained by 
+registering for a free account here: https://www.checkwxapi.com/auth/signup
 
 Once you have a Personal Access Token and registered with CheckWX (if required),
 go ahead and run the console for the first time using:
