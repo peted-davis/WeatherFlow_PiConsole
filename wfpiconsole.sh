@@ -2,7 +2,7 @@
 
 # Automated installer and updater for the WeatherFlow PiConsole. Modified
 # heavily from the PiHole and PiVPN installers.
-# Copyright (C) 2018-2023 Peter Davis
+# Copyright (C) 2018-2025 Peter Davis
 
 # This program is free software: you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
@@ -265,7 +265,7 @@ update_python_modules() {
 
     # Update required Python modules
     for i in "${arg_array[@]}"; do
-        module=$(echo $i | cut -d"[" -f 1 | cut -d"=" -f 1)
+        module=$(echo $i | cut -d"[" -f 1 | cut -d"=" -f 1 | cut -d">" -f 1)
         required_version=$(echo $i | cut -d"=" -f 3)
         if grep -iF $module module_list &> /dev/null; then
             current_version=$(grep -iF $module module_list | cut -d"=" -f 3)

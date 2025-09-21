@@ -46,7 +46,7 @@ or above
 
 For all models of Raspberry Pi, the console is compatible with Raspberry Pi OS 
 Bookworm and Trixie (soon to be released) or the legacy Raspberry Pi OS Bullseye. 
-The console is not comptaible with Raspberry Pi OS Buster.
+The console is not compatible with Raspberry Pi OS Buster.
 
 The console is compatible with the Raspberry Pi Official 7 inch Touchscreen or
 other HDMI equivalents. Note, screens that attach solely to the GPIO pins (SPI)
