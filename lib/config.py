@@ -1,6 +1,6 @@
 """ Defines the configuration .ini files required by the Raspberry Pi Python
 console for WeatherFlow Tempest and Smart Home Weather stations.
-Copyright (C) 2018-2023 Peter Davis
+Copyright (C) 2018-2025 Peter Davis
 
 This program is free software: you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
@@ -28,7 +28,7 @@ import sys
 import os
 
 # Define wfpiconsole version number
-ver = 'v25.2.1'
+ver = 'v25.9.2'
 
 # Define required variables
 TEMPEST       = False

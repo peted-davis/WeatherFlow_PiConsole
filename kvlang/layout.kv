@@ -1,6 +1,6 @@
 ## WeatherFlow PiConsole: Raspberry Pi Python console for WeatherFlow Tempest
 ## and Smart Home Weather stations.
-## Copyright (C) 2018-2023 Peter Davis
+## Copyright (C) 2018-2025 Peter Davis
 
 ## This program is free software: you can redistribute it and/or modify it under
 ## the terms of the GNU General Public License as published by the Free Software
@@ -254,14 +254,14 @@
         size_hint: (.15,1)
         text: 'TEMPEST'
     StatusField:
-        size_hint: (.12,1)
+        size_hint: (.17,1)
         text: app.CurrentConditions.Status['tempest_status']
     StatusField:
         size_hint: (.22,1)
         text: app.CurrentConditions.Status['tempest_sample_time']
     StatusField:
-        size_hint: (.20,1)
-        text: app.CurrentConditions.Status['tempest_voltage']
+        size_hint: (.15,1)
+        text: app.CurrentConditions.Status['tempest_voltage'] + ' v'
     StatusField:
         size_hint: (.31,1)
         text: app.CurrentConditions.Status['tempest_ob_count']
@@ -273,14 +273,14 @@
         size_hint: (.15,1)
         text: 'SKY'
     StatusField:
-        size_hint: (.12,1)
+        size_hint: (.17,1)
         text: app.CurrentConditions.Status['sky_status']
     StatusField:
         size_hint: (.22,1)
         text: app.CurrentConditions.Status['sky_sample_time']
     StatusField:
-        size_hint: (.20,1)
-        text: app.CurrentConditions.Status['sky_voltage']
+        size_hint: (.15,1)
+        text: app.CurrentConditions.Status['sky_voltage'] + ' v'
     StatusField:
         size_hint: (.31,1)
         text: app.CurrentConditions.Status['sky_ob_count']
@@ -289,7 +289,7 @@
     size_hint: (1,.1)
     orientation: 'horizontal'
     StatusField:
-        size_hint: (.15,1)
+        size_hint: (.17,1)
         text: 'Outdoor AIR'
     StatusField:
         size_hint: (.12,1)
@@ -298,8 +298,8 @@
         size_hint: (.22,1)
         text: app.CurrentConditions.Status['out_air_sample_time']
     StatusField:
-        size_hint: (.20,1)
-        text: app.CurrentConditions.Status['out_air_voltage']
+        size_hint: (.15,1)
+        text: app.CurrentConditions.Status['out_air_voltage'] + ' v'
     StatusField:
         size_hint: (.31,1)
         text: app.CurrentConditions.Status['out_air_ob_count']
@@ -308,7 +308,7 @@
     size_hint: (1,.1)
     orientation: 'horizontal'
     StatusField:
-        size_hint: (.15,1)
+        size_hint: (.17,1)
         text: 'Indoor AIR'
     StatusField:
         size_hint: (.12,1)
@@ -317,8 +317,8 @@
         size_hint: (.22,1)
         text: app.CurrentConditions.Status['in_air_sample_time']
     StatusField:
-        size_hint: (.20,1)
-        text: app.CurrentConditions.Status['in_air_voltage']
+        size_hint: (.15,1)
+        text: app.CurrentConditions.Status['in_air_voltage'] + ' v'
     StatusField:
         size_hint: (.31,1)
         text: app.CurrentConditions.Status['in_air_ob_count']

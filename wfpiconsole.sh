@@ -2,7 +2,7 @@
 
 # Automated installer and updater for the WeatherFlow PiConsole. Modified
 # heavily from the PiHole and PiVPN installers.
-# Copyright (C) 2018-2023 Peter Davis
+# Copyright (C) 2018-2025 Peter Davis
 
 # This program is free software: you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
@@ -83,21 +83,22 @@ PIP_UPDATE="-m pip install --upgrade --no-cache-dir"
 
 # wfpiconsole and Kivy dependencies
 WFPICONSOLE_DEPENDENCIES=(git curl rng-tools build-essential python3-dev python3-pip python3-setuptools
-                          libssl-dev libffi-dev libatlas-base-dev libopenblas-dev jq)
+                          python3-venv libssl-dev libffi-dev libopenblas-dev libjpeg-dev zlib1g-dev
+                          jq bc)
 
 # Python modules and versions
-PYTHON_MODULES=(websockets==11.0.3
-                numpy==1.26.0
-                pytz==2023.3
-                tzlocal==5.1
-                ephem==4.1.5
-                packaging==23.2
-                cryptography==41.0.4
-                pyOpenSSL==23.2.0
-                certifi==2023.7.22)
+PYTHON_MODULES=("websockets==15.0.1"
+                "numpy>=2.0.2"
+                "pytz==2025.2"
+                "tzlocal==5.3.1"
+                "ephem==4.2"
+                "packaging==25.0"
+                "cryptography==45.0.7"
+                "pyOpenSSL==25.1.0"
+                "certifi==2025.8.3")
 
 # Kivy source and version
-KIVY_VERSION="2.2.0"
+KIVY_VERSION="2.3.1"
 KIVY_SOURCE="kivy[base]=="$KIVY_VERSION
 
 # Github repositories
@@ -233,7 +234,7 @@ install_python_modules() {
 
     # Install required Python modules
     for i in "${arg_array[@]}"; do
-        module=$(echo $i | cut -d"[" -f 1 | cut -d"=" -f 1)
+        module=$(echo $i | cut -d"[" -f 1 | cut -d"=" -f 1 | cut -d">" -f 1)
         local str="Installing Python module"
         printf "  %b %s %s..." "${INFO}" "${str}" "${module}"
         if (${PYTHON_VENV} ${PIP_INSTALL} "$i" &> error_log); then
@@ -264,7 +265,7 @@ update_python_modules() {
 
     # Update required Python modules
     for i in "${arg_array[@]}"; do
-        module=$(echo $i | cut -d"[" -f 1 | cut -d"=" -f 1)
+        module=$(echo $i | cut -d"[" -f 1 | cut -d"=" -f 1 | cut -d">" -f 1)
         required_version=$(echo $i | cut -d"=" -f 3)
         if grep -iF $module module_list &> /dev/null; then
             current_version=$(grep -iF $module module_list | cut -d"=" -f 3)
@@ -1025,10 +1026,9 @@ if [[ "${1}" == "install" ]] || [[ "${1}" == "run_update" ]] || [[ "${1}" == "ru
 
     # Check compatability of architecture/OS/Raspberry Pi
     ARCHITECTURE=$(dpkg --print-architecture)
-    if [[ $ARCHITECTURE = armhf ]] || [[ $ARCHITECTURE = x86_64 ]] || [[ $ARCHITECTURE = i*86 ]]; then
+    if [[ $ARCHITECTURE = armhf ]] || [[ $ARCHITECTURE = x86_64 ]] || [[ $ARCHITECTURE = i*86 ]] || \
+       [[ $ARCHITECTURE = arm64 ]] || [[ $ARCHITECTURE = amd64 ]] ; then
         printf "  %b Architecture check passed (%b)\\n" "${TICK}" "${ARCHITECTURE}"
-    elif [[ $ARCHITECTURE = arm64 ]] || [[ $ARCHITECTURE = amd64 ]]; then
-        printf "  %b Architecture check warning (%b)\\n" "${EXCLAMATION}" "${ARCHITECTURE}"
     else
         printf "  %b Architecture check failed (%b)\\n\\n" "${CROSS}" "${ARCHITECTURE}"
         clean_up
@@ -1037,24 +1037,47 @@ if [[ "${1}" == "install" ]] || [[ "${1}" == "run_update" ]] || [[ "${1}" == "ru
     MODEL_FILE=/proc/device-tree/model
     if [ -f $MODEL_FILE ]; then
         HARDWARE=$(tr -d '\0' < $MODEL_FILE)
-        if [[ $HARDWARE == *"Raspberry Pi 3"* ]] || [[ $HARDWARE == *"Raspberry Pi 4"* ]] ; then
+        if [[ $HARDWARE == *"Raspberry Pi 3"* ]] || [[ $HARDWARE == *"Raspberry Pi 4"* ]] || [[ $HARDWARE == *"Raspberry Pi 5"* ]] ; then
             SUPPORTED_RASPBERRY_PI="true"
         else
             SUPPORTED_RASPBERRY_PI="false"
         fi
     fi
-    OS=$(. /etc/os-release && echo $PRETTY_NAME)
-    if [[ $HARDWARE == *"Raspberry Pi"* ]] && [[ $OS == *"buster"* ]]; then
-        printf "  %b OS check failed (%b)\\n\\n" "${CROSS}" "${OS}"
+    OS_NAME=$(. /etc/os-release && echo $PRETTY_NAME)
+    UBUNTU_VERSION_ID=$(. /etc/os-release && echo $VERSION_ID)
+    MIN_UBUNTU_VERSION="22.04"
+    if [[ $HARDWARE == *"Raspberry Pi"* ]] && [[ $OS == *"buster"* ]] ; then
+        printf "  %b OS check failed (%b)\\n\\n" "${CROSS}" "${OS_NAME}"
         printf "  %b ERROR: The latest version of the PiConsole is no longer\\n" "${CROSS}"
         printf "      compatible with Raspberry Pi OS (Buster). Please upgrade\\n"
         printf "      your OS\\n\\n"
         clean_up
         exit 1
     elif is_command apt-get ; then
-        printf "  %b OS check passed (%b)\\n" "${TICK}" "${OS}"
+        if [[ $HARDWARE == *"Raspberry Pi"* ]] ; then
+            printf "  %b OS check passed (%b)\\n" "${TICK}" "${OS_NAME}"
+        elif [[ $OS_NAME == *"Ubuntu"* ]] ; then
+            if [ -z "$UBUNTU_VERSION_ID" ] ; then
+                printf "\n  %b WARNING: uknown Ubuntu version detected (%b)\n" "${EXCLAMATION}" "${OS_NAME}"
+                printf "      No support is available for errors encountered while running\n"
+                printf "      the PiConsole\n"
+            elif (( $(echo "${UBUNTU_VERSION_ID}<${MIN_UBUNTU_VERSION}" | bc -l) )) ; then
+                printf "  %b OS check failed (%b)\\n\\n" "${CROSS}" "${OS_NAME}"
+                printf "  %b ERROR: The latest version of the PiConsole is no longer\\n" "${CROSS}"
+                printf "      compatible with Ubuntu 20.04 LTS. Please upgrade\\n"
+                printf "      your OS\\n\\n"
+                clean_up
+                exit 1
+            else
+                printf "  %b OS check passed (%b)\\n" "${TICK}" "${OS_NAME}"
+            fi
+        else
+            printf "\n  %b WARNING: unsupported Debian version detected (%b)\n" "${EXCLAMATION}" "${OS_NAME}"
+            printf "      No support is available for errors encountered while running\n"
+            printf "      the PiConsole\n"
+        fi
     else
-        printf "  %b OS check failed (%b)\\n\\n" "${CROSS}" "${OS}"
+        printf "  %b OS check failed (%b)\\n\\n" "${CROSS}" "${OS_NAME}"
         clean_up
         exit 1
     fi
@@ -1064,9 +1087,9 @@ if [[ "${1}" == "install" ]] || [[ "${1}" == "run_update" ]] || [[ "${1}" == "ru
         printf "  %b Raspberry Pi check warning (%b)\\n" "${EXCLAMATION}" "${HARDWARE}"
     fi
 
-    # Print warning if unsupported architecture/Raspberry Pi detected
-    if [[ $ARCHITECTURE = arm64 ]] || [[ $ARCHITECTURE = amd64 ]] || [[ $SUPPORTED_RASPBERRY_PI == "false" ]]; then
-        printf "\n  %b WARNING: unsupported architecture or Raspberry Pi detected\n" "${EXCLAMATION}"
+    # Print warning if unsupported Raspberry Pi detected
+    if [[ $SUPPORTED_RASPBERRY_PI == "false" ]]; then
+        printf "\n  %b WARNING: unsupported Raspberry Pi detected\n" "${EXCLAMATION}"
         printf "      No support is available for errors encountered while running\n"
         printf "      the PiConsole\n"
     fi

@@ -1,6 +1,6 @@
 """ Defines the mainMenu Panel required by the Raspberry Pi Python console for
 WeatherFlow Tempest and Smart Home Weather stations.
-Copyright (C) 2018-2023 Peter Davis
+Copyright (C) 2018-2025 Peter Davis
 
 This program is free software: you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
@@ -65,7 +65,7 @@ class mainMenu(ModalView):
         # Populate status fields
         if int(self.app.config['System']['rest_api']):
             self.app.station.get_observation_count()
-            self.app.station.get_hub_firmware()
+            self.app.station.get_device_firmware()
 
         # Add station status panels to main menu
         self.ids.station_panel.add_widget(self.app.station.station_status_panel)

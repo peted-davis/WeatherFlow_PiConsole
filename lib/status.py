@@ -1,6 +1,6 @@
 """ Contains station status functions required by the Raspberry Pi Python
 console for WeatherFlow Tempest and Smart Home Weather stations.
-Copyright (C) 2018-2023 Peter Davis
+Copyright (C) 2018-2025 Peter Davis
 
 This program is free software: you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
@@ -49,6 +49,7 @@ class station(Widget):
         self.offline_timeout = 600
         self.app = App.get_running_app()
         self.set_status_panels()
+        self.get_device_firmware()
 
     def set_status_panels(self):
 
@@ -58,21 +59,22 @@ class station(Widget):
         self.out_air_status_panel = out_air_status()
         self.in_air_status_panel  = in_air_status()
 
-    def get_hub_firmware(self):
+    def get_device_firmware(self):
 
         """ Get the hub firmware_revision for the hub associated with the
             Station ID
         """
 
-        URL = 'https://swd.weatherflow.com/swd/rest/stations?token=' + self.app.config['Keys']['WeatherFlow']
+        template = 'https://swd.weatherflow.com/swd/rest/stations/{}?token={}'
+        URL = template.format(self.app.config['Station']['StationID'], self.app.config['Keys']['WeatherFlow'])
         UrlRequest(URL,
-                   on_success=self.parse_hub_firmware,
-                   on_failure=self.fail_hub_firmware,
-                   on_error=self.fail_hub_firmware,
+                   on_success=self.parse_device_firmware,
+                   on_failure=self.fail_device_firmware,
+                   on_error=self.fail_device_firmware,
                    timeout=int(self.app.config['System']['Timeout']),
                    ca_file=certifi.where())
 
-    def parse_hub_firmware(self, request, response):
+    def parse_device_firmware(self, request, response):
 
         """ Parse hub firmware_revision from response returned by request.url
         """
@@ -84,16 +86,19 @@ class station(Widget):
                             if device['device_type'] == 'HB':
                                 self.status_data['hub_firmware'] = device['firmware_revision']
                                 self.update_display()
+                            if device['device_type'] == 'ST' and self.app.config['Station']['TempestID']:
+                                self.status_data['tempest_firmware'] = device['firmware_revision']
         except Exception:
             pass
 
-    def fail_hub_firmware(self, request, response):
+    def fail_device_firmware(self, request, response):
 
         """ Failed to get hub firmware_revision from response returned by
             request.url
         """
 
-        self.status_data['hub_firmware'] = '[color=d73027ff]Error[/color]'
+        self.status_data['hub_firmware']     = '[color=d73027ff]Error[/color]'
+        self.status_data['tempest_firmware'] = None
 
     def get_observation_count(self):
 
@@ -172,16 +177,34 @@ class station(Widget):
             sample_time_diff = time.time() - latest_ob[0]
             device_voltage   = float(latest_ob[16])
             wind_interval    = float(latest_ob[5])
-            if wind_interval == 3:
-                device_status = '[color=9aba2fff]Mode 0[/color]'
-            elif wind_interval == 20:
-                device_status = '[color=9aba2fff]Mode 0*[/color]'
-            elif wind_interval == 6:
-                device_status = '[color=f9a825ff]Mode 1[/color]'
-            elif wind_interval == 60:
-                device_status = '[color=ef6c00ff]Mode 2[/color]'
-            elif wind_interval == 300:
-                device_status = '[color=b71c1cff]Mode 3[/color]'
+            if self.status_data['tempest_firmware'] is not None: 
+                if int(self.status_data['tempest_firmware']) < 175:
+                    if int(wind_interval) == 3:
+                        device_status = '[color=9aba2fff]Mode 0[/color]'
+                    elif int(wind_interval) == 20:
+                        device_status = '[color=9aba2fff]Mode 0*[/color]'
+                    elif int(wind_interval) == 6:
+                        device_status = '[color=f9a825ff]Mode 1[/color]'
+                    elif int(wind_interval) == 60:
+                        device_status = '[color=ef6c00ff]Mode 2[/color]'
+                    elif int(wind_interval) == 300:
+                        device_status = '[color=b71c1cff]Mode 3[/color]'
+                    else:
+                        device_status = '[color=ef6c00ff]Unknown[/color]'
+                elif int(self.status_data['tempest_firmware']) >= 175:
+                    if device_voltage >= 2.65:
+                        device_status = '[color=9aba2fff]Mode 0[/color]'
+                    elif device_voltage <= 2.4:
+                        device_status = '[color=b71c1cff]Mode 3[/color]'
+                    else:
+                        if int(wind_interval) == 3:
+                            device_status = '[color=f9a825ff]Dynamic 3s[/color]'
+                        elif int(wind_interval) == 6:
+                            device_status = '[color=f9a825ff]Dynamic 6s[/color]'
+                        elif int(wind_interval) == 15:
+                            device_status = '[color=f9a825ff]Dynamic 15s[/color]'
+                        else:
+                            device_status = '[color=ef6c00ff]Unknown[/color]'
             else:
                 device_status = '[color=ef6c00ff]Unknown[/color]'
             if sample_time_diff < self.offline_timeout:
@@ -292,7 +315,7 @@ class station(Widget):
             self.status_data['station_status'] = '[color=c8c8c8ff]-[/color]'
         elif all('Offline' in status for status in device_status_list):
             self.status_data['station_status'] = '[color=b71c1cff]Offline[/color]'
-        elif all('Online' in status or 'Mode' in status for status in device_status_list):
+        elif all('Online' in status or 'Mode' in status or 'Dynamic' in status for status in device_status_list):
             self.status_data['station_status'] = '[color=9aba2fff]Online[/color]'
         elif any('Unknown' in status for status in device_status_list):
             self.status_data['station_status'] = '[color=ef6c00ff]Unknown[/color]'
