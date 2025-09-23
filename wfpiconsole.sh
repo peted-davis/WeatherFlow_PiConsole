@@ -266,10 +266,13 @@ update_python_modules() {
     # Update required Python modules
     for i in "${arg_array[@]}"; do
         module=$(echo $i | cut -d"[" -f 1 | cut -d"=" -f 1 | cut -d">" -f 1)
-        required_version=$(echo $i | cut -d"=" -f 3)
+        required_version=$(echo $i | cut -d"=" -f 3)  
+        if [ -z "${required_version}" ]; then
+            required_version=$(echo $i | cut -d">" -f 2 | cut -d"=" -f 2)
+        fi 
         if grep -iF $module module_list &> /dev/null; then
             current_version=$(grep -iF $module module_list | cut -d"=" -f 3)
-            if [[ "$current_version" != "$required_version" ]]; then
+            if [[ "$current_version" != "$required_version" ]] && [[   "$current_version" < "$required_version"      ]]; then
                 local str="Updating Python module"
                 printf "  %b %s %s..." "${INFO}" "${str}" "${module}"
                 if (${PYTHON_VENV} ${PIP_INSTALL} "$i" &> error_log); then
