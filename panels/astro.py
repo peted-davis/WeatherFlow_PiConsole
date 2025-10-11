@@ -1,6 +1,6 @@
 """ Defines the SunriseSunset and MoonPhase panels required by the Raspberry Pi
 Python console for WeatherFlow Tempest and Smart Home Weather stations.
-Copyright (C) 2018-2022 Peter Davis
+Copyright (C) 2018-2025 Peter Davis
 
 This program is free software: you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
@@ -35,8 +35,8 @@ class SunriseSunsetPanel(panelTemplate):
     uvBackground = StringProperty('-')
 
     # Initialise SunriseSunsetPanel
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, mode=None, **kwargs):
+        super().__init__(mode, **kwargs)
         self.setUVBackground()
         self.ids['day_night_bar'].bind(pos=self.draw_day_night_bar)
         self.ids['day_night_bar'].bind(size=self.draw_day_night_bar)

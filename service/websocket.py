@@ -1,6 +1,6 @@
 # WeatherFlow PiConsole: Raspberry Pi Python console for WeatherFlow Tempest and
 # Smart Home Weather stations.
-# Copyright (C) 2018-2022 Peter Davis
+# Copyright (C) 2018-2025 Peter Davis
 
 # This program is free software: you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
@@ -16,7 +16,7 @@
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
 # Import required library modules
-from lib.observationParser  import obsParser
+from lib.observation_parser import obs_parser
 from lib.system             import system
 
 # Import required Kivy modules
@@ -27,8 +27,10 @@ from kivy.app               import App
 import websockets
 import threading
 import asyncio
+import certifi
 import socket
 import json
+import time
 import ssl
 
 
@@ -41,7 +43,7 @@ class websocketClient():
     async def create(cls):
 
         # Initialise websocketClient
-        self = App.get_running_app().websocket_client = websocketClient()
+        self = App.get_running_app().connection_client = websocketClient()
         self.app = App.get_running_app()
 
         # Load configuration file
@@ -51,30 +53,41 @@ class websocketClient():
         self.system = system()
 
         # Initialise websocketClient class variables
-        self._keep_running  = True
-        self._switch_device = False
-        self.reply_timeout  = 60
-        self.ping_timeout   = 60
-        self.sleep_time     = 10
-        self.thread_list    = {}
-        self.task_list      = {}
-        self.connected      = False
-        self.connection     = None
-        self.station        = int(self.config['Station']['StationID'])
-        self.url            = 'wss://ws.weatherflow.com/swd/data?token=' + self.config['Keys']['WeatherFlow']
+        self._keep_running     = True
+        self._switch_device    = False
+        self.watchdog_timeout  = 300
+        self.reply_timeout     = 60
+        self.ping_timeout      = 60
+        self.sleep_time        = 10
+        self.thread_list       = {}
+        self.task_list         = {}
+        self.watchdog_list     = {}
+        self.connected         = False
+        self.connection        = None
+        self.url               = None
 
         # Initialise Observation Parser
-        self.app.obsParser = obsParser()
+        self.app.obsParser = obs_parser()
 
         # Connect to specified Websocket URL and return websocketClient
         await self.__async__connect()
         return self
 
     async def __async__connect(self):
+
+        # Verify WeatherFlow token and StationID are specified in .ini file
+        self.config = self.app.config
+        if self.config['Keys']['WeatherFlow']:
+            self.url = 'wss://swd.weatherflow.com/swd/data?token=' + self.config['Keys']['WeatherFlow']
+        else:
+            return
+
+        # Connect to Websocket
         while not self.connected:
             try:
                 Logger.info(f'Websocket: {self.system.log_time()} - Opening connection')
-                self.connection = await websockets.connect(self.url, ssl=ssl.SSLContext())
+                ssl_context     = ssl.create_default_context(cafile=certifi.where())
+                self.connection = await websockets.connect(self.url, ssl=ssl_context)
                 self.message    = await asyncio.wait_for(self.connection.recv(), timeout=self.reply_timeout)
                 self.message    = json.loads(self.message)
                 try:
@@ -84,6 +97,8 @@ class websocketClient():
                         self.app.obsParser.flagAPI = [1, 1, 1, 1]
                         self.connected = True
                         Logger.info(f'Websocket: {self.system.log_time()} - Connection open')
+                        if all(device is None for device in self.device_list.values()):
+                            Logger.warning(f'Websocket: {system().log_time()} - Data unavailable; no device IDs specified')
                     else:
                         Logger.error(f'Websocket: {self.system.log_time()} - Connection message error')
                         await self.connection.close()
@@ -122,13 +137,17 @@ class websocketClient():
         self.device_list = {'tempest': None, 'sky': None, 'out_air': None, 'in_air': None}
         if self.config['Station']['TempestID']:
             self.device_list['tempest'] = self.config['Station']['TempestID']
+            self.watchdog_list['obs_st'], self.watchdog_list['rapid_wind']  = time.time(), time.time()
         else:
             if self.config['Station']['SkyID']:
                 self.device_list['sky'] = self.config['Station']['SkyID']
+                self.watchdog_list['obs_sky'], self.watchdog_list['rapid_wind']  = time.time(), time.time()
             if self.config['Station']['OutAirID']:
                 self.device_list['out_air'] = self.config['Station']['OutAirID']
+                self.watchdog_list['obs_out_air']  = time.time()
         if self.config['Station']['InAirID']:
             self.device_list['in_air'] = self.config['Station']['InAirID']
+            self.watchdog_list['obs_in_air']  = time.time()
 
     async def __async__listen_devices(self, action):
         devices = []
@@ -165,11 +184,23 @@ class websocketClient():
             await self.task_list['verify']
             return {}
 
+    async def __async__watchdog(self):
+        now = time.time()
+        watchdog_triggered = False
+        for ob in self.watchdog_list:
+            if self.watchdog_list[ob] < (now - self.watchdog_timeout):
+                watchdog_triggered = True
+                break
+        if watchdog_triggered:
+            Logger.warning(f'Websocket: {self.system.log_time()} - Watchdog triggered {ob}')
+            await self.__async__disconnect()
+            await self.__async__connect()
+
     async def __async__decodeMessage(self):
         try:
             if self.message:
                 if 'type' in self.message:
-                    if self.message['type'] in ['ack', 'evt_precip']:
+                    if self.message['type'] in ['connection_opened', 'ack', 'evt_precip']:
                         pass
                     else:
                         if 'device_id' in self.message:
@@ -177,6 +208,7 @@ class websocketClient():
                                 if 'obs_st' in self.thread_list:
                                     while self.thread_list['obs_st'].is_alive():
                                         await asyncio.sleep(0.1)
+                                self.watchdog_list['obs_st'] = time.time()
                                 self.thread_list['obs_st'] = threading.Thread(target=self.app.obsParser.parse_obs_st,
                                                                               args=(self.message, self.config, ),
                                                                               name="obs_st")
@@ -185,6 +217,7 @@ class websocketClient():
                                 if 'obs_sky' in self.thread_list:
                                     while self.thread_list['obs_sky'].is_alive():
                                         await asyncio.sleep(0.1)
+                                self.watchdog_list['obs_sky'] = time.time()
                                 self.thread_list['obs_sky'] = threading.Thread(target=self.app.obsParser.parse_obs_sky,
                                                                                args=(self.message, self.config, ),
                                                                                name='obs_sky')
@@ -194,6 +227,7 @@ class websocketClient():
                                     if 'obs_out_air' in self.thread_list:
                                         while self.thread_list['obs_out_air'].is_alive():
                                             await asyncio.sleep(0.1)
+                                    self.watchdog_list['obs_out_air'] = time.time()
                                     self.thread_list['obs_out_air'] = threading.Thread(target=self.app.obsParser.parse_obs_out_air,
                                                                                        args=(self.message, self.config, ),
                                                                                        name='obs_out_air')
@@ -202,11 +236,13 @@ class websocketClient():
                                     if 'obs_in_air' in self.thread_list:
                                         while self.thread_list['obs_in_air'].is_alive():
                                             await asyncio.sleep(0.1)
+                                    self.watchdog_list['obs_in_air'] = time.time()
                                     self.thread_list['obs_in_air'] = threading.Thread(target=self.app.obsParser.parse_obs_in_air,
                                                                                       args=(self.message, self.config, ),
                                                                                       name='obs_in_air')
                                     self.thread_list['obs_in_air'].start()
                             elif self.message['type'] == 'rapid_wind':
+                                self.watchdog_list['rapid_wind'] = time.time()
                                 self.app.obsParser.parse_rapid_wind(self.message, self.config)
                             elif self.message['type'] == 'evt_strike':
                                 self.app.obsParser.parse_evt_strike(self.message, self.config)
@@ -223,12 +259,13 @@ class websocketClient():
         try:
             while self._keep_running:
                 self.message = await self.__async__getMessage()
+                await self.__async__watchdog()
                 await self.__async__decodeMessage()
         except asyncio.CancelledError:
             raise
 
     async def __async__switch(self):
-        while not self._switch_device:
+        while not self._switch_device and self._keep_running:
             await asyncio.sleep(0.1)
         if 'verify' in self.task_list:
             while not self.task_list['verify'].done():
@@ -244,18 +281,24 @@ class websocketClient():
 
 async def main():
     websocket = await websocketClient.create()
-    while websocket._keep_running:
-        try:
-            websocket.task_list['listen'] = asyncio.create_task(websocket._websocketClient__async__listen())
-            websocket.task_list['switch'] = asyncio.create_task(websocket._websocketClient__async__switch())
-            await asyncio.gather(*list(websocket.task_list.values()))
-        except asyncio.CancelledError:
-            if websocket._switch_device:
-                await websocket._websocketClient__async__listen_devices('listen_stop')
-                await websocket._websocketClient__async__get_devices()
-                await websocket._websocketClient__async__listen_devices('listen_start')
-                Logger.info(f'Websocket: {system().log_time()} - Switching devices and/or station')
-                websocket._switch_device = False
+    if not websocket.config['Keys']['WeatherFlow']:
+        Logger.warning(f'Websocket: {system().log_time()} - Conection unavailable; WeatherFlow Access Token missing')
+    else:
+        while websocket._keep_running:
+            try:
+                websocket.task_list['listen'] = asyncio.create_task(websocket._websocketClient__async__listen())
+                websocket.task_list['switch'] = asyncio.create_task(websocket._websocketClient__async__switch())
+                await asyncio.gather(*list(websocket.task_list.values()))
+            except asyncio.CancelledError:
+                if not websocket._keep_running:
+                    await websocket._websocketClient__async__disconnect()
+                    break
+                if websocket._switch_device:
+                    await websocket._websocketClient__async__listen_devices('listen_stop')
+                    await websocket._websocketClient__async__get_devices()
+                    await websocket._websocketClient__async__listen_devices('listen_start')
+                    Logger.info(f'Websocket: {system().log_time()} - Switching devices and/or station')
+                    websocket._switch_device = False
 
 
 if __name__ == '__main__':

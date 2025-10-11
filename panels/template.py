@@ -1,6 +1,6 @@
 """ Define the panel template for the Raspberry Pi Python console for
 WeatherFlow Tempest and Smart Home Weather stations.
-Copyright (C) 2018-2022 Peter Davis
+Copyright (C) 2018-2025 Peter Davis
 
 This program is free software: you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
@@ -25,9 +25,10 @@ from kivy.app                import App
 # ==============================================================================
 class panelTemplate(RelativeLayout):
 
-    def __init__(self, **kwargs):
+    def __init__(self, mode=None, **kwargs):
         super().__init__(**kwargs)
         self.app = App.get_running_app()
+        self.mode = mode
         if not hasattr(self.app, self.__class__.__name__):
             panelList = []
         else:

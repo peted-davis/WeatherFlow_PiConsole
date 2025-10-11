@@ -1,6 +1,6 @@
 """ Returns the WeatherFlow forecast variables required by the Raspberry Pi
 Python app for WeatherFlow Tempest and Smart Home Weather stations.
-Copyright (C) 2018-2022 Peter Davis
+Copyright (C) 2018-2025 Peter Davis
 
 This program is free software: you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
@@ -17,8 +17,8 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 
 # Import required library modules
 from lib.system import system
-from lib        import observationFormat  as observation
-from lib        import derivedVariables   as derive
+from lib        import observation_format as observation
+from lib        import derived_variables  as derive
 from lib        import properties
 
 # Import required Kivy modules
@@ -62,14 +62,16 @@ class forecast():
         """
 
         # Fetch latest hourly and daily forecast
-        URL = 'https://swd.weatherflow.com/swd/rest/better_forecast?token={}&station_id={}'
-        URL = URL.format(self.app.config['Keys']['WeatherFlow'],
-                         self.app.config['Station']['StationID'])
-        UrlRequest(URL,
-                   on_success=self.success_forecast,
-                   on_failure=self.fail_forecast,
-                   on_error=self.fail_forecast,
-                   ca_file=certifi.where())
+        if int(self.app.config['System']['rest_api']):
+            URL = 'https://swd.weatherflow.com/swd/rest/better_forecast?token={}&station_id={}'
+            URL = URL.format(self.app.config['Keys']['WeatherFlow'],
+                             self.app.config['Station']['StationID'])
+            UrlRequest(URL,
+                       on_success=self.success_forecast,
+                       on_failure=self.fail_forecast,
+                       on_error=self.fail_forecast,
+                       timeout=int(self.app.config['System']['Timeout']),
+                       ca_file=certifi.where())
 
     def schedule_forecast(self, dt):
 
@@ -155,7 +157,10 @@ class forecast():
         """
 
         # Extract Forecast dictionary
-        Forecast = self.met_data['Response']
+        if 'Response' in self.met_data:
+            Forecast = self.met_data['Response']
+        else:
+            return
 
         # Get current time in station time zone
         Tz  = pytz.timezone(self.app.config['Station']['Timezone'])
@@ -238,28 +243,28 @@ class forecast():
                 Conditions = hourlyCurrent['conditions'].capitalize() + ' until ' + datetime.strftime(Time, TimeFormat) + ' on ' + Time.strftime('%A')
 
             # Calculate derived variables from forecast
-            WindDir = derive.cardinalWindDir(WindDir, WindSpd)
+            WindDir = derive.cardinal_wind_dir(WindDir, WindSpd)
 
             # Convert forecast units as required
-            Temp         = observation.Units(Temp,         self.app.config['Units']['Temp'])
-            highTemp     = observation.Units(highTemp,     self.app.config['Units']['Temp'])
-            lowTemp      = observation.Units(lowTemp,      self.app.config['Units']['Temp'])
-            WindSpd      = observation.Units(WindSpd,      self.app.config['Units']['Wind'])
-            WindGust     = observation.Units(WindGust,     self.app.config['Units']['Wind'])
-            WindDir      = observation.Units(WindDir,      self.app.config['Units']['Direction'])
-            PrecipAmount = observation.Units(PrecipAmount, self.app.config['Units']['Precip'])
+            Temp         = observation.units(Temp,         self.app.config['Units']['Temp'])
+            highTemp     = observation.units(highTemp,     self.app.config['Units']['Temp'])
+            lowTemp      = observation.units(lowTemp,      self.app.config['Units']['Temp'])
+            WindSpd      = observation.units(WindSpd,      self.app.config['Units']['Wind'])
+            WindGust     = observation.units(WindGust,     self.app.config['Units']['Wind'])
+            WindDir      = observation.units(WindDir,      self.app.config['Units']['Direction'])
+            PrecipAmount = observation.units(PrecipAmount, self.app.config['Units']['Precip'])
 
             # Define and format labels
             self.met_data['Valid']        = datetime.strftime(Valid,          TimeFormat)
-            self.met_data['Temp']         = observation.Format(Temp,         'forecastTemp')
-            self.met_data['highTemp']     = observation.Format(highTemp,     'forecastTemp')
-            self.met_data['lowTemp']      = observation.Format(lowTemp,      'forecastTemp')
-            self.met_data['WindSpd']      = observation.Format(WindSpd,      'forecastWind')
-            self.met_data['WindGust']     = observation.Format(WindGust,     'forecastWind')
-            self.met_data['WindDir']      = observation.Format(WindDir,      'Direction')
-            self.met_data['PrecipPercnt'] = observation.Format(PrecipPercnt, 'Humidity')
-            self.met_data['PrecipDay']    = observation.Format(precipDay,    'Humidity')
-            self.met_data['PrecipAmount'] = observation.Format(PrecipAmount, 'Precip')
+            self.met_data['Temp']         = observation.format(Temp,         'forecastTemp')
+            self.met_data['highTemp']     = observation.format(highTemp,     'forecastTemp')
+            self.met_data['lowTemp']      = observation.format(lowTemp,      'forecastTemp')
+            self.met_data['WindSpd']      = observation.format(WindSpd,      'forecastWind')
+            self.met_data['WindGust']     = observation.format(WindGust,     'forecastWind')
+            self.met_data['WindDir']      = observation.format(WindDir,      'Direction')
+            self.met_data['PrecipPercnt'] = observation.format(PrecipPercnt, 'Humidity')
+            self.met_data['PrecipDay']    = observation.format(precipDay,    'Humidity')
+            self.met_data['PrecipAmount'] = observation.format(PrecipAmount, 'Precip')
             self.met_data['PrecipType']   = PrecipType
             self.met_data['Conditions']   = Conditions
             self.met_data['Icon']         = Icon

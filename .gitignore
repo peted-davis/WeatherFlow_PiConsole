@@ -5,6 +5,9 @@ __pycache__/
 # Ignore user configuration file
 *.ini
 
+# Ignore user log file
+*.log
+
 # Ignore custom user panels
 user/customPanels.kv
 user/customPanels.py
@@ -12,5 +15,5 @@ user/customPanels.py
 # Ignore source graphics folder
 graphics/
 
-# Ignore virtual environment
+# Ignore Python virtual environment
 venv/

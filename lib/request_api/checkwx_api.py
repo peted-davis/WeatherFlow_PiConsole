@@ -1,6 +1,6 @@
 """ Returns CheckWX API requests required by the Raspberry Pi Python console
 for WeatherFlow Tempest and Smart Home Weather stations.
-Copyright (C) 2018-2022 Peter Davis
+Copyright (C) 2018-2025 Peter Davis
 
 This program is free software: you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
@@ -42,7 +42,7 @@ def verify_response(Response, Field):
     else:
         Response = Response.json()
         if isinstance(Response, dict):
-            if Field in Response and Response[Field] is not None:
+            if Field in Response and Response[Field] and Response[Field] is not None:
                 return True
             else:
                 return False
@@ -66,7 +66,7 @@ def METAR(Config):
 
     # Download closest METAR report to station location
     header = {'X-API-Key': Config['Keys']['CheckWX']}
-    Template = 'https://api.checkwx.com/metar/lat/{}/lon/{}/'
+    Template = 'https://api.checkwx.com/metar/lat/{}/lon/{}/radius/100/decoded/'
     URL = Template.format(Config['Station']['Latitude'], Config['Station']['Longitude'])
     try:
         Data = requests.get(URL, headers=header, timeout=int(Config['System']['Timeout']))

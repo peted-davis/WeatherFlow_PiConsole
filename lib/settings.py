@@ -1,7 +1,7 @@
 """ Defines the settings screen JSON object and custom settings types required
 by the Raspberry Pi Python console for WeatherFlow Tempest and Smart Home
 Weather stations.
-Copyright (C) 2018-2022 Peter Davis
+Copyright (C) 2018-2025 Peter Davis
 
 This program is free software: you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
@@ -191,12 +191,12 @@ class SettingToggle(SettingString):
         self.popup.dismiss()
 
     def _minus_value(self, instance):
-        Value = int(self.Label.text.replace(self.units, '')) - 1
-        self.Label.text = str(Value) + self.units
+        value = int(self.Label.text.replace(self.units, '')) - 1
+        self.Label.text = str(value) + self.units
 
     def _plus_value(self, instance):
-        Value = int(self.Label.text.replace(self.units, '')) + 1
-        self.Label.text = str(Value) + self.units
+        value = int(self.Label.text.replace(self.units, '')) + 1
+        self.Label.text = str(value) + self.units
 
 
 class ToggleTemperature(SettingToggle):
@@ -213,6 +213,17 @@ class ToggleHours(SettingToggle):
 
     def _set_unit(self):
         self.units = ' hours'
+
+class ToggleMinutes(SettingToggle):
+
+    """ Define the ToggleHours settings type """
+
+    def _set_unit(self):
+        self.units = ' minutes'
+
+    def _minus_value(self, instance):
+        value = max(int(self.Label.text.replace(self.units, '')) - 1, 0)
+        self.Label.text = str(value) + self.units
 
 
 def JSON(Section):
@@ -232,8 +243,14 @@ def JSON(Section):
                   'title': 'Time format', 'desc': 'Set time to display in 12 hr or 24 hr format', 'section': 'Display', 'key': 'TimeFormat'},
                  {'type': 'FixedOptions', 'options': ['Mon, 01 Jan 0000', 'Mon, Jan 01 0000', 'Monday, 01 Jan 0000', 'Monday, Jan 01 0000'],
                   'title': 'Date format', 'desc': 'Set date format', 'section': 'Display', 'key': 'DateFormat'},
+                 {'type': 'bool', 'desc': 'Show a notification when an update is available',
+                  'title': 'Update Notification', 'section': 'Display', 'key': 'UpdateNotification'},
+                 {'type': 'FixedOptions', 'options': ['1', '4', '6'],
+                  'title': 'Number of panels', 'desc': 'Set the number of display panels', 'section': 'Display', 'key': 'PanelCount'},
                  {'type': 'bool', 'desc': 'Switch to lightning panel when a strike is detected',
                   'title': 'Lightning panel', 'section': 'Display', 'key': 'LightningPanel'},
+                 {'type': 'ToggleMinutes', 'desc': 'Lightning panel timeout after strike is detected',
+                  'title': 'Lightning timeout', 'section': 'Display', 'key': 'lightning_timeout'},
                  {'type': 'bool', 'desc': 'Show indoor temperature',
                   'title': 'Indoor temperature', 'section': 'Display', 'key': 'IndoorTemp'},
                  {'type': 'bool', 'desc': 'Show cursor',
@@ -306,7 +323,13 @@ def JSON(Section):
                   'desc': 'Set the maximum temperature for "Feeling very hot"', 'section': 'FeelsLike', 'key': 'VeryHot'}
                  ]
     elif 'System' in Section:
-        Data =  [{'type': 'ToggleHours', 'title': 'Sager Forecast interval',
+        Data =  [{'type': 'FixedOptions', 'options': ['Websocket', 'UDP'], 'title': 'Connection',
+                  'desc': 'Set the console connection type', 'section': 'System', 'key': 'Connection'},
+                 {'type': 'bool', 'desc': 'Use the WeatherFlow REST API to fetch data & forecast',
+                  'title': 'REST API', 'section': 'System', 'key': 'rest_api'},
+                 {'type': 'bool', 'desc': 'Use the Statistics API to fetch rain accumulation',
+                  'title': 'Statistics API endpoint', 'section': 'System', 'key': 'stats_endpoint'}, 
+                 {'type': 'ToggleHours', 'title': 'Sager Forecast interval',
                   'desc': 'Set the interval in hours between Sager Forecasts', 'section': 'System', 'key': 'SagerInterval'},
                  ]
 

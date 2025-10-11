@@ -1,6 +1,6 @@
 ## WeatherFlow PiConsole: Raspberry Pi Python console for WeatherFlow Tempest
 ## and Smart Home Weather stations.
-## Copyright (C) 2018-2022 Peter Davis
+## Copyright (C) 2018-2025 Peter Davis
 
 ## This program is free software: you can redistribute it and/or modify it under
 ## the terms of the GNU General Public License as published by the Free Software
@@ -156,8 +156,7 @@
         canvas.after:
             PopMatrix
         source: 'icons/lightningBolt/' + root.lightningBoltIcon + app.scaleSuffix
-        keep_ratio: 0
-        allow_stretch: 1
+        fit_mode: 'contain'
         pos_hint: {'x': 9/262, 'y': 120/202}
         size_hint: (65/262, 68/202)
 

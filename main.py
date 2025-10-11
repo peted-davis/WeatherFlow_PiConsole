@@ -1,6 +1,6 @@
 # WeatherFlow PiConsole: Raspberry Pi Python console for WeatherFlow Tempest
 # and Smart Home Weather stations.
-# Copyright (C) 2018-2022 Peter Davis
+# Copyright (C) 2018-2025 Peter Davis
 
 # This program is free software: you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
@@ -22,6 +22,15 @@ SHUTDOWN = 0
 REBOOT = 0
 
 # ==============================================================================
+# SET KIVY_LOG_MODE TO MIXED
+# ==============================================================================
+# Import required modules
+import os
+
+# Set KIVY_LOG_MODE environment variable
+os.environ['KIVY_LOG_MODE'] = 'MIXED'
+
+# ==============================================================================
 # CREATE OR UPDATE wfpiconsole.ini FILE
 # ==============================================================================
 # Import required modules
@@ -39,19 +48,16 @@ else:
 # ==============================================================================
 # Import required modules
 import configparser
-import os
 
 # Load wfpiconsole.ini config file
 config = configparser.ConfigParser()
 config.read('wfpiconsole.ini')
 
 # Initialise Kivy backend based on current hardware
-if config['System']['Hardware'] in ['Pi4', 'Linux']:
+if config['System']['Hardware'] != 'Other':
     os.environ['SDL_VIDEO_ALLOW_SCREENSAVER'] = '1'
     os.environ['KIVY_GRAPHICS'] = 'gles'
     os.environ['KIVY_WINDOW']   = 'sdl2'
-elif config['System']['Hardware'] in ['PiB', 'Pi3']:
-    os.environ['KIVY_GL_BACKEND'] = 'gl'
 
 # ==============================================================================
 # INITIALISE KIVY WINDOW PROPERTIES BASED ON OPTIONS SET IN wfpiconsole.ini
@@ -70,36 +76,29 @@ with open(os.path.expanduser('~/.kivy/') + 'config_wfpiconsole.ini', 'w') as cfg
 kivyconfig.read(os.path.expanduser('~/.kivy/') + 'config_wfpiconsole.ini')
 
 # Set Kivy window properties
-if config['System']['Hardware'] in ['Pi4', 'Linux', 'Other']:
-    if int(config['Display']['Fullscreen']):
-        kivyconfig.set('graphics', 'fullscreen', 'auto')
-    else:
-        kivyconfig.set('graphics', 'fullscreen', '0')
-        kivyconfig.set('graphics', 'width',  config['Display']['Width'])
-        kivyconfig.set('graphics', 'height', config['Display']['Height'])
-    if int(config['Display']['Border']):
-        kivyconfig.set('graphics', 'borderless', '0')
-    else:
-        kivyconfig.set('graphics', 'borderless', '1')
+if int(config['Display']['Fullscreen']):
+    kivyconfig.set('graphics', 'fullscreen', 'auto')
+else:
+    kivyconfig.set('graphics', 'fullscreen', '0')
+    kivyconfig.set('graphics', 'width',  config['Display']['Width'])
+    kivyconfig.set('graphics', 'height', config['Display']['Height'])
+if int(config['Display']['Border']):
+    kivyconfig.set('graphics', 'borderless', '0')
+else:
+    kivyconfig.set('graphics', 'borderless', '1')
 
 # ==============================================================================
 # INITIALISE MOUSE SUPPORT IF OPTION SET in wfpiconsole.ini
 # ==============================================================================
-# Enable mouse support on Raspberry Pi 3 if not already set
-if config['System']['Hardware'] in ['PiB', 'Pi3']:
-    if not config.has_option('modules', 'cursor'):
-        kivyconfig.set('modules', 'cursor', '1')
-
 # Initialise mouse support if required
 if int(config['Display']['Cursor']):
     kivyconfig.set('graphics', 'show_cursor', '1')
-    if config['System']['Hardware'] == 'Pi4':
+    if 'Pi' in config['System']['Hardware']:
         kivyconfig.set('input', 'mouse', 'mouse')
         kivyconfig.remove_option('input', 'mtdev_%(name)s')
-        # kivyconfig.remove_option('input', 'hid_%(name)s')
 else:
     kivyconfig.set('graphics', 'show_cursor', '0')
-    if config['System']['Hardware'] == 'Pi4':
+    if 'Pi' in config['System']['Hardware']:
         kivyconfig.remove_option('input', 'mouse')
 
 # Save wfpiconsole Kivy configuration file
@@ -108,7 +107,8 @@ kivyconfig.write()
 # ==============================================================================
 # IMPORT REQUIRED CORE KIVY MODULES
 # ==============================================================================
-from kivy.properties         import ConfigParserProperty, StringProperty
+from kivy.uix.boxlayout      import BoxLayout
+from kivy.properties         import StringProperty
 from kivy.properties         import DictProperty, NumericProperty
 from kivy.core.window        import Window
 from kivy.factory            import Factory
@@ -160,7 +160,8 @@ import threading
 # IMPORT REQUIRED KIVY GRAPHICAL AND SETTINGS MODULES
 # ==============================================================================
 from kivy.uix.screenmanager  import ScreenManager, Screen, NoTransition
-from kivy.uix.settings       import SettingsWithSidebar
+from kivy.uix.settings       import SettingsWithSidebar, SettingBoolean
+from kivy.uix.switch         import Switch
 
 
 # ==============================================================================
@@ -171,11 +172,6 @@ class wfpiconsole(App):
     # Define App class dictionary properties
     Sched = DictProperty([])
 
-    # Define App class configParser properties
-    BarometerMax = ConfigParserProperty('-', 'System',  'BarometerMax', 'app')
-    BarometerMin = ConfigParserProperty('-', 'System',  'BarometerMin', 'app')
-    IndoorTemp   = ConfigParserProperty('-', 'Display', 'IndoorTemp',   'app')
-
     # Define display properties
     scaleFactor = NumericProperty(1)
     scaleSuffix = StringProperty('_lR.png')
@@ -184,11 +180,11 @@ class wfpiconsole(App):
     # --------------------------------------------------------------------------
     def build(self):
 
-        # Calculate initial ScaleFactor and bind self.setScaleFactor to Window
+        # Calculate initial ScaleFactor and bind self.set_scale_factor to Window
         # on_resize
         self.window = Window
-        self.setScaleFactor(self.window, self.window.width, self.window.height)
-        self.window.bind(on_resize=self.setScaleFactor)
+        self.set_scale_factor(self.window, self.window.width, self.window.height)
+        self.window.bind(on_resize=self.set_scale_factor)
         from kivy.modules import inspector
         inspector.create_inspector(Window, self)
 
@@ -200,8 +196,8 @@ class wfpiconsole(App):
         self.screenManager = screenManager(transition=NoTransition())
         self.screenManager.add_widget(CurrentConditions())
 
-        # Start Websocket service
-        self.startWebsocketService()
+        # Start Websocket or UDP service
+        self.start_connection_service()
 
         # Check for latest version
         self.system = system()
@@ -216,11 +212,16 @@ class wfpiconsole(App):
         # Return ScreenManager
         return self.screenManager
 
+    # DISCONNECT connection_client WHEN CLOSING APP
+    # --------------------------------------------------------------------------
+    def on_stop(self):
+        self.stop_connection_service()
+
     # SET DISPLAY SCALE FACTOR BASED ON SCREEN DIMENSIONS
     # --------------------------------------------------------------------------
-    def setScaleFactor(self, instance, x, y):
+    def set_scale_factor(self, instance, x, y):
         self.scaleFactor = min(x / 800, y / 480)
-        if self.scaleFactor > 1:
+        if self.scaleFactor > 1 or int(self.config['Display']['PanelCount']) < 6:
             self.scaleSuffix = '_hR.png'
         else:
             self.scaleSuffix = '_lR.png'
@@ -240,6 +241,7 @@ class wfpiconsole(App):
         settings.register_type('FixedOptions',      userSettings.FixedOptions)
         settings.register_type('ToggleTemperature', userSettings.ToggleTemperature)
         settings.register_type('ToggleHours',       userSettings.ToggleHours)
+        settings.register_type('ToggleMinutes',     userSettings.ToggleMinutes)
 
         # Add required panels to setting screen. Remove Kivy settings panel
         settings.add_json_panel('Display',          self.config, data=userSettings.JSON('Display'))
@@ -284,10 +286,16 @@ class wfpiconsole(App):
 
         # Update current weather forecast, sunrise/sunset and moonrise/moonset
         # times when time format changed
-        if section == 'Display' and key in 'TimeFormat':
+        if section == 'Display' and key == 'TimeFormat':
             self.forecast.parse_forecast()
             self.astro.format_labels('Sun')
             self.astro.format_labels('Moon')
+
+        # Show or hide indoor temperature when setting is changed
+        if section == 'Display' and key == 'IndoorTemp':
+            if hasattr(self, 'TemperaturePanel'):
+                for panel in getattr(self, 'TemperaturePanel'):
+                    panel.set_indoor_temp_display()
 
         # Update "Feels Like" temperature cutoffs in wfpiconsole.ini and the
         # settings screen when temperature units are changed
@@ -311,11 +319,14 @@ class wfpiconsole(App):
 
         # Update barometer limits when pressure units are changed
         if section == 'Units' and key == 'Pressure':
-            Units = ['mb', 'hpa', 'inhg', 'mmhg']
-            Max   = ['1050', '1050', '31.0', '788']
-            Min   = ['950', '950', '28.0', '713']
-            self.config.set('System', 'BarometerMax', Max[Units.index(value)])
-            self.config.set('System', 'BarometerMin', Min[Units.index(value)])
+            if hasattr(self, 'BarometerPanel'):
+                for panel in getattr(self, 'BarometerPanel'):
+                    panel.set_barometer_max_min()
+
+        # Update number of panels displayed on CurrentConditions screen
+        if section == 'Display' and key == 'PanelCount':
+            self.set_scale_factor(self.window, self.window.width, self.window.height)
+            Clock.schedule_once(self.CurrentConditions.add_panels)
 
         # Update primary and secondary panels displayed on CurrentConditions
         # screen
@@ -336,14 +347,24 @@ class wfpiconsole(App):
         # Update button layout displayed on CurrentConditions screen
         if section == 'SecondaryPanels':
             self.CurrentConditions.button_list = []
+            primary_panel_list   = tuple(self.config['PrimaryPanels'].items())
+            secondary_panel_list = tuple(self.config['SecondaryPanels'].items())
             button_list = ['button_' + Num for Num in ['one', 'two', 'three', 'four', 'five', 'six']]
             button_number = 0
             for button in button_list:
                 self.CurrentConditions.ids[button].clear_widgets()
-            for ii, (panel, type) in enumerate(self.config['SecondaryPanels'].items()):
-                if type and type != 'None':
-                    self.CurrentConditions.ids[button_list[button_number]].add_widget(eval(type + 'Button')())
-                    self.CurrentConditions.button_list.append([button_list[button_number], panel_list[ii], type, 'Primary'])
+            if int(self.config['Display']['PanelCount']) == 1:
+                button_ids = ['button_' + number for number in ['one']]
+            elif int(self.config['Display']['PanelCount']) == 4:
+                button_ids = ['button_' + number for number in ['one',   'two',  'three', 'four']]
+            elif int(self.config['Display']['PanelCount']) == 6:
+                button_ids = ['button_' + number for number in ['one',   'two',  'three', 'four', 'five', 'six']]
+            for ii, button_id in enumerate(button_ids):
+                primary_panel   = primary_panel_list[ii][1]
+                secondary_panel = secondary_panel_list[ii][1]
+                if secondary_panel and secondary_panel != 'None':
+                    self.CurrentConditions.ids[button_ids[button_number]].add_widget(eval(secondary_panel + 'Button')())
+                    self.CurrentConditions.button_list.append([button_ids[button_number], panel_list[ii], primary_panel, secondary_panel, 'primary'])
                     button_number += 1
 
             # Change 'None' for secondary panel selection to blank in config
@@ -364,25 +385,53 @@ class wfpiconsole(App):
         if section == 'System' and key == 'SagerInterval':
             Clock.schedule_once(self.sager.schedule_forecast)
 
-        # Update derived variables to reflect configuration changes
-        self.obsParser.reformat_display()
+        # Force rest_api services if Websocket connection is selected
+        if ((section == 'System' and key == 'Connection' and value == 'Websocket')
+                or (section == 'System' and key == 'rest_api' and self.config['System']['Connection'] == 'Websocket')):
+            if self.config['System']['rest_api'] == '0':
+                self.config.set('System', 'rest_api', '1')
+                self.config.write()
+                panels = self._app_settings.children[0].content.panels
+                for panel in panels.values():
+                    if panel.title == 'System':
+                        for item in panel.children:
+                            if isinstance(item, SettingBoolean) and item.title == 'REST API':
+                                for child in item.children[0].children:
+                                    for child in child.children:
+                                        if isinstance(child, Switch):
+                                            child.active = True
 
-    # START WEBSOCKET SERVICE
+        # Switch connection type or change between Device/Statistics API endpoint
+        if section == 'System' and (key == 'Connection' or key == 'stats_endpoint'):
+            self.stop_connection_service()
+            self.start_connection_service()
+
+        # Update derived variables to reflect configuration changes
+        if hasattr(self, 'obsParser'):
+            self.obsParser.reformat_display()
+
+    # START WEBSOCKET OR UDP SERVICE
     # --------------------------------------------------------------------------
-    def startWebsocketService(self, *largs):
-        self.websocket_thread = threading.Thread(target=run_path,
-                                                 args=['service/websocket.py'],
-                                                 kwargs={'run_name': '__main__'},
-                                                 daemon=True,
-                                                 name='Websocket')
-        self.websocket_thread.start()
+    def start_connection_service(self, *largs):
+        self.connection_thread = None
+        if self.config['System']['Connection'] == 'Websocket':
+            self.connection_thread = threading.Thread(target=run_path,
+                                                      args=['service/websocket.py'],
+                                                      kwargs={'run_name': '__main__'},
+                                                      name='Websocket')
+        elif self.config['System']['Connection'] == 'UDP':
+            self.connection_thread = threading.Thread(target=run_path,
+                                                      args=['service/udp.py'],
+                                                      kwargs={'run_name': '__main__'},
+                                                      name='UDP')
+        if self.connection_thread is not None:
+            self.connection_thread.start()
 
     # STOP WEBSOCKET SERVICE
     # --------------------------------------------------------------------------
-    def stopWebsocketService(self):
-        self.websocket_client._keep_running = False
-        self.websocket_thread.join()
-        del self.websocket_client
+    def stop_connection_service(self):
+        if hasattr(self, 'connection_client'):
+            self.connection_client._keep_running = False
 
     # EXIT CONSOLE AND SHUTDOWN SYSTEM
     # --------------------------------------------------------------------------
@@ -430,7 +479,7 @@ class CurrentConditions(Screen):
         self.Obs    = properties.Obs()
 
         # Add display panels
-        self.addPanels()
+        self.add_panels()
 
         # Schedule Station.getDeviceStatus to be called each second
         self.app.station = station()
@@ -457,45 +506,81 @@ class CurrentConditions(Screen):
 
     # ADD USER SELECTED PANELS TO CURRENT CONDITIONS SCREEN
     # --------------------------------------------------------------------------
-    def addPanels(self):
+    def add_panels(self, *args):
 
-        # Add primary panels to CurrentConditions screen
-        panel_list = ['panel_' + Num for Num in ['one', 'two', 'three', 'four', 'five', 'six']]
-        for ii, (Panel, Type) in enumerate(self.app.config['PrimaryPanels'].items()):
-            self.ids[panel_list[ii]].add_widget(eval(Type + 'Panel')())
+        # Clear existing panels
+        if 'row_layout' in self.ids:
+            button_list = ['button_' + Num for Num in ['one', 'two', 'three', 'four', 'five', 'six']]
+            for button in button_list:
+                self.ids[button].clear_widgets()
+            self.ids['row_layout'].clear_widgets()
 
-        # Add secondary panel buttons to CurrentConditions screen
+        # Define required variables
+        panel_count  = 0
+        button_count = 0
         self.button_list = []
-        button_list = ['button_' + Num for Num in ['one', 'two', 'three', 'four', 'five', 'six']]
-        button_number = 0
-        for ii, (Panel, Type) in enumerate(self.app.config['SecondaryPanels'].items()):
-            if Type:
-                self.ids[button_list[button_number]].add_widget(eval(Type + 'Button')())
-                self.button_list.append([button_list[button_number], panel_list[ii], Type, 'Primary'])
-                button_number += 1
+        primary_panels    = tuple(self.app.config['PrimaryPanels'].items())
+        secondary_panels  = tuple(self.app.config['SecondaryPanels'].items())
+        if self.app.config['Display']['PanelCount'] == '1':
+            panel_ids = [['panel_'  + number for number in ['one']]]
+            button_ids = ['button_' + number for number in ['one']]
+        elif self.app.config['Display']['PanelCount'] == '4':
+            panel_ids = [['panel_'  + number for number in ['one',   'two']],
+                         ['panel_'  + number for number in ['three', 'four']]]
+            button_ids = ['button_' + number for number in ['one',   'two',  'three', 'four']]
+        elif self.app.config['Display']['PanelCount'] == '6':
+            panel_ids = [['panel_'  + number for number in ['one',   'two',  'three']],
+                         ['panel_'  + number for number in ['four',  'five', 'six']]]
+            button_ids = ['button_' + number for number in ['one',   'two',  'three', 'four', 'five', 'six']]
+
+        # Add primary panels to screen and initialise required buttons
+        for row in range(len(panel_ids)):
+            row_box_layout = BoxLayout(spacing='5dp')
+            self.ids['row_layout'].add_widget(row_box_layout)
+            for panel_id in panel_ids[row]:
+                button_id   = button_ids[button_count]
+                primary_panel     = primary_panels[panel_count][1]
+                secondary_panel   = secondary_panels[panel_count][1]
+                self.ids[panel_id] = BoxLayout()
+                self.ids[panel_id].add_widget(eval(primary_panel + 'Panel')())
+                row_box_layout.add_widget(self.ids[panel_id])
+                if secondary_panel:
+                    self.ids[button_id].add_widget(eval(secondary_panel + 'Button')())
+                    self.button_list.append([button_id, panel_id, primary_panel, secondary_panel, 'primary'])
+                    button_count += 1
+                panel_count += 1
 
     # SWITCH BETWEEN PRIMARY AND SECONDARY PANELS ON CURRENT CONDITIONS SCREEN
     # --------------------------------------------------------------------------
-    def switchPanel(self, button_pressed, button_overide=None):
+    def switchPanel(self, button_pressed, button_overide=None, *args):
 
         # Determine ID of button that has been pressed and extract corresponding
         # entry in buttonList
         if button_pressed:
-            for id, Object in self.ids.items():
-                if Object == button_pressed.parent.parent:
+            for id, object in self.ids.items():
+                if object == button_pressed.parent.parent:
                     break
         else:
             id = button_overide[0]
-        for ii, button in enumerate(self.button_list):
-            if button[0] == id:
+        for ii, button_data in enumerate(self.button_list):
+            if button_data[0] == id:
                 break
+
+        # Cancel lightning_panel_timeout if scheduled and Lightning button has
+        # been pressed
+        if 'Lightning' in button_data and hasattr(self.app.Sched, 'lightning_panel_timeout'):
+            self.app.Sched.lightning_panel_timeout.cancel()
 
         # Extract panel object that corresponds to the button that has been
         # pressed and determine new button type required
-        panel_object = self.ids[button[1]].children
-        panel_number = 'Panel' + button[1].split('_')[1].title()
-        panel_type   = button[3] + 'Panels'
+        panel_object = self.ids[button_data[1]].children
+        panel_number = 'Panel' + button_data[1].split('_')[1].title()
+        panel_type   = button_data[4].title() + 'Panels'
         new_button   = self.app.config[panel_type][panel_number]
+        if panel_type == 'PrimaryPanels':
+            new_panel = self.app.config['SecondaryPanels'][panel_number]
+        elif panel_type == 'SecondaryPanels':
+            new_panel = self.app.config['PrimaryPanels'][panel_number]
 
         # Destroy reference to old panel class attribute
         if hasattr(self.app, new_button + 'Panel'):
@@ -504,28 +589,36 @@ class CurrentConditions(Screen):
             except ValueError:
                 Logger.warning('Unable to remove panel reference from wfpiconsole class')
 
+        if button_overide:
+            mode = 'auto'
+        else:
+            mode = 'manual'
+
         # Switch panel
-        self.ids[button[1]].clear_widgets()
-        self.ids[button[1]].add_widget(eval(button[2] + 'Panel')())
-        self.ids[button[0]].clear_widgets()
-        self.ids[button[0]].add_widget(eval(new_button + 'Button')())
+        self.ids[button_data[1]].clear_widgets()
+        self.ids[button_data[1]].add_widget(eval(new_panel + 'Panel')(mode))
+        self.ids[button_data[0]].clear_widgets()
+        self.ids[button_data[0]].add_widget(eval(new_button + 'Button')())
 
         # Update button list
-        if button[3] == 'Primary':
-            self.button_list[ii] = [button[0], button[1], new_button, 'Secondary']
-        elif button[3] == 'Secondary':
-            self.button_list[ii] = [button[0], button[1], new_button, 'Primary']
-
+        if button_data[4] == 'primary':
+            self.button_list[ii][4] = 'secondary' 
+        elif button_data[4] == 'secondary':
+            self.button_list[ii][4] = 'primary'
 
 # ==============================================================================
 # RUN APP
 # ==============================================================================
 if __name__ == '__main__':
     try:
-        wfpiconsole().run()
+        wfpiconsole_app = wfpiconsole()
+        wfpiconsole_app.run()
         if REBOOT:
             subprocess.call('sudo shutdown -r now', shell=True)
         elif SHUTDOWN:
             subprocess.call('sudo shutdown -h now', shell=True)
     except KeyboardInterrupt:
-        wfpiconsole().stop()
+        wfpiconsole_app.stop()
+    except Exception:
+        wfpiconsole_app.stop()
+        raise

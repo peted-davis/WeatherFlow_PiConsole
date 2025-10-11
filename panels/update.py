@@ -1,6 +1,6 @@
 """ Defines the update notification panel required by the Raspberry Pi
 Python console for WeatherFlow Tempest and Smart Home Weather stations.
-Copyright (C) 2018-2022 Peter Davis
+Copyright (C) 2018-2025 Peter Davis
 
 This program is free software: you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
@@ -24,7 +24,7 @@ from kivy.app                import App
 # ==============================================================================
 # UpdateNotification POPUP CLASS
 # ==============================================================================
-class updateNotification(ModalView):
+class update_notification(ModalView):
 
     latest_ver = StringProperty('-')
 
