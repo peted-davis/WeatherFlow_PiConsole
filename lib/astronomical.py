@@ -49,8 +49,9 @@ class astro():
         self.sun  = ephem.Sun()
         self.moon = ephem.Moon()
 
-        Tz = pytz.timezone(self.app.config['Station']['Timezone'])
-        self.date = Tz.localize(datetime.now().replace(hour=0, minute=0, second=0, microsecond=0, day=18, month=9)).astimezone(pytz.utc)
+        # Define date property
+        self.tz = pytz.timezone(self.app.config['Station']['Timezone'])
+        self.date = self.tz.localize(datetime.now().replace(minute=0,second=0, microsecond=0)).astimezone(pytz.utc)
 
         # Define sunrise/sunset and moonrise/moonset event dictionary
         self.sun_events  = {}
@@ -94,9 +95,6 @@ class astro():
             self.astro_data           Dictionary holding sunrise and sunset data
         """
 
-        # Get station timezone
-        Tz = pytz.timezone(self.app.config['Station']['Timezone'])
-
         # Set pressure to 0 to match the United States Naval Observatory
         # Astronomical Almanac
         self.observer.pressure = 0
@@ -113,23 +111,17 @@ class astro():
         # The code is initialising. Calculate sunset/sunrise times for current
         # day starting at midnight today in station timezone
         if self.astro_data['Sunset'][0] == '-':
-            # midnight_local = Tz.localize(datetime.now().replace(hour=0, minute=0, second=0, microsecond=0))
-            # self.date += timedelta(days=1)
-            midnight_local = self.date.astimezone(Tz).replace(hour=0, minute=0, second=0)
-            #print(midnight_local)
+            midnight_local = self.date.astimezone(self.tz).replace(hour=0, minute=0, second=0)
             self.observer.date = midnight_local.astimezone(pytz.utc).strftime('%Y/%m/%d %H:%M:%S')
 
         # Dusk has passed. Calculate sunset/sunrise times for tomorrow starting
         # at time of Dusk in station timezone
         else:
-            tz = pytz.timezone(self.app.config['Station']['Timezone'])
-            #time_now = datetime.now(pytz.utc).astimezone(tz) + timedelta(seconds=1)
-            #time_now = self.date + timedelta(minutes=1)
-            time_now = self.date.astimezone(Tz)
+            time_now = self.date.astimezone(self.tz)
             if time_now.replace(second=0, microsecond=0).time() == time(0, 0, 0):
-                midnight_local = self.date.astimezone(Tz).replace(hour=0, minute=0, second=0)
+                midnight_local = self.date.astimezone(self.tz).replace(hour=0, minute=0, second=0)
             else:
-                midnight_local = self.date.astimezone(Tz).replace(hour=0, minute=0, second=0) + timedelta(days=1)
+                midnight_local = self.date.astimezone(self.tz).replace(hour=0, minute=0, second=0) + timedelta(days=1)
             self.observer.date = midnight_local.astimezone(pytz.utc).strftime('%Y/%m/%d %H:%M:%S')
 
         # Reset sun events list
@@ -153,7 +145,7 @@ class astro():
             # Calculate time of event for current day
             try:
                 event_time = event_function(self.sun, use_center=center)
-                event_time = pytz.utc.localize(event_time.datetime().replace(second=0, microsecond=0)).astimezone(Tz)
+                event_time = pytz.utc.localize(event_time.datetime().replace(second=0, microsecond=0)).astimezone(self.tz)
             except ephem.AlwaysUpError:
                 event_time = None
                 if event == 'sunset':
@@ -191,7 +183,7 @@ class astro():
             while True:
                 try:
                     event_time = event_function(self.sun, use_center=center)
-                    event_time = pytz.utc.localize(event_time.datetime().replace(second=0, microsecond=0)).astimezone(Tz)
+                    event_time = pytz.utc.localize(event_time.datetime().replace(second=0, microsecond=0)).astimezone(self.tz)
                     self.sun_events[event] = event_time
                     break
                 except (ephem.AlwaysUpError, ephem.NeverUpError):
@@ -251,17 +243,6 @@ class astro():
                                         max((self.sun_events['sunrise'] - midnight_local).total_seconds() / 86400, 0),
                                         min((self.sun_events['sunset']  - midnight_local).total_seconds() / 86400, 1)]
 
-        #print(self.date)
-        #pprint.pprint(self.sun_events, sort_dicts=False)
-        #print("self.sun_down_no_dawn: ", self.sun_down_no_dawn)
-        #print("self.sun_down_no_rise: ", self.sun_down_no_rise)
-        #print("self.sun_up_no_set:    ", self.sun_up_no_set)
-        #print("self.sun_up_no_dusk:   ", self.sun_up_no_dusk)
-        #print("self.night:    ", self.night)
-        #print("self.twilight: ", self.twilight)
-        #print("self.daylight: ", self.daylight)
-        #print("")
-
         # Format sunrise/sunset labels based on date of next sunrise
         self.format_event_labels('sun')
 
@@ -276,13 +257,8 @@ class astro():
             self.astro_data           Dictionary holding moonrise and moonset data
         """
         # Get current time in station time zone
-        Tz = pytz.timezone(self.app.config['Station']['Timezone'])
-        # Now = datetime.now(pytz.utc).astimezone(Tz)
-        # Now = Tz.localize(datetime.now().replace(day=15, month=8))
-        self.date += timedelta(minutes=1)
-        time_now = self.date.astimezone(Tz)
-        print(time_now)
-
+        self.date = self.tz.localize(datetime.now()).astimezone(pytz.utc)
+        time_now  = self.date.astimezone(self.tz)
 
         # Calculate sun icon position on daytime/nightime bar
         seconds_to_midnight = (time_now.replace(microsecond=0) - time_now.replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds()
@@ -329,7 +305,7 @@ class astro():
                 self.astro_data['sunEvent'] = ['[color=F05E40FF]Sunrise[/color]', '{:02.0f}'.format(hours), 'hrs', '{:02.0f}'.format(minutes), 'mins', description]
             self.astro_data['sunIcon']  = ['-', 1, sun_position]
 
-        # If there is no night and
+        # If there is no night or twilight
         elif not self.night[0] and self.twilight[0] and self.daylight[0]:
 
             # sunrise occurs before sunset and time is between sunrise and
@@ -390,7 +366,7 @@ class astro():
                 self.astro_data['sunEvent'] = ['[color=FF8841FF]Sunrise[/color]', '{:02.0f}'.format(hours), 'hrs', '{:02.0f}'.format(minutes), 'mins', 'Twilight']
                 self.astro_data['sunIcon']  = ['-', 1, sun_position]
 
-        #  If dawn is after dusk and time is before dusk, calculate number of
+        # If dawn is after dusk and time is before dusk, calculate number of
         # night time hours remaining
         elif self.night[0] and self.sun_events['dawn'] > self.sun_events['dusk'] and time_now < self.sun_events['dusk']:
 
@@ -494,7 +470,6 @@ class astro():
         # Calculate new full moon and new moon times
         if (time_now.date() > self.moon_events['full_moon'].date() or
             time_now.date() > self.moon_events['new_moon'].date()):
-            print("I AM HERE", time_now, self.moon_events['new_moon'])
             self.get_full_new_moon()
 
         # At midnight update sunrise/sunset and moonrise/moonset times
@@ -513,9 +488,6 @@ class astro():
             self.astro_data           Dictionary holding moonrise and moonset data
         """
 
-        # Define Moonrise/Moonset location properties
-        Tz = pytz.timezone(self.app.config['Station']['Timezone'])
-
         # Define moonrise/moonset observer properties
         self.observer.horizon = '0'
         self.observer.pressure = 1013.25
@@ -526,14 +498,10 @@ class astro():
 
         # The code is initialising. Calculate moonrise time for current day
         # starting at midnight today in UTC
-        if 'set' not in self.moon_events: #self.astro_data['Moonrise'][0] == '-':
+        if 'set' not in self.moon_events:
 
             # Set Observer time to midnight today in UTC
-            # UTC = datetime.now(pytz.utc)
-            # Midnight = datetime(UTC.year, UTC.month, UTC.day, 0, 0, 0)
-            # self.observer.date = Midnight.strftime('%Y/%m/%d %H:%M:%S')
-
-            midnight_local = self.date.astimezone(Tz).replace(hour=0, minute=0, second=0)
+            midnight_local = self.date.astimezone(self.tz).replace(hour=0, minute=0, second=0)
             self.observer.date = midnight_local.astimezone(pytz.utc).strftime('%Y/%m/%d %H:%M:%S')
 
         # Moonset has passed. Calculate time of next moonrise starting at
@@ -541,14 +509,8 @@ class astro():
         else:
 
             # Set Observer time to last Moonset time in UTC
-            observer_time = self.date.astimezone(Tz) + timedelta(minutes=1)
+            observer_time = self.date.astimezone(self.tz) + timedelta(minutes=1)
             self.observer.date = observer_time.astimezone(pytz.utc).strftime('%Y/%m/%d %H:%M:%S')
-
-            #observer_time = self.date.astimezone(Tz).replace(hour=0, minute=0, second=0) + timedelta(minutes=1)
-            #self.observer.date = observer_time.astimezone(pytz.utc).strftime('%Y/%m/%d %H:%M:%S')
-
-        # print(midnight_local)
-        #print(self.observer.date)
 
         # Calculate time of next moonrise
         try:
@@ -559,7 +521,7 @@ class astro():
         except ephem.AlwaysUpError:
             event_time = None
         if event_time is not None:
-            self.moon_events['rise'] = pytz.utc.localize(event_time.datetime().replace(second=0, microsecond=0)).astimezone(Tz)
+            self.moon_events['rise'] = pytz.utc.localize(event_time.datetime().replace(second=0, microsecond=0)).astimezone(self.tz)
             self.astro_data['Moonrise'][0] = self.moon_events['rise']
         else:
             self.moon_events['rise'] = None
@@ -574,7 +536,7 @@ class astro():
         except ephem.NeverUpError:
             event_time = None
         if event_time is not None:
-            self.moon_events['set'] = pytz.utc.localize(event_time.datetime().replace(second=0, microsecond=0)).astimezone(Tz)
+            self.moon_events['set'] = pytz.utc.localize(event_time.datetime().replace(second=0, microsecond=0)).astimezone(self.tz)
             self.astro_data['Moonset'][0] = self.moon_events['set']
         else:
             self.moon_events['set'] = None
@@ -593,7 +555,7 @@ class astro():
             while True:
                 try:
                     event_time = event_function(self.moon)
-                    event_time = pytz.utc.localize(event_time.datetime().replace(second=0, microsecond=0)).astimezone(Tz)
+                    event_time = pytz.utc.localize(event_time.datetime().replace(second=0, microsecond=0)).astimezone(self.tz)
                     self.moon_events[event] = event_time
                     break
                 except (ephem.AlwaysUpError, ephem.NeverUpError):
@@ -649,16 +611,6 @@ class astro():
             event_time = pytz.utc.localize(event_time.datetime().replace(second=0, microsecond=0)).astimezone(Tz)
             self.moon_events['new_moon'] = event_time
 
-
-
-        #event_time = ephem.next_new_moon(self.observer.date)
-        #event_time = pytz.utc.localize(event_time.datetime().replace(second=0, microsecond=0)).astimezone(Tz)
-        #self.moon_events['new_moon'] = event_time    
-
-        #print(self.date)
-        #print(self.moon_events)
-        #print("")
-
         # Format sunrise/sunset labels based on date of next sunrise
         self.format_event_labels('moon')
 
@@ -674,18 +626,14 @@ class astro():
             self.astro_data           Dictionary holding moonrise and moonset data
         """
 
-        # Get current time in UTC
-        Tz = pytz.timezone(self.app.config['Station']['Timezone'])
-        UTC = datetime.now(pytz.utc)
-
         # Get date of next full moon in station time zone
-        full_moon = self.astro_data['FullMoon'][1].astimezone(Tz)
+        full_moon = self.moon_events['full_moon']
 
         # Get date of next new moon in station time zone
-        new_moon = self.astro_data['NewMoon'][1].astimezone(Tz)
+        new_moon = self.moon_events['new_moon']
 
         # Calculate phase of moon
-        self.moon.compute(UTC.strftime('%Y/%m/%d %H:%M:%S'))
+        self.moon.compute(self.date.astimezone(pytz.utc).strftime('%Y/%m/%d %H:%M:%S'))
 
         # Define Moon phase icon and tilt_sign
         if full_moon < new_moon:
@@ -717,7 +665,7 @@ class astro():
         illumination = '{:.0f}'.format(self.moon.phase)
 
         # Calculate tilt of illuminated moon face
-        self.observer.date = UTC.strftime('%Y/%m/%d %H:%M:%S')
+        self.observer.date = self.date.astimezone(pytz.utc).strftime('%Y/%m/%d %H:%M:%S')
         self.moon.compute(self.observer)
         self.sun.compute(self.observer)
         dLon = self.sun.az - self.moon.az

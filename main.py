@@ -32,8 +32,7 @@ from pathlib import Path
 if not Path('wfpiconsole.ini').is_file():
     configFile.create()
 else:
-    pass
-    # configFile.update()
+    configFile.update()
 
 # ==============================================================================
 # INITIALISE KIVY GRAPHICS WINDOW BASED ON CURRENT HARDWARE TYPE
@@ -202,7 +201,7 @@ class wfpiconsole(App):
         self.screenManager.add_widget(CurrentConditions())
 
         # Start Websocket service
-        #self.startWebsocketService()
+        self.startWebsocketService()
 
         # Check for latest version
         self.system = system()
@@ -437,23 +436,24 @@ class CurrentConditions(Screen):
         self.app.station = station()
         self.app.Sched.deviceStatus = Clock.schedule_interval(self.app.station.get_device_status, 1.0)
 
-        # Initialise sunrise, sunset, moonrise, moonset, full moon and new moon times
+        # Initialise sunrise, sunset, moonrise, moonset, full moon and new moon 
+        # times
         self.app.astro = astro()
         self.app.astro.get_sunrise_sunset()
         self.app.astro.get_moonrise_moonset()
         self.app.astro.get_full_new_moon()
 
         # # Schedule sunTransit and moonPhase functions to be called each second
-        self.app.Sched.sun_transit = Clock.schedule_interval(self.app.astro.sun_transit, 0.05)
-        #self.app.Sched.moon_phase  = Clock.schedule_interval(self.app.astro.moon_phase, 1)
+        self.app.Sched.sun_transit = Clock.schedule_interval(self.app.astro.sun_transit, 1.0)
+        self.app.Sched.moon_phase  = Clock.schedule_interval(self.app.astro.moon_phase, 1.0)
 
-        # # Schedule WeatherFlow weather forecast download
-        # self.app.forecast = forecast()
-        # self.app.Sched.metDownload = Clock.schedule_once(self.app.forecast.fetch_forecast)
+        # Schedule WeatherFlow weather forecast download
+        self.app.forecast = forecast()
+        self.app.Sched.metDownload = Clock.schedule_once(self.app.forecast.fetch_forecast)
 
-        # # Generate Sager Weathercaster forecast
-        # self.app.sager = sager_forecast()
-        # self.app.Sched.sager = Clock.schedule_once(self.app.sager.fetch_forecast)
+        # Generate Sager Weathercaster forecast
+        self.app.sager = sager_forecast()
+        self.app.Sched.sager = Clock.schedule_once(self.app.sager.fetch_forecast)
 
     # ADD USER SELECTED PANELS TO CURRENT CONDITIONS SCREEN
     # --------------------------------------------------------------------------

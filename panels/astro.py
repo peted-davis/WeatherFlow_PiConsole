@@ -38,7 +38,6 @@ class SunriseSunsetPanel(panelTemplate):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.setUVBackground()
-
         self.ids['day_night_bar'].bind(pos=self.draw_day_night_bar)
         self.ids['day_night_bar'].bind(size=self.draw_day_night_bar)
 
