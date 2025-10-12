@@ -51,7 +51,7 @@ class astro():
 
         # Define date property
         self.tz = pytz.timezone(self.app.config['Station']['Timezone'])
-        self.date = self.tz.localize(datetime.now().replace(minute=0,second=0, microsecond=0)).astimezone(pytz.utc)
+        self.date = datetime.now(pytz.utc)
 
         # Define sunrise/sunset and moonrise/moonset event dictionary
         self.sun_events  = {}
@@ -257,7 +257,7 @@ class astro():
             self.astro_data           Dictionary holding moonrise and moonset data
         """
         # Get current time in station time zone
-        self.date = self.tz.localize(datetime.now()).astimezone(pytz.utc)
+        self.date = datetime.now(pytz.utc)
         time_now  = self.date.astimezone(self.tz)
 
         # Calculate sun icon position on daytime/nightime bar
