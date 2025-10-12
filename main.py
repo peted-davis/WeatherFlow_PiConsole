@@ -132,22 +132,22 @@ from lib              import config
 # ==============================================================================
 # IMPORT REQUIRED PANELS
 # ==============================================================================
-from panels.temperature import TemperaturePanel,   TemperatureButton            # type: ignore # noqa: F401
-from panels.barometer   import BarometerPanel,     BarometerButton              # type: ignore # noqa: F401
-from panels.lightning   import LightningPanel,     LightningButton              # type: ignore # noqa: F401
-from panels.wind        import WindSpeedPanel,     WindSpeedButton              # type: ignore # noqa: F401
-from panels.forecast    import ForecastPanel,      ForecastButton               # type: ignore # noqa: F401
-from panels.forecast    import SagerPanel,         SagerButton                  # type: ignore # noqa: F401
-from panels.rainfall    import RainfallPanel,      RainfallButton               # type: ignore # noqa: F401
-from panels.astro       import SunriseSunsetPanel, SunriseSunsetButton          # type: ignore # noqa: F401
-from panels.astro       import MoonPhasePanel,     MoonPhaseButton              # type: ignore # noqa: F401
+from panels.temperature import TemperaturePanel,   TemperatureButton            # type: ignore
+from panels.barometer   import BarometerPanel,     BarometerButton              # type: ignore
+from panels.lightning   import LightningPanel,     LightningButton              # type: ignore
+from panels.wind        import WindSpeedPanel,     WindSpeedButton              # type: ignore
+from panels.forecast    import ForecastPanel,      ForecastButton               # type: ignore
+from panels.forecast    import SagerPanel,         SagerButton                  # type: ignore
+from panels.rainfall    import RainfallPanel,      RainfallButton               # type: ignore
+from panels.astro       import SunriseSunsetPanel, SunriseSunsetButton          # type: ignore
+from panels.astro       import MoonPhasePanel,     MoonPhaseButton              # type: ignore 
 from panels.menu        import mainMenu
 
 # ==============================================================================
 # IMPORT CUSTOM USER PANELS
 # ==============================================================================
 if Path('user/customPanels.py').is_file():
-    from user.customPanels import *                                              # noqa: F401,F403
+    from user.customPanels import *                                             # type: ignore
 
 # ==============================================================================
 # IMPORT REQUIRED SYSTEM MODULES

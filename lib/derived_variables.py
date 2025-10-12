@@ -1146,10 +1146,10 @@ def rain_accumulation(minute_rain, daily_rain, rain_accum, device, api_data, con
     # Define index of total daily rain accumulation in websocket packets
     if str(device) in [config['Station']['SkyID'], config['Station']['SkySN']]:
         index_bucket_a = 3
-        index_bucket_e = 3
+        index_bucket_e = 17
     elif str(device) in [config['Station']['TempestID'], config['Station']['TempestSN']]:
         index_bucket_a = 12
-        index_bucket_e = 28
+        index_bucket_e = 29
 
     # ==========================================================================
     # TODAY RAIN
