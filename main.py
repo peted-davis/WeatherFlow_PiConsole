@@ -485,14 +485,16 @@ class CurrentConditions(Screen):
         self.app.station = station()
         self.app.Sched.deviceStatus = Clock.schedule_interval(self.app.station.get_device_status, 1.0)
 
-        # Initialise Sunrise, Sunset, Moonrise and Moonset times
+        # Initialise sunrise, sunset, moonrise, moonset, full moon and new moon 
+        # times
         self.app.astro = astro()
-        self.app.astro.sunrise_sunset()
-        self.app.astro.moonrise_moonset()
+        self.app.astro.get_sunrise_sunset()
+        self.app.astro.get_moonrise_moonset()
+        self.app.astro.get_full_new_moon()
 
-        # Schedule sunTransit and moonPhase functions to be called each second
-        self.app.Sched.sun_transit = Clock.schedule_interval(self.app.astro.sun_transit, 1)
-        self.app.Sched.moon_phase  = Clock.schedule_interval(self.app.astro.moon_phase, 1)
+        # # Schedule sunTransit and moonPhase functions to be called each second
+        self.app.Sched.sun_transit = Clock.schedule_interval(self.app.astro.sun_transit, 1.0)
+        self.app.Sched.moon_phase  = Clock.schedule_interval(self.app.astro.moon_phase, 1.0)
 
         # Schedule WeatherFlow weather forecast download
         self.app.forecast = forecast()
