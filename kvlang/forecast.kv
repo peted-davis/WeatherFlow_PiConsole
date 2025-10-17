@@ -40,7 +40,7 @@
         size_hint: (77/262, 80/202)
         fit_mode: 'contain'
     SmallMultilineField:
-        text: app.CurrentConditions.Met['Conditions']
+        text: app.CurrentConditions.Met['current_hour']['conditions']
         pos_hint: {'x': 110/262, 'y': 80/202}
         size_hint: (132/262, 62/202)
         halign: 'left'
@@ -48,7 +48,7 @@
 
     ## Forecast status
     BoldMultilineField:
-        text: app.CurrentConditions.Met['Status']
+        text: app.CurrentConditions.Met['current_hour']['status']
         pos_hint: {'x': 0/262, 'y': 97/202}
         size_hint: (262/262, 35/202)
 
@@ -58,7 +58,7 @@
         pos_hint: {'x': 132/262, 'y': 166/202}
         size_hint_x: 110/262
     MediumField:
-        text: app.CurrentConditions.Met['WindSpd'][0] + ' ' + app.CurrentConditions.Met['WindSpd'][1] + ' ' + app.CurrentConditions.Met['WindDir'][0]
+        text: app.CurrentConditions.Met['current_hour']['wind_speed'][0] + ' ' + app.CurrentConditions.Met['current_hour']['wind_speed'][1] + ' ' + app.CurrentConditions.Met['current_hour']['wind_dir'][0]
         pos_hint: {'x': 132/262, 'y': 145/202}
         size_hint_x: (110/262)
 
@@ -68,31 +68,31 @@
         pos_hint: {'x': 5/262, 'y': 65/202}
         size_hint_x: (125/262)
     MediumField:
-        text: app.CurrentConditions.Met['Temp'][0] + app.CurrentConditions.Met['Temp'][1]
+        text: app.CurrentConditions.Met['current_hour']['temperature'][0] + app.CurrentConditions.Met['current_hour']['temperature'][1]
         pos_hint: {'x': 5/262, 'y': 43/202}
         size_hint_x: (125/262)
     SmallField:
         pos_hint: {'x': 5/262, 'y': 25/202}
         size_hint_x: (125/262)
-        text: '[color=00a4b4ff][font=fonts/Inter-Bold.ttf]L: [/font]' + app.CurrentConditions.Met['lowTemp'][0]  + app.CurrentConditions.Met['lowTemp'][1]  + '[/color]' + '  ' + '[color=f05e40ff][font=fonts/Inter-Bold.ttf]H: [/font]' + app.CurrentConditions.Met['highTemp'][0] + app.CurrentConditions.Met['highTemp'][1] + '[/color]'
+        text: '[color=00a4b4ff][font=fonts/Inter-Bold.ttf]L: [/font]' + app.CurrentConditions.Met['current_day']['low_temperature'][0]  + app.CurrentConditions.Met['current_day']['low_temperature'][1]  + '[/color]' + '  ' + '[color=f05e40ff][font=fonts/Inter-Bold.ttf]H: [/font]' + app.CurrentConditions.Met['current_day']['high_temperature'][0] + app.CurrentConditions.Met['current_day']['high_temperature'][1] + '[/color]'
 
     ## Forecast rain/snowfall
     TitleField:
-        text: app.CurrentConditions.Met['PrecipType']
+        text: app.CurrentConditions.Met['current_hour']['precip_type']
         pos_hint: {'x': 152/262, 'y': 65/202}
         size_hint_x: (100/262)
     MediumField:
-        text: app.CurrentConditions.Met['PrecipPercnt'][0] + app.CurrentConditions.Met['PrecipPercnt'][1]
+        text: app.CurrentConditions.Met['current_hour']['precip_percnt'][0] + app.CurrentConditions.Met['current_hour']['precip_percnt'][1]
         pos_hint: {'x': 152/262, 'y': 43/202}
         size_hint_x: (100/262)
     SmallField:
-        text: '[color=ffffffff]Daily[/color]: ' + app.CurrentConditions.Met['PrecipDay'][0] + app.CurrentConditions.Met['PrecipDay'][1]
+        text: '[color=ffffffff]Daily[/color]: ' + app.CurrentConditions.Met['current_day']['precip_percnt'][0] + app.CurrentConditions.Met['current_day']['precip_percnt'][1]
         pos_hint: {'x': 152/262, 'y': 25/202}
         size_hint_x: (100/262)
 
     ## Forecast valid time
     SmallField:
-        text: 'Forecast for ' + app.CurrentConditions.Met['Valid']
+        text: 'Forecast for ' + app.CurrentConditions.Met['current_hour']['valid_time']
         pos_hint: {'x': 5/262, 'y': 2/202}
         size_hint: (252/262, 17/202)
         text_size: self.size
@@ -154,6 +154,86 @@
             tab_pos: 'bottom_left'
             tab_height: 40*app.scaleFactor
             tab_width: 100*app.scaleFactor
+            MainMenuTab:
+                text: '12 Hour'
+                MainMenuLayout:
+                    padding: [0, 0, 0, dp(15)]
+                    BoxLayout:
+                        orientation: 'horizontal'
+                        BoxLayout:
+                            orientation: 'vertical'
+                            size_hint_x: 0.16
+                            SmallField:
+                                size_hint_y: (1/8)
+                            SmallField:
+                                size_hint_y: (1/8)
+                            BoldField:
+                                text: "Temperature / Feels like"
+                                size_hint_y: (1/8)
+                                halign: 'left'
+                                text_size: self.size
+                            BoldField:
+                                text: "Wind speed"
+                                size_hint_y: (1/8)
+                                halign: 'left'
+                                text_size: self.size 
+                            BoldField:
+                                text: "Wind gust"
+                                size_hint_y: (1/8) 
+                                halign: 'left'
+                                text_size: self.size 
+                            BoldField:
+                                text: "Wind Direction"
+                                size_hint_y: (1/8)
+                                halign: 'left'
+                                text_size: self.size  
+                            BoldField:
+                                text: "Precipitation"
+                                size_hint_y: (1/8) 
+                                halign: 'left'
+                                text_size: self.size
+                            BoldField:
+                                text: "Amount"
+                                size_hint_y: (1/8) 
+                                halign: 'left'
+                                text_size: self.size
+                        BoxLayout:
+                            size_hint_x: 0.84
+                            ScrollView:
+                                do_scroll_x: True
+                                do_scroll_y: False
+                                bar_width: dp(5)
+                                BoxLayout:
+                                    size_hint_x: None
+                                    width: self.minimum_width
+                                    Forecast12HourPanel:
+                                        id: hour_0
+                                    Forecast12HourPanel:
+                                        id: hour_1
+                                    Forecast12HourPanel:
+                                        id: hour_2
+                                    Forecast12HourPanel:
+                                        id: hour_3
+                                    Forecast12HourPanel:
+                                        id: hour_4
+                                    Forecast12HourPanel:
+                                        id: hour_5
+                                    Forecast12HourPanel:
+                                        id: hour_6
+                                    Forecast12HourPanel:
+                                        id: hour_7
+                                    Forecast12HourPanel:
+                                        id: hour_8
+                                    Forecast12HourPanel:
+                                        id: hour_9
+                                    Forecast12HourPanel:
+                                        id: hour_10
+                                    Forecast12HourPanel:
+                                        id: hour_11
+            MainMenuTab:
+                text: '5 Day'
+                MainMenuLayout:
+
             MainMenuTab:
                 text: 'METAR'
                 MainMenuLayout:

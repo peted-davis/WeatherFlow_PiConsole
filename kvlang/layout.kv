@@ -244,6 +244,48 @@
                 text: 'Fetching all available stations'
                 on_release: app.mainMenu.switch_stations()
 
+# ==============================================================================
+# Forecast12HourPanel AND Forecast5DayPanel BOX LAYOUT
+# ==============================================================================
+<Forecast12HourPanel@BoxLayout>:
+    _forecast_idx: 0
+    size_hint_x: None
+    width: self.parent.parent.width/8
+    orientation: 'vertical'
+    SmallField:
+        text: app.CurrentConditions.Met['12_hour']['valid_time'][root._forecast_idx]
+        size_hint_y: (1/8)
+    Image:
+        source: 'icons/weather/' + app.CurrentConditions.Met['12_hour']['forecast_icon'][root._forecast_idx] + app.scaleSuffix
+        fit_mode: 'contain'
+        size_hint_y: (1/8)
+    BoldField:
+        text: 
+            '[color=' + app.CurrentConditions.Met['12_hour']['temperature'][root._forecast_idx][2] + ']'  \
+            + app.CurrentConditions.Met['12_hour']['temperature'][root._forecast_idx][0] + '/' \
+            + app.CurrentConditions.Met['12_hour']['feels_like'][root._forecast_idx][0] \
+            + app.CurrentConditions.Met['12_hour']['temperature'][root._forecast_idx][1] \
+            + '[/color]'
+        size_hint_y: (1/8) 
+    SmallField:
+        text: app.CurrentConditions.Met['12_hour']['wind_speed'][root._forecast_idx][0] + ' ' + app.CurrentConditions.Met['12_hour']['wind_speed'][root._forecast_idx][1]
+        size_hint_y: (1/8) 
+    SmallField:
+        text: app.CurrentConditions.Met['12_hour']['wind_gust'][root._forecast_idx][0] + ' ' + app.CurrentConditions.Met['12_hour']['wind_gust'][root._forecast_idx][1]
+        size_hint_y: (1/8)  
+    SmallField:
+        text: app.CurrentConditions.Met['12_hour']['wind_dir'][root._forecast_idx][0]
+        size_hint_y: (1/8)   
+    SmallField:
+        text: 
+            app.CurrentConditions.Met['12_hour']['precip_percnt'][root._forecast_idx][0] \
+            + app.CurrentConditions.Met['12_hour']['precip_percnt'][root._forecast_idx][1] + '\n' \
+            + app.CurrentConditions.Met['12_hour']['precip_type'][root._forecast_idx]
+        size_hint_y: (1/8) 
+    SmallField:
+        text: app.CurrentConditions.Met['12_hour']['precip_amount'][root._forecast_idx][0] + app.CurrentConditions.Met['12_hour']['precip_amount'][root._forecast_idx][1]
+        size_hint_y: (1/8) 
+
 # =============================================================================
 # [device]_status PANEL
 # =============================================================================

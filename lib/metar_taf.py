@@ -219,7 +219,7 @@ class metar_taf():
             else:
                 date_format = '%a, %d %b %Y'
 
-        # PARSE METAR DATA FROM CHECKWX API
+        # PARSE METAR OBSERVATION DATA FROM CHECKWX API
         # ----------------------------------------------------------------------
         # Extract METAR dictionary
         if type == 'metar':
@@ -234,11 +234,11 @@ class metar_taf():
             metar_cloud_level = []
 
             # Extract all METAR data from CheckWX API JSON object for closest 
-            # location with a forecast issued today
+            # location with a observation issued less than two hours ago
             try:
                 for METAR in metar_data:
                     issued_time = datetime.fromisoformat(METAR['observed'] + "+00:00").astimezone(Tz)
-                    if issued_time.date() == now.date():
+                    if (now - issued_time).total_seconds() <= 1*3600:
                         metar_data = METAR
                         break
 
@@ -246,15 +246,15 @@ class metar_taf():
                 metar_location    = metar_data['station']['location']
                 metar_issued_time = datetime.fromisoformat(metar_data['observed'] + "+00:00").astimezone(Tz)
 
-                # Extract wind forecast variables
+                # Extract wind observation variables
                 metar_wind_direction = [metar_data['wind']['degrees']   if 'wind' in metar_data and 'degrees'   in metar_data['wind'] else None, 'degrees']
                 metar_wind_speed     = [metar_data['wind']['speed_mps'] if 'wind' in metar_data and 'speed_mps' in metar_data['wind'] else None, 'mps']
                 metar_wind_gust      = [metar_data['wind']['gust_mps']  if 'wind' in metar_data and 'gust_mps'  in metar_data['wind'] else None, 'mps']    
 
-                # Extract visibility forecast variables
+                # Extract visibility observation variables
                 metar_visibility = [metar_data['visibility']['meters_text'].replace(',', ''), 'm'] if self.app.config['Units']['Distance'] == 'km' else [metar_data['visibility']['miles_text'].replace(',', ''), 'miles']
         
-                # Extract cloud forecast variables
+                # Extract cloud observation variables
                 for ii, cloud in enumerate(metar_data['clouds']):
                     metar_cloud_type.append(cloud['text'])
                     metar_cloud_code.append(cloud['code'])
@@ -296,7 +296,7 @@ class metar_taf():
                 # print(metar_dewpoint, flush=True)
                 # print(metar_humidity, flush=True)
 
-                # Construct main forecast taf string
+                # Construct main observation METAR string
                 metar_observation_string = ""
                 location_string          = (f"METAR for {metar_location}") 
                 timing_string            = (f"Issued at {metar_issued_time.strftime(time_format)} on {metar_issued_time.strftime(date_format)}")
@@ -347,7 +347,7 @@ class metar_taf():
             except (IndexError, KeyError, ValueError, TypeError):
                 Clock.schedule_once(self.fail_metar)    
 
-        # PARSE TAF DATA FROM CHECKWX API
+        # PARSE TAF FORECAST DATA FROM CHECKWX API
         # ----------------------------------------------------------------------
         # Extract TAF dictionary
         if type == 'taf':
@@ -373,12 +373,12 @@ class metar_taf():
             trend_conditions_text   = []
             trend_conditions_code   = []
 
-            # Extract all METAR data from CheckWX API JSON object for closest 
-            # location with a forecast issued today
+            # Extract all TAF data from CheckWX API JSON object for closest 
+            # location with a forecast issued less than 6 hours ago
             try:
                 for taf in taf_data:
                     issued_time = datetime.fromisoformat(taf['timestamp']['issued'] + "+00:00").astimezone(Tz)
-                    if issued_time.date() == now.date():
+                    if (now - issued_time).total_seconds() <= 6*3600:
                         taf_data = taf
                         break
 

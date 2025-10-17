@@ -372,34 +372,3 @@ def station_meta_data(station, config):
 
     # Return station meta data
     return api_data
-
-
-def forecast(config):
-
-    """ API Request for a weather forecast from WeatherFlow's BetterForecast API
-
-    INPUTS:
-        config              Station configuration
-
-    OUTPUT:
-        api_data            API response containing latest WeatherFlow forecast
-    """
-
-    # Download WeatherFlow forecast
-    url_template = 'https://swd.weatherflow.com/swd/rest/better_forecast?token={}&station_id={}&lat={}&lon={}'
-    URL = url_template.format(config['Keys']['WeatherFlow'], 
-                              config['Station']['StationID'], 
-                              config['Station']['Latitude'], 
-                              config['Station']['Longitude'])
-    print(URL)
-    try:
-        api_data = requests.get(URL, timeout=int(config['System']['Timeout']))
-    except Exception:
-        api_data = None
-
-    # Verify response
-    if api_data is None or not verify_response(api_data, 'forecast'):
-        Logger.warning(f'request_api: {system().log_time()} - Forecast call failed')
-
-    # Return WeatherFlow forecast data
-    return api_data

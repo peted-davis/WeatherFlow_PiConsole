@@ -19,6 +19,7 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 from kivy.uix.relativelayout import RelativeLayout
 from kivy.uix.modalview      import ModalView
 from kivy.properties         import StringProperty
+from kivy.app                import App
 
 # Load required panel modules
 from panels.template         import panelTemplate
@@ -40,7 +41,7 @@ class ForecastPanel(panelTemplate):
 
     # Set Forecast icon
     def set_forecast_icon(self):
-        self.forecast_icon = self.app.CurrentConditions.Met['Icon']
+        self.forecast_icon = self.app.CurrentConditions.Met['current_hour']['forecast_icon']
 
 
 class ForecastButton(RelativeLayout):
@@ -61,8 +62,18 @@ class SagerButton(RelativeLayout):
 # ==============================================================================
 # forecast_detail POPUP CLASS
 # ==============================================================================
+from kivy.uix.boxlayout      import BoxLayout
+from kivy.uix.button         import Button
+
 class forecast_detail(ModalView):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        #setattr(self.app, self.__class__.__name__, self)
+        self.app = App.get_running_app()
+
+        for forecast_panel in self.ids:
+            forecast_idx = forecast_panel.split('_')[1]
+            self.ids[forecast_panel]._forecast_idx = int(forecast_idx)
+        
+        
+        

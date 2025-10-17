@@ -19,507 +19,552 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 from lib      import derived_variables as derive
 from datetime import datetime
 import pytz
+import copy
 
 
-def units(Obs, Unit):
+def units(observations, unit):
 
     """ Sets the required observation units
 
     INPUTS:
-        Obs             Observations with current units
-        Unit            Required output unit
+        observations                Observations with current units
+        unit                        Required output unit
 
     OUTPUT:
-        cObs            Observation converted into required unit
+        converted_observations      Observation converted into required unit
     """
 
+    # Covert observations to list of lists if required
+    not_list_of_lists = False
+    if not isinstance(observations[0], list):
+        not_list_of_lists = True
+        observations = [observations]
+    converted_observation = copy.deepcopy(observations)  
+
     # Convert temperature observations
-    cObs = Obs[:]
-    if Unit in ['f', 'c']:
-        for ii, T in enumerate(Obs):
-            if T == 'c':
-                if Unit == 'f':
-                    if Obs[ii - 1] is not None:
-                        cObs[ii - 1] = Obs[ii - 1] * (9 / 5) + 32
-                    cObs[ii] = 'f'
-                else:
-                    cObs[ii - 1] = Obs[ii - 1]
-                    cObs[ii] = 'c'
-            if T in ['dc', 'c/hr']:
-                if Unit == 'f':
-                    if Obs[ii - 1] is not None:
-                        cObs[ii - 1] = Obs[ii - 1] * (9 / 5)
-                    if T == 'dc':
-                        cObs[ii] = 'f'
-                    elif T == 'c/hr':
-                        cObs[ii] = 'f/hr'
-                else:
-                    if Obs[ii - 1] is not None:
-                        cObs[ii - 1] = Obs[ii - 1]
-                    if T == 'dc':
-                        cObs[ii] = 'c'
+    if unit in ['f', 'c']:
+        for ii, observation in enumerate(observations):
+            for jj, field in enumerate(observation):
+                if field == 'c':
+                    if unit == 'f':
+                        if observation[jj - 1] is not None:
+                            converted_observation[ii][jj - 1] = observation[jj - 1] * (9 / 5) + 32
+                        converted_observation[ii][jj] = 'f'
+                    else:
+                        converted_observation[ii][jj - 1] = observation[jj - 1]
+                        converted_observation[ii][jj] = 'c'
+                if field in ['dc', 'c/hr']:
+                    if unit == 'f':
+                        if observation[jj - 1] is not None:
+                            converted_observation[ii][jj - 1] = observation[jj - 1] * (9 / 5)
+                        if field == 'dc':
+                            converted_observation[ii][jj] = 'f'
+                        elif field == 'c/hr':
+                            converted_observation[ii][jj] = 'f/hr'
+                    else:
+                        if observation[jj - 1] is not None:
+                            converted_observation[ii][jj - 1] = observation[jj - 1]
+                        if field == 'dc':
+                            converted_observation[ii][jj] = 'c'
 
     # Convert pressure and pressure trend observations
-    elif Unit in ['inhg', 'mmhg', 'hpa', 'mb']:
-        for ii, P in enumerate(Obs):
-            if P in ['mb', 'mb/hr']:
-                if Unit == 'inhg':
-                    if Obs[ii - 1] is not None:
-                        cObs[ii - 1] = Obs[ii - 1] * 0.0295301
-                    if P == 'mb':
-                        cObs[ii] = ' inHg'
+    elif unit in ['inhg', 'mmhg', 'hpa', 'mb']:
+        for ii, observation in enumerate(observations):
+            for jj, field in enumerate(observation):
+                if field in ['mb', 'mb/hr']:
+                    if unit == 'inhg':
+                        if observation[jj - 1] is not None:
+                            converted_observation[ii][jj - 1] = observation[jj - 1] * 0.0295301
+                        if field == 'mb':
+                            converted_observation[ii][jj] = ' inHg'
+                        else:
+                            converted_observation[ii][jj] = ' inHg/hr'
+                    elif unit == 'mmhg':
+                        if observation[jj - 1] is not None:
+                            converted_observation[ii][jj - 1] = observation[jj - 1] * 0.750063
+                        if field == 'mb':
+                            converted_observation[ii][jj] = ' mmHg'
+                        else:
+                            converted_observation[ii][jj] = ' mmHg/hr'
+                    elif unit == 'hpa':
+                        if observation[jj - 1] is not None:
+                            converted_observation[ii][jj - 1] = observation[jj - 1]
+                        if field == 'mb':
+                            converted_observation[ii][jj] = ' hPa'
+                        else:
+                            converted_observation[ii][jj] = ' hPa/hr'
                     else:
-                        cObs[ii] = ' inHg/hr'
-                elif Unit == 'mmhg':
-                    if Obs[ii - 1] is not None:
-                        cObs[ii - 1] = Obs[ii - 1] * 0.750063
-                    if P == 'mb':
-                        cObs[ii] = ' mmHg'
-                    else:
-                        cObs[ii] = ' mmHg/hr'
-                elif Unit == 'hpa':
-                    if Obs[ii - 1] is not None:
-                        cObs[ii - 1] = Obs[ii - 1]
-                    if P == 'mb':
-                        cObs[ii] = ' hPa'
-                    else:
-                        cObs[ii] = ' hPa/hr'
-                else:
-                    if Obs[ii - 1] is not None:
-                        cObs[ii - 1] = Obs[ii - 1]
-                    if P == 'mb':
-                        cObs[ii] = ' mb'
-                    else:
-                        cObs[ii] = ' mb/hr'
+                        if observation[jj - 1] is not None:
+                            converted_observation[ii][jj - 1] = observation[jj - 1]
+                        if field == 'mb':
+                            converted_observation[ii][jj] = ' mb'
+                        else:
+                            converted_observation[ii][jj] = ' mb/hr'
 
     # Convert windspeed observations
-    elif Unit in ['mph', 'lfm', 'kts', 'kph', 'bft', 'mps']:
-        for ii, W in enumerate(Obs):
-            if W == 'mps':
-                if Unit == 'mph' or Unit == 'lfm':
-                    if Obs[ii - 1] is not None:
-                        cObs[ii - 1] = Obs[ii - 1] * 2.2369362920544
-                    cObs[ii] = 'mph'
-                elif Unit == 'kts':
-                    if Obs[ii - 1] is not None:
-                        cObs[ii - 1] = Obs[ii - 1] * 1.9438
-                    cObs[ii] = 'kts'
-                elif Unit == 'kph':
-                    if Obs[ii - 1] is not None:
-                        cObs[ii - 1] = Obs[ii - 1] * 3.6
-                    cObs[ii] = 'km/h'
-                elif Unit == 'bft':
-                    if Obs[ii - 1] is not None:
-                        cObs[ii - 1] = derive.beaufort_scale(Obs[ii - 1:ii + 1])[2]
-                    cObs[ii] = 'bft'
-                else:
-                    cObs[ii - 1] = Obs[ii - 1]
-                    cObs[ii] = 'm/s'
+    elif unit in ['mph', 'lfm', 'kts', 'kph', 'bft', 'mps']:
+        for ii, observation in enumerate(observations):
+            for jj, field in enumerate(observation):
+                if field == 'mps':
+                    if unit == 'mph' or unit == 'lfm':
+                        if observation[jj - 1] is not None:
+                            converted_observation[ii][jj - 1] = observation[jj - 1] * 2.2369362920544
+                        converted_observation[ii][jj] = 'mph'
+                    elif unit == 'kts':
+                        if observation[jj - 1] is not None:
+                            converted_observation[ii][jj - 1] = observation[jj - 1] * 1.9438
+                        converted_observation[ii][jj] = 'kts'
+                    elif unit == 'kph':
+                        if observation[jj - 1] is not None:
+                            converted_observation[ii][jj - 1] = observation[jj - 1] * 3.6
+                        converted_observation[ii][jj] = 'km/h'
+                    elif unit == 'bft':
+                        if observation[jj - 1] is not None:
+                            converted_observation[ii][jj - 1] = derive.beaufort_scale(observations[ii - 1:ii + 1])[2]
+                        converted_observation[ii][jj] = 'bft'
+                    else:
+                        converted_observation[ii][jj - 1] = observation[jj - 1]
+                        converted_observation[ii][jj] = 'm/s'
 
     # Convert wind direction observations
-    elif Unit in ['degrees', 'cardinal']:
-        for ii, W in enumerate(Obs):
-            if W == 'degrees':
-                if cObs[ii - 1] is None:
-                    cObs[ii - 1] = '-'
-                    cObs[ii] = ''
-                elif cObs[ii - 1] == 'calm':
-                    cObs[ii - 1] = 'Calm'
-                    cObs[ii] = ''
-                elif Unit == 'cardinal':
-                    cObs[ii - 1] = derive.cardinal_wind_dir(Obs[ii - 1:ii + 1])[2]
-                    cObs[ii] = ''
-                else:
-                    cObs[ii - 1] = Obs[ii - 1]
-                    cObs[ii] = 'degrees'
+    elif unit in ['degrees', 'cardinal']:
+        for ii, observation in enumerate(observations):
+            for jj, field in enumerate(observation):
+                if field == 'degrees':
+                    if converted_observation[ii][jj - 1] is None:
+                        converted_observation[ii][jj - 1] = '-'
+                        converted_observation[ii][jj] = ''
+                    elif converted_observation[ii][jj - 1] == 'calm':
+                        converted_observation[ii][jj - 1] = 'Calm'
+                        converted_observation[ii][jj] = ''
+                    elif unit == 'cardinal':
+                        converted_observation[ii][jj - 1] = derive.cardinal_wind_dir(observation[jj - 1:jj + 1])[2]
+                        converted_observation[ii][jj] = ''
+                    else:
+                        converted_observation[ii][jj - 1] = observation[jj - 1]
+                        converted_observation[ii][jj] = 'degrees'
 
     # Convert rain accumulation and rain rate observations
-    elif Unit in ['in', 'cm', 'mm']:
-        for ii, Prcp in enumerate(Obs):
-            if Prcp in ['mm', 'mm/hr']:
-                if Unit == 'in':
-                    if Obs[ii - 1] is not None:
-                        cObs[ii - 1] = Obs[ii - 1] * 0.0393701
-                    if Prcp == 'mm':
-                        cObs[ii] = ' in'
+    elif unit in ['in', 'cm', 'mm']:
+        for ii, observation in enumerate(observations):
+            for jj, field in enumerate(observation):
+                if field in ['mm', 'mm/hr']:
+                    if unit == 'in':
+                        if observation[jj - 1] is not None:
+                            converted_observation[ii][jj - 1] = observation[jj - 1] * 0.0393701
+                        if field == 'mm':
+                            converted_observation[ii][jj] = ' in'
+                        else:
+                            converted_observation[ii][jj] = ' in/hr'
+                    elif unit == 'cm':
+                        if observation[jj - 1] is not None:
+                            converted_observation[ii][jj - 1] = observation[jj - 1] * 0.1
+                        if field == 'mm':
+                            converted_observation[ii][jj] = ' cm'
+                        else:
+                            converted_observation[ii][jj] = ' cm/hr'
                     else:
-                        cObs[ii] = ' in/hr'
-                elif Unit == 'cm':
-                    if Obs[ii - 1] is not None:
-                        cObs[ii - 1] = Obs[ii - 1] * 0.1
-                    if Prcp == 'mm':
-                        cObs[ii] = ' cm'
-                    else:
-                        cObs[ii] = ' cm/hr'
-                else:
-                    if Obs[ii - 1] is not None:
-                        cObs[ii - 1] = Obs[ii - 1]
-                    if Prcp == 'mm':
-                        cObs[ii] = ' mm'
-                    else:
-                        cObs[ii] = ' mm/hr'
+                        if observation[jj - 1] is not None:
+                            converted_observation[ii][jj - 1] = observation[jj - 1]
+                        if field == 'mm':
+                            converted_observation[ii][jj] = ' mm'
+                        else:
+                            converted_observation[ii][jj] = ' mm/hr'
 
     # Convert distance observations
-    elif Unit in ['km', 'mi']:
-        for ii, Dist in enumerate(Obs):
-            if Dist == 'km':
-                if Unit == 'mi':
-                    if Obs[ii - 1] is not None:
-                        cObs[ii - 1] = Obs[ii - 1] * 0.62137
-                    cObs[ii] = 'miles'
+    elif unit in ['km', 'mi']:
+        for ii, observation in enumerate(observations):
+            for jj, field in enumerate(observation):
+                if field == 'km':
+                    if unit == 'mi':
+                        if observation[jj - 1] is not None:
+                            converted_observation[ii][jj - 1] = observation[jj - 1] * 0.62137
+                        converted_observation[ii][jj] = 'miles'
 
     # Convert other observations
-    elif Unit in ['metric', 'imperial']:
-        for ii, other in enumerate(Obs):
-            if other == 'Wm2':
+    elif unit in ['metric', 'imperial']:
+        for jj, field in enumerate(observations):
+            if field == 'Wm2':
                 pass
-            elif other == 'index':
+            elif field == 'index':
                 pass
-            elif other == 'hrs':
+            elif field == 'hrs':
                 pass
-            elif other == '/min':
+            elif field == '/min':
                 pass
-            elif other == 'count':
+            elif field == 'count':
                 pass
-            elif other == 's':
+            elif field == 's':
                 pass
-            elif other == '%':
+            elif field == '%':
                 pass
+
+    # Covert converted observations back to simple list if required
+    if not_list_of_lists:
+        converted_observation = converted_observation[0]
 
     # Return converted observations
-    return cObs
+    return converted_observation
 
 
-def format(Obs, obType, config=[]):
+def format(observations, observation_type, config=[]):
 
     """ Formats the observation for display on the console
 
     INPUTS:
-        Obs             Observations with units
-        obType            Observation type
+        observation             Observations with units
+        observation_type        Observation type
 
     OUTPUT:
-        cObs            Formatted observation based on specified obType
+        formatted_observation   Formatted observation based on specified obType
     """
 
-    # Convert obType to list if required
-    if not isinstance(obType, list):
-        obType = [obType]
+    # Convert observation_type to list if required
+    if not isinstance(observation_type, list):
+        observation_type = [observation_type]
+
+    # Covert observations to list of lists if required
+    not_list_of_lists = False
+    
+    if not isinstance(observations[0], list):
+        not_list_of_lists = True
+        observations = [observations]
+    formatted_observation = copy.deepcopy(observations)  
 
     # Format temperature observations
-    cObs = Obs[:]
-    for Type in obType:
-        if Type == 'Temp':
-            for ii, T in enumerate(Obs):
-                if isinstance(T, str) and T.strip() in ['c', 'f']:
-                    if cObs[ii - 1] is None:
-                        cObs[ii - 1] = '-'
-                    elif round(cObs[ii - 1], 1) == 0.0:
-                        cObs[ii - 1] = '{:.1f}'.format(abs(cObs[ii - 1]))
-                    else:
-                        cObs[ii - 1] = '{:.1f}'.format(cObs[ii - 1])
-                    if T.strip() == 'c':
-                        cObs[ii] = u'\N{DEGREE CELSIUS}'
-                    elif T.strip() == 'f':
-                        cObs[ii] = u'\N{DEGREE FAHRENHEIT}'
-                elif isinstance(T, str) and T.strip() in ['c/hr', 'f/hr']:
-                    if cObs[ii - 1] is None:
-                        cObs[ii - 1] = '-'
-                    elif round(cObs[ii - 1], 1) == 0.0:
-                        cObs[ii - 1] = '{:.1f}'.format(abs(cObs[ii - 1]))
-                    else:
-                        cObs[ii - 1] = '{:+.1f}'.format(cObs[ii - 1])
-                    if T.strip() == 'c/hr':
-                        cObs[ii] = u'\N{DEGREE CELSIUS}/hr'
-                    elif T.strip() == 'f/hr':
-                        cObs[ii] = u'\N{DEGREE FAHRENHEIT}/hr'
-        elif Type == 'forecastTemp':
-            for ii, T in enumerate(Obs):
-                if isinstance(T, str) and T.strip() in ['c', 'f']:
-                    if cObs[ii - 1] is None:
-                        cObs[ii - 1] = '-'
-                    elif round(cObs[ii - 1], 1) == 0.0:
-                        cObs[ii - 1] = '{:.0f}'.format(abs(cObs[ii - 1]))
-                    else:
-                        cObs[ii - 1] = '{:.0f}'.format(cObs[ii - 1])
-                    if T.strip() == 'c':
-                        cObs[ii] = u'\N{DEGREE CELSIUS}'
-                    elif T.strip() == 'f':
-                        cObs[ii] = u'\N{DEGREE FAHRENHEIT}'
+    for type in observation_type:
+        if type == 'Temp':
+            for jj, observation in enumerate(observations):
+                for ii, field in enumerate(observation):
+                    if isinstance(field, str) and field.strip() in ['c', 'f']:
+                        if formatted_observation[jj][ii - 1] is None:
+                            formatted_observation[jj][ii - 1] = '-'
+                        elif round(formatted_observation[jj][ii - 1], 1) == 0.0:
+                            formatted_observation[jj][ii - 1] = '{:.1f}'.format(abs(formatted_observation[jj][ii - 1]))
+                        else:
+                            formatted_observation[jj][ii - 1] = '{:.1f}'.format(formatted_observation[jj][ii - 1])
+                        if field.strip() == 'c':
+                            formatted_observation[jj][ii] = u'\N{DEGREE CELSIUS}'
+                        elif field.strip() == 'f':
+                            formatted_observation[jj][ii] = u'\N{DEGREE FAHRENHEIT}'
+                    elif isinstance(field, str) and field.strip() in ['c/hr', 'f/hr']:
+                        if formatted_observation[jj][ii - 1] is None:
+                            formatted_observation[jj][ii - 1] = '-'
+                        elif round(formatted_observation[jj][ii - 1], 1) == 0.0:
+                            formatted_observation[jj][ii - 1] = '{:.1f}'.format(abs(formatted_observation[jj][ii - 1]))
+                        else:
+                            formatted_observation[jj][ii - 1] = '{:+.1f}'.format(formatted_observation[jj][ii - 1])
+                        if field.strip() == 'c/hr':
+                            formatted_observation[jj][ii] = u'\N{DEGREE CELSIUS}/hr'
+                        elif field.strip() == 'f/hr':
+                            formatted_observation[jj][ii] = u'\N{DEGREE FAHRENHEIT}/hr'
+        elif type == 'forecast_temp':
+            for jj, observation in enumerate(observations):
+                for ii, field in enumerate(observation):
+                    if isinstance(field, str) and field.strip() in ['c', 'f']:
+                        if formatted_observation[jj][ii - 1] is None:
+                            formatted_observation[jj][ii - 1] = '-'
+                        elif round(formatted_observation[jj][ii - 1], 1) == 0.0:
+                            formatted_observation[jj][ii - 1] = '{:.0f}'.format(abs(formatted_observation[jj][ii - 1]))
+                        else:
+                            formatted_observation[jj][ii - 1] = '{:.0f}'.format(formatted_observation[jj][ii - 1])
+                        if field.strip() == 'c':
+                            formatted_observation[jj][ii] = u'\N{DEGREE CELSIUS}'
+                        elif field.strip() == 'f':
+                            formatted_observation[jj][ii] = u'\N{DEGREE FAHRENHEIT}'
 
         # Format pressure observations
-        elif Type == 'Pressure':
-            for ii, P in enumerate(Obs):
-                if isinstance(P, str) and P.strip() in ['inHg/hr', 'inHg', 'mmHg/hr', 'mmHg', 'hPa/hr', 'mb/hr', 'hPa', 'mb']:
-                    if cObs[ii - 1] is None:
-                        cObs[ii - 1] = '-'
-                    else:
-                        if P.strip() in ['inHg/hr', 'inHg']:
-                            if round(cObs[ii - 1], 3) == 0.0:
-                                cObs[ii - 1] = '{:.3f}'.format(abs(cObs[ii - 1]))
-                            else:
-                                cObs[ii - 1] = '{:.3f}'.format(cObs[ii - 1])
-                        elif P.strip() in ['mmHg/hr', 'mmHg']:
-                            if round(cObs[ii - 1], 2) == 0.0:
-                                cObs[ii - 1] = '{:.2f}'.format(abs(cObs[ii - 1]))
-                            else:
-                                cObs[ii - 1] = '{:.2f}'.format(cObs[ii - 1])
-                        elif P.strip() in ['hPa/hr', 'mb/hr', 'hPa', 'mb']:
-                            if round(cObs[ii - 1], 1) == 0.0:
-                                cObs[ii - 1] = '{:.1f}'.format(abs(cObs[ii - 1]))
-                            else:
-                                cObs[ii - 1] = '{:.1f}'.format(cObs[ii - 1])
+        elif type == 'Pressure':
+            for jj, observation in enumerate(observations):
+                for ii, field in enumerate(observation):
+                    if isinstance(field, str) and field.strip() in ['inHg/hr', 'inHg', 'mmHg/hr', 'mmHg', 'hPa/hr', 'mb/hr', 'hPa', 'mb']:
+                        if formatted_observation[jj][ii - 1] is None:
+                            formatted_observation[jj][ii - 1] = '-'
+                        else:
+                            if field.strip() in ['inHg/hr', 'inHg']:
+                                if round(formatted_observation[jj][ii - 1], 3) == 0.0:
+                                    formatted_observation[jj][ii - 1] = '{:.3f}'.format(abs(formatted_observation[jj][ii - 1]))
+                                else:
+                                    formatted_observation[jj][ii - 1] = '{:.3f}'.format(formatted_observation[jj][ii - 1])
+                            elif field.strip() in ['mmHg/hr', 'mmHg']:
+                                if round(formatted_observation[jj][ii - 1], 2) == 0.0:
+                                    formatted_observation[jj][ii - 1] = '{:.2f}'.format(abs(formatted_observation[jj][ii - 1]))
+                                else:
+                                    formatted_observation[jj][ii - 1] = '{:.2f}'.format(formatted_observation[jj][ii - 1])
+                            elif field.strip() in ['hPa/hr', 'mb/hr', 'hPa', 'mb']:
+                                if round(formatted_observation[jj][ii - 1], 1) == 0.0:
+                                    formatted_observation[jj][ii - 1] = '{:.1f}'.format(abs(formatted_observation[jj][ii - 1]))
+                                else:
+                                    formatted_observation[jj][ii - 1] = '{:.1f}'.format(formatted_observation[jj][ii - 1])
 
         # Format windspeed observations
-        elif Type == 'Wind':
-            for ii, W in enumerate(Obs):
-                if isinstance(W, str) and W.strip() in ['mph', 'kts', 'km/h', 'bft', 'm/s']:
-                    if cObs[ii - 1] is None:
-                        cObs[ii - 1] = '-'
-                    else:
-                        if round(cObs[ii - 1], 1) < 10:
-                            cObs[ii - 1] = '{:.1f}'.format(cObs[ii - 1])
+        elif type == 'Wind':
+            for jj, observation in enumerate(observations):
+                for ii, field in enumerate(observation):
+                    if isinstance(field, str) and field.strip() in ['mph', 'kts', 'km/h', 'bft', 'm/s']:
+                        if formatted_observation[jj][ii - 1] is None:
+                            formatted_observation[jj][ii - 1] = '-'
                         else:
-                            cObs[ii - 1] = '{:.0f}'.format(cObs[ii - 1])
-        elif Type == 'forecastWind':
-            for ii, W in enumerate(Obs):
-                if isinstance(W, str) and W.strip() in ['mph', 'kts', 'km/h', 'bft', 'm/s']:
-                    if cObs[ii - 1] is None:
-                        cObs[ii - 1] = '-'
-                    else:
-                        cObs[ii - 1] = '{:.0f}'.format(cObs[ii - 1])
+                            if round(formatted_observation[jj][ii - 1], 1) < 10:
+                                formatted_observation[jj][ii - 1] = '{:.1f}'.format(formatted_observation[jj][ii - 1])
+                            else:
+                                formatted_observation[jj][ii - 1] = '{:.0f}'.format(formatted_observation[jj][ii - 1])
+        elif type == 'forecast_wind':
+            for jj, observation in enumerate(observations):
+                for ii, field in enumerate(observation):
+                    if isinstance(field, str) and field.strip() in ['mph', 'kts', 'km/h', 'bft', 'm/s']:
+                        if formatted_observation[jj][ii - 1] is None:
+                            formatted_observation[jj][ii - 1] = '-'
+                        else:
+                            formatted_observation[jj][ii - 1] = '{:.0f}'.format(formatted_observation[jj][ii - 1])
 
         # Format wind direction observations
-        elif Type == 'Direction':
-            for ii, D in enumerate(Obs):
-                if isinstance(D, str) and D.strip() in ['degrees']:
-                    cObs[ii] = u'\u00B0'
-                    if cObs[ii - 1] is None:
-                        cObs[ii - 1] = '-'
-                    else:
-                        cObs[ii - 1] = '{:.0f}'.format(cObs[ii - 1])
+        elif type == 'Direction':
+            for jj, observation in enumerate(observations):
+                for ii, field in enumerate(observation):
+                    if isinstance(field, str) and field.strip() in ['degrees']:
+                        formatted_observation[jj][ii] = u'\u00B0'
+                        if formatted_observation[jj][ii - 1] is None:
+                            formatted_observation[jj][ii - 1] = '-'
+                        else:
+                            formatted_observation[jj][ii - 1] = '{:.0f}'.format(formatted_observation[jj][ii - 1])
 
         # Format rain accumulation and rain rate observations
-        elif Type == 'Precip':
-            for ii, Prcp in enumerate(Obs):
-                if isinstance(Prcp, str):
-                    if Prcp.strip() == 'mm':
-                        if cObs[ii - 1] is None:
-                            cObs[ii - 1] = '-'
-                        else:
-                            if cObs[ii - 1] == 0:
-                                cObs[ii - 1] = '{:.0f}'.format(cObs[ii - 1])
-                            elif cObs[ii - 1] < 0.127:
-                                cObs[ii - 1] = 'Trace'
-                                cObs[ii] = ''
-                            elif round(cObs[ii - 1], 1) < 10:
-                                cObs[ii - 1] = '{:.1f}'.format(cObs[ii - 1])
+        elif type == 'Precip':
+            for jj, observation in enumerate(observations):
+                for ii, field in enumerate(observation):
+                    if isinstance(field, str):
+                        if field.strip() == 'mm':
+                            if formatted_observation[jj][ii - 1] is None:
+                                formatted_observation[jj][ii - 1] = '-'
                             else:
-                                cObs[ii - 1] = '{:.0f}'.format(cObs[ii - 1])
-                    elif Prcp.strip() == 'cm':
-                        if cObs[ii - 1] is None:
-                            cObs[ii - 1] = '-'
-                        else:
-                            if cObs[ii - 1] == 0:
-                                cObs[ii - 1] = '{:.0f}'.format(cObs[ii - 1])
-                            elif cObs[ii - 1] < 0.0127:
-                                cObs[ii - 1] = 'Trace'
-                                cObs[ii] = ''
-                            elif round(cObs[ii - 1], 2) < 10:
-                                cObs[ii - 1] = '{:.2f}'.format(cObs[ii - 1])
-                            elif round(cObs[ii - 1], 1) < 100:
-                                cObs[ii - 1] = '{:.1f}'.format(cObs[ii - 1])
+                                if formatted_observation[jj][ii - 1] == 0:
+                                    formatted_observation[jj][ii - 1] = '{:.0f}'.format(formatted_observation[jj][ii - 1])
+                                elif formatted_observation[jj][ii - 1] < 0.127:
+                                    formatted_observation[jj][ii - 1] = 'Trace'
+                                    formatted_observation[jj][ii] = ''
+                                elif round(formatted_observation[jj][ii - 1], 1) < 10:
+                                    formatted_observation[jj][ii - 1] = '{:.1f}'.format(formatted_observation[jj][ii - 1])
+                                else:
+                                    formatted_observation[jj][ii - 1] = '{:.0f}'.format(formatted_observation[jj][ii - 1])
+                        elif field.strip() == 'cm':
+                            if formatted_observation[jj][ii - 1] is None:
+                                formatted_observation[jj][ii - 1] = '-'
                             else:
-                                cObs[ii - 1] = '{:.0f}'.format(cObs[ii - 1])
-                    elif Prcp.strip() == 'in':
-                        cObs[ii] = u'\u0022'
-                        if cObs[ii - 1] is None:
-                            cObs[ii - 1] = '-'
-                        else:
-                            if cObs[ii - 1] == 0:
-                                cObs[ii - 1] = '{:.0f}'.format(cObs[ii - 1])
-                            elif cObs[ii - 1] < 0.005:
-                                cObs[ii - 1] = 'Trace'
-                                cObs[ii] = ''
-                            elif round(cObs[ii - 1], 2) < 10:
-                                cObs[ii - 1] = '{:.2f}'.format(cObs[ii - 1])
-                            elif round(cObs[ii - 1], 1) < 100:
-                                cObs[ii - 1] = '{:.1f}'.format(cObs[ii - 1])
+                                if formatted_observation[jj][ii - 1] == 0:
+                                    formatted_observation[jj][ii - 1] = '{:.0f}'.format(formatted_observation[jj][ii - 1])
+                                elif formatted_observation[jj][ii - 1] < 0.0127:
+                                    formatted_observation[jj][ii - 1] = 'Trace'
+                                    formatted_observation[jj][ii] = ''
+                                elif round(formatted_observation[jj][ii - 1], 2) < 10:
+                                    formatted_observation[jj][ii - 1] = '{:.2f}'.format(formatted_observation[jj][ii - 1])
+                                elif round(formatted_observation[jj][ii - 1], 1) < 100:
+                                    formatted_observation[jj][ii - 1] = '{:.1f}'.format(formatted_observation[jj][ii - 1])
+                                else:
+                                    formatted_observation[jj][ii - 1] = '{:.0f}'.format(formatted_observation[jj][ii - 1])
+                        elif field.strip() == 'in':
+                            formatted_observation[jj][ii] = u'\u0022'
+                            if formatted_observation[jj][ii - 1] is None:
+                                formatted_observation[jj][ii - 1] = '-'
                             else:
-                                cObs[ii - 1] = '{:.0f}'.format(cObs[ii - 1])
-                    elif Prcp.strip() == 'mm/hr':
-                        if cObs[ii - 1] is None:
-                            cObs[ii - 1] = '-'
-                        else:
-                            if cObs[ii - 1] == 0:
-                                cObs[ii - 1] = '{:.0f}'.format(cObs[ii - 1])
-                            elif cObs[ii - 1] < 0.1:
-                                cObs[ii - 1] = '<0.1'
-                            elif round(cObs[ii - 1], 1) < 10:
-                                cObs[ii - 1] = '{:.1f}'.format(cObs[ii - 1])
+                                if formatted_observation[jj][ii - 1] == 0:
+                                    formatted_observation[jj][ii - 1] = '{:.0f}'.format(formatted_observation[jj][ii - 1])
+                                elif formatted_observation[jj][ii - 1] < 0.005:
+                                    formatted_observation[jj][ii - 1] = 'Trace'
+                                    formatted_observation[jj][ii] = ''
+                                elif round(formatted_observation[jj][ii - 1], 2) < 10:
+                                    formatted_observation[jj][ii - 1] = '{:.2f}'.format(formatted_observation[jj][ii - 1])
+                                elif round(formatted_observation[jj][ii - 1], 1) < 100:
+                                    formatted_observation[jj][ii - 1] = '{:.1f}'.format(formatted_observation[jj][ii - 1])
+                                else:
+                                    formatted_observation[jj][ii - 1] = '{:.0f}'.format(formatted_observation[jj][ii - 1])
+                        elif field.strip() == 'mm/hr':
+                            if formatted_observation[jj][ii - 1] is None:
+                                formatted_observation[jj][ii - 1] = '-'
                             else:
-                                cObs[ii - 1] = '{:.0f}'.format(cObs[ii - 1])
-                    elif Prcp.strip() in ['in/hr', 'cm/hr']:
-                        if cObs[ii - 1] is None:
-                            cObs[ii - 1] = '-'
-                        else:
-                            if cObs[ii - 1] == 0:
-                                cObs[ii - 1] = '{:.0f}'.format(cObs[ii - 1])
-                            elif cObs[ii - 1] < 0.01:
-                                cObs[ii - 1] = '<0.01'
-                            elif round(cObs[ii - 1], 2) < 10:
-                                cObs[ii - 1] = '{:.2f}'.format(cObs[ii - 1])
-                            elif round(cObs[ii - 1], 1) < 100:
-                                cObs[ii - 1] = '{:.1f}'.format(cObs[ii - 1])
+                                if formatted_observation[jj][ii - 1] == 0:
+                                    formatted_observation[jj][ii - 1] = '{:.0f}'.format(formatted_observation[jj][ii - 1])
+                                elif formatted_observation[jj][ii - 1] < 0.1:
+                                    formatted_observation[jj][ii - 1] = '<0.1'
+                                elif round(formatted_observation[jj][ii - 1], 1) < 10:
+                                    formatted_observation[jj][ii - 1] = '{:.1f}'.format(formatted_observation[jj][ii - 1])
+                                else:
+                                    formatted_observation[jj][ii - 1] = '{:.0f}'.format(formatted_observation[jj][ii - 1])
+                        elif field.strip() in ['in/hr', 'cm/hr']:
+                            if formatted_observation[jj][ii - 1] is None:
+                                formatted_observation[jj][ii - 1] = '-'
                             else:
-                                cObs[ii - 1] = '{:.0f}'.format(cObs[ii - 1])
+                                if formatted_observation[jj][ii - 1] == 0:
+                                    formatted_observation[jj][ii - 1] = '{:.0f}'.format(formatted_observation[jj][ii - 1])
+                                elif formatted_observation[jj][ii - 1] < 0.01:
+                                    formatted_observation[jj][ii - 1] = '<0.01'
+                                elif round(formatted_observation[jj][ii - 1], 2) < 10:
+                                    formatted_observation[jj][ii - 1] = '{:.2f}'.format(formatted_observation[jj][ii - 1])
+                                elif round(formatted_observation[jj][ii - 1], 1) < 100:
+                                    formatted_observation[jj][ii - 1] = '{:.1f}'.format(formatted_observation[jj][ii - 1])
+                                else:
+                                    formatted_observation[jj][ii - 1] = '{:.0f}'.format(formatted_observation[jj][ii - 1])
 
         # Format humidity observations
-        elif Type == 'Humidity':
-            for ii, H in enumerate(Obs):
-                if isinstance(H, str) and H.strip() == '%':
-                    if cObs[ii - 1] is None:
-                        cObs[ii - 1] = '-'
-                    else:
-                        cObs[ii - 1] = '{:.0f}'.format(cObs[ii - 1])
+        elif type == 'Humidity':
+            for jj, observation in enumerate(observations):
+                for ii, field in enumerate(observation):
+                    if isinstance(field, str) and field.strip() == '%':
+                        if formatted_observation[jj][ii - 1] is None:
+                            formatted_observation[jj][ii - 1] = '-'
+                        else:
+                            formatted_observation[jj][ii - 1] = '{:.0f}'.format(formatted_observation[jj][ii - 1])
 
         # Format solar radiation observations
-        elif Type == 'Radiation':
-            for ii, Rad in enumerate(Obs):
-                if isinstance(Rad, str) and Rad.strip() == 'Wm2':
-                    cObs[ii]   = ' W/m' + u'\u00B2'
-                    if cObs[ii - 1] is None:
-                        cObs[ii - 1] = '-'
-                    else:
-                        cObs[ii - 1] = '{:.0f}'.format(cObs[ii - 1])
+        elif type == 'Radiation':
+            for jj, observation in enumerate(observations):
+                for ii, field in enumerate(observation):
+                    if isinstance(field, str) and field.strip() == 'Wm2':
+                        formatted_observation[jj][ii]   = ' W/m' + u'\u00B2'
+                        if formatted_observation[jj][ii - 1] is None:
+                            formatted_observation[jj][ii - 1] = '-'
+                        else:
+                            formatted_observation[jj][ii - 1] = '{:.0f}'.format(formatted_observation[jj][ii - 1])
 
         # Format UV observations
-        elif Type == 'UV':
-            for ii, UV in enumerate(Obs):
-                if isinstance(UV, str) and UV.strip() == 'index':
-                    if cObs[ii - 1] is None:
-                        cObs[ii - 1] = '-'
-                        cObs.extend(['-', '#646464'])
-                    else:
-                        cObs[ii - 1] = '{:.1f}'.format(cObs[ii - 1])
+        elif type == 'UV':
+            for jj, observation in enumerate(observations):
+                for ii, field in enumerate(observation):
+                    if isinstance(field, str) and field.strip() == 'index':
+                        if formatted_observation[jj][ii - 1] is None:
+                            formatted_observation[jj][ii - 1] = '-'
+                            formatted_observation[jj].extend(['-', '#646464'])
+                        else:
+                            formatted_observation[jj][ii - 1] = '{:.1f}'.format(formatted_observation[jj][ii - 1])
 
         # Format Peak Sun Hours observations
-        elif Type == 'peakSun':
-            for ii, psh in enumerate(Obs):
-                if isinstance(psh, str) and psh.strip() == 'hrs':
-                    if cObs[ii - 1] is None:
-                        cObs[ii - 1] = '-'
-                    else:
-                        cObs[ii - 1] = '{:.2f}'.format(cObs[ii - 1])
+        elif type == 'peakSun':
+            for jj, observation in enumerate(observations):
+                for ii, field in enumerate(observation):
+                    if isinstance(field, str) and field.strip() == 'hrs':
+                        if formatted_observation[jj][ii - 1] is None:
+                            formatted_observation[jj][ii - 1] = '-'
+                        else:
+                            formatted_observation[jj][ii - 1] = '{:.2f}'.format(formatted_observation[jj][ii - 1])
 
         # Format battery voltage observations
-        elif Type == 'Battery':
-            for ii, V in enumerate(Obs):
-                if isinstance(V, str) and V.strip() == 'v':
-                    if cObs[ii - 1] is None:
-                        cObs[ii - 1] = '-'
-                    else:
-                        cObs[ii - 1] = '{:.2f}'.format(cObs[ii - 1])
+        elif type == 'Battery':
+            for jj, observation in enumerate(observations):
+                for ii, field in enumerate(observation):
+                    if isinstance(field, str) and field.strip() == 'v':
+                        if formatted_observation[jj][ii - 1] is None:
+                            formatted_observation[jj][ii - 1] = '-'
+                        else:
+                            formatted_observation[jj][ii - 1] = '{:.2f}'.format(formatted_observation[jj][ii - 1])
 
         # Format lightning strike count observations
-        elif Type == 'StrikeCount':
-            for ii, L in enumerate(Obs):
-                if isinstance(L, str) and L.strip() == 'count':
-                    if cObs[ii - 1] is None:
-                        cObs[ii - 1] = '-'
-                    elif cObs[ii - 1] < 1000:
-                        cObs[ii - 1] = '{:.0f}'.format(cObs[ii - 1])
-                    else:
-                        cObs[ii - 1] = '{:.1f}'.format(cObs[ii - 1] / 1000) + ' k'
+        elif type == 'StrikeCount':
+            for jj, observation in enumerate(observations):
+                for ii, field in enumerate(observation):
+                    if isinstance(field, str) and field.strip() == 'count':
+                        if formatted_observation[jj][ii - 1] is None:
+                            formatted_observation[jj][ii - 1] = '-'
+                        elif formatted_observation[jj][ii - 1] < 1000:
+                            formatted_observation[jj][ii - 1] = '{:.0f}'.format(formatted_observation[jj][ii - 1])
+                        else:
+                            formatted_observation[jj][ii - 1] = '{:.1f}'.format(formatted_observation[jj][ii - 1] / 1000) + ' k'
 
         # Format lightning strike distance observations
-        elif Type == 'StrikeDistance':
-            for ii, StrikeDist in enumerate(Obs):
-                if isinstance(StrikeDist, str):
-                    if StrikeDist.strip() in ['km']:
-                        if cObs[ii - 1] is None:
-                            cObs[ii - 1] = '-'
-                        else:
-                            cObs[ii - 1] = '{:.0f}'.format(max(cObs[ii - 1] - 3, 0)) + '-' +  '{:.0f}'.format(cObs[ii - 1] + 3)
-                    elif StrikeDist.strip() in ['miles']:
-                        if cObs[ii - 1] is None:
-                            cObs[ii - 1] = '-'
-                        else:
-                            cObs[ii - 1] = '{:.0f}'.format(max(cObs[ii - 1] - 3 * 0.62137, 0)) + '-' + '{:.0f}'.format(cObs[ii - 1] + 3 * 0.62137)
+        elif type == 'StrikeDistance':
+            for jj, observation in enumerate(observations):
+                for ii, field in enumerate(observation):
+                    if isinstance(field, str):
+                        if field.strip() in ['km']:
+                            if formatted_observation[jj][ii - 1] is None:
+                                formatted_observation[jj][ii - 1] = '-'
+                            else:
+                                formatted_observation[jj][ii - 1] = '{:.0f}'.format(max(formatted_observation[jj][ii - 1] - 3, 0)) + '-' +  '{:.0f}'.format(formatted_observation[jj][ii - 1] + 3)
+                        elif field.strip() in ['miles']:
+                            if formatted_observation[jj][ii - 1] is None:
+                                formatted_observation[jj][ii - 1] = '-'
+                            else:
+                                formatted_observation[jj][ii - 1] = '{:.0f}'.format(max(formatted_observation[jj][ii - 1] - 3 * 0.62137, 0)) + '-' + '{:.0f}'.format(formatted_observation[jj][ii - 1] + 3 * 0.62137)
 
         # Format lightning strike frequency observations
-        elif Type == 'StrikeFrequency':
-            for ii, StrikeFreq in enumerate(Obs):
-                if isinstance(StrikeFreq, str):
-                    if StrikeFreq.strip() in ['/min']:
-                        if cObs[ii - 1] is None:
-                            cObs[ii - 1] = '-'
-                            cObs[ii] = ' /min'
-                        elif cObs[ii - 1].is_integer():
-                            cObs[ii - 1] = '{:.0f}'.format(cObs[ii - 1])
-                            cObs[ii] = ' /min'
-                        else:
-                            cObs[ii - 1] = '{:.1f}'.format(cObs[ii - 1])
-                            cObs[ii] = ' /min'
+        elif type == 'StrikeFrequency':
+            for jj, observation in enumerate(observations):
+                for ii, field in enumerate(observation):
+                    if isinstance(field, str):
+                        if field.strip() in ['/min']:
+                            if formatted_observation[jj][ii - 1] is None:
+                                formatted_observation[jj][ii - 1] = '-'
+                                formatted_observation[jj][ii] = ' /min'
+                            elif formatted_observation[jj][ii - 1].is_integer():
+                                formatted_observation[jj][ii - 1] = '{:.0f}'.format(formatted_observation[jj][ii - 1])
+                                formatted_observation[jj][ii] = ' /min'
+                            else:
+                                formatted_observation[jj][ii - 1] = '{:.1f}'.format(formatted_observation[jj][ii - 1])
+                                formatted_observation[jj][ii] = ' /min'
 
         # Format time difference observations
-        elif Type == 'Time':
-            for ii, Time in enumerate(Obs):
-                if isinstance(Time, str) and Time.strip() in ['s']:
-                    if cObs[ii - 1] is None:
-                        cObs[ii - 1] = '-'
-                    else:
-                        Tz = pytz.timezone(config['Station']['Timezone'])
-                        if config['Display']['TimeFormat'] == '12 hr':
-                            if config['System']['Hardware'] == 'Other':
-                                Format = '%#I:%M %p'
-                            else:
-                                Format = '%-I:%M %p'
+        elif type == 'Time':
+            for jj, observation in enumerate(observations):
+                for ii, field in enumerate(observation):
+                    if isinstance(field, str) and field.strip() in ['s']:
+                        if formatted_observation[jj][ii - 1] is None:
+                            formatted_observation[jj][ii - 1] = '-'
                         else:
-                            Format = '%H:%M'
-                        cObs[ii - 1] = datetime.fromtimestamp(cObs[ii - 1], Tz).strftime(Format)
+                            Tz = pytz.timezone(config['Station']['Timezone'])
+                            if config['Display']['TimeFormat'] == '12 hr':
+                                if config['System']['Hardware'] == 'Other':
+                                    format = '%#I:%M %p'
+                                else:
+                                    format = '%-I:%M %p'
+                            else:
+                                format = '%H:%M'
+                            formatted_observation[jj][ii - 1] = datetime.fromtimestamp(formatted_observation[jj][ii - 1], Tz).strftime(format)
 
         # Format time difference observations
-        elif Type == 'TimeDelta':
-            for ii, Delta in enumerate(Obs):
-                if isinstance(Delta, str) and Delta.strip() in ['s']:
-                    if cObs[ii - 1] is None:
-                        cObs = ['-', '-', '-', '-', cObs[2]]
-                    else:
-                        days, remainder  = divmod(cObs[ii - 1], 86400)
-                        hours, remainder = divmod(remainder, 3600)
-                        minutes, seconds = divmod(remainder, 60)
-                        if days >= 1:
-                            if days == 1:
-                                if hours == 1:
-                                    cObs = ['{:.0f}'.format(days), 'day', '{:.0f}'.format(hours), 'hour', cObs[2]]
-                                else:
-                                    cObs = ['{:.0f}'.format(days), 'day', '{:.0f}'.format(hours), 'hours', cObs[2]]
-                            elif days <= 99:
-                                if hours == 1:
-                                    cObs = ['{:.0f}'.format(days), 'days', '{:.0f}'.format(hours), 'hour', cObs[2]]
-                                else:
-                                    cObs = ['{:.0f}'.format(days), 'days', '{:.0f}'.format(hours), 'hours', cObs[2]]
-                            elif days >= 100:
-                                cObs = ['{:.0f}'.format(days), 'days', '-', '-', cObs[2]]
-                        elif hours >= 1:
-                            if hours == 1:
-                                if minutes == 1:
-                                    cObs = ['{:.0f}'.format(hours), 'hour', '{:.0f}'.format(minutes), 'min', cObs[2]]
-                                else:
-                                    cObs = ['{:.0f}'.format(hours), 'hour', '{:.0f}'.format(minutes), 'mins', cObs[2]]
-                            elif hours > 1:
-                                if minutes == 1:
-                                    cObs = ['{:.0f}'.format(hours), 'hours', '{:.0f}'.format(minutes), 'min', cObs[2]]
-                                else:
-                                    cObs = ['{:.0f}'.format(hours), 'hours', '{:.0f}'.format(minutes), 'mins', cObs[2]]
+        elif type == 'TimeDelta':
+            for jj, observation in enumerate(observations):
+                for ii, field in enumerate(observation):
+                    if isinstance(field, str) and field.strip() in ['s']:
+                        if formatted_observation[jj][ii - 1] is None:
+                            formatted_observation[jj] = ['-', '-', '-', '-', formatted_observation[2]]
                         else:
-                            if minutes == 0:
-                                cObs = ['< 1', 'minute', '-', '-', cObs[2]]
-                            elif minutes == 1:
-                                cObs = ['{:.0f}'.format(minutes), 'minute', '-', '-', cObs[2]]
+                            days, remainder  = divmod(formatted_observation[jj][ii - 1], 86400)
+                            hours, remainder = divmod(remainder, 3600)
+                            minutes, seconds = divmod(remainder, 60)
+                            if days >= 1:
+                                if days == 1:
+                                    if hours == 1:
+                                        formatted_observation[jj] = ['{:.0f}'.format(days), 'day', '{:.0f}'.format(hours), 'hour', formatted_observation[jj][2]]
+                                    else:
+                                        formatted_observation[jj] = ['{:.0f}'.format(days), 'day', '{:.0f}'.format(hours), 'hours', formatted_observation[jj][2]]
+                                elif days <= 99:
+                                    if hours == 1:
+                                        formatted_observation[jj] = ['{:.0f}'.format(days), 'days', '{:.0f}'.format(hours), 'hour', formatted_observation[jj][2]]
+                                    else:
+                                        formatted_observation[jj] = ['{:.0f}'.format(days), 'days', '{:.0f}'.format(hours), 'hours', formatted_observation[jj][2]]
+                                elif days >= 100:
+                                    formatted_observation[jj] = ['{:.0f}'.format(days), 'days', '-', '-', formatted_observation[jj][2]]
+                            elif hours >= 1:
+                                if hours == 1:
+                                    if minutes == 1:
+                                        formatted_observation[jj] = ['{:.0f}'.format(hours), 'hour', '{:.0f}'.format(minutes), 'min', formatted_observation[jj][2]]
+                                    else:
+                                        formatted_observation[jj] = ['{:.0f}'.format(hours), 'hour', '{:.0f}'.format(minutes), 'mins', formatted_observation[jj][2]]
+                                elif hours > 1:
+                                    if minutes == 1:
+                                        formatted_observation[jj] = ['{:.0f}'.format(hours), 'hours', '{:.0f}'.format(minutes), 'min', formatted_observation[jj][2]]
+                                    else:
+                                        formatted_observation[jj] = ['{:.0f}'.format(hours), 'hours', '{:.0f}'.format(minutes), 'mins', formatted_observation[jj][2]]
                             else:
-                                cObs = ['{:.0f}'.format(minutes), 'minutes', '-', '-', cObs[2]]
+                                if minutes == 0:
+                                    formatted_observation[jj] = ['< 1', 'minute', '-', '-', formatted_observation[jj][2]]
+                                elif minutes == 1:
+                                    formatted_observation[jj] = ['{:.0f}'.format(minutes), 'minute', '-', '-', formatted_observation[jj][2]]
+                                else:
+                                    formatted_observation[jj] = ['{:.0f}'.format(minutes), 'minutes', '-', '-', formatted_observation[jj][2]]
+
+    # Covert formatted observations back to simple list if required
+    if not_list_of_lists:
+        formatted_observation = formatted_observation[0]
 
     # Return formatted observations
-    return cObs
+    return formatted_observation

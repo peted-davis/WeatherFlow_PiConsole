@@ -577,7 +577,7 @@ class obs_parser():
             self.display_obs['StrikesToday']  = observation.format(strikeToday,  'StrikeCount')
             self.display_obs['StrikesMonth']  = observation.format(strikeMonth,  'StrikeCount')
             self.display_obs['StrikesYear']   = observation.format(strikeYear,   'StrikeCount')
-
+            
         # Format derived variables from obs_sky and obs_st observations
         if device_type in ('obs_sky', 'obs_st', 'obs_all'):
             self.display_obs['Radiation']     = observation.format(radiation,     'Radiation')
@@ -604,7 +604,7 @@ class obs_parser():
         if device_type in ('rapid_wind', 'obs_all'):
             self.display_obs['rapidSpd']      = observation.format(rapidWindSpd, 'Wind')
             self.display_obs['rapidDir']      = observation.format(rapidWindDir, 'Direction')
-
+            
         # Format derived variables from evt_strike observations
         if device_type in ('evt_strike', 'obs_all'):
             self.display_obs['StrikeDist']    = observation.format(strikeDist,   'StrikeDistance')

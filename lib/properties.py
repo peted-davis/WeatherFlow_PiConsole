@@ -51,11 +51,22 @@ def Met():
 
     """ Define the Met property values """
 
-    return {'Valid': '--',        'Temp': '--',         'highTemp': '--',
-            'lowTemp': '--',      'WindSpd': '--',      'WindGust': '--',
-            'WindDir': '--',      'PrecipPercnt': '--', 'PrecipDay': '--',
-            'PrecipAmount': '--', 'PrecipType': '--',   'Conditions': '-',
-            'Icon': '-',          'Status': '--'
+    return {'current_hour': 
+                {'valid_time': '--',        'temperature': '--',        'wind_speed': '--',      
+                 'wind_gust': '--',         'wind_dir': '--',           'precip_percnt': '--', 
+                 'precip_amount': '--',     'precip_type': '--',        'conditions': '-',      
+                 'forecast_icon': '-',      'status': '--'},
+            'current_day':
+                {'high_temperature': '--',  'low_temperature': '--',    'precip_percnt': '--', },
+            '12_hour':
+                {'valid_time':    '-'*12, 'temperature':   [['-', '-', '#FFFFFF']]*12, 'feels_like':    [['-', '-', '#FFFFFF']]*12, 
+                 'forecast_icon': '-'*12, 'wind_speed':    [['-', '-']]*12,              'wind_gust':     [['-', '-']]*12, 
+                 'wind_dir':      '-'*12, 'precip_percnt': [['-', '-']]*12,              'precip_amount': [['-', '-']]*12,
+                 'precip_type':   '-'*12,},
+            '5_day':
+                {'valid_time':    '-'*12, 'temperature':   [['-', '-', '#FFFFFF']]*12, 'feels_like':    [['-', '-', '#FFFFFF']]*12, 
+                 'forecast_icon': '-'*12, 'wind_speed':    [['-', '-']]*12,              'wind_gust':     [['-', '-']]*12, 
+                 'wind_dir':   '-'*12,    'precip_percnt': [['-', '-']]*12,              'precip_amount': [['-', '-']]*12}
             }
 
 def metar_taf():
