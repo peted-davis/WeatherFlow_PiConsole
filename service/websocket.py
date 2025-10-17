@@ -242,8 +242,14 @@ class websocketClient():
                                                                                       name='obs_in_air')
                                     self.thread_list['obs_in_air'].start()
                             elif self.message['type'] == 'rapid_wind':
+                                if 'rapid_wind' in self.thread_list:
+                                    while self.thread_list['rapid_wind'].is_alive():
+                                        await asyncio.sleep(0.1)
                                 self.watchdog_list['rapid_wind'] = time.time()
-                                self.app.obsParser.parse_rapid_wind(self.message, self.config)
+                                self.thread_list['rapid_wind'] = threading.Thread(target=self.app.obsParser.parse_rapid_wind,
+                                                                                  args=(self.message, self.config, ),
+                                                                                  name='rapid_wind')
+                                self.thread_list['rapid_wind'].start()
                             elif self.message['type'] == 'evt_strike':
                                 self.app.obsParser.parse_evt_strike(self.message, self.config)
                             else:
