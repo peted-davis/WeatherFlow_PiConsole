@@ -1059,8 +1059,8 @@ if [[ "${1}" == "install" ]] || [[ "${1}" == "run_update" ]] || [[ "${1}" == "ru
     elif [[ $HARDWARE == *"Raspberry Pi"* ]] && [[ $ARCHITECTURE = armhf ]] && [[ $OS_NAME == *"trixie"* ]] ; then
         printf "  %b OS check failed (%b)\\n\\n" "${CROSS}" "${OS_NAME}"
         printf "  %b ERROR: The PiConsole is not compatible with the\\n" "${CROSS}"
-        printf "      32-bit version Raspberry Pi OS (Trixie). Please upgrade\\n"
-        printf "      you OS to the 64-bit version\\n\\n"
+        printf "      32-bit version Raspberry Pi OS (Trixie). Please\\n"
+        printf "      upgrade you OS to the 64-bit version\\n\\n"
         clean_up
         exit 1        
     elif is_command apt-get ; then
