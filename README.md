@@ -9,11 +9,12 @@ stream data from your station in real time, including the 3-second rapid wind
 updates. In UDP only mode, the console requires no connection to the internet
 once installation is complete.
 
-The console is currently compatible with Raspberry Pi 3 and 4 running 32 bit
-Raspberry Pi OS with the Official 7 inch touchscreen or equivalent. It can also
-be run on a PC with Ubuntu 20.04 LTS or later, or Raspberry Pi OS. For full
-system compatibility details, see below. Support for Raspberry Pi 5 is coming
-soon.
+The console is fully supported for Raspberry Pi 3 Model B/B+, Raspberry Pi 4 
+and Raspberry Pi 5 running the 64 bit version of Raspberry Pi OS Trixie
+or the 32/64 bit version of Raspberry Pi OS Bookworm. It can be run on 
+earlier models, but no direct support is provided for these systems. It is 
+not compatible with Raspberry Pi Zero or Zero W. For full compatibility 
+details, see below.
 
 For a list of supported features and screenshots of the console in action,
 please checkout the WeatherFlow community forums: https://community.weatherflow.com/t/weatherflow-piconsole/20083
@@ -36,17 +37,15 @@ https://community.weatherflow.com/
 
 ### Raspberry Pi
 
-The console is fully supported for Raspberry Pi 3 Model B/B+, Raspberry Pi 4 and
-Raspberry Pi 5 running the 32 or 64 bit version of Raspberry Pi OS. It can be 
-run on earlier models, but no direct support is  provided for these systems. It 
-is not compatible with Raspberry Pi Zero or Zero W. While the console is 
-compatiable with Raspberry Pi 3, the graphics hardware on this model is ageing 
-and performance of the console can be sluggish. It is recommended to use a Pi 4 
-or above
-
-For all models of Raspberry Pi, the console is compatible with Raspberry Pi OS 
-Bookworm and Trixie (soon to be released) or the legacy Raspberry Pi OS Bullseye. 
-The console is not compatible with Raspberry Pi OS Buster.
+The console is fully supported for Raspberry Pi 3 Model B/B+, Raspberry Pi 4 and 
+Raspberry Pi 5 running the 64 bit version of Raspberry Pi OS Trixie or the 32/64 
+bit legacy version of Raspberry Pi OS Bookworm. It can be run on earlier models, 
+but no direct support is provided for these systems. It is not compatible with 
+the 32 bit version of Raspberry Pi OS Trixie or Raspberry Pi Zero or Zero W. 
+While the console is compatible with Raspberry Pi 3, the graphics hardware on 
+this model is ageing and performance of the console can be sluggish. It is 
+recommended to use a Pi 4 or above. The console is not compatible with 
+Raspberry Pi OS Buster.
 
 The console is compatible with the Raspberry Pi Official 7 inch Touchscreen or
 other HDMI equivalents. Note, screens that attach solely to the GPIO pins (SPI)

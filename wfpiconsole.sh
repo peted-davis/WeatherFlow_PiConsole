@@ -1049,13 +1049,20 @@ if [[ "${1}" == "install" ]] || [[ "${1}" == "run_update" ]] || [[ "${1}" == "ru
     OS_NAME=$(. /etc/os-release && echo $PRETTY_NAME)
     UBUNTU_VERSION_ID=$(. /etc/os-release && echo $VERSION_ID)
     MIN_UBUNTU_VERSION="22.04"
-    if [[ $HARDWARE == *"Raspberry Pi"* ]] && [[ $OS == *"buster"* ]] ; then
+    if [[ $HARDWARE == *"Raspberry Pi"* ]] && [[ $OS_NAME == *"buster"* ]] ; then
         printf "  %b OS check failed (%b)\\n\\n" "${CROSS}" "${OS_NAME}"
         printf "  %b ERROR: The latest version of the PiConsole is no longer\\n" "${CROSS}"
         printf "      compatible with Raspberry Pi OS (Buster). Please upgrade\\n"
         printf "      your OS\\n\\n"
         clean_up
         exit 1
+    elif [[ $HARDWARE == *"Raspberry Pi"* ]] && [[ $ARCHITECTURE = armhf ]] && [[ $OS_NAME == *"trixie"* ]] ; then
+        printf "  %b OS check failed (%b)\\n\\n" "${CROSS}" "${OS_NAME}"
+        printf "  %b ERROR: The PiConsole is not compatible with the\\n" "${CROSS}"
+        printf "      32-bit version Raspberry Pi OS (Trixie). Please\\n"
+        printf "      upgrade you OS to the 64-bit version\\n\\n"
+        clean_up
+        exit 1        
     elif is_command apt-get ; then
         if [[ $HARDWARE == *"Raspberry Pi"* ]] ; then
             printf "  %b OS check passed (%b)\\n" "${TICK}" "${OS_NAME}"
