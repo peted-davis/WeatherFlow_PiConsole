@@ -263,6 +263,7 @@ class sager_forecast():
         data = checkwx_api.METAR(self.app.config)
         if checkwx_api.verify_response(data, 'data'):
             METAR_data = data.json()['data']
+            METAR_data.sort(key=lambda data: data['position']['distance']['miles'])
             self.sager_data['METAR'] = None
             for METAR in METAR_data:
                 if 'clouds' in METAR:
