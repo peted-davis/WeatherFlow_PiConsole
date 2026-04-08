@@ -132,22 +132,22 @@ from lib              import config
 # ==============================================================================
 # IMPORT REQUIRED PANELS
 # ==============================================================================
-from panels.temperature import TemperaturePanel,   TemperatureButton            # type: ignore # noqa: F401
-from panels.barometer   import BarometerPanel,     BarometerButton              # type: ignore # noqa: F401
-from panels.lightning   import LightningPanel,     LightningButton              # type: ignore # noqa: F401
-from panels.wind        import WindSpeedPanel,     WindSpeedButton              # type: ignore # noqa: F401
-from panels.forecast    import ForecastPanel,      ForecastButton               # type: ignore # noqa: F401
-from panels.forecast    import SagerPanel,         SagerButton                  # type: ignore # noqa: F401
-from panels.rainfall    import RainfallPanel,      RainfallButton               # type: ignore # noqa: F401
-from panels.astro       import SunriseSunsetPanel, SunriseSunsetButton          # type: ignore # noqa: F401
-from panels.astro       import MoonPhasePanel,     MoonPhaseButton              # type: ignore # noqa: F401
+from panels.temperature import TemperaturePanel,   TemperatureButton            # type: ignore
+from panels.barometer   import BarometerPanel,     BarometerButton              # type: ignore
+from panels.lightning   import LightningPanel,     LightningButton              # type: ignore
+from panels.wind        import WindSpeedPanel,     WindSpeedButton              # type: ignore
+from panels.forecast    import ForecastPanel,      ForecastButton               # type: ignore
+from panels.forecast    import SagerPanel,         SagerButton                  # type: ignore
+from panels.rainfall    import RainfallPanel,      RainfallButton               # type: ignore
+from panels.astro       import SunriseSunsetPanel, SunriseSunsetButton          # type: ignore
+from panels.astro       import MoonPhasePanel,     MoonPhaseButton              # type: ignore 
 from panels.menu        import mainMenu
 
 # ==============================================================================
 # IMPORT CUSTOM USER PANELS
 # ==============================================================================
 if Path('user/customPanels.py').is_file():
-    from user.customPanels import *                                              # noqa: F401,F403
+    from user.customPanels import *                                             # type: ignore
 
 # ==============================================================================
 # IMPORT REQUIRED SYSTEM MODULES
@@ -485,14 +485,16 @@ class CurrentConditions(Screen):
         self.app.station = station()
         self.app.Sched.deviceStatus = Clock.schedule_interval(self.app.station.get_device_status, 1.0)
 
-        # Initialise Sunrise, Sunset, Moonrise and Moonset times
+        # Initialise sunrise, sunset, moonrise, moonset, full moon and new moon 
+        # times
         self.app.astro = astro()
-        self.app.astro.sunrise_sunset()
-        self.app.astro.moonrise_moonset()
+        self.app.astro.get_sunrise_sunset()
+        self.app.astro.get_moonrise_moonset()
+        self.app.astro.get_full_new_moon()
 
-        # Schedule sunTransit and moonPhase functions to be called each second
-        self.app.Sched.sun_transit = Clock.schedule_interval(self.app.astro.sun_transit, 1)
-        self.app.Sched.moon_phase  = Clock.schedule_interval(self.app.astro.moon_phase, 1)
+        # # Schedule sunTransit and moonPhase functions to be called each second
+        self.app.Sched.sun_transit = Clock.schedule_interval(self.app.astro.sun_transit, 1.0)
+        self.app.Sched.moon_phase  = Clock.schedule_interval(self.app.astro.moon_phase, 1.0)
 
         # Schedule WeatherFlow weather forecast download
         self.app.forecast = forecast()

@@ -123,16 +123,8 @@ class sager_forecast():
 
     def generate_forecast(self):
 
-        ''' Generates the Sager Weathercaster forecast based on the current weather
-        conditions and the trend in conditions over the previous 6 hours
-
-        INPUTS:
-            sagerDict               Dictionary to hold the forecast information
-            app                     wfpiconsole App object
-
-        OUTPUT:
-            sagerDict               Dictionary containing the Sager Weathercaster
-                                    forecast
+        ''' Generates the Sager Weathercaster forecast based on the current 
+        weather conditions and the trend in conditions over the previous 6 hours
         '''
 
         # Get station timezone, current UNIX timestamp in UTC and time that function
@@ -266,10 +258,13 @@ class sager_forecast():
         else:
             self.sager_data['temperature'] = np.nanmean(temperature)
 
-        # Download closet METAR report to station location
+        # Download closet METAR report to station location that contains cloud 
+        # information
         data = checkwx_api.METAR(self.app.config)
         if checkwx_api.verify_response(data, 'data'):
             METAR_data = data.json()['data']
+            METAR_data.sort(key=lambda data: data['position']['distance']['miles'])
+            self.sager_data['METAR'] = None
             for METAR in METAR_data:
                 if 'clouds' in METAR:
                     self.sager_data['METAR'] = METAR['raw_text']
@@ -279,6 +274,14 @@ class sager_forecast():
             self.sager_data['Issued']   = sched_time.strftime(time_format)
             Clock.schedule_once(self.fail_forecast)
             return
+        
+        # If no METAR report is available with cloud information, mark forecast 
+        # as failed
+        if self.sager_data['METAR'] is None:
+            self.sager_data['Forecast'] = '[color=f05e40ff]ERROR:[/color] Missing METAR cloud information. Forecast will be regenerated in 60 minutes'
+            self.sager_data['Issued']   = sched_time.strftime(time_format)
+            Clock.schedule_once(self.fail_forecast)
+            return            
 
         # Derive Sager Weathercaster forecast
         self.get_dial_setting()
@@ -307,67 +310,61 @@ class sager_forecast():
                     Logger.warning(f'sager: {system().log_time()} - Reference error')
                     reference_error = True
 
-    def get_tempest_data(self, Now):
+    def get_tempest_data(self, now):
 
         ''' Fetch TEMPEST data required to generate the Sager Weathercaster
         forecast
 
         INPUTS:
-            Obs                     Dictionary to hold TEMPEST observations
-            Now                     Current time as UNIX timestamp
-            Config                  Station configuration
+            now                     Current time as UNIX timestamp
         '''
 
         # Download TEMPEST data from last 6 hours
-        data = weatherflow_api.last_6h(self.app.config['Station']['TempestID'], Now, self.app.config)
+        data = weatherflow_api.last_6h(self.app.config['Station']['TempestID'], now, self.app.config)
 
         # Extract observation times, wind speed, wind direction, and rainfall if API
         # call has not failed
         self.device_obs = {}
         if weatherflow_api.verify_response(data, 'obs'):
-            self.device_obs['time']    = [item[0] if item[0]   is not None else NaN for item in data.json()['obs']]
-            self.device_obs['wind_speed'] = [item[2] if item[2]   is not None else NaN for item in data.json()['obs']]
-            self.device_obs['wind_dir'] = [item[4] if item[4]   is not None else NaN for item in data.json()['obs']]
+            self.device_obs['time']        = [item[0] if item[0]   is not None else NaN for item in data.json()['obs']]
+            self.device_obs['wind_speed']  = [item[2] if item[2]   is not None else NaN for item in data.json()['obs']]
+            self.device_obs['wind_dir']    = [item[4] if item[4]   is not None else NaN for item in data.json()['obs']]
             self.device_obs['pressure']    = [item[6] if item[6]   is not None else NaN for item in data.json()['obs']]
-            self.device_obs['temperature']    = [item[7] if item[7]   is not None else NaN for item in data.json()['obs']]
-            self.device_obs['Rain']    = [item[12] if item[12] is not None else NaN for item in data.json()['obs']]
+            self.device_obs['temperature'] = [item[7] if item[7]   is not None else NaN for item in data.json()['obs']]
+            self.device_obs['Rain']        = [item[12] if item[12] is not None else NaN for item in data.json()['obs']]
 
-    def get_sky_data(self, Now):
+    def get_sky_data(self, now):
 
         ''' Fetch SKY data required to generate the Sager Weathercaster
         forecast
 
         INPUTS:
-            Obs                     Dictionary to hold TEMPEST observations
-            Now                     Current time as UNIX timestamp
-            Config                  Station configuration
+            now                     Current time as UNIX timestamp
         '''
 
         # Download SKY data from last 6 hours
-        data = weatherflow_api.last_6h(self.app.config['Station']['SkyID'], Now, self.app.config)
+        data = weatherflow_api.last_6h(self.app.config['Station']['SkyID'], now, self.app.config)
 
         # Extract observation times, wind speed, wind direction, and rainfall if API
         # call has not failed
         self.device_obs = {}
         if weatherflow_api.verify_response(data, 'obs'):
-            self.device_obs['time']    = [item[0] if item[0] is not None else NaN for item in data.json()['obs']]
+            self.device_obs['time']       = [item[0] if item[0] is not None else NaN for item in data.json()['obs']]
             self.device_obs['wind_speed'] = [item[5] if item[5] is not None else NaN for item in data.json()['obs']]
-            self.device_obs['wind_dir'] = [item[7] if item[7] is not None else NaN for item in data.json()['obs']]
-            self.device_obs['Rain']    = [item[3] if item[3] is not None else NaN for item in data.json()['obs']]
+            self.device_obs['wind_dir']   = [item[7] if item[7] is not None else NaN for item in data.json()['obs']]
+            self.device_obs['Rain']       = [item[3] if item[3] is not None else NaN for item in data.json()['obs']]
 
-    def get_air_data(self, Now):
+    def get_air_data(self, now):
 
         ''' Fetch outdoor AIR data required to generate the Sager Weathercaster
         forecast
 
         INPUTS:
-            Obs                     Dictionary to hold TEMPEST observations
-            Now                     Current time as UNIX timestamp
-            Config                  Station configuration
+            now                     Current time as UNIX timestamp
         '''
 
         # Download AIR data from last 6 hours and define AIR dictionary
-        data = weatherflow_api.last_6h(self.app.config['Station']['OutAirID'], Now, self.app.config)
+        data = weatherflow_api.last_6h(self.app.config['Station']['OutAirID'], now, self.app.config)
 
         # Extract observation times, pressure and temperature if API # call has not
         # failed
@@ -380,37 +377,19 @@ class sager_forecast():
     def get_dial_setting(self):
 
         ''' Calculates the position of the Sager Weathercaster Dial based on the
-        current weather conditions and the trend in conditions over the previous 6
-        hours
-
-        INPUTS:
-            met_obs:                Dictionary containing the following fields:
-                Lat                 Weather observations latitude
-                METARKey            Metar Key
-                wind_dir_6h            Average wind direction 6 hours ago in degrees
-                wind_dir             Current average wind direction in degrees
-                wind_speed_6h            Average wind speed 6 hours ago in mph
-                wind_speed             Current average wind speed in mph
-                pressure                Current atmospheric pressure in hPa
-                pressure_6h               Atmospheric pressure 6 hours ago in hPa
-                last_rain            Minutes since last rain
-                temperature                Current temperature
-                METAR               Closet METAR information to station location
-
-        OUTPUT:
-            Sager                   Dictionary containing the position of the Sager
-                                    Weathercaster Dial
+        current weather conditions and the trend in conditions over the previous 
+        6 hours
         '''
 
         # Extract input location/meteorological variables
-        Lat   = self.sager_data['Lat']                       # Weather station latitude
-        wd6   = self.sager_data['wind_dir_6h']                  # Average wind direction 6 hours ago in degrees
-        wd    = self.sager_data['wind_dir']                   # Current average wind direction in degrees
-        ws6   = self.sager_data['wind_speed_6h']                  # Average wind speed 6 hours ago in mph
-        ws    = self.sager_data['wind_speed']                   # Current average wind speed in mph
-        p     = self.sager_data['pressure']                      # Current atmospheric pressure in hPa
-        p6    = self.sager_data['pressure_6h']                     # Atmospheric pressure 6 hours ago in hPa
-        lr    = self.sager_data['last_rain']                  # Minutes since last rain
+        lat   = self.sager_data['Lat']                       # Weather station latitude
+        wd6   = self.sager_data['wind_dir_6h']               # Average wind direction 6 hours ago in degrees
+        wd    = self.sager_data['wind_dir']                  # Current average wind direction in degrees
+        ws6   = self.sager_data['wind_speed_6h']             # Average wind speed 6 hours ago in mph
+        ws    = self.sager_data['wind_speed']                # Current average wind speed in mph
+        p     = self.sager_data['pressure']                  # Current atmospheric pressure in hPa
+        p6    = self.sager_data['pressure_6h']               # Atmospheric pressure 6 hours ago in hPa
+        lr    = self.sager_data['last_rain']                 # Minutes since last rain
         METAR = self.sager_data['METAR']                     # Closet METAR information to station location
 
         # Define required variables
@@ -574,8 +553,8 @@ class sager_forecast():
         # setting on the Wind Dial changes with latitude due to the Coriolis effect.
 
         # Northern Hemisphere: Polar Zone & Tropical Zone
-        if Lat >= 0:
-            if Lat < 23.5 or Lat >= 66.6:
+        if lat >= 0:
+            if lat < 23.5 or lat >= 66.6:
                 if wd == 'S':
                     if wdc == 'Backing':
                         d1 = 'A'
@@ -636,7 +615,7 @@ class sager_forecast():
                     d1 = 'Z'
 
             # Northern Hemisphere: temperatureerate Zone
-            elif Lat >= 23.5 and Lat < 66.6:
+            elif lat >= 23.5 and lat < 66.6:
                 if wd == 'N':
                     if wdc == 'Backing':
                         d1 = 'A'
@@ -697,8 +676,8 @@ class sager_forecast():
                     d1 = 'Z'
 
         # Southern Hemisphere: Polar Zone & Tropical Zone
-        elif Lat < 0:
-            if Lat > -23.5 or Lat <= -66.6:
+        elif lat < 0:
+            if lat > -23.5 or lat <= -66.6:
                 if wd == 'N':
                     if wdc == 'Backing':
                         d1 = 'A'
@@ -759,7 +738,7 @@ class sager_forecast():
                     d1 = 'Z'
 
             # Southern Hemisphere: temperatureerate Zone
-            elif Lat <= -23.5 and Lat > -66.6:
+            elif lat <= -23.5 and lat > -66.6:
                 if wd == 'S':
                     if wdc == 'Backing':
                         d1 = 'A'

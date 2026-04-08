@@ -41,7 +41,7 @@ def Astro():
     """ Define the Astro property values """
 
     return {'Sunrise': ['-', '-', 0], 'Sunset': ['-', '-', 0], 'Dawn': ['-', '-', 0],
-            'Dusk': ['-', '-', 0],    'sunEvent': '----',      'sunIcon': ['-', 0, 0],
+            'Dusk': ['-', '-', 0],    'sunIcon': ['-', 0, 0],  'sunEvent': '------',
             'Moonrise': ['-', '-'],   'Moonset': ['-', '-'],   'NewMoon': '--',
             'FullMoon': '--',         'Phase': ['-', '-', '-', 0]
             }

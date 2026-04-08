@@ -39,7 +39,7 @@ import json
 
 # Import required user modules
 if Path('user/customPanels.py').is_file():
-    import user.customPanels
+    import user.customPanels                                      # type: ignore
 
 # Define panel list including custom user panels if required
 customPanels = []
