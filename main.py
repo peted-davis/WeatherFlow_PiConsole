@@ -34,14 +34,14 @@ os.environ['KIVY_LOG_MODE'] = 'MIXED'
 # CREATE OR UPDATE wfpiconsole.ini FILE
 # ==============================================================================
 # Import required modules
-from lib     import config as configFile
+from lib     import config as config_file
 from pathlib import Path
 
 # Create or update config file if required
 if not Path('wfpiconsole.ini').is_file():
-    configFile.create()
+    config_file.create()
 else:
-    configFile.update()
+    config_file.update()
 
 # ==============================================================================
 # INITIALISE KIVY GRAPHICS WINDOW BASED ON CURRENT HARDWARE TYPE
@@ -185,16 +185,14 @@ class wfpiconsole(App):
         self.window = Window
         self.set_scale_factor(self.window, self.window.width, self.window.height)
         self.window.bind(on_resize=self.set_scale_factor)
-        from kivy.modules import inspector
-        inspector.create_inspector(Window, self)
 
         # Load Custom Panel KV file if present
         if Path('user/customPanels.py').is_file():
             Builder.load_file('user/customPanels.kv')
 
         # Initialise ScreenManager
-        self.screenManager = screenManager(transition=NoTransition())
-        self.screenManager.add_widget(CurrentConditions())
+        self.screen_manager = screenManager(transition=NoTransition())
+        self.screen_manager.add_widget(CurrentConditions())
 
         # Start Websocket or UDP service
         self.start_connection_service()
@@ -207,10 +205,10 @@ class wfpiconsole(App):
         self.settings_cls = SettingsWithSidebar
 
         # Initialise realtime clock
-        self.Sched.realtimeClock = Clock.schedule_interval(self.system.realtimeClock, 1.0)
+        self.Sched.realtimeClock = Clock.schedule_interval(self.system.realtime_clock, 1.0)
 
         # Return ScreenManager
-        return self.screenManager
+        return self.screen_manager
 
     # DISCONNECT connection_client WHEN CLOSING APP
     # --------------------------------------------------------------------------
@@ -257,19 +255,19 @@ class wfpiconsole(App):
     # --------------------------------------------------------------------------
     def display_settings(self, settings):
         self.mainMenu.dismiss(animation=False)
-        if not self.screenManager.has_screen('Settings'):
+        if not self.screen_manager.has_screen('Settings'):
             self.settingsScreen = Screen(name='Settings')
-            self.screenManager.add_widget(self.settingsScreen)
+            self.screen_manager.add_widget(self.settingsScreen)
         self.settingsScreen.add_widget(self.settings)
-        self.screenManager.current = 'Settings'
+        self.screen_manager.current = 'Settings'
         return True
 
     # OVERLOAD 'close_settings' TO CLOSE SETTINGS SCREEN WITH SCREEN MANAGER
     # --------------------------------------------------------------------------
     def close_settings(self, *args):
-        if self.screenManager.current == 'Settings':
+        if self.screen_manager.current == 'Settings':
             mainMenu().open(animation=False)
-            self.screenManager.current = self.screenManager.previous()
+            self.screen_manager.current = self.screen_manager.previous()
             self.settingsScreen.remove_widget(self.settings)
             return True
 

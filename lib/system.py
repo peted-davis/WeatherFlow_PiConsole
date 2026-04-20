@@ -44,7 +44,7 @@ class system():
         self.system_data = properties.System()
         self.app = App.get_running_app()
 
-    def realtimeClock(self, dt):
+    def realtime_clock(self, dt):
 
         """ Format Realtime clock and date in station timezone
         """
@@ -54,26 +54,26 @@ class system():
             if 'TimeFormat' in self.app.config['Display'] and 'DateFormat' in self.app.config['Display']:
                 if self.app.config['Display']['TimeFormat'] == '12 hr':
                     if self.app.config['System']['Hardware'] == 'Other':
-                        TimeFormat = '%#I:%M:%S %p'
+                        time_format = '%#I:%M:%S %p'
                     else:
-                        TimeFormat = '%-I:%M:%S %p'
+                        time_format = '%-I:%M:%S %p'
                 else:
-                    TimeFormat = '%H:%M:%S'
+                    time_format = '%H:%M:%S'
                 if self.app.config['Display']['DateFormat']  == 'Mon, Jan 01 0000':
-                    DateFormat = '%a, %b %d %Y'
+                    date_format = '%a, %b %d %Y'
                 elif self.app.config['Display']['DateFormat'] == 'Monday, 01 Jan 0000':
-                    DateFormat = '%A, %d %b %Y'
+                    date_format = '%A, %d %b %Y'
                 elif self.app.config['Display']['DateFormat'] == 'Monday, Jan 01 0000':
-                    DateFormat = '%A, %b %d %Y'
+                    date_format = '%A, %b %d %Y'
                 else:
-                    DateFormat = '%a, %d %b %Y'
+                    date_format = '%a, %d %b %Y'
 
                 # Get station time zone
-                Tz = pytz.timezone(self.app.config['Station']['Timezone'])
+                tz = pytz.timezone(self.app.config['Station']['Timezone'])
 
                 # Format realtime Clock
-                self.system_data['Time'] = datetime.fromtimestamp(time.time(), Tz).strftime(TimeFormat)
-                self.system_data['Date'] = datetime.fromtimestamp(time.time(), Tz).strftime(DateFormat)
+                self.system_data['time'] = datetime.fromtimestamp(time.time(), tz).strftime(time_format)
+                self.system_data['date'] = datetime.fromtimestamp(time.time(), tz).strftime(date_format)
                 self.update_display()
 
     def check_version(self, dt):
@@ -83,18 +83,18 @@ class system():
         """
 
         # Get current time in station time zone
-        Tz = pytz.timezone(self.app.config['Station']['Timezone'])
-        Now = datetime.now(pytz.utc).astimezone(Tz)
+        tz = pytz.timezone(self.app.config['Station']['Timezone'])
+        now = datetime.now(pytz.utc).astimezone(tz)
 
         # Get version information from Github API
-        Data = github_api.version(self.app.config)
+        github_data = github_api.version(self.app.config)
 
         # Extract version number from API response
-        if github_api.verify_response(Data, 'tag_name'):
-            latest_ver = Data.json()['tag_name']
+        if github_api.verify_response(github_data, 'tag_name'):
+            latest_ver = github_data.json()['tag_name']
         else:
-            Next = Tz.localize(datetime(Now.year, Now.month, Now.day) + timedelta(days=1))
-            Clock.schedule_once(self.check_version, (Next - Now).total_seconds())
+            next = tz.localize(datetime(now.year, now.month, now.day) + timedelta(days=1))
+            Clock.schedule_once(self.check_version, (next - now).total_seconds())
             return
 
         # If current and latest version numbers do not match, open update
@@ -115,8 +115,8 @@ class system():
                 Logger.info(f'System: {self.log_time()} - New version available: {latest_ver}')
 
         # Schedule next Version Check
-        Next = Tz.localize(datetime(Now.year, Now.month, Now.day) + timedelta(days=1))
-        Clock.schedule_once(self.check_version, (Next - Now).total_seconds())
+        next = tz.localize(datetime(now.year, now.month, now.day) + timedelta(days=1))
+        Clock.schedule_once(self.check_version, (next - now).total_seconds())
 
     def log_time(self):
 
@@ -124,8 +124,8 @@ class system():
             log file
         """
 
-        Tz = pytz.timezone(self.app.config['Station']['Timezone'])
-        return datetime.fromtimestamp(time.time(), Tz).strftime('%Y-%m-%d %H:%M:%S')
+        tz = pytz.timezone(self.app.config['Station']['Timezone'])
+        return datetime.fromtimestamp(time.time(), tz).strftime('%Y-%m-%d %H:%M:%S')
 
     def update_display(self):
 
@@ -135,9 +135,9 @@ class system():
 
         # Update display values with new derived observations
         reference_error = False
-        for Key, Value in list(self.system_data.items()):
+        for key, value in list(self.system_data.items()):
             try:
-                self.app.CurrentConditions.System[Key] = Value
+                self.app.CurrentConditions.System[key] = value
             except ReferenceError:
                 if not reference_error:
                     Logger.warning(f'System: {self.log_time()} - Reference error')
