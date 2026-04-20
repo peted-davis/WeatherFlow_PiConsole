@@ -47,6 +47,12 @@
                     source: 'icons/misc/rainIntensity' + app.scaleSuffix
                     pos_hint: {'x': root.rain_rate_x, 'y': root.rain_rate_y}
 
+    Image:
+        source: 'icons/rain_check/rain-check' + app.scaleSuffix
+        pos_hint: {'x': 245/262, 'y': 185/202}
+        size_hint: (9/262, 11/202)
+        fit_mode: 'contain'
+        opacity: 1 if root.nc_rain_icon == '1' else 0
 
     ## Current rain rate and text
     SmallField:

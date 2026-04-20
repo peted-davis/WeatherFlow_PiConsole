@@ -918,6 +918,7 @@ def default_config_file():
     config['System'] =          collections.OrderedDict([('description',           '  System settings'),
                                                          ('Connection',            {'type': 'dependent',                              'desc': 'Connection type',     'value': 'Websocket'}),
                                                          ('rest_api',              {'type': 'dependent',                              'desc': 'REST API services',   'value': 1}),
+                                                         ('nc_rain',               {'type': 'default',   'value': '0',                'desc': 'NC rain accumulation toggle'}),
                                                          ('stats_endpoint',        {'type': 'default',   'value': '0',                'desc': 'Statistics API endpoint toggle'}),
                                                          ('SagerInterval',         {'type': 'default',   'value': '6',                'desc': 'Interval in hours between Sager Forecasts'}),
                                                          ('Timeout',               {'type': 'default',   'value': '20',               'desc': 'Timeout in seconds for API requests'}),

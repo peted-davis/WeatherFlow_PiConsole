@@ -140,7 +140,7 @@ from panels.forecast    import ForecastPanel,      ForecastButton               
 from panels.forecast    import SagerPanel,         SagerButton                  # type: ignore
 from panels.rainfall    import RainfallPanel,      RainfallButton               # type: ignore
 from panels.astro       import SunriseSunsetPanel, SunriseSunsetButton          # type: ignore
-from panels.astro       import MoonPhasePanel,     MoonPhaseButton              # type: ignore 
+from panels.astro       import MoonPhasePanel,     MoonPhaseButton              # type: ignore
 from panels.menu        import mainMenu
 
 # ==============================================================================
@@ -297,6 +297,12 @@ class wfpiconsole(App):
                 for panel in getattr(self, 'TemperaturePanel'):
                     panel.set_indoor_temp_display()
 
+        # Show or hide nc_rain_icon when setting is changed
+        if section == 'System' and key == 'nc_rain':
+            if hasattr(self, 'RainfallPanel'):
+                for panel in getattr(self, 'RainfallPanel'):
+                    panel.set_nc_rain_icon()
+
         # Update "Feels Like" temperature cutoffs in wfpiconsole.ini and the
         # settings screen when temperature units are changed
         if section == 'Units' and key == 'Temp':
@@ -401,9 +407,11 @@ class wfpiconsole(App):
                                         if isinstance(child, Switch):
                                             child.active = True
 
-        # Switch connection type or change between Device/Statistics API endpoint
-        if section == 'System' and (key == 'Connection' or key == 'stats_endpoint'):
+        # Switch connection type, change between Device/Statistics API endpoint
+        # and swtich to showing NC rain totals
+        if section == 'System' and (key == 'Connection' or key == 'stats_endpoint' or key == 'nc_rain'):
             self.stop_connection_service()
+            self.connection_thread.join()
             self.start_connection_service()
 
         # Update derived variables to reflect configuration changes
@@ -485,7 +493,7 @@ class CurrentConditions(Screen):
         self.app.station = station()
         self.app.Sched.deviceStatus = Clock.schedule_interval(self.app.station.get_device_status, 1.0)
 
-        # Initialise sunrise, sunset, moonrise, moonset, full moon and new moon 
+        # Initialise sunrise, sunset, moonrise, moonset, full moon and new moon
         # times
         self.app.astro = astro()
         self.app.astro.get_sunrise_sunset()
@@ -602,7 +610,7 @@ class CurrentConditions(Screen):
 
         # Update button list
         if button_data[4] == 'primary':
-            self.button_list[ii][4] = 'secondary' 
+            self.button_list[ii][4] = 'secondary'
         elif button_data[4] == 'secondary':
             self.button_list[ii][4] = 'primary'
 
