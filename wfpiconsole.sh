@@ -338,10 +338,10 @@ install_kivy() {
             clean_up
             exit 1
         fi
-
-        # Update Kivy configuration
-        update_kivy_config
     fi
+
+    # Update Kivy configuration
+    update_kivy_config    
 }
 
 # UPDATE KIVY CONFIGURATION
@@ -372,7 +372,7 @@ update_kivy_config() {
     echo "Config.read('$config_file')" >> python_command
     echo "Config.remove_section('input')" >> python_command
     echo "Config.add_section('input')" >> python_command
-    echo "Config.set('input','mouse','mouse')" >> python_command
+    echo "Config.set('input','mouse','mouse,disable_on_activity')" >> python_command
     echo "Config.set('input','mtdev_%(name)s','probesysfs,provider=mtdev')" >> python_command
     echo "Config.set('input','hid_%(name)s','probesysfs,provider=hidinput')" >> python_command
     echo "with open('$config_file','w') as configfile:" >> python_command
