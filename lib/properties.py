@@ -87,4 +87,4 @@ def System():
 
     """ Define the System property values """
 
-    return {'Time': '-', 'Date': '-'}
+    return {'time': '-', 'date': '-'}

@@ -1,0 +1,82 @@
+[Keys]
+WeatherFlow = 9f9eb1bb-ca22-488d-a5d8-a42b573d6a7d
+CheckWX = 60b6e20bb25156c72b1cd71b6e
+
+[Station]
+StationID = 27648
+TempestID = 249104
+TempestSN = ST-00102759
+SkyID = 
+SkySN = 
+OutAirID = 
+OutAirSN = 
+InAirID = 
+InAirSN = 
+TempestHeight = 2.6
+SkyHeight = 
+OutAirHeight = 
+Latitude = 52.21642
+Longitude = -0.05748
+Elevation = 70.9053726196289
+Timezone = Europe/London
+Name = Cambourne - Outdoor
+
+[Units]
+Temp = c
+Pressure = hpa
+Wind = mph
+Direction = cardinal
+Precip = mm
+Distance = km
+Other = metric
+
+[Display]
+TimeFormat = 24 hr
+DateFormat = Mon, 01 Jan 0000
+UpdateNotification = 1
+PanelCount = 6
+LightningPanel = 1
+lightning_timeout = 0
+IndoorTemp = 0
+Cursor = 1
+Border = 1
+Fullscreen = 0
+Width = 800
+Height = 480
+
+[FeelsLike]
+ExtremelyCold = -5
+FreezingCold = 0
+VeryCold = 5
+Cold = 10
+Mild = 15
+Warm = 20
+Hot = 25
+VeryHot = 30
+
+[PrimaryPanels]
+PanelOne = Forecast
+PanelTwo = Temperature
+PanelThree = WindSpeed
+PanelFour = SunriseSunset
+PanelFive = Rainfall
+PanelSix = Barometer
+
+[SecondaryPanels]
+PanelOne = Sager
+PanelTwo = 
+PanelThree = 
+PanelFour = MoonPhase
+PanelFive = 
+PanelSix = Lightning
+
+[System]
+Connection = Websocket
+rest_api = 1
+nc_rain = 0
+stats_endpoint = 0
+SagerInterval = 6
+Timeout = 20
+Hardware = Linux
+Version = v26.4.1
+

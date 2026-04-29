@@ -17,7 +17,7 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 
 # Load required Kivy modules
 from kivy.uix.relativelayout import RelativeLayout
-from kivy.properties         import NumericProperty
+from kivy.properties         import NumericProperty, StringProperty
 from kivy.animation          import Animation
 
 # Load required panel modules
@@ -35,11 +35,17 @@ class RainfallPanel(panelTemplate):
     # Define RainfallPanel class properties
     rain_rate_x  = NumericProperty(+0)
     rain_rate_y  = NumericProperty(-1)
+    nc_rain_icon = StringProperty('-')
 
     # Initialise RainfallPanel
     def __init__(self, mode=None, **kwargs):
         super().__init__(mode, **kwargs)
         self.animate_rain_rate()
+        self.set_nc_rain_icon()
+
+    # Set whether to display NC rain icon
+    def set_nc_rain_icon(self):
+        self.nc_rain_icon = self.app.config['System']['nc_rain']
 
     # Animate RainRate level
     def animate_rain_rate(self):

@@ -139,7 +139,7 @@
         padding: [dp(0),dp(0),dp(0),dp(10)]
         size_hint: (1,.56)
         MenuField:
-            text: 'Station time: ' + app.CurrentConditions.System['Time']
+            text: 'Station time: ' + app.CurrentConditions.System['time']
         MenuField:
             text: 'Station elevation: ' + '{:.2f}'.format(float(app.config['Station']['Elevation'])) + ' m'
         MenuField:

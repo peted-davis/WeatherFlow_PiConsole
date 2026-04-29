@@ -117,10 +117,13 @@ class obs_parser():
         self.device_obs['humidity']     = [latest_ob[8],  '%']
         self.device_obs['uvIndex']      = [latest_ob[10], 'index']
         self.device_obs['radiation']    = [latest_ob[11], 'Wm2']
-        self.device_obs['minuteRain']   = [latest_ob[12], 'mm']
         self.device_obs['strikeMinute'] = [latest_ob[15], 'count']
-        if len(latest_ob) > 18:
-            self.device_obs['dailyRain']    = [latest_ob[18], 'mm']
+        if bool(int(config['System']['nc_rain'])):
+            self.device_obs['minuteRain'] = [latest_ob[19], 'mm']
+            self.device_obs['dailyRain']  = [latest_ob[20], 'mm']
+        else:
+            self.device_obs['minuteRain'] = [latest_ob[12], 'mm']
+            self.device_obs['dailyRain']  = [latest_ob[18], 'mm']
 
         # Extract lightning strike data from the latest TEMPEST Websocket JSON
         # "summary" object
@@ -200,12 +203,15 @@ class obs_parser():
 
         # Extract required observations from latest SKY Websocket JSON
         self.device_obs['uvIndex']    = [latest_ob[2],  'index']
-        self.device_obs['minuteRain'] = [latest_ob[3],  'mm']
         self.device_obs['windSpd']    = [latest_ob[5],  'mps']
         self.device_obs['windGust']   = [latest_ob[6],  'mps']
         self.device_obs['windDir']    = [latest_ob[7],  'degrees']
         self.device_obs['radiation']  = [latest_ob[10], 'Wm2']
-        if latest_ob[11] is not None:
+        if bool(int(config['System']['nc_rain'])):
+            self.device_obs['minuteRain'] = [latest_ob[14], 'mm']
+            self.device_obs['dailyRain']  = [latest_ob[15], 'mm']
+        else:
+            self.device_obs['minuteRain'] = [latest_ob[3], 'mm']
             self.device_obs['dailyRain']  = [latest_ob[11], 'mm']
 
         # Request required SKY data from the WeatherFlow API
@@ -220,7 +226,7 @@ class obs_parser():
                 if int(config['System']['stats_endpoint']):
                     if (self.derive_obs['rainAccum']['month'][0] is None
                         or self.derive_obs['rainAccum']['year'][0] is None):
-                        self.api_data[device_id]['statistics'] = weatherflow_api.statistics(config['Station']['StationID'], config)            
+                        self.api_data[device_id]['statistics'] = weatherflow_api.statistics(config['Station']['StationID'], config)
                 elif not int(config['System']['stats_endpoint']):
                     if self.derive_obs['rainAccum']['month'][0] is None:
                         self.api_data[device_id]['month'] = weatherflow_api.month(api_device_id, config)
@@ -449,7 +455,6 @@ class obs_parser():
             device_type         Device type
         """
 
-        # Derive variables from available obs_out_air and obs_st observations
         # Derive variables from available obs_out_air and obs_st observations
         if device_type in ('obs_out_air', 'obs_st'):
             self.derive_obs['feelsLike']    = derive.feels_like(self.device_obs['outTemp'], self.device_obs['humidity'], self.device_obs['windSpd'], config)
