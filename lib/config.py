@@ -272,10 +272,11 @@ def update():
         with open('wfpiconsole.ini', 'w') as config_file:
             new_config.write(config_file)
 
-    #  VERSION UNCHANGED. VERIFY STATION AND DEVICE DETAILS FOR EXISTING
+    # VERSION UNCHANGED. VERIFY STATION, DEVICE AND SYSTEM DETAILS FOR EXISTING
     # CONFIGURATION
     # --------------------------------------------------------------------------
     elif version.parse(current_version) == version.parse(latest_version):
+        current_config = verify_system(current_config)
         if current_config['System']['rest_api'] and int(current_config['System']['rest_api']):
             current_config = verify_station(current_config)
         with open('wfpiconsole.ini', 'w') as config_file:
@@ -318,6 +319,22 @@ def verify_station(config):
         if config['Station'][key] != str(STATION[api_key[idx]]):
             config.set('Station', key, str(STATION[api_key[idx]]))
             Logger.info('Config: Updating station ' + key.lower())
+
+    # Return verified configuration
+    return config
+
+
+def verify_system(config):
+
+    # Force rest_api services if Websocket connection is selected
+    if (config['System']['Connection'] == 'Websocket' and
+        (config['System']['rest_api'] and not int(config['System']['rest_api']))):
+        config.set('System', 'rest_api', '1')
+
+    # Force raw rain accumulation if UDP connection is selected
+    if (config['System']['Connection'] == 'UDP' and
+        (config['System']['nc_rain'] and int(config['System']['nc_rain']))):
+        config.set('System', 'nc_rain', '0')
 
     # Return verified configuration
     return config
@@ -955,7 +972,7 @@ def udp_input_fields():
                                                             ('Longitude',      {'type': 'user_input',   'state': 'required',             'desc': 'station longitude (negative for west)',  'format': float}),
                                                             ('Elevation',      {'type': 'user_input',   'state': 'required',             'desc': 'station elevation (meters)',             'format': float}),
                                                             ('Name',           {'type': 'user_input',   'state': 'required',             'desc': 'station name',                           'format': str}),
-                                                            ('Timezone',       {'type': 'default',     'value': str(get_localzone()),   'desc': 'station timezone'})])
+                                                            ('Timezone',       {'type': 'default',      'value': str(get_localzone()),   'desc': 'station timezone'})])
     udp_input['Units'] =           collections.OrderedDict([('description',    '  Observation units'),
                                                             ('Temp',           {'type': 'dependent',   'desc': 'station temperature units',    'value': {1: 'c',        2: 'c',        3: 'f'}}),
                                                             ('Pressure',       {'type': 'dependent',   'desc': 'station pressure units',       'value': {1: 'mb',       2: 'mb',       3: 'inhg'}}),

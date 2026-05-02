@@ -120,10 +120,16 @@ class obs_parser():
         self.device_obs['strikeMinute'] = [latest_ob[15], 'count']
         if bool(int(config['System']['nc_rain'])):
             self.device_obs['minuteRain'] = [latest_ob[19], 'mm']
-            self.device_obs['dailyRain']  = [latest_ob[20], 'mm']
+            try:
+                self.device_obs['dailyRain']  = [latest_ob[20], 'mm']
+            except IndexError:
+                pass
         else:
             self.device_obs['minuteRain'] = [latest_ob[12], 'mm']
-            self.device_obs['dailyRain']  = [latest_ob[18], 'mm']
+            try:
+                self.device_obs['dailyRain']  = [latest_ob[18], 'mm']
+            except IndexError:
+                pass
 
         # Extract lightning strike data from the latest TEMPEST Websocket JSON
         # "summary" object
@@ -209,10 +215,16 @@ class obs_parser():
         self.device_obs['radiation']  = [latest_ob[10], 'Wm2']
         if bool(int(config['System']['nc_rain'])):
             self.device_obs['minuteRain'] = [latest_ob[14], 'mm']
-            self.device_obs['dailyRain']  = [latest_ob[15], 'mm']
+            try:
+                self.device_obs['dailyRain']  = [latest_ob[15], 'mm']
+            except IndexError:
+                pass
         else:
             self.device_obs['minuteRain'] = [latest_ob[3], 'mm']
-            self.device_obs['dailyRain']  = [latest_ob[11], 'mm']
+            try:
+                self.device_obs['dailyRain']  = [latest_ob[11], 'mm']
+            except IndexError:
+                pass
 
         # Request required SKY data from the WeatherFlow API
         if int(config['System']['rest_api']) and config['Station']['SkyID']:

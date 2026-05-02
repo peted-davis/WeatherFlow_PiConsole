@@ -405,6 +405,22 @@ class wfpiconsole(App):
                                         if isinstance(child, Switch):
                                             child.active = True
 
+        # Force raw rain accumulation if UDP connection is selected
+        if ((section == 'System' and key == 'Connection' and value == 'UDP')
+                or (section == 'System' and key == 'nc_rain' and self.config['System']['Connection'] == 'UDP')):
+            if self.config['System']['nc_rain'] == '1':
+                self.config.set('System', 'nc_rain', '0')
+                self.config.write()
+                panels = self._app_settings.children[0].content.panels
+                for panel in panels.values():
+                    if panel.title == 'System':
+                        for item in panel.children:
+                            if isinstance(item, SettingBoolean) and item.title == 'NC rain accumulation':
+                                for child in item.children[0].children:
+                                    for child in child.children:
+                                        if isinstance(child, Switch):
+                                            child.active = False
+
         # Switch connection type, change between Device/Statistics API endpoint
         # and swtich to showing NC rain totals
         if section == 'System' and (key == 'Connection' or key == 'stats_endpoint' or key == 'nc_rain'):
