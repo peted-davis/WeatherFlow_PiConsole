@@ -202,6 +202,13 @@ sudo reboot
 
 This change is system-wide and only applies to LXDE/X11 sessions. The Wayfire/Wayland sessions used on newer Raspberry Pi OS releases require a different approach.
 
+If after applying this you still see a window title bar with the bottom of the console clipped, openbox is putting the console in maximized state instead of true fullscreen. Force fullscreen at startup by also setting the following in `~/.kivy/config.ini` under `[graphics]`:
+
+```
+fullscreen = auto
+borderless = 1
+```
+
 ## Advanced: Custom Panels
 
 The console is distributed with 7 built-in panels to display weather, forecast
