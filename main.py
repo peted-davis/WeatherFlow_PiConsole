@@ -276,6 +276,38 @@ class wfpiconsole(App):
     # --------------------------------------------------------------------------
     def on_config_change(self, config, section, key, value):
 
+        # Force rest_api services if Websocket connection is selected
+        if ((section == 'System' and key == 'Connection' and value == 'Websocket')
+                or (section == 'System' and key == 'rest_api' and self.config['System']['Connection'] == 'Websocket')):
+            if self.config['System']['rest_api'] == '0':
+                self.config.set('System', 'rest_api', '1')
+                self.config.write()
+                panels = self._app_settings.children[0].content.panels
+                for panel in panels.values():
+                    if panel.title == 'System':
+                        for item in panel.children:
+                            if isinstance(item, SettingBoolean) and item.title == 'REST API':
+                                for child in item.children[0].children:
+                                    for child in child.children:
+                                        if isinstance(child, Switch):
+                                            child.active = True
+
+        # Force raw rain accumulation if UDP connection is selected
+        if ((section == 'System' and key == 'Connection' and value == 'UDP')
+                or (section == 'System' and key == 'nc_rain' and self.config['System']['Connection'] == 'UDP')):
+            if self.config['System']['nc_rain'] == '1':
+                self.config.set('System', 'nc_rain', '0')
+                self.config.write()
+                panels = self._app_settings.children[0].content.panels
+                for panel in panels.values():
+                    if panel.title == 'System':
+                        for item in panel.children:
+                            if isinstance(item, SettingBoolean) and item.title == 'NC rain accumulation':
+                                for child in item.children[0].children:
+                                    for child in child.children:
+                                        if isinstance(child, Switch):
+                                            child.active = False
+
         # Update current weather forecast when temperature or wind speed units
         # are changed
         if section == 'Units' and key in ['Temp', 'Wind']:
@@ -388,38 +420,6 @@ class wfpiconsole(App):
         # Update Sager Forecast schedule
         if section == 'System' and key == 'SagerInterval':
             Clock.schedule_once(self.sager.schedule_forecast)
-
-        # Force rest_api services if Websocket connection is selected
-        if ((section == 'System' and key == 'Connection' and value == 'Websocket')
-                or (section == 'System' and key == 'rest_api' and self.config['System']['Connection'] == 'Websocket')):
-            if self.config['System']['rest_api'] == '0':
-                self.config.set('System', 'rest_api', '1')
-                self.config.write()
-                panels = self._app_settings.children[0].content.panels
-                for panel in panels.values():
-                    if panel.title == 'System':
-                        for item in panel.children:
-                            if isinstance(item, SettingBoolean) and item.title == 'REST API':
-                                for child in item.children[0].children:
-                                    for child in child.children:
-                                        if isinstance(child, Switch):
-                                            child.active = True
-
-        # Force raw rain accumulation if UDP connection is selected
-        if ((section == 'System' and key == 'Connection' and value == 'UDP')
-                or (section == 'System' and key == 'nc_rain' and self.config['System']['Connection'] == 'UDP')):
-            if self.config['System']['nc_rain'] == '1':
-                self.config.set('System', 'nc_rain', '0')
-                self.config.write()
-                panels = self._app_settings.children[0].content.panels
-                for panel in panels.values():
-                    if panel.title == 'System':
-                        for item in panel.children:
-                            if isinstance(item, SettingBoolean) and item.title == 'NC rain accumulation':
-                                for child in item.children[0].children:
-                                    for child in child.children:
-                                        if isinstance(child, Switch):
-                                            child.active = False
 
         # Switch connection type, change between Device/Statistics API endpoint
         # and swtich to showing NC rain totals
