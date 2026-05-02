@@ -28,6 +28,7 @@ https://community.weatherflow.com/
 **[Installation Instructions](#installation-instructions)**<br>
 **[Update Instructions](#update-instructions)**<br>
 **[Auto-Start Instructions](#auto-start-instructions)**<br>
+**[Run as a Kiosk](#run-as-a-kiosk)**<br>
 **[Advanced: Custom Panels](#advanced-custom-panels)**<br>
 **[Advanced: Device Replacement](#advanced-device-replacement)**<br>
 **[Advanced: Windows Installation](#advanced-installation-windows)**<br>
@@ -178,6 +179,28 @@ stop command or a hard shutdown:
 ```
 wfpiconsole stop
 ```
+
+## Run as a Kiosk
+
+When the console is launched into the default Raspberry Pi OS LXDE session, the lxpanel taskbar can prevent the console from covering the full screen even with `Fullscreen = 1`. To run the Pi as a dedicated weather console with no desktop panel or icons, edit `/etc/xdg/lxsession/LXDE-pi/autostart` and remove (or comment out) the `@lxpanel` and `@pcmanfm --desktop` lines. Optionally add three `xset` lines to keep the display awake 24/7:
+
+```bash
+sudo cp /etc/xdg/lxsession/LXDE-pi/autostart /etc/xdg/lxsession/LXDE-pi/autostart.bak
+sudo tee /etc/xdg/lxsession/LXDE-pi/autostart > /dev/null <<'EOF'
+@xset s off
+@xset -dpms
+@xset s noblank
+EOF
+sudo reboot
+```
+
+To restore the original desktop:
+```bash
+sudo cp /etc/xdg/lxsession/LXDE-pi/autostart.bak /etc/xdg/lxsession/LXDE-pi/autostart
+sudo reboot
+```
+
+This change is system-wide and only applies to LXDE/X11 sessions. The Wayfire/Wayland sessions used on newer Raspberry Pi OS releases require a different approach.
 
 ## Advanced: Custom Panels
 
