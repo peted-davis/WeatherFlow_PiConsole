@@ -1176,9 +1176,8 @@ def rain_accumulation(minute_rain, daily_rain, rain_accum, device, api_data, con
     # Else, set current daily rainfall accumulation for UDP connections
     elif config['System']['Connection'] == 'UDP':
 
-        # If console is initialising and REST API services are enabled, download
-        # all data for current day using Weatherflow API and calculate todays's
-        # rainfall
+        # If console is initialising and REST API services are enabled,
+        # calculate todays's rainfall using Weatherflow API
         if int(config['System']['rest_api']) and rain_accum['today'][0] is None:
             if not int(config['System']['stats_endpoint']):
                 if 'today' in api_data[device] and weatherflow_api.verify_response(api_data[device]['today'], 'obs'):
@@ -1223,16 +1222,15 @@ def rain_accumulation(minute_rain, daily_rain, rain_accum, device, api_data, con
     # ==========================================================================
     # YESTERDAY RAIN
     # ==========================================================================
-    # If console is initialising and REST API services are enabled, download
-    # all data for yesterday using Weatherflow API and calculate yesterday's
-    # rainfall
+    # If console is initialising and REST API services are enabled, calculate
+    # yesterday's rainfall using Weatherflow API
     if int(config['System']['rest_api']) and rain_accum['yesterday'][0] is None:
         if not int(config['System']['stats_endpoint']):
-            if 'yesterday' in api_data[device] and weatherflow_api.verify_response(api_data[device]['yesterday'], 'obs'):
-                yesterday_data = api_data[device]['yesterday'].json()['obs']
-                rain_data = [item[index_bucket_a] for item in yesterday_data if item[index_bucket_a] is not None]
+            if 'month' in api_data[device] and weatherflow_api.verify_response(api_data[device]['month'], 'obs'):
+                month_data = api_data[device]['month'].json()['obs'][-1]
+                rain_data  = month_data[index_bucket_e] if month_data[index_bucket_e] is not None else None
                 try:
-                    yesterday_rain = [sum(x for x in rain_data) if rain_data else None, 'mm', sum(x for x in rain_data) if rain_data else None, time.time()]
+                    yesterday_rain = [rain_data if rain_data else None, 'mm', rain_data if rain_data else None, time.time()]
                 except Exception as error:
                     Logger.warning(f'rain_accum: {system().log_time()} - {error}')
                     yesterday_rain = error_output
@@ -1255,8 +1253,7 @@ def rain_accumulation(minute_rain, daily_rain, rain_accum, device, api_data, con
 
     # Else if midnight has passed, set yesterday's rainfall accumulation equal
     # to rain_accum['today'] (which still contains yesterday's accumulation)
-    elif (rain_accum['today'][0] is not None
-            and time_now.date() > datetime.fromtimestamp(rain_accum['today'][3], Tz).date()):
+    elif rain_accum['today'][0] is not None and time_now.date() > datetime.fromtimestamp(rain_accum['today'][3], Tz).date():
         yesterday_rain = [rain_accum['today'][2], 'mm', rain_accum['today'][2], time.time()]
 
     # Else if console is initialising and REST API services are not enabled, set
@@ -1277,8 +1274,7 @@ def rain_accumulation(minute_rain, daily_rain, rain_accum, device, api_data, con
         month_rain = [today_rain[0], 'mm', 0, time.time()]
 
     # Else if console is initialising and REST API services are enabled,
-    # download all data for the current month using Weatherflow API and
-    # calculate the monthly rainfall
+    # calculate the monthly rainfall using Weatherflow API
     elif int(config['System']['rest_api']) and rain_accum['month'][0] is None:
         if today_rain[0] is not None:
             if not int(config['System']['stats_endpoint']):
@@ -1321,7 +1317,7 @@ def rain_accumulation(minute_rain, daily_rain, rain_accum, device, api_data, con
         daily_accum = today_rain[0] if not today_rain[0] is None else 0
         month_rain  = [daily_accum, 'mm', 0, time.time()]
 
-    # Else if midnight has passed, permanently add rain_accum['Today'] (which
+    # Else if midnight has passed, permanently add rain_accum['today'] (which
     # still contains yesterday's accumulation) and current daily rainfall to
     # monthly rain accumulation
     elif time_now.date() > datetime.fromtimestamp(rain_accum['month'][3], Tz).date():
