@@ -1228,9 +1228,9 @@ def rain_accumulation(minute_rain, daily_rain, rain_accum, device, api_data, con
         if not int(config['System']['stats_endpoint']):
             if 'month' in api_data[device] and weatherflow_api.verify_response(api_data[device]['month'], 'obs'):
                 month_data = api_data[device]['month'].json()['obs'][-1]
-                rain_data  = month_data[index_bucket_e] if month_data[index_bucket_e] is not None else None
+                rain_data  = month_data[index_bucket_e]
                 try:
-                    yesterday_rain = [rain_data if rain_data else None, 'mm', rain_data if rain_data else None, time.time()]
+                    yesterday_rain = [rain_data, 'mm', rain_data, time.time()]
                 except Exception as error:
                     Logger.warning(f'rain_accum: {system().log_time()} - {error}')
                     yesterday_rain = error_output
