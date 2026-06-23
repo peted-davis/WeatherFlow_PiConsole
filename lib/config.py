@@ -116,7 +116,7 @@ def create():
             # Write the minimal configuration to disk
             with open('wfpiconsole.ini', 'w') as config_file:
                 config.write(config_file)
-            print('\n  Sucesfully installed a minimal configuration file. Please edit')
+            print('\n  Successfully installed a minimal configuration file. Please edit')
             print('  this file manually to configure an advanced installation\n')
 
         # Unable to install minimal configuration
