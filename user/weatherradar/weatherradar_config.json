@@ -1,0 +1,12 @@
+{
+    "zip_code": "29403",
+    "country": "us",
+    "zoom": 7,
+    "tile_grid": 3,
+    "refresh_interval": 300,
+    "past_frames": 12,
+    "color_scheme": 6,
+    "smooth": 1,
+    "snow": 0,
+    "frame_delay": 0.2
+}
