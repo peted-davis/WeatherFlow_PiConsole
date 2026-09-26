@@ -264,11 +264,23 @@ class sager_forecast():
         if checkwx_api.verify_response(data, 'data'):
             METAR_data = data.json()['data']
             METAR_data.sort(key=lambda data: data['position']['distance']['miles'])
+            # A clear-sky report (SKC, CLR, CAVOK, NCD, NSC) has no cloud
+            # layers, so CheckWX omits the 'clouds' key. get_dial_setting()
+            # reads cloud cover from raw_text and handles those codes, so
+            # fall back to the nearest report carrying any cloud group.
+            ccodes = ('CAVOK', 'CLR', 'NCD', 'NSC', 'SKC',
+                      'FEW', 'SCT', 'BKN', 'OVC', 'VV')
             self.sager_data['METAR'] = None
             for METAR in METAR_data:
-                if 'clouds' in METAR:
+                if METAR.get('clouds'):
                     self.sager_data['METAR'] = METAR['raw_text']
                     break
+            if self.sager_data['METAR'] is None:
+                for METAR in METAR_data:
+                    raw = METAR.get('raw_text') or ''
+                    if any(code in raw for code in ccodes):
+                        self.sager_data['METAR'] = raw
+                        break
         else:
             self.sager_data['Forecast'] = '[color=f05e40ff]ERROR:[/color] Missing METAR information. Forecast will be regenerated in 60 minutes'
             self.sager_data['Issued']   = sched_time.strftime(time_format)
