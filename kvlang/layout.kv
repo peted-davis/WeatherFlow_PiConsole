@@ -328,11 +328,10 @@
 ## =============================================================================
 <wind_rose@FloatLayout>:
     _width: 3.0
-    size_hint: (134/262, 134/202)
+    size_hint: (None, None)
+    size: [min((134/262)*self.parent.width, (134/202)*self.parent.height)] * 2
     x: self.parent.width/2 - self.width/2
     y: (92/202)*self.parent.height - self.height/2
-    size_hint_max_x: self.height if self.parent.width  > self.parent.height else None
-    size_hint_max_y: self.width  if self.parent.height > self.parent.width  else None
     canvas.before:
         Color:
             rgba: utils.rgba('c8c8c8ff')
@@ -356,11 +355,10 @@
 ## =============================================================================
 <moon_rose@FloatLayout>:
     _width: 3.0
-    size_hint: (134/262, 134/202)
+    size_hint: (None, None)
+    size: [min((134/262)*self.parent.width, (134/202)*self.parent.height)] * 2
     x: self.parent.width/2 - self.width/2
     y: (92/202)*self.parent.height - self.height/2
-    size_hint_max_x: self.height if self.parent.width  > self.parent.height else None
-    size_hint_max_y: self.width  if self.parent.height > self.parent.width  else None
     canvas.before:
         Color:
             rgba: utils.rgba('646464ff')
@@ -373,11 +371,10 @@
 ## =============================================================================
 <barometer_dial@FloatLayout>:
     _width: 3.0
-    size_hint: (168/262, 168/202)
+    size_hint: (None, None)
+    size: [min((168/262)*self.parent.width, (168/202)*self.parent.height)] * 2
     x: self.parent.width/2 - self.width/2
     y: (18/202)*self.parent.height - self.height/2
-    size_hint_max_x: self.height if self.parent.width  > self.parent.height else None
-    size_hint_max_y: self.width  if self.parent.height > self.parent.width  else None
     canvas.before:
         Color:
             rgba: utils.rgba('646464ff')
