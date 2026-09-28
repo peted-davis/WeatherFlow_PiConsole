@@ -123,7 +123,7 @@ class sager_forecast():
 
     def generate_forecast(self):
 
-        ''' Generates the Sager Weathercaster forecast based on the current 
+        ''' Generates the Sager Weathercaster forecast based on the current
         weather conditions and the trend in conditions over the previous 6 hours
         '''
 
@@ -258,42 +258,33 @@ class sager_forecast():
         else:
             self.sager_data['temperature'] = np.nanmean(temperature)
 
-        # Download closet METAR report to station location that contains cloud 
+        # Download closet METAR report to station location that contains cloud
         # information
         data = checkwx_api.METAR(self.app.config)
         if checkwx_api.verify_response(data, 'data'):
+            self.sager_data['METAR'] = None
             METAR_data = data.json()['data']
             METAR_data.sort(key=lambda data: data['position']['distance']['miles'])
-            # A clear-sky report (SKC, CLR, CAVOK, NCD, NSC) has no cloud
-            # layers, so CheckWX omits the 'clouds' key. get_dial_setting()
-            # reads cloud cover from raw_text and handles those codes, so
-            # fall back to the nearest report carrying any cloud group.
             ccodes = ('CAVOK', 'CLR', 'NCD', 'NSC', 'SKC',
                       'FEW', 'SCT', 'BKN', 'OVC', 'VV')
-            self.sager_data['METAR'] = None
             for METAR in METAR_data:
-                if METAR.get('clouds'):
+                raw = METAR.get('raw_text') or ''
+                if METAR.get('clouds') or any(code in raw for code in ccodes):
                     self.sager_data['METAR'] = METAR['raw_text']
                     break
-            if self.sager_data['METAR'] is None:
-                for METAR in METAR_data:
-                    raw = METAR.get('raw_text') or ''
-                    if any(code in raw for code in ccodes):
-                        self.sager_data['METAR'] = raw
-                        break
         else:
             self.sager_data['Forecast'] = '[color=f05e40ff]ERROR:[/color] Missing METAR information. Forecast will be regenerated in 60 minutes'
             self.sager_data['Issued']   = sched_time.strftime(time_format)
             Clock.schedule_once(self.fail_forecast)
             return
-        
-        # If no METAR report is available with cloud information, mark forecast 
+
+        # If no METAR report is available with cloud information, mark forecast
         # as failed
         if self.sager_data['METAR'] is None:
             self.sager_data['Forecast'] = '[color=f05e40ff]ERROR:[/color] Missing METAR cloud information. Forecast will be regenerated in 60 minutes'
             self.sager_data['Issued']   = sched_time.strftime(time_format)
             Clock.schedule_once(self.fail_forecast)
-            return            
+            return
 
         # Derive Sager Weathercaster forecast
         self.get_dial_setting()
@@ -389,7 +380,7 @@ class sager_forecast():
     def get_dial_setting(self):
 
         ''' Calculates the position of the Sager Weathercaster Dial based on the
-        current weather conditions and the trend in conditions over the previous 
+        current weather conditions and the trend in conditions over the previous
         6 hours
         '''
 
