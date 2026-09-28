@@ -800,7 +800,7 @@ process_complete() {
     # Display autostart-enable complete dialogue
         autostart-enable)
             printf "  ==================================================== \\n"
-            printf "  WeatherFlow PiConsole autostart sucesfully enabled   \\n"
+            printf "  WeatherFlow PiConsole autostart successfully enabled   \\n"
             printf "  Console will now start automatically at boot up      \\n"
             printf "  Starting console for current session. Please wait... \\n"
             printf "  ==================================================== \\n\\n"
@@ -808,7 +808,7 @@ process_complete() {
     # Display autostart-disable complete dialogue
         autostart-disable)
             printf "  =================================================== \\n"
-            printf "  WeatherFlow PiConsole autostart sucesfully disabled \\n"
+            printf "  WeatherFlow PiConsole autostart successfully disabled \\n"
             printf "  Use 'wfpiconsole stop' to halt current session      \\n"
             printf "  =================================================== \\n\\n"
     esac

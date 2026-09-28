@@ -64,7 +64,7 @@ The installation of the WeatherFlow PiConsole is fully automated, and can
 be started from the terminal with a single command. The automated installation
 should take no longer than 10 minutes.
 
-The automated installer assumes you have already sucesfully setup your Raspberry
+The automated installer assumes you have already successfully setup your Raspberry
 Pi and have installed Raspberry Pi OS with Desktop, or you ar running on a PC
 with Ubuntu 20.04 or later or Raspberry Pi OS installed. For a Raspberry Pi you
 should have also attached the touch screen, and have either a keyboard and mouse
