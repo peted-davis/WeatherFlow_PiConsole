@@ -18,13 +18,22 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 # Load required Kivy modules
 from kivy.uix.relativelayout import RelativeLayout
 from kivy.properties         import NumericProperty, StringProperty
-from kivy.animation          import Animation
+from kivy.clock              import Clock
 
 # Load required panel modules
 from panels.template         import panelTemplate
 
 # Load required system modules
 import math
+
+# Rain rate animation parameters. The icon sweeps from rain_rate_x = 0 to
+# RAIN_RATE_TRAVEL over RAIN_RATE_PERIOD seconds and then restarts. The sweep is
+# driven by a scheduled callback at RAIN_RATE_FPS rather than by a per-frame
+# Animation, so that the redraw rate of a slow 12 second sweep does not follow
+# the configured maxfps of the window
+RAIN_RATE_TRAVEL = -0.875
+RAIN_RATE_PERIOD = 12
+RAIN_RATE_FPS    = 12
 
 
 # ==============================================================================
@@ -72,27 +81,38 @@ class RainfallPanel(panelTemplate):
 
             # Animate RainRate level x position
             if rain_rate == 0:
-                if hasattr(self, 'animation'):
-                    self.animation.stop(self)
-                    delattr(self, 'animation')
+                self.stop_rain_rate_animation()
             else:
-                if not hasattr(self, 'animation'):
-                    self.animation  = Animation(rain_rate_x=-0.875, duration=12)
-                    self.animation += Animation(rain_rate_x=-0.875, duration=12)
-                    self.animation.repeat = True
-                    self.animation.start(self)
+                self.start_rain_rate_animation()
 
         # Else, stop animation if it is running
         else:
-            if hasattr(self, 'animation'):
-                self.rain_rate_y = -1.00
-                self.animation.stop(self)
-                delattr(self, 'animation')
+            self.rain_rate_y = -1.00
+            self.stop_rain_rate_animation()
 
-    # Loop RainRate animation in the x direction
-    def on_rain_rate_x(self, item, rain_rate_x):
-        if round(rain_rate_x, 3) == -0.875:
-            item.rain_rate_x = 0
+    # Start the RainRate animation if it is not already running
+    def start_rain_rate_animation(self):
+        if not hasattr(self, 'animation'):
+            self.animation = Clock.schedule_interval(self.update_rain_rate_x,
+                                                     1 / RAIN_RATE_FPS)
+
+    # Stop the RainRate animation if it is running
+    def stop_rain_rate_animation(self):
+        if hasattr(self, 'animation'):
+            self.animation.cancel()
+            delattr(self, 'animation')
+            self.rain_rate_x = 0
+
+    # Advance the RainRate animation in the x direction, looping back to the
+    # start of the sweep once the icon has travelled its full width. The step is
+    # derived from the elapsed time rather than from a fixed increment, so the
+    # sweep still takes RAIN_RATE_PERIOD seconds if a frame is late or
+    # RAIN_RATE_FPS is changed
+    def update_rain_rate_x(self, dt):
+        rain_rate_x = self.rain_rate_x + RAIN_RATE_TRAVEL / RAIN_RATE_PERIOD * dt
+        if rain_rate_x <= RAIN_RATE_TRAVEL:
+            rain_rate_x -= RAIN_RATE_TRAVEL
+        self.rain_rate_x = rain_rate_x
 
 
 class RainfallButton(RelativeLayout):
